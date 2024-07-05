@@ -821,7 +821,7 @@ export declare class LGraphNode {
         direction: string;
         links: null;
     };
-    /** computes the size of a node according to its inputs and output slots */
+    /** computes the minimum size of a node according to its inputs and output slots */
     computeSize(minHeight?: Vector2): Vector2;
     /** returns all the info available about a property of this node */
     getPropertyInfo(property: string): object;
@@ -844,7 +844,7 @@ export declare class LGraphNode {
      * @method getBounding
      * @param out [optional] a place to store the output, to free garbage
      * @param compute_outer [optional] set to true to include the shadow and connection points in the bounding calculation
-     * @return the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]*
+     * @return the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]
      */
     getBounding(out?: Vector4, compute_outer?: boolean): Vector4;
     /** checks if a point is inside the shape of a node */
