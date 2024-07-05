@@ -53,7 +53,7 @@ export type WidgetCallback<T extends IWidget = IWidget> = (
 
 export interface IWidget<TValue = any, TOptions = any> {
     // linked widgets, e.g. seed+seedControl
-	linkedWidgets: IWidget[];
+    linkedWidgets: IWidget[];
 
     name: string | null;
     value: TValue;
@@ -147,8 +147,6 @@ export type ContextMenuEventListener = (
 ) => boolean | void;
 
 export const LiteGraph: {
-    uuid: Symbol;
-
     DEFAULT_GROUP_FONT_SIZE: any;
     overlapBounding(visible_area: any, _bounding: any): unknown;
     release_link_on_empty_shows_menu: boolean;
@@ -358,7 +356,7 @@ export declare class LGraph {
     static supported_types: string[];
     static STATUS_STOPPED: 1;
     static STATUS_RUNNING: 2;
-	extra: any;
+    extra: any;
 
     constructor(o?: object);
 
@@ -716,6 +714,8 @@ export declare class LGraphNode {
     getInputInfo(
         slot: number
     ): { link: number; name: string; type: string | 0 } | null;
+    /** Returns the link info in the connection of an input slot */
+    getInputLink(slot: number): LLink | null;
     /** returns the node connected in the input slot */
     getInputNode(slot: number): LGraphNode | null;
     /** returns the value of an input with this name, otherwise checks if there is a property with that name */
@@ -747,6 +747,8 @@ export declare class LGraphNode {
      * @param link_id in case you want to trigger and specific output link in a slot
      */
     clearTriggeredSlot(slot: number, link_id?: number): void;
+    /** changes node size and triggers callback */
+    setSize(size: Vector2): void;
     /**
      * add a new property to this node
      * @param name
@@ -819,9 +821,10 @@ export declare class LGraphNode {
         direction: string;
         links: null;
     };
-    setValue(v: any): void;
     /** computes the size of a node according to its inputs and output slots */
-    computeSize(): [number, number];
+    computeSize(minHeight?: Vector2): Vector2;
+    /** returns all the info available about a property of this node */
+    getPropertyInfo(property: string): object;
     /**
      * https://github.com/jagenjo/litegraph.js/blob/master/guides/README.md#node-widgets
      * @return created widget
@@ -838,9 +841,12 @@ export declare class LGraphNode {
 
     /**
      * returns the bounding of the object, used for rendering purposes
-     * @return [x, y, width, height]
+     * @method getBounding
+     * @param out [optional] a place to store the output, to free garbage
+     * @param compute_outer [optional] set to true to include the shadow and connection points in the bounding calculation
+     * @return the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]*
      */
-    getBounding(): Vector4;
+    getBounding(out?: Vector4, compute_outer?: boolean): Vector4;
     /** checks if a point is inside the shape of a node */
     isPointInside(
         x: number,
@@ -1513,3 +1519,5 @@ declare class ContextMenu {
     getTopMenu(): void;
     getFirstEvent(): void;
 }
+
+declare function clamp(v: number, min: number, max: number): number;
