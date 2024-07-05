@@ -25,6 +25,7 @@
     "author": "comfyorg",
     "license": "MIT",
     "files": [
+        "src/litegraph.js",
         "css/litegraph.css",
         "src/litegraph.d.ts"
     ],
