@@ -9965,9 +9965,18 @@ LGraphNode.prototype.executeAction = function(action)
                             if (textWidth > availableWidth) {
                                 const ellipsis = "...";
                                 const ellipsisWidth = ctx.measureText(ellipsis).width;
-                                if (availableWidth <= ellipsisWidth) {
+                                const maxCharWidth = ctx.measureText("W").width;
+                                if (availableWidth == 0) {
+                                    v = "";
+                                }
+                                else if (availableWidth <= ellipsisWidth) {
                                     v = ellipsis;
                                 } else {
+                                    const overflowWidth = (textWidth + ellipsisWidth) - availableWidth;
+                                    // Only last 3 truncated characters need to be measured for exact precision
+                                    if ( overflowWidth + maxCharWidth * 4 > availableWidth) {
+                                        v = v.substr(0, v.length - 3)
+                                    }
                                     while (ctx.measureText(v).width + ellipsisWidth > availableWidth) {
                                         v = v.substr(0, v.length - 1);
                                     }
