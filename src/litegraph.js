@@ -9965,14 +9965,16 @@ LGraphNode.prototype.executeAction = function(action)
                             if (textWidth > availableWidth) {
                                 const ELLIPSIS = "\u2026";
                                 const ellipsisWidth = ctx.measureText(ELLIPSIS).width;
-                                const maxCharWidth = ctx.measureText("W").width;
+                                const charWidthAvg = ctx.measureText("a").width;
                                 if (availableWidth <= ellipsisWidth) {
                                     v = "\u2024"; // One dot leader
                                 } else {
                                     const overflowWidth = (textWidth + ellipsisWidth) - availableWidth;
-                                    // Only last 3 truncated characters need to be measured for exact precision
-                                    if ( overflowWidth + maxCharWidth * 4 > availableWidth) {
-                                        v = v.substr(0, v.length - 3)
+                                    // Only first 3 characters need to be measured precisely
+                                    if ( overflowWidth + charWidthAvg * 3 > availableWidth) {
+                                        const preciseRange = availableWidth + charWidthAvg * 3;
+                                        const preTruncateCt = Math.floor((preciseRange - ellipsisWidth) / charWidthAvg);
+                                        v = v.substr(0, preTruncateCt)
                                     }
                                     while (ctx.measureText(v).width + ellipsisWidth > availableWidth) {
                                         v = v.substr(0, v.length - 1);
