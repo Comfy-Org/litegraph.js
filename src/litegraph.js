@@ -9963,14 +9963,11 @@ LGraphNode.prototype.executeAction = function(action)
                             const availableWidth = inputWidth - labelWidth
                             const textWidth = ctx.measureText(v).width;
                             if (textWidth > availableWidth) {
-                                const ellipsis = "...";
-                                const ellipsisWidth = ctx.measureText(ellipsis).width;
+                                const ELLIPSIS = "\u2026";
+                                const ellipsisWidth = ctx.measureText(ELLIPSIS).width;
                                 const maxCharWidth = ctx.measureText("W").width;
-                                if (availableWidth == 0) {
-                                    v = "";
-                                }
-                                else if (availableWidth <= ellipsisWidth) {
-                                    v = ellipsis;
+                                if (availableWidth <= ellipsisWidth) {
+                                    v = "\u2024"; // One dot leader
                                 } else {
                                     const overflowWidth = (textWidth + ellipsisWidth) - availableWidth;
                                     // Only last 3 truncated characters need to be measured for exact precision
@@ -9980,7 +9977,7 @@ LGraphNode.prototype.executeAction = function(action)
                                     while (ctx.measureText(v).width + ellipsisWidth > availableWidth) {
                                         v = v.substr(0, v.length - 1);
                                     }
-                                    v += ellipsis;
+                                    v += ELLIPSIS;
                                 }
                             } 
                             ctx.fillText(
