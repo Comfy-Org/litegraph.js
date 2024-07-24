@@ -6034,11 +6034,7 @@ LGraphNode.prototype.executeAction = function(action)
                                             node.disconnectInput(i);
                                             this.dirty_bgcanvas = true;
                                             skip_action = true;
-                                        }else{
-                                            // do same action as has not node ?
-                                        }
-
-                                        if (
+                                        } else if (
                                             this.allow_reconnect_links ||
 											//this.move_destination_link_without_shift ||
                                             e.shiftKey
@@ -6058,6 +6054,8 @@ LGraphNode.prototype.executeAction = function(action)
                                             
                                             this.dirty_bgcanvas = true;
                                             skip_action = true;
+                                        }else{
+                                            // do same action as has not node ?
                                         }
 
                                         
