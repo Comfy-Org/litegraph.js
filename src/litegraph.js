@@ -6076,6 +6076,8 @@ LGraphNode.prototype.executeAction = function(action)
                                         this.dirty_bgcanvas = true;
                                         skip_action = true;
                                     }
+
+                                    break;
                                 }
                             }
                         }
