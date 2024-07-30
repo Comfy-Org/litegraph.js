@@ -6825,24 +6825,26 @@ LGraphNode.prototype.executeAction = function(action)
                     }
                 } else {
                     const firstLink = this.connecting_links[0];
-
-                    const linkReleaseContext = this.connecting_output ? {
-                        node_from: this.connecting_node,
-                        slot_from: this.connecting_output,
-                        type_filter_in: this.connecting_output.type
+                    const linkReleaseContext = firstLink.output ? {
+                        node_from: firstLink.node,
+                        slot_from: firstLink.output,
+                        type_filter_in: firstLink.output.type
                     } : {
-                        node_to: this.connecting_node,
-                        slot_from: this.connecting_input,
-                        type_filter_out: this.connecting_input.type
+                        node_to: firstLink.node,
+                        slot_from: firstLink.input,
+                        type_filter_out: firstLink.input.type
                     };
-
+                    // For external event only.
+                    const linkReleaseContextExtended = {
+                        links: this.connecting_links,
+                    };
                     this.canvas.dispatchEvent(new CustomEvent(
                         "litegraph:canvas", {
                             bubbles: true,
                             detail: {
                                 subType: "empty-release",
                                 originalEvent: e,
-                                linkReleaseContext,
+                                linkReleaseContextExtended,
                             },
                         }
                     ));
