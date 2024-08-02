@@ -6646,11 +6646,11 @@ LGraphNode.prototype.executeAction = function(action)
     	
     	//console.log("pointerevents: processMouseUp "+e.pointerId+" "+e.isPrimary+" :: "+e.clientX+" "+e.clientY);
     	
-        if (!this.graph)
-            return;
-
 		if( this.set_canvas_dirty_on_mouse_event )
 			this.dirty_canvas = true;
+
+        if (!this.graph)
+            return;
 
         var window = this.getCanvasWindow();
         var document = window.document;
