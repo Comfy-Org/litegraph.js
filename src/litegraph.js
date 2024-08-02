@@ -6391,9 +6391,6 @@ LGraphNode.prototype.executeAction = function(action)
             this.resize();
         }
 
-		if( this.set_canvas_dirty_on_mouse_event )
-			this.dirty_canvas = true;
-
         if (!this.graph) {
             return;
         }
@@ -6651,6 +6648,9 @@ LGraphNode.prototype.executeAction = function(action)
     	
         if (!this.graph)
             return;
+
+		if( this.set_canvas_dirty_on_mouse_event )
+			this.dirty_canvas = true;
 
         var window = this.getCanvasWindow();
         var document = window.document;
