@@ -14506,6 +14506,89 @@ LGraphNode.prototype.executeAction = function(action)
     };
     global.clamp = clamp;
 
+    // colorUtil.ts - Functions copied from ComfyUI_frontend generated code.  Circular dependency requires resolution.
+      function rgbToHsl({ r, g, b }) {
+        ;
+        r /= 255, g /= 255, b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h2, s, l = (max + min) / 2;
+        if (max === min) {
+          h2 = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r:
+              h2 = (g - b) / d + (g < b ? 6 : 0);
+              break;
+            case g:
+              h2 = (b - r) / d + 2;
+              break;
+            case b:
+              h2 = (r - g) / d + 4;
+              break;
+          }
+          h2 /= 6;
+        }
+        return { h: h2, s, l };
+      }
+      function hslToRgb({ h: h2, s, l }) {
+        let r, g, b;
+        if (s === 0) {
+          r = g = b = l;
+        } else {
+          const hue2rgb = (p22, q2, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p22 + (q2 - p22) * 6 * t;
+            if (t < 1 / 2) return q2;
+            if (t < 2 / 3) return p22 + (q2 - p22) * (2 / 3 - t) * 6;
+            return p22;
+          };
+          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          const p2 = 2 * l - q;
+          r = hue2rgb(p2, q, h2 + 1 / 3);
+          g = hue2rgb(p2, q, h2);
+          b = hue2rgb(p2, q, h2 - 1 / 3);
+        }
+        return {
+          r: Math.round(r * 255),
+          g: Math.round(g * 255),
+          b: Math.round(b * 255)
+        };
+      }
+      function hexToRgb(hex) {
+        let r = 0, g = 0, b = 0;
+        if (hex.length == 4) {
+          r = parseInt(hex[1] + hex[1], 16);
+          g = parseInt(hex[2] + hex[2], 16);
+          b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length == 7) {
+          r = parseInt(hex.slice(1, 3), 16);
+          g = parseInt(hex.slice(3, 5), 16);
+          b = parseInt(hex.slice(5, 7), 16);
+        }
+        return { r, g, b };
+      }
+      function rgbToHex({ r, g, b }) {
+        return "#" + [r, g, b].map((x2) => {
+          const hex = x2.toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        }).join("");
+      }
+      // Renamed to ensure changes are not missed
+      function lightenColorEased(hex, amount) {
+        let rgb = hexToRgb(hex);
+        let hsl = rgbToHsl(rgb);
+        // TODO: Keep this easing function or add a wrapper of some kind.
+        const inverseLuminance = 1 - hsl.l
+        const easedAmount = (amount + (amount * inverseLuminance)) * 0.5
+        hsl.l = Math.min(1, hsl.l + easedAmount)
+        rgb = hslToRgb(hsl);
+        return rgbToHex(rgb);
+      }
+    // End colorUtil.ts
+
     if (typeof window != "undefined" && !window["requestAnimationFrame"]) {
         window.requestAnimationFrame =
             window.webkitRequestAnimationFrame ||
