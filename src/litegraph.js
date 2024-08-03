@@ -7030,9 +7030,9 @@ LGraphNode.prototype.executeAction = function(action)
                         canvasx,
                         canvasy,
                         link_pos[0] - 10,
-                        link_pos[1] - 5,
-                        40,
-                        10
+                        link_pos[1] - 10,
+                        80,
+                        20
                     );
                 }
                 if (is_inside) {
@@ -7076,9 +7076,9 @@ LGraphNode.prototype.executeAction = function(action)
                         canvasx,
                         canvasy,
                         link_pos[0] - 10,
-                        link_pos[1] - 5,
+                        link_pos[1] - 10,
                         40,
-                        10
+                        20
                     );
                 }
                 if (is_inside) {
