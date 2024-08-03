@@ -6519,12 +6519,9 @@ LGraphNode.prototype.executeAction = function(action)
                         } else {
                             //check if I have a slot below de mouse
                             var slot = this.isOverNodeInput( node, e.canvasX, e.canvasY, pos );
-                            if (slot != -1 && node.inputs[slot]) {
-                                var slot_type = node.inputs[slot].type;
-                                if ( LiteGraph.isValidConnection( firstLink.output.type, slot_type ) ) {
-                                    this._highlight_input = pos;
-									this._highlight_input_slot = node.inputs[slot]; // XXX CHECK THIS
-                                }
+                            if (slot != -1 && node.inputs[slot] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[slot].type)) {
+                                this._highlight_input = pos;
+                                this._highlight_input_slot = node.inputs[slot]; // XXX CHECK THIS
                             } else {
                                 this._highlight_input = null;
 								this._highlight_input_slot = null;  // XXX CHECK THIS
@@ -6541,11 +6538,8 @@ LGraphNode.prototype.executeAction = function(action)
                         } else {
                             //check if I have a slot below de mouse
                             var slot = this.isOverNodeOutput( node, e.canvasX, e.canvasY, pos );
-                            if (slot != -1 && node.outputs[slot]) {
-                                var slot_type = node.outputs[slot].type;
-                                if ( LiteGraph.isValidConnection( firstLink.input.type, slot_type ) ) {
-                                    this._highlight_output = pos;
-                                }
+                            if (slot != -1 && node.outputs[slot] && LiteGraph.isValidConnection(firstLink.input.type, node.outputs[slot].type)) {
+                                this._highlight_output = pos;
                             } else {
                                 this._highlight_output = null;
                             }
