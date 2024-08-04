@@ -5986,6 +5986,11 @@ LGraphNode.prototype.executeAction = function(action)
                                                 const slot = link.target_slot;
                                                 const linked_node = this.graph._nodes_by_id[link.target_id];
                                                 const input = linked_node.inputs[slot];
+                                                // Functions that process connecting_links assume that the input or output is not null
+                                                if (!input) {
+                                                    console.warn("Found invalid link or node input when initiating a multi-output connection move.  Linked node and input slot ID included.", linked_node, slot)
+                                                    continue
+                                                }
                                                 const pos = linked_node.getConnectionPos(true, slot);
 
                                                 this.connecting_links.push({
@@ -5996,6 +6001,7 @@ LGraphNode.prototype.executeAction = function(action)
                                                     pos: pos,
                                                 });
                                             }
+                                            if (!(this.connecting_links.length > 0)) this.connecting_links = null
 
                                             skip_action = true;
                                             break;
@@ -6080,15 +6086,20 @@ LGraphNode.prototype.executeAction = function(action)
                                             }
                                             const linked_node = this.graph._nodes_by_id[link_info.origin_id];
                                             const slot = link_info.origin_slot;
-                                            this.connecting_links = [
-                                                {
-                                                    node: linked_node,
-                                                    slot: slot,
-                                                    input: null,
-                                                    output: linked_node.outputs[slot],
-                                                    pos: linked_node.getConnectionPos( false, slot ),
-                                                }
-                                            ]
+                                            const linked_output = linked_node.outputs[slot];
+                                            if (linked_output) {
+                                                this.connecting_links = [
+                                                    {
+                                                        node: linked_node,
+                                                        slot: slot,
+                                                        input: null,
+                                                        output: linked_output,
+                                                        pos: linked_node.getConnectionPos(false, slot),
+                                                    }
+                                                ]
+                                            } else {
+                                                console.warn("Found invalid link or node output when initiating an input connection move.  Linked node and output slot ID included.", linked_node, slot)
+                                            }
                                             
                                             this.dirty_bgcanvas = true;
                                             skip_action = true;
@@ -6101,7 +6112,7 @@ LGraphNode.prototype.executeAction = function(action)
                                         // has not node
                                     }
                                     
-                                    if (!skip_action){
+                                    if (!skip_action && input) {
                                         // connect from in to out, from to to from
                                         this.connecting_links = [
                                             {
@@ -6550,6 +6561,9 @@ LGraphNode.prototype.executeAction = function(action)
                                 this._highlight_output = null;
                             }
                         }
+                    } else {
+                        // Report failure
+                        console.warn("Invalid link object detected when dragging a link.", firstLink)
                     }
                 }
 
@@ -6818,47 +6832,53 @@ LGraphNode.prototype.executeAction = function(action)
                                 // look for a good slot
                                 link.node.connectByTypeOutput(link.slot, node, link.input.type);
                             }
+                        } else {
+                            console.warn("Invalid link object detected during connection, when releasing the mouse button.", link)
                         }
                     }
                 } else {
                     const firstLink = this.connecting_links[0];
-                    const linkReleaseContext = firstLink.output ? {
-                        node_from: firstLink.node,
-                        slot_from: firstLink.output,
-                        type_filter_in: firstLink.output.type
-                    } : {
-                        node_to: firstLink.node,
-                        slot_from: firstLink.input,
-                        type_filter_out: firstLink.input.type
-                    };
-                    // For external event only.
-                    const linkReleaseContextExtended = {
-                        links: this.connecting_links,
-                    };
-                    this.canvas.dispatchEvent(new CustomEvent(
-                        "litegraph:canvas", {
-                            bubbles: true,
-                            detail: {
-                                subType: "empty-release",
-                                originalEvent: e,
-                                linkReleaseContext: linkReleaseContextExtended,
-                            },
-                        }
-                    ));
-                    // add menu when releasing link in empty space
-                	if (LiteGraph.release_link_on_empty_shows_menu){
-	                    if (e.shiftKey){
-                            if (this.allow_searchbox) {
-                                this.showSearchBox(e, linkReleaseContext);
+                    if (!firstLink.input && !firstLink.output) {
+                        console.warn("Invalid link object detected during connection, when releasing the mouse button.", firstLink)
+                    } else {
+                        const linkReleaseContext = firstLink.output ? {
+                            node_from: firstLink.node,
+                            slot_from: firstLink.output,
+                            type_filter_in: firstLink.output.type
+                        } : {
+                            node_to: firstLink.node,
+                            slot_from: firstLink.input,
+                            type_filter_out: firstLink.input.type
+                        };
+                        // For external event only.
+                        const linkReleaseContextExtended = {
+                            links: this.connecting_links,
+                        };
+                        this.canvas.dispatchEvent(new CustomEvent(
+                            "litegraph:canvas", {
+                                bubbles: true,
+                                detail: {
+                                    subType: "empty-release",
+                                    originalEvent: e,
+                                    linkReleaseContext: linkReleaseContextExtended,
+                                },
                             }
-	                    }else{
-                            if(firstLink.output){
-                                this.showConnectionMenu({nodeFrom: firstLink.node, slotFrom: firstLink.output, e: e});
-                            }else if(firstLink.input){
-                                this.showConnectionMenu({nodeTo: firstLink.node, slotTo: firstLink.input, e: e});
-	                        }
-	                    }
-                	}
+                        ));
+                        // add menu when releasing link in empty space
+                        if (LiteGraph.release_link_on_empty_shows_menu){
+                            if (e.shiftKey){
+                                if (this.allow_searchbox) {
+                                    this.showSearchBox(e, linkReleaseContext);
+                                }
+                            }else{
+                                if(firstLink.output){
+                                    this.showConnectionMenu({nodeFrom: firstLink.node, slotFrom: firstLink.output, e: e});
+                                }else if(firstLink.input){
+                                    this.showConnectionMenu({nodeTo: firstLink.node, slotTo: firstLink.input, e: e});
+                                }
+                            }
+                        }
+                    }
                 }
 
                 this.connecting_links = null;
