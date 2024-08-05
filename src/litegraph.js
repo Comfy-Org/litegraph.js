@@ -7026,12 +7026,15 @@ LGraphNode.prototype.executeAction = function(action)
                         20
                     );
                 } else {
+                    // TODO: Find a cheap way to measure text, and do it on node label change instead of here
+                    // Input icon width + text approximation
+                    const width = 20 + (((input.label?.length ?? input.name?.length) || 3) * 7)
                     is_inside = isInsideRectangle(
                         canvasx,
                         canvasy,
                         link_pos[0] - 10,
                         link_pos[1] - 10,
-                        80,
+                        width,
                         20
                     );
                 }
