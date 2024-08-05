@@ -7517,6 +7517,7 @@ LGraphNode.prototype.executeAction = function(action)
             node.onDeselected();
         }
         node.is_selected = false;
+        delete this.selected_nodes[node.id]
 
         if (this.onNodeDeselected) {
             this.onNodeDeselected(node);
