@@ -6,12 +6,14 @@
   "main": "./dist/litegraph.umd.js",
   "module": "./dist/litegraph.es.js",
   "types": "./dist/litegraph.d.ts",
+  "style": "./dist/css/litegraph.css",
   "exports": {
     ".": {
       "import": "./dist/litegraph.es.js",
       "require": "./dist/litegraph.umd.js",
       "types": "./dist/litegraph.d.ts"
-    }
+    },
+    "./css": "./dist/css/litegraph.css"
   },
   "directories": {
     "doc": "doc"
