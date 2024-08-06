@@ -3,8 +3,8 @@
   "version": "0.7.36",
   "type": "module",
   "description": "A graph node editor similar to PD or UDK Blueprints. It works in an HTML5 Canvas and allows to export graphs to be included in applications.",
-  "main": "src/litegraph.js",
-  "types": "src/litegraph.d.ts",
+  "main": "dist/litegraph.iife.js",
+  "types": "dist/src/litegraph.d.ts",
   "directories": {
     "doc": "doc"
   },
