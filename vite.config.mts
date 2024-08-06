@@ -6,7 +6,8 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/litegraph.js'),
       name: 'litegraph.js',
-      fileName: 'litegraph',
+      // TODO: Below workaround ensures output matches pre-vite format.  Should be removed.
+      fileName: (moduleFormat, entryAlias) => 'src/litegraph.js',
       formats: ['iife']
     },
     minify: false,

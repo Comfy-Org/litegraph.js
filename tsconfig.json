@@ -24,7 +24,8 @@
     "paths": {
       "@/*": ["src/*"],
     },
-    "typeRoots": ["src/types", "node_modules/@types"],
+    // TODO: Remove workaround from initial vite impl: public/src
+    "typeRoots": ["src/types", "node_modules/@types", "public/src"],
     "outDir": "./dist",
     "rootDir": "./",
   },
