@@ -6,7 +6,8 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/litegraph.js'),
       name: 'litegraph.js',
-      formats: ['iife']
+      fileName: (format) => `litegraph.${format}.js`,
+      formats: ['es', 'umd']
     },
     minify: false,
     sourcemap: true,
