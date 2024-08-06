@@ -13,7 +13,7 @@
       "require": "./dist/litegraph.umd.js",
       "types": "./dist/litegraph.d.ts"
     },
-    "./css": "./dist/css/litegraph.css"
+    "./style.css": "./dist/css/litegraph.css"
   },
   "directories": {
     "doc": "doc"
