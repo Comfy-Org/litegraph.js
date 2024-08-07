@@ -10215,6 +10215,12 @@ LGraphNode.prototype.executeAction = function(action)
 					{
 						var delta = x < 40 ? -1 : x > widget_width - 40 ? 1 : 0;
 						if (event.click_time < 200 && delta == 0) {
+                            const promptOptions = {
+                                inputType: "number",
+                                step: w.options.step || 1,
+                                min: w.options.min ?? -Infinity,
+                                max: w.options.max ?? Infinity,
+                            }
 							this.prompt("Value",w.value,function(v) {
 									// check if v is a valid equation or a number
 									  if (/^[0-9+\-*/()\s]+|\d+\.\d+$/.test(v)) {
@@ -10225,7 +10231,7 @@ LGraphNode.prototype.executeAction = function(action)
 									this.value = Number(v);
 									inner_value_change(this, this.value);
 								}.bind(w),
-								event);
+								event, promptOptions);
 						}
 					}
 
@@ -10248,11 +10254,15 @@ LGraphNode.prototype.executeAction = function(action)
 					break;
 				case "string":
 				case "text":
+                    const promptOptions = {
+                        inputType: "text",
+                        multiline: w.options?.multiline,
+                    }
 					if (event.type == LiteGraph.pointerevents_method+"down") {
 						this.prompt("Value",w.value,function(v) {
 								inner_value_change(this, v);
 							}.bind(w),
-							event,w.options ? w.options.multiline : false );
+							event, promptOptions);
 					}
 					break;
 				default:
@@ -11385,18 +11395,26 @@ LGraphNode.prototype.executeAction = function(action)
     };
 
     // refactor: there are different dialogs, some uses createDialog some dont
-    LGraphCanvas.prototype.prompt = function(title, value, callback, event, multiline) {
+    LGraphCanvas.prototype.prompt = function(title, value, callback, event, options) {
         var that = this;
         var input_html = "";
         title = title || "";
+        const defaultOptions = {
+            inputType: "text",
+            multiline: false,
+        }
+        options = Object.assign(defaultOptions, options || {});
 
         var dialog = document.createElement("div");
         dialog.is_modified = false;
         dialog.className = "graphdialog rounded";
-        if(multiline)
-	        dialog.innerHTML = "<span class='name'></span> <textarea autofocus class='value'></textarea><button class='rounded'>OK</button>";
-		else
-        	dialog.innerHTML = "<span class='name'></span> <input autofocus type='text' class='value'/><button class='rounded'>OK</button>";
+        if(options.multiline) {
+            dialog.innerHTML = "<span class='name'></span> <textarea autofocus class='value'></textarea><button class='rounded'>OK</button>";
+        } else if (options.inputType == "number") {
+            dialog.innerHTML = `<span class='name'></span> <input autofocus type='number' class='value' min='${options.min}' max='${options.max}' step='${options.step}'/><button class='rounded'>OK</button>`;
+        } else {
+            dialog.innerHTML = `<span class='name'></span> <input autofocus type='${options.inputType}' class='value'/><button class='rounded'>OK</button>`;
+        }
         dialog.close = function() {
             that.prompt_box = null;
             if (dialog.parentNode) {
@@ -11503,6 +11521,18 @@ LGraphNode.prototype.executeAction = function(action)
             input.focus();
         }, 10);
 
+        setTimeout(function() {
+            function handleEvent(e) {
+                if (e.target == canvas) {
+                    dialog.close();
+                    canvas.parentNode.removeEventListener("click", handleEvent);
+                    canvas.parentNode.removeEventListener("touchend", handleEvent);
+                }
+            }
+            canvas.parentNode.addEventListener("click", handleEvent, { passive: true });
+            canvas.parentNode.addEventListener("touchend", handleEvent, { passive: true });
+        }, 128);
+        
         return dialog;
     };
 
