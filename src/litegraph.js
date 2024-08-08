@@ -5251,6 +5251,7 @@ LGraphNode.prototype.executeAction = function(action)
 
         this.ds = new DragAndScale();
         this.zoom_modify_alpha = true; //otherwise it generates ugly patterns when scaling down too much
+        this.zoom_speed = 1 // values below 1 decrease zoom speed, above 1 increase zoom speed
 
         this.title_text_font = "" + LiteGraph.NODE_TEXT_SIZE + "px Arial";
         this.inner_text_font =
@@ -6969,10 +6970,11 @@ LGraphNode.prototype.executeAction = function(action)
 
         var scale = this.ds.scale;
 
+        const zoomSpeed = 1 + this.zoom_speed / 10;
         if (delta > 0) {
-            scale *= 1.1;
+            scale *= zoomSpeed;
         } else if (delta < 0) {
-            scale *= 1 / 1.1;
+            scale *= 1 / zoomSpeed;
         }
 
         //this.setZoom( scale, [ e.clientX, e.clientY ] );
