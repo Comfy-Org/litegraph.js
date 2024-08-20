@@ -91,7 +91,7 @@ const globalExport = {};
         VERTICAL_LAYOUT: "vertical", // arrange nodes vertically
 
         /** Context menu scroll amount is multiplied by this value.  Negative values reverse scroll direction. */
-        CONTEXT_MENU_SCROLL_MULTIPLIER: number = 1,
+        CONTEXT_MENU_SCROLL_MULTIPLIER: 1,
 
         proxy: null, //used to redirect calls
         node_images_path: "",
