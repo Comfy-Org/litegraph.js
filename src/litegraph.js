@@ -6167,8 +6167,8 @@ LGraphNode.prototype.executeAction = function(action)
 							break;
 						}
                         
-                        // Restore line width
-                        this.ctx.lineWidth = lineWidth;
+						// Restore line width
+						this.ctx.lineWidth = lineWidth;
 					}
 
 					this.selected_group = this.graph.getGroupOnPos( e.canvasX, e.canvasY );
