@@ -90,6 +90,9 @@ const globalExport = {};
         AUTOHIDE_TITLE: 3,
         VERTICAL_LAYOUT: "vertical", // arrange nodes vertically
 
+        /** Context menu scroll amount is multiplied by this value.  Negative values reverse scroll direction. */
+        CONTEXT_MENU_SCROLL_MULTIPLIER: number = 1,
+
         proxy: null, //used to redirect calls
         node_images_path: "",
 
@@ -13771,6 +13774,7 @@ LGraphNode.prototype.executeAction = function(action)
         if (!options.scroll_speed) {
             options.scroll_speed = 0.1;
         }
+        this.options.scroll_speed *= LiteGraph.CONTEXT_MENU_SCROLL_MULTIPLIER;
 
         root.addEventListener("wheel", on_mouse_wheel, true);
         root.addEventListener("mousewheel", on_mouse_wheel, true);
