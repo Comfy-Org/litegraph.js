@@ -6123,49 +6123,49 @@ LGraphNode.prototype.executeAction = function(action)
             else {
 				if (!skip_action){
 					//search for link connector
-                    if (!this.read_only) {
-                        // Set the width of the line for isPointInStroke checks
-                        const lineWidth = this.ctx.lineWidth;
-                        this.ctx.lineWidth = this.connections_width + 7;
+					if (!this.read_only) {
+						// Set the width of the line for isPointInStroke checks
+						const lineWidth = this.ctx.lineWidth;
+						this.ctx.lineWidth = this.connections_width + 7;
 
 						for (var i = 0; i < this.visible_links.length; ++i) {
 							var link = this.visible_links[i];
-                            var center = link._pos;
-                            let overLink = null;
+							var center = link._pos;
+							let overLink = null;
 							if (
 								!center ||
 								e.canvasX < center[0] - 4 ||
 								e.canvasX > center[0] + 4 ||
 								e.canvasY < center[1] - 4 ||
 								e.canvasY > center[1] + 4
-                            ) {
-                                // If we shift click on a link then start a link from that input
-                                if (e.shiftKey && link.path && this.ctx.isPointInStroke(link.path, e.canvasX, e.canvasY)) {
-                                    overLink = link;
-                                } else {
-                                    continue;
-                                }
-                            }
-                            
-                            if (overLink) {
-                                const slot = overLink.origin_slot;
-                                const originNode = this.graph._nodes_by_id[overLink.origin_id];
+							) {
+								// If we shift click on a link then start a link from that input
+								if (e.shiftKey && link.path && this.ctx.isPointInStroke(link.path, e.canvasX, e.canvasY)) {
+									overLink = link;
+								} else {
+									continue;
+								}
+							}
+							
+							if (overLink) {
+								const slot = overLink.origin_slot;
+								const originNode = this.graph._nodes_by_id[overLink.origin_id];
 
-                                if (!this.connecting_links) this.connecting_links = []
-                                this.connecting_links.push({
-                                    node: originNode,
-                                    slot,
-                                    output: originNode.outputs[slot],
-                                    pos: originNode.getConnectionPos(false, slot),
-                                });
-                                skip_action = true;
-                            } else {
-                                //link clicked
-                                this.showLinkMenu(link, e);
-                                this.over_link_center = null; //clear tooltip
-                            }
+								if (!this.connecting_links) this.connecting_links = []
+								this.connecting_links.push({
+									node: originNode,
+									slot,
+									output: originNode.outputs[slot],
+									pos: originNode.getConnectionPos(false, slot),
+								});
+								skip_action = true;
+							} else {
+								//link clicked
+								this.showLinkMenu(link, e);
+								this.over_link_center = null; //clear tooltip
+							}
 							break;
-                        }
+						}
                         
                         // Restore line width
                         this.ctx.lineWidth = lineWidth;
