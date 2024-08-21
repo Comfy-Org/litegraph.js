@@ -7,6 +7,10 @@ This repo is litegraph with the following modifications:
 - Type schema change for ComfyUI_frontend TS migration (https://github.com/Comfy-Org/litegraph.js/pull/3)
 - Zoom fix (https://github.com/Comfy-Org/litegraph.js/pull/7)
 - Emit search box triggering custom events (<https://github.com/Comfy-Org/litegraph.js/pull/10>)
+- Truncate overflowing combo widget text (<https://github.com/Comfy-Org/litegraph.js/pull/17>)
+- Sort node based on ID on graph serialization (<https://github.com/Comfy-Org/litegraph.js/pull/21>)
+- Fix empty input not used when connecting links (<https://github.com/Comfy-Org/litegraph.js/pull/24>)
+- Batch output connection move/disconnect (<https://github.com/Comfy-Org/litegraph.js/pull/39>)
 
 # Install
 `npm i @comfyorg/litegraph`
