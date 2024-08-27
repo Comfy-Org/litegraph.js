@@ -2317,7 +2317,7 @@ const globalExport = {};
 		+ onGetOutputs: returns an array of possible outputs
 		+ onBounding: in case this node has a bigger bounding than the node itself (the callback receives the bounding as [x,y,w,h])
 		+ onDblClick: double clicked in the node
-        + onNodeTitleDblClick: double clicked in the node title
+		+ onNodeTitleDblClick: double clicked in the node title
 		+ onInputDblClick: input slot double clicked (can be used to automatically create a node connected)
 		+ onOutputDblClick: output slot double clicked (can be used to automatically create a node connected)
 		+ onConfigure: called after the node has been configured
