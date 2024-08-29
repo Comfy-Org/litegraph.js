@@ -5571,6 +5571,7 @@ const globalExport = {};
         // why mousemove and mouseup were not binded here?
         this._mousemove_callback = this.processMouseMove.bind(this);
         this._mouseup_callback = this.processMouseUp.bind(this);
+        this._mouseout_callback = this.processMouseOut.bind(this);
         
         //touch events -- TODO IMPLEMENT
         //this._touch_callback = this.touchHandler.bind(this);
@@ -5580,6 +5581,7 @@ const globalExport = {};
 
         LiteGraph.pointerListenerAdd(canvas,"up", this._mouseup_callback, true); // CHECK: ??? binded or not
 		LiteGraph.pointerListenerAdd(canvas,"move", this._mousemove_callback);
+		LiteGraph.pointerListenerAdd(canvas,"out", this._mouseout_callback);
         
         canvas.addEventListener("contextmenu", this._doNothing);
         canvas.addEventListener(
@@ -5629,6 +5631,7 @@ const globalExport = {};
         var ref_window = this.getCanvasWindow();
         var document = ref_window.document;
 
+		LiteGraph.pointerListenerRemove(this.canvas,"out", this._mouseout_callback);
 		LiteGraph.pointerListenerRemove(this.canvas,"move", this._mousemove_callback);
         LiteGraph.pointerListenerRemove(this.canvas,"up", this._mouseup_callback);
         LiteGraph.pointerListenerRemove(this.canvas,"down", this._mousedown_callback);
@@ -5778,6 +5781,33 @@ const globalExport = {};
 		this.block_click = true;
 		this.last_mouseclick = 0;
 	}
+
+    /**
+     * Clears highlight and mouse-over information from nodes that should not have it.
+     * 
+     * Intended to be called when the pointer moves away from a node.
+     * @param {LGraphNode} node The node that the mouse is now over
+     * @param {MouseEvent} e MouseEvent that is triggering this
+     */
+    LGraphCanvas.prototype.updateMouseOverNodes = function(node, e) {
+        const nodes = this.graph._nodes
+        const l = nodes.length
+        for (let i = 0; i < l; ++i) {
+            if (nodes[i].mouseOver && node != nodes[i]) {
+                //mouse leave
+                nodes[i].mouseOver = null;
+                this._highlight_input = null;
+                this._highlight_input_slot = null
+                this._highlight_output = null;
+
+                if (this.node_over && this.node_over.onMouseLeave) {
+                    this.node_over.onMouseLeave(e);
+                }
+                this.node_over = null;
+                this.dirty_canvas = true;
+            }
+        }
+    }
 	
     LGraphCanvas.prototype.processMouseDown = function(e) {
     	
@@ -6421,17 +6451,7 @@ const globalExport = {};
             }
 
             //remove mouseover flag
-            for (var i = 0, l = this.graph._nodes.length; i < l; ++i) {
-                if (this.graph._nodes[i].mouseOver && node != this.graph._nodes[i] ) {
-                    //mouse leave
-                    this.graph._nodes[i].mouseOver = false;
-                    if (this.node_over && this.node_over.onMouseLeave) {
-                        this.node_over.onMouseLeave(e);
-                    }
-                    this.node_over = null;
-                    this.dirty_canvas = true;
-                }
-            }
+            this.updateMouseOverNodes(node, e);
 
             //mouse over a node
             if (node) {
@@ -6439,16 +6459,31 @@ const globalExport = {};
 				if(node.redraw_on_mouse)
                     this.dirty_canvas = true;
 
+                // For input/output hovering
+                const pos = [0, 0]; //to store the output of isOverNodeInput
+                const inputId = this.isOverNodeInput(node, e.canvasX, e.canvasY, pos)
+                const outputId = this.isOverNodeOutput(node, e.canvasX, e.canvasY, pos);
+
                 //this.canvas.style.cursor = "move";
                 if (!node.mouseOver) {
                     //mouse enter
-                    node.mouseOver = true;
+                    node.mouseOver = {
+                        inputId: inputId,
+                        outputId: outputId
+                    }
                     this.node_over = node;
                     this.dirty_canvas = true;
 
                     if (node.onMouseEnter) {
                         node.onMouseEnter(e);
                     }
+                }
+
+                // The input the mouse is over has changed
+                if (node.mouseOver.inputId !== inputId || node.mouseOver.outputId !== outputId) {
+                    node.mouseOver.inputId = inputId
+                    node.mouseOver.outputId = outputId
+                    this.dirty_canvas = true
                 }
 
                 //in case the node wants to do something
@@ -6461,18 +6496,15 @@ const globalExport = {};
                     const firstLink = this.connecting_links[0];
                     
                     if (firstLink.output) {
-                        
-                        var pos = this._highlight_input || [0, 0]; //to store the output of isOverNodeInput
 
                         //on top of input
                         if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
                             //mouse on top of the corner box, don't know what to do
                         } else {
                             //check if I have a slot below de mouse
-                            var slot = this.isOverNodeInput( node, e.canvasX, e.canvasY, pos );
-                            if (slot != -1 && node.inputs[slot] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[slot].type)) {
+                            if (inputId != -1 && node.inputs[inputId] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)) {
                                 this._highlight_input = pos;
-                                this._highlight_input_slot = node.inputs[slot]; // XXX CHECK THIS
+                                this._highlight_input_slot = node.inputs[inputId]; // XXX CHECK THIS
                             } else {
                                 this._highlight_input = null;
 								this._highlight_input_slot = null;  // XXX CHECK THIS
@@ -6480,16 +6512,13 @@ const globalExport = {};
                         }
                         
                     }else if(firstLink.input){
-                        
-                        var pos = this._highlight_output || [0, 0]; //to store the output of isOverNodeOutput
 
                         //on top of output
                         if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
                             //mouse on top of the corner box, don't know what to do
                         } else {
                             //check if I have a slot below de mouse
-                            var slot = this.isOverNodeOutput( node, e.canvasX, e.canvasY, pos );
-                            if (slot != -1 && node.outputs[slot] && LiteGraph.isValidConnection(firstLink.input.type, node.outputs[slot].type)) {
+                            if (outputId != -1 && node.outputs[outputId] && LiteGraph.isValidConnection(firstLink.input.type, node.outputs[outputId].type)) {
                                 this._highlight_output = pos;
                             } else {
                                 this._highlight_output = null;
@@ -6894,6 +6923,15 @@ const globalExport = {};
         e.preventDefault();
         return false;
     };
+
+    /**
+     * Called when the mouse moves off the canvas.  Clears all node hover states.
+     * @param {MouseEvent} e 
+     */
+    LGraphCanvas.prototype.processMouseOut = function(e) {
+        // TODO: Check if document.contains(e.relatedTarget) - handle mouseover node textarea etc.
+        this.updateMouseOverNodes(null, e)
+    }
 
     /**
      * Called when a mouse wheel event has to be processed
@@ -8582,11 +8620,10 @@ const globalExport = {};
                     var slot_type = slot.type;
                     var slot_shape = slot.shape;
                     
-                    ctx.globalAlpha = editor_alpha;
                     //change opacity of incompatible slots when dragging a connection
-                    if ( out_slot && !LiteGraph.isValidConnection( slot.type , out_slot.type) ) {
-                        ctx.globalAlpha = 0.4 * editor_alpha;
-                    }
+                    const isValid = !this.connecting_links || (out_slot && LiteGraph.isValidConnection(slot.type, out_slot.type))
+                    const isMouseOverSlot = node.mouseOver?.inputId === i
+                    ctx.globalAlpha = isValid ? editor_alpha : 0.4 * editor_alpha
 
                     ctx.fillStyle =
                         slot.link != null
@@ -8649,10 +8686,13 @@ const globalExport = {};
                         ctx.rect(pos[0] + 2, pos[1] + 2, 2, 2);
                         doStroke = false;
                     } else {
-						if(low_quality)
+						if (low_quality) {
 	                        ctx.rect(pos[0] - 4, pos[1] - 4, 8, 8 ); //faster
-						else
-	                        ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2);
+                        }
+						else {
+                            const radius = isValid && isMouseOverSlot ? 5 : 4
+                            ctx.arc(pos[0], pos[1], radius, 0, Math.PI * 2);
+                        }
                     }
                     ctx.fill();
 
@@ -8660,7 +8700,10 @@ const globalExport = {};
                     if (render_text) {
                         var text = slot.label != null ? slot.label : slot.name;
                         if (text) {
-                            ctx.fillStyle = LiteGraph.NODE_TEXT_COLOR;
+                            // Highlight text on mouseover unless we're connecting links.
+                            ctx.fillStyle = isValid && isMouseOverSlot
+                                ? lightenColorEased(LiteGraph.NODE_TEXT_COLOR, 0.2)
+                                : LiteGraph.NODE_TEXT_COLOR;
                             if (horizontal || slot.dir == LiteGraph.UP) {
                                 ctx.fillText(text, pos[0], pos[1] - 10);
                             } else {
@@ -8683,9 +8726,9 @@ const globalExport = {};
                     var slot_shape = slot.shape;
                     
                     //change opacity of incompatible slots when dragging a connection
-                    if (in_slot && !LiteGraph.isValidConnection( slot_type , in_slot.type) ) {
-                        ctx.globalAlpha = 0.4 * editor_alpha;
-                    }
+                    const isValid = !this.connecting_links || (in_slot && LiteGraph.isValidConnection(slot_type, in_slot.type))
+                    const isMouseOverSlot = node.mouseOver?.outputId === i
+                    ctx.globalAlpha = isValid ? editor_alpha : 0.4 * editor_alpha
                     
                     var pos = node.getConnectionPos(false, i, slot_pos);
                     pos[0] -= node.pos[0];
@@ -8748,10 +8791,13 @@ const globalExport = {};
                         ctx.rect(pos[0] + 2, pos[1] + 2, 2, 2);
                         doStroke = false;
                     } else {
-						if(low_quality)
+						if (low_quality) {
 	                        ctx.rect(pos[0] - 4, pos[1] - 4, 8, 8 );
-						else
-	                        ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2);
+                        }
+						else {
+                            const radius = isValid && isMouseOverSlot ? 5 : 4
+	                        ctx.arc(pos[0], pos[1], radius, 0, Math.PI * 2);
+                        }
                     }
 
                     //trigger
@@ -8767,7 +8813,10 @@ const globalExport = {};
                     if (render_text) {
                         var text = slot.label != null ? slot.label : slot.name;
                         if (text) {
-                            ctx.fillStyle = LiteGraph.NODE_TEXT_COLOR;
+                            // Highlight text on mouseover unless we're connecting links.
+                            ctx.fillStyle = isValid && isMouseOverSlot
+                                ? lightenColorEased(LiteGraph.NODE_TEXT_COLOR, 0.2)
+                                : LiteGraph.NODE_TEXT_COLOR;
                             if (horizontal || slot.dir == LiteGraph.DOWN) {
                                 ctx.fillText(text, pos[0], pos[1] - 8);
                             } else {
@@ -14469,6 +14518,89 @@ const globalExport = {};
         return a > v ? a : b < v ? b : v;
     };
     globalThis.clamp = clamp;
+
+    // colorUtil.ts - Functions copied from ComfyUI_frontend generated code.  Circular dependency requires resolution.
+      function rgbToHsl({ r, g, b }) {
+        ;
+        r /= 255, g /= 255, b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h2, s, l = (max + min) / 2;
+        if (max === min) {
+          h2 = s = 0;
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r:
+              h2 = (g - b) / d + (g < b ? 6 : 0);
+              break;
+            case g:
+              h2 = (b - r) / d + 2;
+              break;
+            case b:
+              h2 = (r - g) / d + 4;
+              break;
+          }
+          h2 /= 6;
+        }
+        return { h: h2, s, l };
+      }
+      function hslToRgb({ h: h2, s, l }) {
+        let r, g, b;
+        if (s === 0) {
+          r = g = b = l;
+        } else {
+          const hue2rgb = (p22, q2, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p22 + (q2 - p22) * 6 * t;
+            if (t < 1 / 2) return q2;
+            if (t < 2 / 3) return p22 + (q2 - p22) * (2 / 3 - t) * 6;
+            return p22;
+          };
+          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          const p2 = 2 * l - q;
+          r = hue2rgb(p2, q, h2 + 1 / 3);
+          g = hue2rgb(p2, q, h2);
+          b = hue2rgb(p2, q, h2 - 1 / 3);
+        }
+        return {
+          r: Math.round(r * 255),
+          g: Math.round(g * 255),
+          b: Math.round(b * 255)
+        };
+      }
+      function hexToRgb(hex) {
+        let r = 0, g = 0, b = 0;
+        if (hex.length == 4) {
+          r = parseInt(hex[1] + hex[1], 16);
+          g = parseInt(hex[2] + hex[2], 16);
+          b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length == 7) {
+          r = parseInt(hex.slice(1, 3), 16);
+          g = parseInt(hex.slice(3, 5), 16);
+          b = parseInt(hex.slice(5, 7), 16);
+        }
+        return { r, g, b };
+      }
+      function rgbToHex({ r, g, b }) {
+        return "#" + [r, g, b].map((x2) => {
+          const hex = x2.toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        }).join("");
+      }
+      // Renamed to ensure changes are not missed
+      function lightenColorEased(hex, amount) {
+        let rgb = hexToRgb(hex);
+        let hsl = rgbToHsl(rgb);
+        // TODO: Keep this easing function or add a wrapper of some kind.
+        const inverseLuminance = 1 - hsl.l
+        const easedAmount = (amount + (amount * inverseLuminance)) * 0.5
+        hsl.l = Math.min(1, hsl.l + easedAmount)
+        rgb = hslToRgb(hsl);
+        return rgbToHex(rgb);
+      }
+    // End colorUtil.ts
 
     if (typeof window != "undefined" && !window["requestAnimationFrame"]) {
         window.requestAnimationFrame =
