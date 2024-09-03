@@ -1545,6 +1545,7 @@ export declare class LGraphCanvas {
         slotTo?: INodeSlot | string | number;
         e?: MouseEvent;
         allow_searchbox?: boolean;
+        showSearchBox?: (event?: MouseEvent, options?: LinkReleaseContext) => void;
     }): void;
     showEditPropertyValue(node: LGraphNode, property: any, options: any): void;
     createDialog(
