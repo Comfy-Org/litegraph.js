@@ -148,6 +148,9 @@ const globalExport = {};
         // use this if you must have node IDs that are unique across all graphs and subgraphs.
         use_uuids: false,
 
+        // Whether to highlight the bounding box of selected groups
+        highlight_selected_group: false,
+
         /**
          * Register a node class so it can be listed when the user wants to create a new one
          * @method registerNodeType
@@ -4903,6 +4906,16 @@ const globalExport = {};
             ctx.font = font_size + "px Arial";
             ctx.textAlign = "left";
             ctx.fillText(this.title, x + 4, y + font_size);
+
+            if (LiteGraph.highlight_selected_group && this.selected) {
+                graphCanvas.drawSelectionBounding(ctx, this._bounding, {
+                    shape: LiteGraph.BOX_SHAPE,
+                    title_height: this.titleHeight,
+                    title_mode: LiteGraph.NORMAL_TITLE,
+                    fgcolor: this.color,
+                    padding: 4
+                });
+            }
         }
 
         move(deltax, deltay, ignore_nodes) {

@@ -1139,6 +1139,7 @@ export declare class LGraphGroup {
     font_size: number;
 
     get titleHeight(): number;
+    get selected(): boolean;
 
     configure(o: SerializedLGraphGroup): void;
     serialize(): SerializedLGraphGroup;
