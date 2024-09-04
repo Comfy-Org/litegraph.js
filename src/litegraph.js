@@ -4787,6 +4787,12 @@ const globalExport = {};
             } else {
                 this.flags.pinned = v;
             }
+            this.resizable = !this.pinned;
+            // Delete the flag if unpinned, so that we don't get unnecessary
+            // flags.pinned = false in serialized object.
+            if (!this.pinned) {
+                delete this.flags.pinned;
+            }
         }
 
         localToScreen(x, y, graphcanvas) {
@@ -4934,7 +4940,9 @@ const globalExport = {};
             }
 
             if (this.pinned) {
-                ctx.fillText("📌", x + width - font_size - padding, y + font_size);
+                const iconFontSize = font_size * 0.5;
+                ctx.font = iconFontSize + "px Arial";
+                ctx.fillText("📌", x + width - iconFontSize - padding, y + iconFontSize);
             }
         }
 
@@ -7058,7 +7066,7 @@ const globalExport = {};
                     //it wasn't clicked on the links boxes
                     if (!skip_action) {
                         var block_drag_node = false;
-                        if (node && node.flags && node.flags.pinned) {
+                        if (node?.pinned) {
                             block_drag_node = true;
                         }
                         var pos = [e.canvasX - node.pos[0], e.canvasY - node.pos[1]];
@@ -13134,7 +13142,7 @@ const globalExport = {};
                         callback: LGraphCanvas.onMenuNodeCollapse
                     },
                     {
-                        content: node.flags?.pinned ? "Unpin" : "Pin",
+                        content: node.pinned ? "Unpin" : "Pin",
                         callback: LGraphCanvas.onMenuNodePin
                     },
                     {
