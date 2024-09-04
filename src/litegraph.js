@@ -2591,18 +2591,6 @@ const globalExport = {};
             return node;
         }
 
-        get locked() {
-            return !!this.flags.locked;
-        }
-
-        lock() {
-            this.flags.locked = true;
-        }
-
-        unlock() {
-            delete this.flags.locked;
-        }
-
         /**
              * serialize and stringify
              * @method toString
@@ -4784,6 +4772,10 @@ const globalExport = {};
             this.setDirtyCanvas(true, true);
         }
 
+        get pinned() {
+            return !!this.flags.pinned;
+        }
+
         /**
              * Forces the node to do not move or realign on Z
              * @method pin
@@ -4863,16 +4855,16 @@ const globalExport = {};
             return !!this.graph?.list_of_graphcanvas?.some(c => c.selected_group === this);
         }
 
-        get locked() {
-            return !!this.flags.locked;
+        get pinned() {
+            return !!this.flags.pinned;
         }
 
-        lock() {
-            this.flags.locked = true;
+        pin() {
+            this.flags.pinned = true;
         }
 
-        unlock() {
-            delete this.flags.locked;
+        unpin() {
+            delete this.flags.pinned;
         }
 
         configure(o) {
@@ -4941,13 +4933,13 @@ const globalExport = {};
                 });
             }
 
-            if (this.locked) {
-                ctx.fillText("🔒", x + width - font_size - padding, y + font_size);
+            if (this.pinned) {
+                ctx.fillText("📌", x + width - font_size - padding, y + font_size);
             }
         }
 
         resize(width, height) {
-            if (this.locked) {
+            if (this.pinned) {
                 return;
             }
             this._size[0] = width;
@@ -4955,7 +4947,7 @@ const globalExport = {};
         }
 
         move(deltax, deltay, ignore_nodes) {
-            if (this.locked) {
+            if (this.pinned) {
                 return;
             }
             this._pos[0] += deltax;
@@ -5027,18 +5019,18 @@ const globalExport = {};
 
         getMenuOptions() {
             return [
-                this.locked
+                this.pinned
                     ? {
-                        content: "Unlock",
+                        content: "Unpin",
                         callback: () => {
-                            this.unlock();
+                            this.unpin();
                             this.setDirtyCanvas(false, true);
                         },
                     }
                     : {
-                        content: "Lock",
+                        content: "Pin",
                         callback: () => {
-                            this.lock();
+                            this.pin();
                             this.setDirtyCanvas(false, true);
                         },
                     },
@@ -8382,9 +8374,6 @@ const globalExport = {};
                     this.deselectNode(node);
                     continue;
                 }
-                if (node.locked) {
-                    continue;
-                }
 
                 if (!node.is_selected && node.onSelected) {
                     node.onSelected();
@@ -10115,6 +10104,10 @@ const globalExport = {};
                         fgcolor,
                     }
                 );
+            }
+
+            if (node.pinned) {
+                ctx.fillText("📌", node.getBounding()[2] - 20, -10);
             }
 
             // these counter helps in conditioning drawing based on if the node has been executed or an action occurred

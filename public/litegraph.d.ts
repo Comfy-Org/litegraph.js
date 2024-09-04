@@ -714,11 +714,6 @@ export declare class LGraphNode {
     /** if true, the node will show the bgcolor as 'red'  */
     has_errors?: boolean;
 
-    // Locked node cannot be selected.
-    get locked(): boolean;
-    lock(): void;
-    unlock(): void;
-
     /** configure a node from an object containing the serialized info */
     configure(info: SerializedLGraphNode): void;
     /** serialize the content */
@@ -971,6 +966,8 @@ export declare class LGraphNode {
     captureInput(v: any): void;
     /** Collapse the node to make it smaller on the canvas */
     collapse(force: boolean): void;
+
+    get pinned(): boolean;
     /** Forces the node to do not move or realign on Z */
     pin(v?: boolean): void;
     localToScreen(x: number, y: number, graphCanvas: LGraphCanvas): Vector2;
@@ -1148,10 +1145,10 @@ export declare class LGraphGroup {
     get titleHeight(): number;
     get selected(): boolean;
 
-    // Locked group cannot be selected.
-    get locked(): boolean;
-    lock(): void;
-    unlock(): void;
+    // Pinned group cannot be selected.
+    get pinned(): boolean;
+    pin(): void;
+    unpin(): void;
 
     configure(o: SerializedLGraphGroup): void;
     serialize(): SerializedLGraphGroup;
