@@ -5024,6 +5024,41 @@ const globalExport = {};
                 bounds.bottom - bounds.top + padding * 2 + this.titleHeight
             ];
         }
+
+        getMenuOptions() {
+            return [
+                this.locked
+                    ? {
+                        content: "Unlock",
+                        callback: () => {
+                            this.unlock();
+                            this.setDirtyCanvas(false, true);
+                        },
+                    }
+                    : {
+                        content: "Lock",
+                        callback: () => {
+                            this.lock();
+                            this.setDirtyCanvas(false, true);
+                        },
+                    },
+				null,
+                { content: "Title", callback: LGraphCanvas.onShowPropertyEditor },
+                {
+                    content: "Color",
+                    has_submenu: true,
+                    callback: LGraphCanvas.onMenuNodeColors
+                },
+                {
+                    content: "Font size",
+                    property: "font_size",
+                    type: "Number",
+                    callback: LGraphCanvas.onShowPropertyEditor
+                },
+                null,
+                { content: "Remove", callback: LGraphCanvas.onMenuNodeRemove }
+            ];
+        }
     }
 
     LGraphGroup.prototype.isPointInside = LGraphNode.prototype.isPointInside;
@@ -13179,40 +13214,8 @@ const globalExport = {};
             return options;
         }
         getGroupMenuOptions(node) {
-            var o = [
-                node.locked
-                    ? {
-                        content: "Unlock",
-                        callback: () => {
-                            node.unlock();
-                            node.setDirtyCanvas(false, true);
-                        },
-                    }
-                    : {
-                        content: "Lock",
-                        callback: () => {
-                            node.lock();
-                            node.setDirtyCanvas(false, true);
-                        },
-                    },
-				null,
-                { content: "Title", callback: LGraphCanvas.onShowPropertyEditor },
-                {
-                    content: "Color",
-                    has_submenu: true,
-                    callback: LGraphCanvas.onMenuNodeColors
-                },
-                {
-                    content: "Font size",
-                    property: "font_size",
-                    type: "Number",
-                    callback: LGraphCanvas.onShowPropertyEditor
-                },
-                null,
-                { content: "Remove", callback: LGraphCanvas.onMenuNodeRemove }
-            ];
-
-            return o;
+            console.warn("LGraphCanvas.getGroupMenuOptions is deprecated, use LGraphGroup.getMenuOptions instead");
+            return node.getMenuOptions();
         }
         processContextMenu(node, event) {
             var that = this;
@@ -13287,7 +13290,7 @@ const globalExport = {};
                             submenu: {
                                 title: "Group",
                                 extra: group,
-                                options: this.getGroupMenuOptions(group)
+                                options: group.getMenuOptions()
                             }
                         });
                     }
