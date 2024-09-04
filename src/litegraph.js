@@ -5027,21 +5027,13 @@ const globalExport = {};
 
         getMenuOptions() {
             return [
-                this.pinned
-                    ? {
-                        content: "Unpin",
-                        callback: () => {
-                            this.unpin();
-                            this.setDirtyCanvas(false, true);
-                        },
-                    }
-                    : {
-                        content: "Pin",
-                        callback: () => {
-                            this.pin();
-                            this.setDirtyCanvas(false, true);
-                        },
+                {
+                    content: this.pinned ? "Unpin" : "Pin",
+                    callback: () => {
+                        this.pinned ? this.unpin() : this.pin();
+                        this.setDirtyCanvas(false, true);
                     },
+                },
 				null,
                 { content: "Title", callback: LGraphCanvas.onShowPropertyEditor },
                 {
