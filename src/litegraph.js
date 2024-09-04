@@ -2596,6 +2596,18 @@ const globalExport = {};
             return node;
         }
 
+        get locked() {
+            return !!this.flags.locked;
+        }
+
+        lock() {
+            this.flags.locked = true;
+        }
+
+        unlock() {
+            delete this.flags.locked;
+        }
+
         /**
              * serialize and stringify
              * @method toString
@@ -8306,6 +8318,9 @@ const globalExport = {};
                 var node = nodes[i];
                 if (node.is_selected) {
                     this.deselectNode(node);
+                    continue;
+                }
+                if (node.locked) {
                     continue;
                 }
 
