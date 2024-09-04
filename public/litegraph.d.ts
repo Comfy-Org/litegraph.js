@@ -1143,9 +1143,15 @@ export declare class LGraphGroup {
     size: Vector2;
     pos: Vector2;
     font_size: number;
+    flags: Record<string, boolean>;
 
     get titleHeight(): number;
     get selected(): boolean;
+
+    // Locked group cannot be selected.
+    get locked(): boolean;
+    lock(): void;
+    unlock(): void;
 
     configure(o: SerializedLGraphGroup): void;
     serialize(): SerializedLGraphGroup;

@@ -1636,17 +1636,12 @@ const globalExport = {};
              * @method getGroupOnPos
              * @param {number} x the x coordinate in canvas space
              * @param {number} y the y coordinate in canvas space
-             * @return {LGraphGroup} the group or null
+             * @return {LGraphGroup | null} the group or null
              */
-        getGroupOnPos(x, y) {
-            for (var i = this._groups.length - 1; i >= 0; i--) {
-                var g = this._groups[i];
-                if (g.isPointInside(x, y, 2, true)) {
-                    return g;
-                }
-            }
-            return null;
+        getGroupOnPos(x, y, {margin = 2, include_locked = true} = {}) {
+            return this._groups.reverse().find(g => (include_locked || !g.locked) && g.isPointInside(x, y, margin));
         }
+
         /**
              * Checks that the node type matches the node type registered, used when replacing a nodetype by a newer version during execution
              * this replaces the ones using the old version with the new version
@@ -4829,6 +4824,7 @@ const globalExport = {};
             this._size = this._bounding.subarray(2, 4);
             this._nodes = [];
             this.graph = null;
+            this.flags = {};
 
             Object.defineProperty(this, "pos", {
                 set: function (v) {
@@ -4867,10 +4863,23 @@ const globalExport = {};
             return !!this.graph?.list_of_graphcanvas?.some(c => c.selected_group === this);
         }
 
+        get locked() {
+            return !!this.flags.locked;
+        }
+
+        lock() {
+            this.flags.locked = true;
+        }
+
+        unlock() {
+            delete this.flags.locked;
+        }
+
         configure(o) {
             this.title = o.title;
             this._bounding.set(o.bounding);
             this.color = o.color;
+            this.flags = o.flags || this.flags;
             if (o.font_size) {
                 this.font_size = o.font_size;
             }
@@ -4887,7 +4896,8 @@ const globalExport = {};
                     Math.round(b[3])
                 ],
                 color: this.color,
-                font_size: this.font_size
+                font_size: this.font_size,
+                flags: this.flags,
             };
         }
 
@@ -4897,6 +4907,8 @@ const globalExport = {};
          * @param {CanvasRenderingContext2D} ctx
          */
         draw(graphCanvas, ctx) {
+            const padding = 4;
+
             ctx.fillStyle = this.color;
             ctx.strokeStyle = this.color;
             const [x, y] = this._pos;
@@ -4917,7 +4929,7 @@ const globalExport = {};
             const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE;
             ctx.font = font_size + "px Arial";
             ctx.textAlign = "left";
-            ctx.fillText(this.title, x + 4, y + font_size);
+            ctx.fillText(this.title, x + padding, y + font_size);
 
             if (LiteGraph.highlight_selected_group && this.selected) {
                 graphCanvas.drawSelectionBounding(ctx, this._bounding, {
@@ -4925,8 +4937,12 @@ const globalExport = {};
                     title_height: this.titleHeight,
                     title_mode: LiteGraph.NORMAL_TITLE,
                     fgcolor: this.color,
-                    padding: 4
+                    padding,
                 });
+            }
+
+            if (this.locked) {
+                ctx.fillText("🔒", x + width - font_size - padding, y + font_size);
             }
         }
 
@@ -7095,7 +7111,7 @@ const globalExport = {};
                             }
                         }
 
-                        this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY);
+                        this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY, {include_locked: false});
                         this.selected_group_resizing = false;
                         if (this.selected_group && !this.read_only) {
                             if (e.ctrlKey) {
@@ -13153,6 +13169,22 @@ const globalExport = {};
         }
         getGroupMenuOptions(node) {
             var o = [
+                node.locked
+                    ? {
+                        content: "Unlock",
+                        callback: () => {
+                            node.unlock();
+                            node.setDirtyCanvas(false, true);
+                        },
+                    }
+                    : {
+                        content: "Lock",
+                        callback: () => {
+                            node.lock();
+                            node.setDirtyCanvas(false, true);
+                        },
+                    },
+				null,
                 { content: "Title", callback: LGraphCanvas.onShowPropertyEditor },
                 {
                     content: "Color",
