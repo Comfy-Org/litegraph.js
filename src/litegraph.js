@@ -1638,8 +1638,8 @@ const globalExport = {};
              * @param {number} y the y coordinate in canvas space
              * @return {LGraphGroup | null} the group or null
              */
-        getGroupOnPos(x, y, {margin = 2, include_locked = true} = {}) {
-            return this._groups.reverse().find(g => (include_locked || !g.locked) && g.isPointInside(x, y, margin));
+        getGroupOnPos(x, y, {margin = 2} = {}) {
+            return this._groups.reverse().find(g => g.isPointInside(x, y, margin));
         }
 
         /**
@@ -4946,7 +4946,18 @@ const globalExport = {};
             }
         }
 
+        resize(width, height) {
+            if (this.locked) {
+                return;
+            }
+            this._size[0] = width;
+            this._size[1] = height;
+        }
+
         move(deltax, deltay, ignore_nodes) {
+            if (this.locked) {
+                return;
+            }
             this._pos[0] += deltax;
             this._pos[1] += deltay;
             if (ignore_nodes) {
@@ -7111,7 +7122,7 @@ const globalExport = {};
                             }
                         }
 
-                        this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY, {include_locked: false});
+                        this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY);
                         this.selected_group_resizing = false;
                         if (this.selected_group && !this.read_only) {
                             if (e.ctrlKey) {
@@ -7351,10 +7362,10 @@ const globalExport = {};
             else if (this.selected_group && !this.read_only) {
                 //moving/resizing a group
                 if (this.selected_group_resizing) {
-                    this.selected_group.size = [
+                    this.selected_group.resize(
                         e.canvasX - this.selected_group.pos[0],
                         e.canvasY - this.selected_group.pos[1]
-                    ];
+                    );
                 } else {
                     var deltax = delta[0] / this.ds.scale;
                     var deltay = delta[1] / this.ds.scale;

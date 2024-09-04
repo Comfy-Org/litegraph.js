@@ -1155,6 +1155,7 @@ export declare class LGraphGroup {
 
     configure(o: SerializedLGraphGroup): void;
     serialize(): SerializedLGraphGroup;
+    resize(width: number, height: number): void;
     move(deltaX: number, deltaY: number, ignoreNodes?: boolean): void;
     recomputeInsideNodes(): void;
     isPointInside: LGraphNode["isPointInside"];
