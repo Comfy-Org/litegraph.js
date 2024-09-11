@@ -2375,6 +2375,7 @@ const globalExport = {};
             this.inputs = [];
             this.outputs = [];
             this.connections = [];
+            this.badges = [];
 
             //local data
             this.properties = {}; //for the values
@@ -4813,6 +4814,16 @@ const globalExport = {};
                 (x + this.pos[0]) * graphcanvas.scale + graphcanvas.offset[0],
                 (y + this.pos[1]) * graphcanvas.scale + graphcanvas.offset[1]
             ];
+        }
+
+        drawBadges(ctx, {gap = 2} = {}) {
+            let currentX = this._pos[0];
+            const y = this._pos[1] - LiteGraph.NODE_TITLE_HEIGHT - gap;
+
+            for (const badge of this.badges) {
+                badge.draw(ctx, currentX, y - badge.height);
+                currentX += badge.width + gap;
+            }
         }
     }
 
@@ -9466,6 +9477,8 @@ const globalExport = {};
                 node.is_selected,
                 node.mouseOver
             );
+            node.drawBadges(ctx);
+
             ctx.shadowColor = "transparent";
 
             //draw foreground
@@ -14379,3 +14392,4 @@ export const LGraphGroup = globalExport.LGraphGroup;
 export const DragAndScale = globalExport.DragAndScale;
 export const LGraphCanvas = globalExport.LGraphCanvas;
 export const ContextMenu = globalExport.ContextMenu;
+export { LGraphBadge } from "./LGraphBadge";

@@ -1624,3 +1624,5 @@ declare class ContextMenu {
 }
 
 declare function clamp(v: number, min: number, max: number): number;
+
+export { LGraphBadge } from "./LGraphBadge";
