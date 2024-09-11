@@ -1,3 +1,5 @@
+import { BadgePosition } from "./LGraphBadge";
+
 const globalExport = {};
 
 (function (globalThis) {
@@ -2376,6 +2378,7 @@ const globalExport = {};
             this.outputs = [];
             this.connections = [];
             this.badges = [];
+            this.badgePosition = BadgePosition.TopLeft;
 
             //local data
             this.properties = {}; //for the values
@@ -4816,13 +4819,24 @@ const globalExport = {};
             ];
         }
 
-        drawBadges(ctx, {gap = 2} = {}) {
-            let currentX = this._pos[0];
-            const y = this._pos[1] - LiteGraph.NODE_TITLE_HEIGHT - gap;
+        get width() {
+            return this.size[0];
+        }
 
-            for (const badge of this.badges) {
+        get height() {
+            return this.size[1];
+        }
+
+        drawBadges(ctx, {gap = 2} = {}) {
+            const badgeInstances = this.badges.map(badge => badge instanceof LGraphBadge ? badge : badge());
+            const isLeftAligned = this.badgePosition === BadgePosition.TopLeft;
+
+            let currentX = isLeftAligned ? 0 : this.width - badgeInstances.reduce((acc, badge) => acc + badge.getWidth(ctx) + gap, 0);
+            const y = - (LiteGraph.NODE_TITLE_HEIGHT + gap);
+
+            for (const badge of badgeInstances) {
                 badge.draw(ctx, currentX, y - badge.height);
-                currentX += badge.width + gap;
+                currentX += badge.getWidth(ctx) + gap;
             }
         }
     }
@@ -14392,4 +14406,4 @@ export const LGraphGroup = globalExport.LGraphGroup;
 export const DragAndScale = globalExport.DragAndScale;
 export const LGraphCanvas = globalExport.LGraphCanvas;
 export const ContextMenu = globalExport.ContextMenu;
-export { LGraphBadge } from "./LGraphBadge";
+export { LGraphBadge, BadgePosition } from "./LGraphBadge";

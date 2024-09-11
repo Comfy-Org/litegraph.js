@@ -1,3 +1,8 @@
+export enum BadgePosition {
+  TopLeft = "top-left",
+  TopRight = "top-right",
+}
+
 export interface LGraphBadgeOptions {
   text: string;
   fgColor?: string;
@@ -35,17 +40,24 @@ export class LGraphBadge {
     this.cornerRadius = cornerRadius;
   }
 
+  getWidth(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.font = `${this.fontSize}px sans-serif`;
+    const textWidth = ctx.measureText(this.text).width;
+    ctx.restore();
+    return textWidth + this.padding * 2;
+  }
+
   draw(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-  ): number {
+  ): void {
+    if (!this.text) return;
+
     ctx.save();
     ctx.font = `${this.fontSize}px sans-serif`;
-
-    const textWidth = ctx.measureText(this.text).width;
-    const badgeWidth = textWidth + this.padding * 2;
-
+    const badgeWidth = this.getWidth(ctx);
     const badgeX = 0;
 
     // Draw badge background
@@ -68,7 +80,5 @@ export class LGraphBadge {
     );
 
     ctx.restore();
-
-    return badgeWidth;
   }
 }
