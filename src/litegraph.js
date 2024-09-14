@@ -2155,7 +2155,10 @@ const globalExport = {};
             for (var i in data) {
                 if (i == "nodes" || i == "groups") //links must be accepted
                     continue;
-                this[i] = data[i];
+
+                if (Object.getOwnPropertyDescriptor(this, i)?.writable !== false) {
+                    this[i] = data[i];
+                }
             }
 
             var error = false;
