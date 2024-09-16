@@ -3311,7 +3311,7 @@ const globalExport = {};
              * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
              */
         addOutput(name, type, extra_info) {
-            var output = { name: name, type: type, links: null };
+            var output = { name: name, label: extra_info?.label || name, type: type, links: null };
             if (extra_info) {
                 for (var i in extra_info) {
                     output[i] = extra_info[i];
@@ -3402,7 +3402,7 @@ const globalExport = {};
              */
         addInput(name, type, extra_info) {
             type = type || 0;
-            var input = { name: name, type: type, link: null };
+            var input = { name: name, label: extra_info?.label || name, type: type, link: null };
             if (extra_info) {
                 for (var i in extra_info) {
                     input[i] = extra_info[i];
@@ -3686,6 +3686,7 @@ const globalExport = {};
             var w = {
                 type: type.toLowerCase(),
                 name: name,
+                label: options?.label || name,
                 value: value,
                 callback: callback,
                 options: options || {}
