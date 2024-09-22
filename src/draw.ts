@@ -35,21 +35,27 @@ export function drawSlot(
     horizontal = false,
     low_quality = false,
     render_text = true,
+    do_stroke = false,
   }: {
     label_color?: string;
     label_position?: LabelPosition;
     horizontal?: boolean;
     low_quality?: boolean;
     render_text?: boolean;
+    do_stroke?: boolean;
   } = {}
 ) {
+  // Save the current fillStyle and strokeStyle
+  const originalFillStyle = ctx.fillStyle;
+  const originalStrokeStyle = ctx.strokeStyle;
+
   const slot_type = slot.type as SlotType;
   const slot_shape = (
     slot_type === SlotType.Array ? SlotShape.Grid : slot.shape
   ) as SlotShape;
 
   ctx.beginPath();
-  let doStroke = true;
+  let doStroke = do_stroke;
   let doFill = true;
 
   if (slot_type === SlotType.Event || slot_shape === SlotShape.Box) {
@@ -87,6 +93,7 @@ export function drawSlot(
       ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2);
       if (slot_shape === SlotShape.HollowCircle) {
         doFill = false;
+        doStroke = true;
         ctx.strokeStyle = ctx.fillStyle;
       }
     }
@@ -116,4 +123,8 @@ export function drawSlot(
       }
     }
   }
+
+  // Restore the original fillStyle and strokeStyle
+  ctx.fillStyle = originalFillStyle;
+  ctx.strokeStyle = originalStrokeStyle;
 }
