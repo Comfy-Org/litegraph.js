@@ -13,9 +13,6 @@ export { LGraph, LLink, LGraphNode, LGraphGroup, DragAndScale, LGraphCanvas, Con
 
 export const LiteGraph = new LiteGraphGlobal()
 
-LGraphGroup.prototype.isPointInside = LGraphNode.prototype.isPointInside;
-LGraphGroup.prototype.setDirtyCanvas = LGraphNode.prototype.setDirtyCanvas;
-
 export function clamp(v, a, b) {
     return a > v ? a : b < v ? b : v;
 };
