@@ -5381,6 +5381,21 @@ const globalExport = {};
             black: { color: "#222", bgcolor: "#000", groupcolor: "#444" }
         };
 
+        // if set to true users cannot modify the graph
+        #read_only = false;
+        get read_only() {
+            return this.#read_only
+        }
+        set read_only(value) {
+            if (value != this.#read_only) {
+                this.#read_only = value;
+                this.emitEvent({
+                    subType: "read-only",
+                    readOnly: value
+                })
+            }
+        }
+
         constructor(canvas, graph, options) {
             this.options = options = options || {};
 
@@ -5425,7 +5440,6 @@ const globalExport = {};
             this.clear_background = true;
             this.clear_background_color = "#222";
 
-            this.read_only = false; //if set to true users cannot modify the graph
             this.render_only_selected = true;
             this.live_mode = false;
             this.show_info = true;
