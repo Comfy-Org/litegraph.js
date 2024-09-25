@@ -13619,7 +13619,7 @@ const globalExport = {};
 
         //to link a menu with its parent
         if (options.parentMenu) {
-            if (options.parentMenu.constructor !== this.constructor) {
+            if (!(options.parentMenu instanceof ContextMenu)) {
                 console.error(
                     "parentMenu must be of class ContextMenu, ignoring it"
                 );
@@ -13628,6 +13628,9 @@ const globalExport = {};
                 this.parentMenu = options.parentMenu;
                 this.parentMenu.lock = true;
                 this.parentMenu.current_submenu = this;
+            }
+            if (options.parentMenu.options?.className === "dark") {
+                options.className = "dark"
             }
         }
 
