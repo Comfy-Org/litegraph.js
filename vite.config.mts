@@ -5,7 +5,7 @@ import dts from 'vite-plugin-dts'
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/litegraph.js'),
+      entry: path.resolve(__dirname, 'src/litegraph'),
       name: 'litegraph.js',
       fileName: (format) => `litegraph.${format}.js`,
       formats: ['es', 'umd']
