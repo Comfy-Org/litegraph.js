@@ -3,14 +3,11 @@ import { drawSlot, SlotShape, SlotDirection, SlotType, LabelPosition } from "./d
 
 import { LiteGraphGlobal, distance, isInsideRectangle, overlapBounding } from "./LiteGraphGlobal";
 
-const globalExport = {};
 export const LiteGraph = new LiteGraphGlobal()
 
-;(function (globalThis) {
     //*********************************************************************************
     // LGraph CLASS
     //*********************************************************************************
-
     /**
      * LGraph is the class that contain a full graph. We instantiate one and add nodes to it, and then we can run the execution loop.
 	 * supported callbacks:
@@ -22,7 +19,7 @@ export const LiteGraph = new LiteGraphGlobal()
      * @constructor
      * @param {Object} o data from previous serialization [optional]
      */
-    class LGraph {
+    export class LGraph {
         //default supported types
         static supported_types = ["number", "string", "boolean"];
         static STATUS_STOPPED = 1;
@@ -1486,10 +1483,10 @@ export const LiteGraph = new LiteGraphGlobal()
             //TODO
         }
     }
-    globalThis.LGraph = LiteGraph.LGraph = LGraph;
+    LiteGraph.LGraph = LGraph
 
     //this is the class in charge of storing link information
-    class LLink {
+    export class LLink {
         constructor(id, type, origin_id, origin_slot, target_id, target_slot) {
             this.id = id;
             this.type = type;
@@ -1535,7 +1532,6 @@ export const LiteGraph = new LiteGraphGlobal()
     // *************************************************************
     //   Node CLASS                                          *******
     // *************************************************************
-
     /*
 	title: string
 	pos: [x,y]
@@ -1587,14 +1583,13 @@ export const LiteGraph = new LiteGraphGlobal()
 		+ onAction: action slot triggered
 		+ getExtraMenuOptions: to add option to context menu
 */
-
     /**
      * Base Class for all the node type classes
      * @class LGraphNode
      * @param {String} name a name for the node
      */
 
-    class LGraphNode {
+    export class LGraphNode {
 
         constructor(title) {
             this._ctor(title);
@@ -4097,9 +4092,9 @@ export const LiteGraph = new LiteGraphGlobal()
         }
     }
 
-    globalThis.LGraphNode = LiteGraph.LGraphNode = LGraphNode;
+    LiteGraph.LGraphNode = LGraphNode;
 
-    class LGraphGroup {
+    export class LGraphGroup {
 
         constructor(title) {
             this._ctor(title);
@@ -4348,12 +4343,12 @@ export const LiteGraph = new LiteGraphGlobal()
     LGraphGroup.prototype.isPointInside = LGraphNode.prototype.isPointInside;
     LGraphGroup.prototype.setDirtyCanvas = LGraphNode.prototype.setDirtyCanvas;
 
-    globalThis.LGraphGroup = LiteGraph.LGraphGroup = LGraphGroup;
+    LiteGraph.LGraphGroup = LGraphGroup;
 
     //****************************************
 
     //Scale and Offset
-    class DragAndScale {
+    export class DragAndScale {
         constructor(element, skip_events) {
             this.offset = new Float32Array([0, 0]);
             this.scale = 1;
@@ -4572,7 +4567,6 @@ export const LiteGraph = new LiteGraphGlobal()
     //*********************************************************************************
     // LGraphCanvas: LGraph renderer CLASS
     //*********************************************************************************
-
     /**
      * This class is in charge of rendering one graph inside a canvas. And provides all the interaction required.
      * Valid callbacks are: onNodeSelected, onNodeDeselected, onShowNodePanel, onNodeDblClicked
@@ -4583,7 +4577,7 @@ export const LiteGraph = new LiteGraphGlobal()
      * @param {LGraph} graph [optional]
      * @param {Object} options [optional] { skip_rendering, autoresize, viewport }
      */
-    class LGraphCanvas {
+    export class LGraphCanvas {
 
         /* Interaction */
         static #temp = new Float32Array(4);
@@ -12629,7 +12623,7 @@ export const LiteGraph = new LiteGraphGlobal()
         }
     }
 
-    globalThis.LGraphCanvas = LiteGraph.LGraphCanvas = LGraphCanvas;
+    LiteGraph.LGraphCanvas = LGraphCanvas;
     //API *************************************************
     //like rect but rounded corners
     if (typeof(window) != "undefined" && window.CanvasRenderingContext2D && !window.CanvasRenderingContext2D.prototype.roundRect) {
@@ -12721,7 +12715,7 @@ export const LiteGraph = new LiteGraphGlobal()
      * - ignore_item_callbacks: ignores the callback inside the item, it just calls the options.callback
      * - event: you can pass a MouseEvent, this way the ContextMenu appears in that position
      */
-    class ContextMenu {
+    export class ContextMenu {
         constructor(values, options) {
         options = options || {};
         this.options = options;
@@ -13194,7 +13188,7 @@ export const LiteGraph = new LiteGraphGlobal()
     };
 
 	//used by some widgets to render a curve editor
-	class CurveEditor {
+	export class CurveEditor {
         constructor(points) {
             this.points = points;
             this.selected = -1;
@@ -13359,10 +13353,9 @@ export const LiteGraph = new LiteGraphGlobal()
 
     LiteGraph.CurveEditor = CurveEditor;
 
-    function clamp(v, a, b) {
+    export function clamp(v, a, b) {
         return a > v ? a : b < v ? b : v;
     };
-    globalThis.clamp = clamp;
 
     if (typeof window != "undefined" && !window["requestAnimationFrame"]) {
         window.requestAnimationFrame =
@@ -13372,13 +13365,5 @@ export const LiteGraph = new LiteGraphGlobal()
                 window.setTimeout(callback, 1000 / 60);
             };
     }
-})(globalExport)
 
-export const LGraph = globalExport.LGraph;
-export const LLink = globalExport.LLink;
-export const LGraphNode = globalExport.LGraphNode;
-export const LGraphGroup = globalExport.LGraphGroup;
-export const DragAndScale = globalExport.DragAndScale;
-export const LGraphCanvas = globalExport.LGraphCanvas;
-export const ContextMenu = globalExport.ContextMenu;
-export { LGraphBadge, BadgePosition } from "./LGraphBadge";
+export { LGraphBadge, BadgePosition } from "./LGraphBadge"
