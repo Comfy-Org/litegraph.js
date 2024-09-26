@@ -285,7 +285,6 @@ export class LGraphCanvas {
     // TODO: This looks like another panel thing
     prompt_box: IDialog
     search_box: HTMLDivElement
-    #open_prompts: IDialog[] = []
     SELECTED_NODE: LGraphNode
     NODEPANEL_IS_OPEN: boolean
     getMenuOptions?(): IContextMenuValue[]
@@ -7725,7 +7724,7 @@ export class LGraphCanvas {
         if (panel)
             panel.close();
     }
-    showShowGraphOptionsPanel(refOpts, obEv) {
+    showShowGraphOptionsPanel(refOpts, obEv, refMenu, refMenu2) {
         if (this.constructor && this.constructor.name == "HTMLDivElement") {
             // assume coming from the menu event click
             if (!obEv || !obEv.event || !obEv.event.target || !obEv.event.target.lgraphcanvas) {
@@ -8262,7 +8261,7 @@ export class LGraphCanvas {
 
         return options;
     }
-    getGroupMenuOptions(group: LGraphGroup): IContextMenuValue[] {
+    getGroupMenuOptions(node: LGraphGroup): IContextMenuValue[] {
         console.warn("LGraphCanvas.getGroupMenuOptions is deprecated, use LGraphGroup.getMenuOptions instead");
         return node.getMenuOptions();
     }

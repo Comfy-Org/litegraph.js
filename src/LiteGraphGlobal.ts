@@ -314,7 +314,6 @@ export class LiteGraphGlobal {
      */
     unregisterNodeType(type: string | typeof LGraphNode): void {
         const base_class = type.constructor === String
-            // @ts-ignore
             ? this.registered_node_types[type]
             : type
         if (!base_class) {
