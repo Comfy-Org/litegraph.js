@@ -3586,6 +3586,11 @@ const globalExport = {};
                 if (!text) {
                     return 0;
                 }
+                let canvas = LGraphCanvas.active_canvas
+                if (canvas) {
+                    let width = canvas.title_measurement_context.measureText(text).width
+                    return width + LiteGraph.NODE_TITLE_HEIGHT
+                }
                 return font_size * text.length * 0.6;
             }
 
@@ -5397,6 +5402,8 @@ const globalExport = {};
             this.zoom_speed = 1.1 // in range (1.01, 2.5). Less than 1 will invert the zoom direction
 
             this.title_text_font = "" + LiteGraph.NODE_TEXT_SIZE + "px Arial";
+            this.title_measurement_context = document.createElement("canvas").getContext("2d");
+            this.title_measurement_context.font = this.title_text_font;
             this.inner_text_font =
                 "normal " + LiteGraph.NODE_SUBTEXT_SIZE + "px Arial";
             this.node_title_color = LiteGraph.NODE_TITLE_COLOR;
