@@ -2722,8 +2722,8 @@ export class LGraphNode {
 
     localToScreen(x: number, y: number, dragAndScale: DragAndScale): Point {
         return [
-            (x + this.pos[0]) * graphcanvas.scale + graphcanvas.offset[0],
-            (y + this.pos[1]) * graphcanvas.scale + graphcanvas.offset[1]
+            (x + this.pos[0]) * dragAndScale.scale + dragAndScale.offset[0],
+            (y + this.pos[1]) * dragAndScale.scale + dragAndScale.offset[1]
         ];
     }
 

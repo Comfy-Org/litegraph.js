@@ -1298,7 +1298,7 @@ export class LGraph {
         }
         this.sendActionToCanvas("onAfterChange", this);
     }
-    connectionChange(node: LGraphNode): void {
+    connectionChange(node: LGraphNode, link_info): void {
         this.updateExecutionOrder();
         if (this.onConnectionChange) {
             this.onConnectionChange(node);
