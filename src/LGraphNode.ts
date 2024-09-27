@@ -11,7 +11,7 @@ import { LiteGraph } from "./litegraph";
 import { isInsideRectangle } from "./LiteGraphGlobal";
 import { LLink } from "./LLink";
 
-export type NodeId = number // | string
+export type NodeId = number | string
 
 export interface INodePropertyInfo {
     name: string
