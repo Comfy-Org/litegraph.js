@@ -1,8 +1,12 @@
-// @ts-nocheck
 import type { IContextMenuOptions, IContextMenuValue } from "./interfaces"
 import { LiteGraph } from "./litegraph"
 
-/* LiteGraph GUI elements used for canvas editing *************************************/
+interface ContextMenuDivElement extends HTMLDivElement {
+    value?: IContextMenuValue
+    onclick_callback?: never
+    closing_timer?: number
+}
+
 /**
  * ContextMenu from LiteGUI
  *
@@ -18,28 +22,28 @@ import { LiteGraph } from "./litegraph"
 export class ContextMenu {
     options?: IContextMenuOptions
     parentMenu?: ContextMenu
-    root: HTMLDivElement
+    root: ContextMenuDivElement
     current_submenu?: ContextMenu
     lock?: boolean
 
-    constructor(values: IContextMenuValue[] | string[], options: IContextMenuOptions) {
-        options = options || {}
+    // TODO: Interface for values requires functionality change - currently accepts an array of strings, functions, objects, nulls, or undefined.
+    constructor(values: (IContextMenuValue | string)[], options: IContextMenuOptions) {
+        options ||= {}
         this.options = options
         var that = this
 
         //to link a menu with its parent
-        if (options.parentMenu) {
-            if (!(options.parentMenu instanceof ContextMenu)) {
-                console.error(
-                    "parentMenu must be of class ContextMenu, ignoring it"
-                )
+        var parent = options.parentMenu
+        if (parent) {
+            if (!(parent instanceof ContextMenu)) {
+                console.error("parentMenu must be of class ContextMenu, ignoring it")
                 options.parentMenu = null
             } else {
-                this.parentMenu = options.parentMenu
+                this.parentMenu = parent
                 this.parentMenu.lock = true
                 this.parentMenu.current_submenu = this
             }
-            if (options.parentMenu.options?.className === "dark") {
+            if (parent.options?.className === "dark") {
                 options.className = "dark"
             }
         }
@@ -50,29 +54,25 @@ export class ContextMenu {
         if (eventClass !== "MouseEvent" &&
             eventClass !== "CustomEvent" &&
             eventClass !== "PointerEvent") {
-            console.error(
-                "Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it. (" + eventClass + ")"
-            )
+            console.error(`Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it. (${eventClass})`)
             options.event = null
         }
 
-        var root = document.createElement("div")
-        root.className = "litegraph litecontextmenu litemenubar-panel"
-        if (options.className) {
-            root.className += " " + options.className
-        }
-        root.style.minWidth = 100
-        root.style.minHeight = 100
+        var root: ContextMenuDivElement = document.createElement("div")
+        var classes = "litegraph litecontextmenu litemenubar-panel"
+        if (options.className) classes += " " + options.className
+        root.className = classes
+        root.style.minWidth = "100"
+        root.style.minHeight = "100"
+        // TODO: Fix use of timer in place of events
         root.style.pointerEvents = "none"
         setTimeout(function () {
             root.style.pointerEvents = "auto"
         }, 100) //delay so the mouse up event is not caught by this element
 
-
-
         //this prevents the default context browser menu to open in case this menu was created when pressing right button
         LiteGraph.pointerListenerAdd(root, "up",
-            function (e) {
+            function (e: MouseEvent) {
                 //console.log("pointerevents: ContextMenu up root prevent");
                 e.preventDefault()
                 return true
@@ -81,7 +81,7 @@ export class ContextMenu {
         )
         root.addEventListener(
             "contextmenu",
-            function (e) {
+            function (e: MouseEvent) {
                 if (e.button != 2) {
                     //right button
                     return false
@@ -93,7 +93,7 @@ export class ContextMenu {
         )
 
         LiteGraph.pointerListenerAdd(root, "down",
-            function (e) {
+            function (e: MouseEvent) {
                 //console.log("pointerevents: ContextMenu down");
                 if (e.button == 2) {
                     that.close()
@@ -104,7 +104,7 @@ export class ContextMenu {
             true
         )
 
-        function on_mouse_wheel(e) {
+        function on_mouse_wheel(e: WheelEvent) {
             var pos = parseInt(root.style.top)
             root.style.top =
                 (pos + e.deltaY * options.scroll_speed).toFixed() + "px"
@@ -117,7 +117,6 @@ export class ContextMenu {
         }
 
         root.addEventListener("wheel", on_mouse_wheel, true)
-        root.addEventListener("mousewheel", on_mouse_wheel, true)
 
         this.root = root
 
@@ -130,15 +129,14 @@ export class ContextMenu {
         }
 
         //entries
-        var num = 0
         for (var i = 0; i < values.length; i++) {
-            var name = values.constructor == Array ? values[i] : i
-            if (name != null && name.constructor !== String) {
+            var name = values.constructor == Array ? values[i] : String(i)
+            if (name != null && typeof name !== "string") {
                 name = name.content === undefined ? String(name) : name.content
             }
             var value = values[i]
+            // @ts-expect-error
             this.addItem(name, value, options)
-            num++
         }
 
         //close on leave? touch enabled devices won't work TODO use a global device detector and condition on that
@@ -153,7 +151,7 @@ export class ContextMenu {
             root.closing_timer = setTimeout(that.close.bind(that, e), 500);
             //that.close(e);
         });*/
-        LiteGraph.pointerListenerAdd(root, "enter", function (e) {
+        LiteGraph.pointerListenerAdd(root, "enter", function () {
             //console.log("pointerevents: ContextMenu enter");
             if (root.closing_timer) {
                 clearTimeout(root.closing_timer)
@@ -161,19 +159,11 @@ export class ContextMenu {
         })
 
         //insert before checking position
-        var root_document = document
-        if (options.event) {
-            root_document = options.event.target.ownerDocument
-        }
-
-        if (!root_document) {
-            root_document = document
-        }
+        var ownerDocument = (options.event?.target as Node).ownerDocument
+        var root_document = ownerDocument || document
 
         if (root_document.fullscreenElement)
             root_document.fullscreenElement.appendChild(root)
-
-
         else
             root_document.body.appendChild(root)
 
@@ -187,8 +177,8 @@ export class ContextMenu {
                 top -= 20
             }
 
-            if (options.parentMenu) {
-                var rect = options.parentMenu.root.getBoundingClientRect()
+            if (parent) {
+                var rect = parent.root.getBoundingClientRect()
                 left = rect.left + rect.width
             }
 
@@ -215,17 +205,15 @@ export class ContextMenu {
 
     addItem(name: string, value: IContextMenuValue, options: IContextMenuOptions): HTMLElement {
         var that = this
-        options = options || {}
+        options ||= {}
 
-        var element = document.createElement("div")
+        var element: ContextMenuDivElement = document.createElement("div")
         element.className = "litemenu-entry submenu"
 
         var disabled = false
 
         if (value === null) {
             element.classList.add("separator")
-            //element.innerHTML = "<hr/>"
-            //continue;
         } else {
             element.innerHTML = value && value.title ? value.title : name
             element.value = value
@@ -248,7 +236,7 @@ export class ContextMenu {
                 element.dataset["value"] = name
                 element.onclick_callback = value
             } else {
-                element.dataset["value"] = value
+                element.dataset["value"] = String(value)
             }
 
             if (value.className) {
@@ -333,7 +321,8 @@ export class ContextMenu {
                     if (!value.submenu.options) {
                         throw "ContextMenu submenu needs options"
                     }
-                    var submenu = new that.constructor(value.submenu.options, {
+                    // @ts-expect-error
+                    new that.constructor(value.submenu.options, {
                         callback: value.submenu.callback,
                         event: e,
                         parentMenu: that,
@@ -384,10 +373,13 @@ export class ContextMenu {
     static trigger(element: HTMLDivElement, event_name: string, params: MouseEvent, origin?: undefined) {
         var evt = document.createEvent("CustomEvent")
         evt.initCustomEvent(event_name, true, true, params) //canBubble, cancelable, detail
+        // @ts-expect-error
         evt.srcElement = origin
         if (element.dispatchEvent) {
             element.dispatchEvent(evt)
+            // @ts-expect-error
         } else if (element.__events) {
+            // @ts-expect-error
             element.__events.dispatchEvent(evt)
         }
         //else nothing seems binded here so nothing to do
