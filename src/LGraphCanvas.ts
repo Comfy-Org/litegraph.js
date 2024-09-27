@@ -70,13 +70,13 @@ export class LGraphCanvas {
     }
 
     // if set to true users cannot modify the graph
-    #read_only = false;
+    private _read_only = false;
     get read_only() {
-        return this.#read_only
+        return this._read_only
     }
     set read_only(value) {
-        if (value != this.#read_only) {
-            this.#read_only = value;
+        if (value != this._read_only) {
+            this._read_only = value;
             this.emitEvent({
                 subType: "read-only",
                 readOnly: value
