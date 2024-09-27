@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { IContextMenuOptions, IContextMenuValue } from "./interfaces"
-import { LiteGraph } from "./litegraph";
+import { LiteGraph } from "./litegraph"
 
 /* LiteGraph GUI elements used for canvas editing *************************************/
 /**
@@ -23,50 +23,50 @@ export class ContextMenu {
     lock?: boolean
 
     constructor(values: IContextMenuValue[] | string[], options: IContextMenuOptions) {
-        options = options || {};
-        this.options = options;
-        var that = this;
+        options = options || {}
+        this.options = options
+        var that = this
 
         //to link a menu with its parent
         if (options.parentMenu) {
             if (!(options.parentMenu instanceof ContextMenu)) {
                 console.error(
                     "parentMenu must be of class ContextMenu, ignoring it"
-                );
-                options.parentMenu = null;
+                )
+                options.parentMenu = null
             } else {
-                this.parentMenu = options.parentMenu;
-                this.parentMenu.lock = true;
-                this.parentMenu.current_submenu = this;
+                this.parentMenu = options.parentMenu
+                this.parentMenu.lock = true
+                this.parentMenu.current_submenu = this
             }
             if (options.parentMenu.options?.className === "dark") {
-                options.className = "dark";
+                options.className = "dark"
             }
         }
 
-        var eventClass = null;
+        var eventClass = null
         if (options.event) //use strings because comparing classes between windows doesnt work
-            eventClass = options.event.constructor.name;
+            eventClass = options.event.constructor.name
         if (eventClass !== "MouseEvent" &&
             eventClass !== "CustomEvent" &&
             eventClass !== "PointerEvent") {
             console.error(
                 "Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it. (" + eventClass + ")"
-            );
-            options.event = null;
+            )
+            options.event = null
         }
 
-        var root = document.createElement("div");
-        root.className = "litegraph litecontextmenu litemenubar-panel";
+        var root = document.createElement("div")
+        root.className = "litegraph litecontextmenu litemenubar-panel"
         if (options.className) {
-            root.className += " " + options.className;
+            root.className += " " + options.className
         }
-        root.style.minWidth = 100;
-        root.style.minHeight = 100;
-        root.style.pointerEvents = "none";
+        root.style.minWidth = 100
+        root.style.minHeight = 100
+        root.style.pointerEvents = "none"
         setTimeout(function () {
-            root.style.pointerEvents = "auto";
-        }, 100); //delay so the mouse up event is not caught by this element
+            root.style.pointerEvents = "auto"
+        }, 100) //delay so the mouse up event is not caught by this element
 
 
 
@@ -74,71 +74,71 @@ export class ContextMenu {
         LiteGraph.pointerListenerAdd(root, "up",
             function (e) {
                 //console.log("pointerevents: ContextMenu up root prevent");
-                e.preventDefault();
-                return true;
+                e.preventDefault()
+                return true
             },
             true
-        );
+        )
         root.addEventListener(
             "contextmenu",
             function (e) {
                 if (e.button != 2) {
                     //right button
-                    return false;
+                    return false
                 }
-                e.preventDefault();
-                return false;
+                e.preventDefault()
+                return false
             },
             true
-        );
+        )
 
         LiteGraph.pointerListenerAdd(root, "down",
             function (e) {
                 //console.log("pointerevents: ContextMenu down");
                 if (e.button == 2) {
-                    that.close();
-                    e.preventDefault();
-                    return true;
+                    that.close()
+                    e.preventDefault()
+                    return true
                 }
             },
             true
-        );
+        )
 
         function on_mouse_wheel(e) {
-            var pos = parseInt(root.style.top);
+            var pos = parseInt(root.style.top)
             root.style.top =
-                (pos + e.deltaY * options.scroll_speed).toFixed() + "px";
-            e.preventDefault();
-            return true;
+                (pos + e.deltaY * options.scroll_speed).toFixed() + "px"
+            e.preventDefault()
+            return true
         }
 
         if (!options.scroll_speed) {
-            options.scroll_speed = 0.1;
+            options.scroll_speed = 0.1
         }
 
-        root.addEventListener("wheel", on_mouse_wheel, true);
-        root.addEventListener("mousewheel", on_mouse_wheel, true);
+        root.addEventListener("wheel", on_mouse_wheel, true)
+        root.addEventListener("mousewheel", on_mouse_wheel, true)
 
-        this.root = root;
+        this.root = root
 
         //title
         if (options.title) {
-            var element = document.createElement("div");
-            element.className = "litemenu-title";
-            element.innerHTML = options.title;
-            root.appendChild(element);
+            var element = document.createElement("div")
+            element.className = "litemenu-title"
+            element.innerHTML = options.title
+            root.appendChild(element)
         }
 
         //entries
-        var num = 0;
+        var num = 0
         for (var i = 0; i < values.length; i++) {
-            var name = values.constructor == Array ? values[i] : i;
+            var name = values.constructor == Array ? values[i] : i
             if (name != null && name.constructor !== String) {
-                name = name.content === undefined ? String(name) : name.content;
+                name = name.content === undefined ? String(name) : name.content
             }
-            var value = values[i];
-            this.addItem(name, value, options);
-            num++;
+            var value = values[i]
+            this.addItem(name, value, options)
+            num++
         }
 
         //close on leave? touch enabled devices won't work TODO use a global device detector and condition on that
@@ -156,144 +156,144 @@ export class ContextMenu {
         LiteGraph.pointerListenerAdd(root, "enter", function (e) {
             //console.log("pointerevents: ContextMenu enter");
             if (root.closing_timer) {
-                clearTimeout(root.closing_timer);
+                clearTimeout(root.closing_timer)
             }
-        });
+        })
 
         //insert before checking position
-        var root_document = document;
+        var root_document = document
         if (options.event) {
-            root_document = options.event.target.ownerDocument;
+            root_document = options.event.target.ownerDocument
         }
 
         if (!root_document) {
-            root_document = document;
+            root_document = document
         }
 
         if (root_document.fullscreenElement)
-            root_document.fullscreenElement.appendChild(root);
+            root_document.fullscreenElement.appendChild(root)
 
 
         else
-            root_document.body.appendChild(root);
+            root_document.body.appendChild(root)
 
         //compute best position
-        var left = options.left || 0;
-        var top = options.top || 0;
+        var left = options.left || 0
+        var top = options.top || 0
         if (options.event) {
-            left = options.event.clientX - 10;
-            top = options.event.clientY - 10;
+            left = options.event.clientX - 10
+            top = options.event.clientY - 10
             if (options.title) {
-                top -= 20;
+                top -= 20
             }
 
             if (options.parentMenu) {
-                var rect = options.parentMenu.root.getBoundingClientRect();
-                left = rect.left + rect.width;
+                var rect = options.parentMenu.root.getBoundingClientRect()
+                left = rect.left + rect.width
             }
 
-            var body_rect = document.body.getBoundingClientRect();
-            var root_rect = root.getBoundingClientRect();
+            var body_rect = document.body.getBoundingClientRect()
+            var root_rect = root.getBoundingClientRect()
             if (body_rect.height == 0)
-                console.error("document.body height is 0. That is dangerous, set html,body { height: 100%; }");
+                console.error("document.body height is 0. That is dangerous, set html,body { height: 100%; }")
 
             if (body_rect.width && left > body_rect.width - root_rect.width - 10) {
-                left = body_rect.width - root_rect.width - 10;
+                left = body_rect.width - root_rect.width - 10
             }
             if (body_rect.height && top > body_rect.height - root_rect.height - 10) {
-                top = body_rect.height - root_rect.height - 10;
+                top = body_rect.height - root_rect.height - 10
             }
         }
 
-        root.style.left = left + "px";
-        root.style.top = top + "px";
+        root.style.left = left + "px"
+        root.style.top = top + "px"
 
         if (options.scale) {
-            root.style.transform = "scale(" + options.scale + ")";
+            root.style.transform = "scale(" + options.scale + ")"
         }
     }
 
     addItem(name: string, value: IContextMenuValue, options: IContextMenuOptions): HTMLElement {
-        var that = this;
-        options = options || {};
+        var that = this
+        options = options || {}
 
-        var element = document.createElement("div");
-        element.className = "litemenu-entry submenu";
+        var element = document.createElement("div")
+        element.className = "litemenu-entry submenu"
 
-        var disabled = false;
+        var disabled = false
 
         if (value === null) {
-            element.classList.add("separator");
+            element.classList.add("separator")
             //element.innerHTML = "<hr/>"
             //continue;
         } else {
-            element.innerHTML = value && value.title ? value.title : name;
-            element.value = value;
-            element.setAttribute("role", "menuitem");
+            element.innerHTML = value && value.title ? value.title : name
+            element.value = value
+            element.setAttribute("role", "menuitem")
 
             if (value) {
                 if (value.disabled) {
-                    disabled = true;
-                    element.classList.add("disabled");
-                    element.setAttribute("aria-disabled", "true");
+                    disabled = true
+                    element.classList.add("disabled")
+                    element.setAttribute("aria-disabled", "true")
                 }
                 if (value.submenu || value.has_submenu) {
-                    element.classList.add("has_submenu");
-                    element.setAttribute("aria-haspopup", "true");
-                    element.setAttribute("aria-expanded", "false");
+                    element.classList.add("has_submenu")
+                    element.setAttribute("aria-haspopup", "true")
+                    element.setAttribute("aria-expanded", "false")
                 }
             }
 
             if (typeof value == "function") {
-                element.dataset["value"] = name;
-                element.onclick_callback = value;
+                element.dataset["value"] = name
+                element.onclick_callback = value
             } else {
-                element.dataset["value"] = value;
+                element.dataset["value"] = value
             }
 
             if (value.className) {
-                element.className += " " + value.className;
+                element.className += " " + value.className
             }
         }
 
-        this.root.appendChild(element);
+        this.root.appendChild(element)
         if (!disabled) {
-            element.addEventListener("click", inner_onclick);
+            element.addEventListener("click", inner_onclick)
         }
         if (!disabled && options.autoopen) {
-            LiteGraph.pointerListenerAdd(element, "enter", inner_over);
+            LiteGraph.pointerListenerAdd(element, "enter", inner_over)
         }
 
         function setAriaExpanded() {
-            const entries = that.root.querySelectorAll("div.litemenu-entry.has_submenu");
+            const entries = that.root.querySelectorAll("div.litemenu-entry.has_submenu")
             if (entries) {
                 for (let i = 0; i < entries.length; i++) {
-                    entries[i].setAttribute("aria-expanded", "false");
+                    entries[i].setAttribute("aria-expanded", "false")
                 }
             }
-            element.setAttribute("aria-expanded", "true");
+            element.setAttribute("aria-expanded", "true")
         }
 
         function inner_over(e) {
-            var value = this.value;
+            var value = this.value
             if (!value || !value.has_submenu) {
-                return;
+                return
             }
             //if it is a submenu, autoopen like the item was clicked
-            inner_onclick.call(this, e);
-            setAriaExpanded();
+            inner_onclick.call(this, e)
+            setAriaExpanded()
         }
 
         //menu option clicked
         function inner_onclick(e) {
-            var value = this.value;
-            var close_parent = true;
+            var value = this.value
+            var close_parent = true
 
             if (that.current_submenu) {
-                that.current_submenu.close(e);
+                that.current_submenu.close(e)
             }
             if (value?.has_submenu || value?.submenu) {
-                setAriaExpanded();
+                setAriaExpanded()
             }
 
             //global callback
@@ -305,9 +305,9 @@ export class ContextMenu {
                     e,
                     that,
                     options.node
-                );
+                )
                 if (r === true) {
-                    close_parent = false;
+                    close_parent = false
                 }
             }
 
@@ -324,14 +324,14 @@ export class ContextMenu {
                         e,
                         that,
                         options.extra
-                    );
+                    )
                     if (r === true) {
-                        close_parent = false;
+                        close_parent = false
                     }
                 }
                 if (value.submenu) {
                     if (!value.submenu.options) {
-                        throw "ContextMenu submenu needs options";
+                        throw "ContextMenu submenu needs options"
                     }
                     var submenu = new that.constructor(value.submenu.options, {
                         callback: value.submenu.callback,
@@ -341,39 +341,39 @@ export class ContextMenu {
                         title: value.submenu.title,
                         extra: value.submenu.extra,
                         autoopen: options.autoopen
-                    });
-                    close_parent = false;
+                    })
+                    close_parent = false
                 }
             }
 
             if (close_parent && !that.lock) {
-                that.close();
+                that.close()
             }
         }
 
-        return element;
+        return element
     }
 
     close(e?: MouseEvent, ignore_parent_menu?: boolean): void {
         if (this.root.parentNode) {
-            this.root.parentNode.removeChild(this.root);
+            this.root.parentNode.removeChild(this.root)
         }
         if (this.parentMenu && !ignore_parent_menu) {
-            this.parentMenu.lock = false;
-            this.parentMenu.current_submenu = null;
+            this.parentMenu.lock = false
+            this.parentMenu.current_submenu = null
             if (e === undefined) {
-                this.parentMenu.close();
+                this.parentMenu.close()
             } else if (e &&
                 !ContextMenu.isCursorOverElement(e, this.parentMenu.root)) {
-                ContextMenu.trigger(this.parentMenu.root, LiteGraph.pointerevents_method + "leave", e);
+                ContextMenu.trigger(this.parentMenu.root, LiteGraph.pointerevents_method + "leave", e)
             }
         }
         if (this.current_submenu) {
-            this.current_submenu.close(e, true);
+            this.current_submenu.close(e, true)
         }
 
         if (this.root.closing_timer) {
-            clearTimeout(this.root.closing_timer);
+            clearTimeout(this.root.closing_timer)
         }
 
         // TODO implement : LiteGraph.contextMenuClosed(); :: keep track of opened / closed / current ContextMenu
@@ -382,46 +382,46 @@ export class ContextMenu {
 
     //this code is used to trigger events easily (used in the context menu mouseleave
     static trigger(element: HTMLDivElement, event_name: string, params: MouseEvent, origin?: undefined) {
-        var evt = document.createEvent("CustomEvent");
-        evt.initCustomEvent(event_name, true, true, params); //canBubble, cancelable, detail
-        evt.srcElement = origin;
+        var evt = document.createEvent("CustomEvent")
+        evt.initCustomEvent(event_name, true, true, params) //canBubble, cancelable, detail
+        evt.srcElement = origin
         if (element.dispatchEvent) {
-            element.dispatchEvent(evt);
+            element.dispatchEvent(evt)
         } else if (element.__events) {
-            element.__events.dispatchEvent(evt);
+            element.__events.dispatchEvent(evt)
         }
         //else nothing seems binded here so nothing to do
-        return evt;
+        return evt
     }
 
     //returns the top most menu
     getTopMenu(): ContextMenu {
         if (this.options.parentMenu) {
-            return this.options.parentMenu.getTopMenu();
+            return this.options.parentMenu.getTopMenu()
         }
-        return this;
+        return this
     }
 
     getFirstEvent(): MouseEvent {
         if (this.options.parentMenu) {
-            return this.options.parentMenu.getFirstEvent();
+            return this.options.parentMenu.getFirstEvent()
         }
-        return this.options.event;
+        return this.options.event
     }
 
     static isCursorOverElement(event: MouseEvent, element: HTMLDivElement): boolean {
-        var left = event.clientX;
-        var top = event.clientY;
-        var rect = element.getBoundingClientRect();
+        var left = event.clientX
+        var top = event.clientY
+        var rect = element.getBoundingClientRect()
         if (!rect) {
-            return false;
+            return false
         }
         if (top > rect.top &&
             top < rect.top + rect.height &&
             left > rect.left &&
             left < rect.left + rect.width) {
-            return true;
+            return true
         }
-        return false;
+        return false
     }
 }
