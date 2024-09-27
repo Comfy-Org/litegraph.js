@@ -2308,29 +2308,29 @@ export class LGraphCanvas {
                             //mouse on top of the corner box, don't know what to do
                         } else {
                             //check if I have a slot below de mouse
-                                var slot = this.isOverNodeInput(node, e.canvasX, e.canvasY, pos);
-                                if (slot != -1 && node.inputs[slot] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[slot].type)) {
-                                    this._highlight_input = pos;
-                                    this._highlight_input_slot = node.inputs[slot]; // XXX CHECK THIS
-                                } else {
-                                    // Allow support for linking to widgets, handled externally to LiteGraph
-                                    if (this.getWidgetLinkType) {
-                                        const overWidget = this.getWidgetAtCursor(node);
-                                        
-                                        if (overWidget) {
-                                            const widgetLinkType = this.getWidgetLinkType(overWidget, node);
-                                            if (widgetLinkType && LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)) {
-                                                if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
-                                                    this.link_over_widget = overWidget;
-                                                    this.link_over_widget_type = widgetLinkType;
-                                                }
+                            var slot = this.isOverNodeInput(node, e.canvasX, e.canvasY, pos);
+                            if (slot != -1 && node.inputs[slot] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[slot].type)) {
+                                this._highlight_input = pos;
+                                this._highlight_input_slot = node.inputs[slot]; // XXX CHECK THIS
+                            } else {
+                                // Allow support for linking to widgets, handled externally to LiteGraph
+                                if (this.getWidgetLinkType) {
+                                    const overWidget = this.getWidgetAtCursor(node);
+                                    
+                                    if (overWidget) {
+                                        const widgetLinkType = this.getWidgetLinkType(overWidget, node);
+                                        if (widgetLinkType && LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)) {
+                                            if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
+                                                this.link_over_widget = overWidget;
+                                                this.link_over_widget_type = widgetLinkType;
                                             }
                                         }
                                     }
-
-                                    this._highlight_input = null;
-                                    this._highlight_input_slot = null; // XXX CHECK THIS
                                 }
+
+                                this._highlight_input = null;
+                                this._highlight_input_slot = null; // XXX CHECK THIS
+                            }
                         }
 
                     } else if (firstLink.input) {
