@@ -30,10 +30,10 @@ export class ContextMenu {
     constructor(values: (IContextMenuValue | string)[], options: IContextMenuOptions) {
         options ||= {}
         this.options = options
-        var that = this
+        const that = this
 
         //to link a menu with its parent
-        var parent = options.parentMenu
+        const parent = options.parentMenu
         if (parent) {
             if (!(parent instanceof ContextMenu)) {
                 console.error("parentMenu must be of class ContextMenu, ignoring it")
@@ -48,9 +48,10 @@ export class ContextMenu {
             }
         }
 
-        var eventClass = null
-        if (options.event) //use strings because comparing classes between windows doesnt work
-            eventClass = options.event.constructor.name
+        //use strings because comparing classes between windows doesnt work
+        const eventClass = options.event
+            ? options.event.constructor.name
+            : null
         if (eventClass !== "MouseEvent" &&
             eventClass !== "CustomEvent" &&
             eventClass !== "PointerEvent") {
@@ -58,8 +59,8 @@ export class ContextMenu {
             options.event = null
         }
 
-        var root: ContextMenuDivElement = document.createElement("div")
-        var classes = "litegraph litecontextmenu litemenubar-panel"
+        const root: ContextMenuDivElement = document.createElement("div")
+        let classes = "litegraph litecontextmenu litemenubar-panel"
         if (options.className) classes += " " + options.className
         root.className = classes
         root.style.minWidth = "100"
@@ -105,7 +106,7 @@ export class ContextMenu {
         )
 
         function on_mouse_wheel(e: WheelEvent) {
-            var pos = parseInt(root.style.top)
+            const pos = parseInt(root.style.top)
             root.style.top =
                 (pos + e.deltaY * options.scroll_speed).toFixed() + "px"
             e.preventDefault()
@@ -122,19 +123,19 @@ export class ContextMenu {
 
         //title
         if (options.title) {
-            var element = document.createElement("div")
+            const element = document.createElement("div")
             element.className = "litemenu-title"
             element.innerHTML = options.title
             root.appendChild(element)
         }
 
         //entries
-        for (var i = 0; i < values.length; i++) {
-            var name = values.constructor == Array ? values[i] : String(i)
+        for (let i = 0; i < values.length; i++) {
+            let name = values.constructor == Array ? values[i] : String(i)
             if (name != null && typeof name !== "string") {
                 name = name.content === undefined ? String(name) : name.content
             }
-            var value = values[i]
+            const value = values[i]
             // @ts-expect-error
             this.addItem(name, value, options)
         }
@@ -159,8 +160,8 @@ export class ContextMenu {
         })
 
         //insert before checking position
-        var ownerDocument = (options.event?.target as Node).ownerDocument
-        var root_document = ownerDocument || document
+        const ownerDocument = (options.event?.target as Node).ownerDocument
+        const root_document = ownerDocument || document
 
         if (root_document.fullscreenElement)
             root_document.fullscreenElement.appendChild(root)
@@ -168,8 +169,8 @@ export class ContextMenu {
             root_document.body.appendChild(root)
 
         //compute best position
-        var left = options.left || 0
-        var top = options.top || 0
+        let left = options.left || 0
+        let top = options.top || 0
         if (options.event) {
             left = options.event.clientX - 10
             top = options.event.clientY - 10
@@ -178,12 +179,12 @@ export class ContextMenu {
             }
 
             if (parent) {
-                var rect = parent.root.getBoundingClientRect()
+                const rect = parent.root.getBoundingClientRect()
                 left = rect.left + rect.width
             }
 
-            var body_rect = document.body.getBoundingClientRect()
-            var root_rect = root.getBoundingClientRect()
+            const body_rect = document.body.getBoundingClientRect()
+            const root_rect = root.getBoundingClientRect()
             if (body_rect.height == 0)
                 console.error("document.body height is 0. That is dangerous, set html,body { height: 100%; }")
 
@@ -204,13 +205,13 @@ export class ContextMenu {
     }
 
     addItem(name: string, value: IContextMenuValue, options: IContextMenuOptions): HTMLElement {
-        var that = this
+        const that = this
         options ||= {}
 
-        var element: ContextMenuDivElement = document.createElement("div")
+        const element: ContextMenuDivElement = document.createElement("div")
         element.className = "litemenu-entry submenu"
 
-        var disabled = false
+        let disabled = false
 
         if (value === null) {
             element.classList.add("separator")
@@ -263,7 +264,7 @@ export class ContextMenu {
         }
 
         function inner_over(e) {
-            var value = this.value
+            const value = this.value
             if (!value || !value.has_submenu) {
                 return
             }
@@ -274,8 +275,8 @@ export class ContextMenu {
 
         //menu option clicked
         function inner_onclick(e) {
-            var value = this.value
-            var close_parent = true
+            const value = this.value
+            let close_parent = true
 
             if (that.current_submenu) {
                 that.current_submenu.close(e)
@@ -286,7 +287,7 @@ export class ContextMenu {
 
             //global callback
             if (options.callback) {
-                var r = options.callback.call(
+                const r = options.callback.call(
                     this,
                     value,
                     options,
@@ -305,7 +306,7 @@ export class ContextMenu {
                     !options.ignore_item_callbacks &&
                     value.disabled !== true) {
                     //item callback
-                    var r = value.callback.call(
+                    const r = value.callback.call(
                         this,
                         value,
                         options,
@@ -371,7 +372,7 @@ export class ContextMenu {
 
     //this code is used to trigger events easily (used in the context menu mouseleave
     static trigger(element: HTMLDivElement, event_name: string, params: MouseEvent, origin?: undefined) {
-        var evt = document.createEvent("CustomEvent")
+        const evt = document.createEvent("CustomEvent")
         evt.initCustomEvent(event_name, true, true, params) //canBubble, cancelable, detail
         // @ts-expect-error
         evt.srcElement = origin
@@ -402,9 +403,9 @@ export class ContextMenu {
     }
 
     static isCursorOverElement(event: MouseEvent, element: HTMLDivElement): boolean {
-        var left = event.clientX
-        var top = event.clientY
-        var rect = element.getBoundingClientRect()
+        const left = event.clientX
+        const top = event.clientY
+        const rect = element.getBoundingClientRect()
         if (!rect) {
             return false
         }
