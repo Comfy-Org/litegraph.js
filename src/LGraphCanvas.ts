@@ -14,6 +14,7 @@ import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LiteGraph, clamp } from "./litegraph"
 import { stringOrNull } from "./strings"
+import { distributeNodes } from "./utils/arrange"
 
 interface IShowSearchOptions {
     node_to?: LGraphNode
@@ -613,6 +614,19 @@ export class LGraphCanvas {
 
         function inner_clicked(value) {
             LGraphCanvas.alignNodes(LGraphCanvas.active_canvas.selected_nodes, value.toLowerCase())
+        }
+    }
+    static createDistributeMenu(value: IContextMenuValue, options: IContextMenuOptions, event: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): void {
+        new LiteGraph.ContextMenu(["Vertically", "Horizontally"], {
+            event,
+            callback: inner_clicked,
+            parentMenu: prev_menu,
+        })
+
+        function inner_clicked(value: string) {
+            const canvas = LGraphCanvas.active_canvas
+            distributeNodes(Object.values(canvas.selected_nodes), value === "Horizontally")
+            canvas.setDirty(true, true)
         }
     }
     static onMenuAdd(node: LGraphNode, options: IContextMenuOptions, e: MouseEvent, prev_menu: ContextMenu, callback?: (node: LGraphNode) => void): boolean {
@@ -7889,6 +7903,11 @@ export class LGraphCanvas {
                 content: "Align Selected To",
                 has_submenu: true,
                 callback: LGraphCanvas.onNodeAlign,
+            })
+            options.push({
+                content: "Distribute Nodes",
+                has_submenu: true,
+                callback: LGraphCanvas.createDistributeMenu,
             })
         }
 
