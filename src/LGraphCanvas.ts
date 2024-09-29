@@ -3176,7 +3176,7 @@ export class LGraphCanvas {
         this.setDirty(true);
     }
     processNodeSelected(node, e) {
-        this.selectNode(node, e && (e.shiftKey || e.ctrlKey || this.multi_select));
+        this.selectNode(node, e && (e.shiftKey || e.metaKey || e.ctrlKey || this.multi_select));
         if (this.onNodeSelected) {
             this.onNodeSelected(node);
         }
