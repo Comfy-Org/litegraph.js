@@ -1608,7 +1608,7 @@ export class LGraphCanvas {
 
         //left button mouse / single finger
         if (e.which == 1 && !this.pointer_is_double) {
-            if (e.ctrlKey && !e.altKey) {
+            if ((e.metaKey || e.ctrlKey) && !e.altKey) {
                 this.dragging_rectangle = new Float32Array(4);
                 this.dragging_rectangle[0] = e.canvasX;
                 this.dragging_rectangle[1] = e.canvasY;
