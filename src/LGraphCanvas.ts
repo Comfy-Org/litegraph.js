@@ -2831,8 +2831,8 @@ export class LGraphCanvas {
 
         if (e.type == "keydown") {
             if (e.keyCode == 32) {
-                //space
-                this.dragging_canvas = true;
+                // space
+                this.read_only = true;
                 block_default = true;
             }
 
@@ -2884,7 +2884,7 @@ export class LGraphCanvas {
         } else if (e.type == "keyup") {
             if (e.keyCode == 32) {
                 // space
-                this.dragging_canvas = false;
+                this.read_only = false;
             }
 
             if (this.selected_nodes) {
