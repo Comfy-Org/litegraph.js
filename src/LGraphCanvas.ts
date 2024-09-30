@@ -70,17 +70,17 @@ export class LGraphCanvas {
     }
 
     // if set to true users cannot modify the graph
-    private _read_only = false;
-    get read_only() {
-        return this._read_only
+    private _read_only: boolean = false;
+    get read_only(): boolean {
+        return this._read_only;
     }
-    set read_only(value) {
+    set read_only(value: boolean) {
         if (value != this._read_only) {
             this._read_only = value;
             this.emitEvent({
                 subType: "read-only",
                 readOnly: value
-            })
+            });
         }
     }
 
