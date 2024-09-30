@@ -63,9 +63,12 @@ export class LGraphCanvas {
         return this._dragging_canvas;
     }
     set dragging_canvas(value: boolean) {
-        this._dragging_canvas = value;
-        if (this.canvas) {
-            this.canvas.style.cursor = value ? "grab" : "default";
+        if (value !== this._dragging_canvas) {
+            this._dragging_canvas = value;
+            this.emitEvent({
+                subType: "dragging-canvas",
+                draggingCanvas: value
+            });
         }
     }
 
@@ -75,7 +78,7 @@ export class LGraphCanvas {
         return this._read_only;
     }
     set read_only(value: boolean) {
-        if (value != this._read_only) {
+        if (value !== this._read_only) {
             this._read_only = value;
             this.emitEvent({
                 subType: "read-only",
