@@ -585,6 +585,7 @@ export class LGraph {
         for (let j = 0, l = nodes.length; j < l; ++j) {
             const node = nodes[j]
 
+            // @ts-expect-error
             if (node.constructor === LiteGraph.Subgraph && eventname != "onExecute") {
                 if (node.mode == mode) {
                     // @ts-expect-error Subgraph - not currently in use
@@ -618,8 +619,9 @@ export class LGraph {
     add(node: LGraphNode | LGraphGroup, skip_compute_order?: boolean): LGraphNode | null {
         if (!node) return
 
+        // LEGACY: This was changed from constructor === LGraphGroup
         //groups
-        if (node.constructor === LGraphGroup) {
+        if (node instanceof LGraphGroup) {
             this._groups.push(node)
             this.setDirtyCanvas(true)
             this.change()
@@ -648,7 +650,8 @@ export class LGraph {
                 node.id = LiteGraph.uuidv4()
         }
         else {
-            if (node.id == null || node.id == -1) {
+            // LEGACY: This was changed from null check to non-number check
+            if (typeof node.id !== "number" || node.id === -1) {
                 node.id = ++this.last_node_id
             } else if (this.last_node_id < node.id) {
                 this.last_node_id = node.id
@@ -679,7 +682,8 @@ export class LGraph {
      * @param {LGraphNode} node the instance of the node
      */
     remove(node: LGraphNode | LGraphGroup): void {
-        if (node.constructor === LiteGraph.LGraphGroup) {
+        // LEGACY: This was changed from constructor === LiteGraph.LGraphGroup
+        if (node instanceof LGraphGroup) {
             const index = this._groups.indexOf(node)
             if (index != -1) {
                 this._groups.splice(index, 1)
@@ -1100,11 +1104,12 @@ export class LGraph {
         this.onAfterChange?.(this, info)
         this.sendActionToCanvas("onAfterChange", this)
     }
-    connectionChange(node: LGraphNode, link_info): void {
+    connectionChange(node: LGraphNode): void {
         this.updateExecutionOrder()
         this.onConnectionChange?.(node)
         this._version++
         // TODO: Interface never implemented - any consumers?
+        // @ts-expect-error
         this.sendActionToCanvas("onConnectionChange")
     }
     /**
@@ -1159,13 +1164,11 @@ export class LGraph {
      * @return {Object} value of the node
      */
     serialize(option?: { sortNodes: boolean }): ISerialisedGraph {
-        let nodes_info = []
-        nodes_info = (
-            option?.sortNodes ?
+        const nodes = !LiteGraph.use_uuids && option?.sortNodes
             // @ts-expect-error If LiteGraph.use_uuids is false, ids are numbers.
-                [...this._nodes].sort((a, b) => a.id - b.id) :
-                this._nodes
-        ).map(node => node.serialize())
+            ? [...this._nodes].sort((a, b) => a.id - b.id)
+            : this._nodes
+        const nodes_info = nodes.map(node => node.serialize())
 
         //pack link info into a non-verbose format
         const links: SerialisedLLinkArray[] = []
@@ -1176,6 +1179,7 @@ export class LGraph {
                 console.warn(
                     "weird LLink bug, link info is not a LLink but a regular object"
                 )
+                // @ts-expect-error
                 const link2 = new LLink()
                 for (const j in link) {
                     link2[j] = link[j]
@@ -1217,15 +1221,15 @@ export class LGraph {
 
         if (!keep_old) this.clear()
 
-        const nodes = data.nodes
+        const nodesData = data.nodes
 
+        // LEGACY: This was changed from constructor === Array
         //decode links info (they are very verbose)
-        if (data.links && data.links.constructor === Array) {
-            const links = []
-            for (var i = 0; i < data.links.length; ++i) {
-                const link_data = data.links[i]
-                if (!link_data) //weird bug
-                {
+        if (Array.isArray(data.links)) {
+            const links: LLink[] = []
+            for (const link_data of data.links) {
+                //weird bug
+                if (!link_data) {
                     console.warn("serialized graph link data contains errors, skipping.")
                     continue
                 }
@@ -1248,9 +1252,9 @@ export class LGraph {
 
         //create nodes
         this._nodes = []
-        if (nodes) {
-            for (let i = 0, l = nodes.length; i < l; ++i) {
-                const n_info = nodes[i] //stored info
+        if (nodesData) {
+            for (let i = 0, l = nodesData.length; i < l; ++i) {
+                const n_info = nodesData[i] //stored info
                 let node = LiteGraph.createNode(n_info.type, n_info.title)
                 if (!node) {
                     if (LiteGraph.debug) console.log("Node not found or has errors: " + n_info.type)
@@ -1268,8 +1272,8 @@ export class LGraph {
             }
 
             //configure nodes afterwards so they can reach each other
-            for (let i = 0, l = nodes.length; i < l; ++i) {
-                const n_info = nodes[i]
+            for (let i = 0, l = nodesData.length; i < l; ++i) {
+                const n_info = nodesData[i]
                 const node = this.getNodeById(n_info.id)
                 node?.configure(n_info)
             }
@@ -1298,11 +1302,12 @@ export class LGraph {
     load(url: string | Blob | URL | File, callback: () => void) {
         const that = this
 
+        // LEGACY: This was changed from constructor === File/Blob
         //from file
-        if (url.constructor === File || url.constructor === Blob) {
+        if (url instanceof Blob || url instanceof File) {
             const reader = new FileReader()
             reader.addEventListener('load', function (event) {
-                const data = JSON.parse(event.target.result)
+                const data = JSON.parse(event.target.result.toString())
                 that.configure(data)
                 callback?.()
             })
@@ -1315,7 +1320,7 @@ export class LGraph {
         const req = new XMLHttpRequest()
         req.open("GET", url, true)
         req.send(null)
-        req.onload = function (oEvent) {
+        req.onload = function () {
             if (req.status !== 200) {
                 console.error("Error loading graph:", req.status, req.response)
                 return
