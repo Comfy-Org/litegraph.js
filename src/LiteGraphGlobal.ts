@@ -874,21 +874,21 @@ export class LiteGraphGlobal {
     }
 
     switch (sEvent) {
-      // @ts-expect-error
-      //both pointer and move events
       case "down":
       case "up":
       case "move":
       case "over":
       case "out":
+      // @ts-expect-error
+      //both pointer and move events
       case "enter": {
         oDOM.addEventListener(sMethod + sEvent, fCall, capture);
       }
-      // @ts-expect-error
-      // only pointerevents
       case "leave":
       case "cancel":
       case "gotpointercapture":
+      // @ts-expect-error
+      // only pointerevents
       case "lostpointercapture": {
         if (sMethod != "mouse") {
           return oDOM.addEventListener(sMethod + sEvent, fCall, capture);
@@ -915,13 +915,13 @@ export class LiteGraphGlobal {
       return; // -- break --
     }
     switch (sEvent) {
-      // @ts-expect-error
-      //both pointer and move events
       case "down":
       case "up":
       case "move":
       case "over":
       case "out":
+      // @ts-expect-error
+      //both pointer and move events
       case "enter": {
         if (
           LiteGraph.pointerevents_method == "pointer" ||
@@ -934,11 +934,11 @@ export class LiteGraphGlobal {
           );
         }
       }
-      // @ts-expect-error
-      // only pointerevents
       case "leave":
       case "cancel":
       case "gotpointercapture":
+      // @ts-expect-error
+      // only pointerevents
       case "lostpointercapture": {
         if (LiteGraph.pointerevents_method == "pointer") {
           return oDOM.removeEventListener(

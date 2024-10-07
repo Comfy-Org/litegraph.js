@@ -75,6 +75,7 @@ export function loadPolyfills() {
     window.requestAnimationFrame =
       // @ts-expect-error Legacy code
       window.webkitRequestAnimationFrame ||
+      // @ts-expect-error Legacy code
       window.mozRequestAnimationFrame ||
       function (callback) {
         window.setTimeout(callback, 1000 / 60);
