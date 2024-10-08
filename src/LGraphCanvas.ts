@@ -1877,14 +1877,12 @@ export class LGraphCanvas {
                     this.graph.add(cloned, false, { doCalcSize: false })
                     node = cloned
                     skip_action = true
-                    if (!block_drag_node) {
-                        if (this.allow_dragnodes) {
-                            this.graph.beforeChange()
-                            this.node_dragged = node
-                        }
-                        if (!this.selected_nodes[node.id]) {
-                            this.processNodeSelected(node, e)
-                        }
+                    if (this.allow_dragnodes) {
+                        this.graph.beforeChange()
+                        this.node_dragged = node
+                    }
+                    if (!this.selected_nodes[node.id]) {
+                        this.processNodeSelected(node, e)
                     }
                 }
             }
