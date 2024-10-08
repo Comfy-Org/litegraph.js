@@ -649,10 +649,9 @@ export class LGraph {
                 node.id = LiteGraph.uuidv4()
         }
         else {
-            // LEGACY: This was changed from null check to non-number check
-            if (typeof node.id !== "number" || node.id === -1) {
+            if (node.id == null || node.id == -1) {
                 node.id = ++this.last_node_id
-            } else if (this.last_node_id < node.id) {
+            } else if (typeof node.id === "number" && this.last_node_id < node.id) {
                 this.last_node_id = node.id
             }
         }
