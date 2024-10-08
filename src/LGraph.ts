@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Dictionary, IContextMenuValue, ISlotType, MethodNames, Point } from "./interfaces"
 import type { ISerialisedGraph } from "@/types/serialisation"
 import type { LGraphEventMode } from "./types/globalEnums"
@@ -1179,7 +1178,7 @@ export class LGraph {
                 console.warn(
                     "weird LLink bug, link info is not a LLink but a regular object"
                 )
-                // @ts-expect-error
+                // @ts-expect-error Refactor this shallow copy or add static factory
                 const link2 = new LLink()
                 for (const j in link) {
                     link2[j] = link[j]
@@ -1233,6 +1232,7 @@ export class LGraph {
                     console.warn("serialized graph link data contains errors, skipping.")
                     continue
                 }
+                // @ts-expect-error Refactor this shallow copy or add static factory
                 const link = new LLink()
                 link.configure(link_data)
                 links[link.id] = link
