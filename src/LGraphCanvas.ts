@@ -696,7 +696,7 @@ export class LGraphCanvas {
         const canvas = LGraphCanvas.active_canvas
         const ref_window = canvas.getCanvasWindow()
 
-        var options = node.optional_inputs
+        options = node.optional_inputs
         if (node.onGetInputs) {
             options = node.onGetInputs()
         }
@@ -897,7 +897,7 @@ export class LGraphCanvas {
 
         const entries = []
         for (const i in node.properties) {
-            var value = node.properties[i] !== undefined ? node.properties[i] : " "
+            value = node.properties[i] !== undefined ? node.properties[i] : " "
             if (typeof value == "object")
                 value = JSON.stringify(value)
             const info = node.getPropertyInfo(i)
@@ -1148,7 +1148,7 @@ export class LGraphCanvas {
 
         for (const i in LGraphCanvas.node_colors) {
             const color = LGraphCanvas.node_colors[i]
-            var value = {
+            value = {
                 value: i,
                 content: "<span style='display: block; color: #999; padding-left: 4px; border-left: 8px solid " +
                     color.color +
@@ -2111,7 +2111,6 @@ export class LGraphCanvas {
                         //open subgraph button
                         if (node.subgraph && !node.skip_subgraph_button) {
                             if (!node.flags.collapsed && pos[0] > node.size[0] - LiteGraph.NODE_TITLE_HEIGHT && pos[1] < 0) {
-                                var that = this
                                 setTimeout(function () {
                                     that.openSubgraph(node.subgraph)
                                 }, 10)
@@ -7213,7 +7212,7 @@ export class LGraphCanvas {
                 }
 
                 function inner_test_filter(type, optsIn) {
-                    var optsIn = optsIn || {}
+                    optsIn = optsIn || {}
                     const optsDef = {
                         skipFilter: false,
                         inTypeOverride: false,
