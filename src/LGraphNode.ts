@@ -145,7 +145,7 @@ export class LGraphNode {
     _shape?: RenderShape
     subgraph?: LGraph
     skip_subgraph_button?: boolean
-    mouseOver?: IMouseOverData
+    mouseOver?: boolean
     is_selected?: boolean
     redraw_on_mouse?: boolean
     // Appears unused
