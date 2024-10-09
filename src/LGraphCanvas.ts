@@ -773,9 +773,7 @@ export class LGraphCanvas {
 
     /** @param options Parameter is never used */
     static showMenuNodeOptionalOutputs(v: unknown, options: INodeOutputSlot[], e: unknown, prev_menu: ContextMenu, node: LGraphNode): boolean {
-        if (!node) {
-            return
-        }
+        if (!node) return
 
         const that = this
         const canvas = LGraphCanvas.active_canvas
@@ -1360,8 +1358,7 @@ export class LGraphCanvas {
         graph.attachCanvas(this)
 
         //remove the graph stack in case a subgraph was open
-        if (this._graph_stack)
-            this._graph_stack = null
+        this._graph_stack &&= null
 
         this.setDirty(true, true)
     }
@@ -6164,7 +6161,7 @@ export class LGraphCanvas {
         return false
     }
     showConnectionMenu(optPass: Partial<ICreateNodeOptions & { e: MouseEvent }>): void {
-        optPass = optPass || {}
+        optPass ||= {}
         const opts = Object.assign({
             nodeFrom: null // input
             ,
