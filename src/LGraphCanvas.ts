@@ -19,7 +19,7 @@ import { stringOrNull } from "./strings"
 interface IShowSearchOptions {
     node_to?: LGraphNode
     node_from?: LGraphNode
-    slot_from: INodeOutputSlot | INodeInputSlot
+    slot_from: number | INodeOutputSlot | INodeInputSlot
     type_filter_in?: ISlotType
     type_filter_out?: ISlotType
 
@@ -36,11 +36,11 @@ interface INodeFromTo {
     // input
     nodeFrom?: LGraphNode
     // input
-    slotFrom?: INodeOutputSlot | INodeInputSlot
+    slotFrom?: number | INodeOutputSlot | INodeInputSlot
     // output
     nodeTo?: LGraphNode
     // output
-    slotTo?: INodeOutputSlot | INodeInputSlot
+    slotTo?: number | INodeOutputSlot | INodeInputSlot
     // pass the event coords
 }
 
@@ -694,7 +694,7 @@ export class LGraphCanvas {
     static onMenuNodeEdit() { }
 
     /** @param options Parameter is never used */
-    static showMenuNodeOptionalInputs(v: unknown, options: unknown, e: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): boolean {
+    static showMenuNodeOptionalInputs(v: unknown, options: INodeInputSlot[], e: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): boolean {
         if (!node) return
 
         // FIXME: Static function this
@@ -772,7 +772,7 @@ export class LGraphCanvas {
     }
 
     /** @param options Parameter is never used */
-    static showMenuNodeOptionalOutputs(v: unknown, options: unknown, e: unknown, prev_menu: ContextMenu, node: LGraphNode): boolean {
+    static showMenuNodeOptionalOutputs(v: unknown, options: INodeOutputSlot[], e: unknown, prev_menu: ContextMenu, node: LGraphNode): boolean {
         if (!node) {
             return
         }
@@ -1130,7 +1130,7 @@ export class LGraphCanvas {
     static onMenuNodeColors(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): boolean {
         if (!node) throw "no node for color"
 
-        const values = []
+        const values: IContextMenuValue[] = []
         values.push({
             value: null,
             content: "<span style='display: block; padding-left: 4px;'>No color</span>"
@@ -4233,6 +4233,7 @@ export class LGraphCanvas {
 
         // @ts-expect-error ctor props
         const color = node.color || node.constructor.color || LiteGraph.NODE_DEFAULT_COLOR
+        // @ts-expect-error ctor props
         let bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
 
         const low_quality = this.ds.scale < 0.6 //zoomed out
@@ -5065,6 +5066,8 @@ export class LGraphCanvas {
 
         //choose color
         if (!color && link) {
+            // TODO: Remove ts-ignore when typescript LLink PR goes in.
+            // @ts-ignore Already resolved in parallel PR.
             color = link.color || LGraphCanvas.link_type_colors[link.type]
         }
         color ||= this.default_link_color
@@ -6160,7 +6163,7 @@ export class LGraphCanvas {
         }
         return false
     }
-    showConnectionMenu(optPass: ICreateNodeOptions & { e: MouseEvent }): void {
+    showConnectionMenu(optPass: Partial<ICreateNodeOptions & { e: MouseEvent }>): void {
         optPass = optPass || {}
         const opts = Object.assign({
             nodeFrom: null // input
@@ -6280,7 +6283,7 @@ export class LGraphCanvas {
         const that = this
         title = title || ""
 
-        const dialog = document.createElement("div")
+        const dialog: IDialog = document.createElement("div")
         dialog.is_modified = false
         dialog.className = "graphdialog rounded"
         dialog.innerHTML = multiline
@@ -6324,19 +6327,19 @@ export class LGraphCanvas {
         this.prompt_box?.close()
         this.prompt_box = dialog
 
-        const name_element = dialog.querySelector(".name")
+        const name_element: HTMLSpanElement = dialog.querySelector(".name")
         name_element.innerText = title
-        const value_element = dialog.querySelector(".value")
+        const value_element: HTMLTextAreaElement | HTMLInputElement = dialog.querySelector(".value")
         value_element.value = value
         value_element.select()
 
         const input = value_element
-        input.addEventListener("keydown", function (e) {
+        input.addEventListener("keydown", function (e: KeyboardEvent) {
             dialog.is_modified = true
             if (e.keyCode == 27) {
                 //ESC
                 dialog.close()
-            } else if (e.keyCode == 13 && e.target.localName != "textarea") {
+            } else if (e.keyCode == 13 && (e.target as Element).localName != "textarea") {
                 if (callback) {
                     callback(this.value)
                 }
@@ -7446,6 +7449,7 @@ export class LGraphCanvas {
             }
 
             // panel.addWidget( "string", "Graph name", "", {}, fUpdate); // implement
+            // @ts-expect-error Doesn't exist.  Check for downstream consumers then remove.
             const aProps = LiteGraph.availableCanvasOptions
             aProps.sort()
             for (const pI in aProps) {
