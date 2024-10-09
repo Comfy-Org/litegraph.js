@@ -3743,7 +3743,7 @@ export class LGraphCanvas {
                     ctx.fillStyle = "#ffcc00"
                     if (this._highlight_input) {
                         ctx.beginPath()
-                        if (this._highlight_input_slot.shape === LiteGraph.ARROW_SHAPE) {
+                        if (this._highlight_input_slot?.shape === LiteGraph.ARROW_SHAPE) {
                             ctx.moveTo(this._highlight_input[0] + 8, this._highlight_input[1] + 0.5)
                             ctx.lineTo(this._highlight_input[0] - 4, this._highlight_input[1] + 6 + 0.5)
                             ctx.lineTo(this._highlight_input[0] - 4, this._highlight_input[1] - 6 + 0.5)
@@ -3761,7 +3761,7 @@ export class LGraphCanvas {
                     }
                     if (this._highlight_output) {
                         ctx.beginPath()
-                        if (this._highlight_input_slot.shape === LiteGraph.ARROW_SHAPE) {
+                        if (this._highlight_input_slot?.shape === LiteGraph.ARROW_SHAPE) {
                             ctx.moveTo(this._highlight_output[0] + 8, this._highlight_output[1] + 0.5)
                             ctx.lineTo(this._highlight_output[0] - 4, this._highlight_output[1] + 6 + 0.5)
                             ctx.lineTo(this._highlight_output[0] - 4, this._highlight_output[1] - 6 + 0.5)
