@@ -926,9 +926,8 @@ export class LGraphCanvas {
         )
 
         function inner_clicked(v: { value: any }) {
-            if (!node) {
-                return
-            }
+            if (!node) return
+
             const rect = this.getBoundingClientRect()
             canvas.showEditPropertyValue(node, v.value, {
                 position: [rect.left, rect.top]
@@ -943,9 +942,7 @@ export class LGraphCanvas {
         return e.innerHTML
     }
     static onMenuResizeNode(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
-        if (!node) {
-            return
-        }
+        if (!node) return
 
         const fApplyMultiNode = function (node: LGraphNode) {
             node.size = node.computeSize()
@@ -1090,6 +1087,7 @@ export class LGraphCanvas {
 
         node.graph.afterChange( /*?*/)
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     static onMenuNodePin(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
     }
     static onMenuNodeMode(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): boolean {

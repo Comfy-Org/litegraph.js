@@ -125,6 +125,7 @@ export interface IContextMenuOptions {
 
 export interface IContextMenuValue {
     title?: string
+    value?: string
     content: string
     has_submenu?: boolean
     disabled?: boolean
