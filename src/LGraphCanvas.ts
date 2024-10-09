@@ -4018,7 +4018,7 @@ export class LGraphCanvas {
         let pos = this.mouse
         const hover = LiteGraph.isInsideRectangle(pos[0], pos[1], x, y, w, h)
         pos = this.last_click_position
-        const clicked = pos && LiteGraph.isInsideRectangle(pos[0], pos[1], x, y, w, h)
+        const clicked = pos && hover
         const was_clicked = clicked && !this.block_click
         if (clicked && hold_click) this.blockClick()
         return was_clicked
@@ -5578,7 +5578,7 @@ export class LGraphCanvas {
                                 y + H * 0.7
                             )
                         } else {
-                            let v = w.value
+                            let v = typeof w.value === "number" ? String(w.value) : w.value
                             if (w.options.values) {
                                 let values = w.options.values
                                 if (values.constructor === Function)
@@ -6081,7 +6081,7 @@ export class LGraphCanvas {
         if (slotTypesDefault?.[fromSlotType]) {
             // TODO: Remove "any" kludge
             let nodeNewType: any = false
-            if (typeof slotTypesDefault[fromSlotType] == "object" || typeof slotTypesDefault[fromSlotType] == "array") {
+            if (typeof slotTypesDefault[fromSlotType] == "object") {
                 for (const typeX in slotTypesDefault[fromSlotType]) {
                     if (opts.nodeType == slotTypesDefault[fromSlotType][typeX] || opts.nodeType == "AUTO") {
                         nodeNewType = slotTypesDefault[fromSlotType][typeX]
@@ -6230,7 +6230,7 @@ export class LGraphCanvas {
         const fromSlotType = slotX.type == LiteGraph.EVENT ? "_event_" : slotX.type
         const slotTypesDefault = isFrom ? LiteGraph.slot_types_default_out : LiteGraph.slot_types_default_in
         if (slotTypesDefault?.[fromSlotType]) {
-            if (typeof slotTypesDefault[fromSlotType] == "object" || typeof slotTypesDefault[fromSlotType] == "array") {
+            if (typeof slotTypesDefault[fromSlotType] == "object") {
                 for (const typeX in slotTypesDefault[fromSlotType]) {
                     options.push(slotTypesDefault[fromSlotType][typeX])
                 }
@@ -6303,7 +6303,7 @@ export class LGraphCanvas {
         if (this.ds.scale > 1) dialog.style.transform = "scale(" + this.ds.scale + ")"
 
         let dialogCloseTimer = null
-        let prevent_timeout = false
+        let prevent_timeout = 0
         LiteGraph.pointerListenerAdd(dialog, "leave", function () {
             if (prevent_timeout)
                 return
