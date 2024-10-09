@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalInputsData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { LGraphNode, NodeId } from "./LGraphNode"
