@@ -278,9 +278,9 @@ export class LGraphNode {
     }
 
     /**
-         * configure a node from an object containing the serialized info
-         * @method configure
-         */
+     * configure a node from an object containing the serialized info
+     * @method configure
+     */
     configure(info: ISerialisedNode): void {
         if (this.graph) {
             this.graph._version++;
@@ -374,9 +374,9 @@ export class LGraphNode {
     }
 
     /**
-         * serialize the content
-         * @method serialize
-         */
+     * serialize the content
+     * @method serialize
+     */
     serialize(): ISerialisedNode {
         //create serialization object
         var o = {
@@ -492,28 +492,28 @@ export class LGraphNode {
     }
 
     /**
-         * serialize and stringify
-         * @method toString
-         */
+     * serialize and stringify
+     * @method toString
+     */
     toString(): string {
         return JSON.stringify(this.serialize());
     }
 
     //LGraphNode.prototype.deserialize = function(info) {} //this cannot be done from within, must be done in LiteGraph
     /**
-         * get the title string
-         * @method getTitle
-         */
+     * get the title string
+     * @method getTitle
+     */
     getTitle(): string {
         return this.title || this.constructor.title;
     }
 
     /**
-         * sets the value of a property
-         * @method setProperty
-         * @param {String} name
-         * @param {*} value
-         */
+     * sets the value of a property
+     * @method setProperty
+     * @param {String} name
+     * @param {*} value
+     */
     setProperty(name: string, value: TWidgetValue): void {
         if (!this.properties) {
             this.properties = {};
@@ -540,11 +540,11 @@ export class LGraphNode {
 
     // Execution *************************
     /**
-         * sets the output data
-         * @method setOutputData
-         * @param {number} slot
-         * @param {*} data
-         */
+     * sets the output data
+     * @method setOutputData
+     * @param {number} slot
+     * @param {*} data
+     */
     setOutputData(slot: number, data: unknown): void {
         if (!this.outputs) {
             return;
@@ -577,11 +577,11 @@ export class LGraphNode {
     }
 
     /**
-         * sets the output data type, useful when you want to be able to overwrite the data type
-         * @method setOutputDataType
-         * @param {number} slot
-         * @param {String} datatype
-         */
+     * sets the output data type, useful when you want to be able to overwrite the data type
+     * @method setOutputDataType
+     * @param {number} slot
+     * @param {String} datatype
+     */
     setOutputDataType(slot: number, type: ISlotType): void {
         if (!this.outputs) {
             return;
@@ -606,12 +606,12 @@ export class LGraphNode {
     }
 
     /**
-         * Retrieves the input data (data traveling through the connection) from one slot
-         * @method getInputData
-         * @param {number} slot
-         * @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
-         * @return {*} data or if it is not connected returns undefined
-         */
+     * Retrieves the input data (data traveling through the connection) from one slot
+     * @method getInputData
+     * @param {number} slot
+     * @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
+     * @return {*} data or if it is not connected returns undefined
+     */
     getInputData(slot: number, force_update?: boolean): unknown {
         if (!this.inputs) {
             return;
@@ -648,11 +648,11 @@ export class LGraphNode {
     }
 
     /**
-         * Retrieves the input data type (in case this supports multiple input types)
-         * @method getInputDataType
-         * @param {number} slot
-         * @return {String} datatype in string format
-         */
+     * Retrieves the input data type (in case this supports multiple input types)
+     * @method getInputDataType
+     * @param {number} slot
+     * @return {String} datatype in string format
+     */
     getInputDataType(slot: number): ISlotType {
         if (!this.inputs) {
             return null;
@@ -679,12 +679,12 @@ export class LGraphNode {
     }
 
     /**
-         * Retrieves the input data from one slot using its name instead of slot number
-         * @method getInputDataByName
-         * @param {String} slot_name
-         * @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
-         * @return {*} data or if it is not connected returns null
-         */
+     * Retrieves the input data from one slot using its name instead of slot number
+     * @method getInputDataByName
+     * @param {String} slot_name
+     * @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
+     * @return {*} data or if it is not connected returns null
+     */
     getInputDataByName(slot_name: string, force_update: boolean): unknown {
         var slot = this.findInputSlot(slot_name);
         if (slot == -1) {
@@ -694,11 +694,11 @@ export class LGraphNode {
     }
 
     /**
-         * tells you if there is a connection in one input slot
-         * @method isInputConnected
-         * @param {number} slot
-         * @return {boolean}
-         */
+     * tells you if there is a connection in one input slot
+     * @method isInputConnected
+     * @param {number} slot
+     * @return {boolean}
+     */
     isInputConnected(slot: number): boolean {
         if (!this.inputs) {
             return false;
@@ -707,11 +707,11 @@ export class LGraphNode {
     }
 
     /**
-         * tells you info about an input connection (which node, type, etc)
-         * @method getInputInfo
-         * @param {number} slot
-         * @return {Object} object or null { link: id, name: string, type: string or 0 }
-         */
+     * tells you info about an input connection (which node, type, etc)
+     * @method getInputInfo
+     * @param {number} slot
+     * @return {Object} object or null { link: id, name: string, type: string or 0 }
+     */
     getInputInfo(slot: number): INodeInputSlot {
         if (!this.inputs) {
             return null;
@@ -723,11 +723,11 @@ export class LGraphNode {
     }
 
     /**
-         * Returns the link info in the connection of an input slot
-         * @method getInputLink
-         * @param {number} slot
-         * @return {LLink} object or null
-         */
+     * Returns the link info in the connection of an input slot
+     * @method getInputLink
+     * @param {number} slot
+     * @return {LLink} object or null
+     */
     getInputLink(slot: number): LLink | null {
         if (!this.inputs) {
             return null;
@@ -740,11 +740,11 @@ export class LGraphNode {
     }
 
     /**
-         * returns the node connected in the input slot
-         * @method getInputNode
-         * @param {number} slot
-         * @return {LGraphNode} node or null
-         */
+     * returns the node connected in the input slot
+     * @method getInputNode
+     * @param {number} slot
+     * @return {LGraphNode} node or null
+     */
     getInputNode(slot: number): LGraphNode {
         if (!this.inputs) {
             return null;
@@ -764,11 +764,11 @@ export class LGraphNode {
     }
 
     /**
-         * returns the value of an input with this name, otherwise checks if there is a property with that name
-         * @method getInputOrProperty
-         * @param {string} name
-         * @return {*} value
-         */
+     * returns the value of an input with this name, otherwise checks if there is a property with that name
+     * @method getInputOrProperty
+     * @param {string} name
+     * @return {*} value
+     */
     getInputOrProperty(name: string): unknown {
         if (!this.inputs || !this.inputs.length) {
             return this.properties ? this.properties[name] : null;
@@ -787,11 +787,11 @@ export class LGraphNode {
     }
 
     /**
-         * tells you the last output data that went in that slot
-         * @method getOutputData
-         * @param {number} slot
-         * @return {Object}  object or null
-         */
+     * tells you the last output data that went in that slot
+     * @method getOutputData
+     * @param {number} slot
+     * @return {Object}  object or null
+     */
     getOutputData(slot: number): unknown {
         if (!this.outputs) {
             return null;
@@ -805,11 +805,11 @@ export class LGraphNode {
     }
 
     /**
-         * tells you info about an output connection (which node, type, etc)
-         * @method getOutputInfo
-         * @param {number} slot
-         * @return {Object}  object or null { name: string, type: string, links: [ ids of links in number ] }
-         */
+     * tells you info about an output connection (which node, type, etc)
+     * @method getOutputInfo
+     * @param {number} slot
+     * @return {Object}  object or null { name: string, type: string, links: [ ids of links in number ] }
+     */
     getOutputInfo(slot: number): INodeOutputSlot {
         if (!this.outputs) {
             return null;
@@ -821,11 +821,11 @@ export class LGraphNode {
     }
 
     /**
-         * tells you if there is a connection in one output slot
-         * @method isOutputConnected
-         * @param {number} slot
-         * @return {boolean}
-         */
+     * tells you if there is a connection in one output slot
+     * @method isOutputConnected
+     * @param {number} slot
+     * @return {boolean}
+     */
     isOutputConnected(slot: number): boolean {
         if (!this.outputs) {
             return false;
@@ -838,10 +838,10 @@ export class LGraphNode {
     }
 
     /**
-         * tells you if there is any connection in the output slots
-         * @method isAnyOutputConnected
-         * @return {boolean}
-         */
+     * tells you if there is any connection in the output slots
+     * @method isAnyOutputConnected
+     * @return {boolean}
+     */
     isAnyOutputConnected(): boolean {
         if (!this.outputs) {
             return false;
@@ -855,11 +855,11 @@ export class LGraphNode {
     }
 
     /**
-         * retrieves all the nodes connected to this output slot
-         * @method getOutputNodes
-         * @param {number} slot
-         * @return {array}
-         */
+     * retrieves all the nodes connected to this output slot
+     * @method getOutputNodes
+     * @param {number} slot
+     * @return {array}
+     */
     getOutputNodes(slot: number): LGraphNode[] {
         if (!this.outputs || this.outputs.length == 0) {
             return null;
@@ -947,11 +947,11 @@ export class LGraphNode {
     }
 
     /**
-         * Triggers the node code execution, place a boolean/counter to mark the node as being executed
-         * @method execute
-         * @param {*} param
-         * @param {*} options
-         */
+     * Triggers the node code execution, place a boolean/counter to mark the node as being executed
+     * @method execute
+     * @param {*} param
+     * @param {*} options
+     */
     doExecute(param?: unknown, options?: { action_call?: any }): void {
         options = options || {};
         if (this.onExecute) {
@@ -979,11 +979,11 @@ export class LGraphNode {
     }
 
     /**
-         * Triggers an action, wrapped by logics to control execution flow
-         * @method actionDo
-         * @param {String} action name
-         * @param {*} param
-         */
+     * Triggers an action, wrapped by logics to control execution flow
+     * @method actionDo
+     * @param {String} action name
+     * @param {*} param
+     */
     actionDo(action: string, param: unknown, options: { action_call?: string }): void {
         options = options || {};
         if (this.onAction) {
@@ -1010,11 +1010,11 @@ export class LGraphNode {
     }
 
     /**
-         * Triggers an event in this node, this will trigger any output with the same name
-         * @method trigger
-         * @param {String} event name ( "on_play", ... ) if action is equivalent to false then the event is send to all
-         * @param {*} param
-         */
+     * Triggers an event in this node, this will trigger any output with the same name
+     * @method trigger
+     * @param {String} event name ( "on_play", ... ) if action is equivalent to false then the event is send to all
+     * @param {*} param
+     */
     trigger(action: string, param: unknown, options: { action_call?: any }): void {
         if (!this.outputs || !this.outputs.length) {
             return;
@@ -1032,12 +1032,12 @@ export class LGraphNode {
     }
 
     /**
-         * Triggers a slot event in this node: cycle output slots and launch execute/action on connected nodes
-         * @method triggerSlot
-         * @param {Number} slot the index of the output slot
-         * @param {*} param
-         * @param {Number} link_id [optional] in case you want to trigger and specific output link in a slot
-         */
+     * Triggers a slot event in this node: cycle output slots and launch execute/action on connected nodes
+     * @method triggerSlot
+     * @param {Number} slot the index of the output slot
+     * @param {*} param
+     * @param {Number} link_id [optional] in case you want to trigger and specific output link in a slot
+     */
     triggerSlot(slot: number, param: unknown, link_id: number, options: { action_call?: any }): void {
         options = options || {};
         if (!this.outputs) {
@@ -1108,11 +1108,11 @@ export class LGraphNode {
     }
 
     /**
-         * clears the trigger slot animation
-         * @method clearTriggeredSlot
-         * @param {Number} slot the index of the output slot
-         * @param {Number} link_id [optional] in case you want to trigger and specific output link in a slot
-         */
+     * clears the trigger slot animation
+     * @method clearTriggeredSlot
+     * @param {Number} slot the index of the output slot
+     * @param {Number} link_id [optional] in case you want to trigger and specific output link in a slot
+     */
     clearTriggeredSlot(slot: number, link_id: number): void {
         if (!this.outputs) {
             return;
@@ -1145,10 +1145,10 @@ export class LGraphNode {
     }
 
     /**
-         * changes node size and triggers callback
-         * @method setSize
-         * @param {vec2} size
-         */
+     * changes node size and triggers callback
+     * @method setSize
+     * @param {vec2} size
+     */
     setSize(size: Size): void {
         this.size = size;
         if (this.onResize)
@@ -1156,13 +1156,13 @@ export class LGraphNode {
     }
 
     /**
-         * add a new property to this node
-         * @method addProperty
-         * @param {string} name
-         * @param {*} default_value
-         * @param {string} type string defining the output type ("vec3","number",...)
-         * @param {Object} extra_info this can be used to have special properties of the property (like values, etc)
-         */
+     * add a new property to this node
+     * @method addProperty
+     * @param {string} name
+     * @param {*} default_value
+     * @param {string} type string defining the output type ("vec3","number",...)
+     * @param {Object} extra_info this can be used to have special properties of the property (like values, etc)
+     */
     addProperty(name: string,
         default_value: unknown,
         type?: string,
@@ -1186,12 +1186,12 @@ export class LGraphNode {
 
     //connections
     /**
-         * add a new output slot to use in this node
-         * @method addOutput
-         * @param {string} name
-         * @param {string} type string defining the output type ("vec3","number",...)
-         * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
-         */
+     * add a new output slot to use in this node
+     * @method addOutput
+     * @param {string} name
+     * @param {string} type string defining the output type ("vec3","number",...)
+     * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
+     */
     addOutput(name?: string, type?: ISlotType, extra_info?: object): INodeOutputSlot {
         var output = { name: name, type: type, links: null };
         if (extra_info) {
@@ -1216,10 +1216,10 @@ export class LGraphNode {
     }
 
     /**
-         * add a new output slot to use in this node
-         * @method addOutputs
-         * @param {Array} array of triplets like [[name,type,extra_info],[...]]
-         */
+     * add a new output slot to use in this node
+     * @method addOutputs
+     * @param {Array} array of triplets like [[name,type,extra_info],[...]]
+     */
     addOutputs(array: [string, ISlotType, Record<string, unknown>][]): void {
         for (var i = 0; i < array.length; ++i) {
             var info = array[i];
@@ -1247,10 +1247,10 @@ export class LGraphNode {
     }
 
     /**
-         * remove an existing output slot
-         * @method removeOutput
-         * @param {number} slot
-         */
+     * remove an existing output slot
+     * @method removeOutput
+     * @param {number} slot
+     */
     removeOutput(slot: number): void {
         this.disconnectOutput(slot);
         this.outputs.splice(slot, 1);
@@ -1276,12 +1276,12 @@ export class LGraphNode {
     }
 
     /**
-         * add a new input slot to use in this node
-         * @method addInput
-         * @param {string} name
-         * @param {string} type string defining the input type ("vec3","number",...), it its a generic one use 0
-         * @param {Object} extra_info this can be used to have special properties of an input (label, color, position, etc)
-         */
+     * add a new input slot to use in this node
+     * @method addInput
+     * @param {string} name
+     * @param {string} type string defining the input type ("vec3","number",...), it its a generic one use 0
+     * @param {Object} extra_info this can be used to have special properties of an input (label, color, position, etc)
+     */
     addInput(name: string, type: ISlotType, extra_info?: object): INodeInputSlot {
         type = type || 0;
         var input = { name: name, type: type, link: null };
@@ -1309,10 +1309,10 @@ export class LGraphNode {
     }
 
     /**
-         * add several new input slots in this node
-         * @method addInputs
-         * @param {Array} array of triplets like [[name,type,extra_info],[...]]
-         */
+     * add several new input slots in this node
+     * @method addInputs
+     * @param {Array} array of triplets like [[name,type,extra_info],[...]]
+     */
     addInputs(array: [string, ISlotType, Record<string, unknown>][]): void {
         for (var i = 0; i < array.length; ++i) {
             var info = array[i];
@@ -1339,10 +1339,10 @@ export class LGraphNode {
     }
 
     /**
-         * remove an existing input slot
-         * @method removeInput
-         * @param {number} slot
-         */
+     * remove an existing input slot
+     * @method removeInput
+     * @param {number} slot
+     */
     removeInput(slot: number): void {
         this.disconnectInput(slot);
         var slot_info = this.inputs.splice(slot, 1);
@@ -1364,13 +1364,13 @@ export class LGraphNode {
     }
 
     /**
-         * add an special connection to this node (used for special kinds of graphs)
-         * @method addConnection
-         * @param {string} name
-         * @param {string} type string defining the input type ("vec3","number",...)
-         * @param {[x,y]} pos position of the connection inside the node
-         * @param {string} direction if is input or output
-         */
+     * add an special connection to this node (used for special kinds of graphs)
+     * @method addConnection
+     * @param {string} name
+     * @param {string} type string defining the input type ("vec3","number",...)
+     * @param {[x,y]} pos position of the connection inside the node
+     * @param {string} direction if is input or output
+     */
     addConnection(name: string, type: string, pos: Point, direction: string) {
         var o = {
             name: name,
@@ -1384,11 +1384,11 @@ export class LGraphNode {
     }
 
     /**
-         * computes the minimum size of a node according to its inputs and output slots
-         * @method computeSize
-         * @param {vec2} minHeight
-         * @return {vec2} the total size
-         */
+     * computes the minimum size of a node according to its inputs and output slots
+     * @method computeSize
+     * @param {vec2} minHeight
+     * @return {vec2} the total size
+     */
     computeSize(out?: Size): Size {
         if (this.constructor.size) {
             return this.constructor.size.concat();
@@ -1489,12 +1489,12 @@ export class LGraphNode {
     }
 
     /**
-         * returns all the info available about a property of this node.
-         *
-         * @method getPropertyInfo
-         * @param {String} property name of the property
-         * @return {Object} the object with all the available info
-        */
+     * returns all the info available about a property of this node.
+     *
+     * @method getPropertyInfo
+     * @param {String} property name of the property
+     * @return {Object} the object with all the available info
+     */
     getPropertyInfo(property: string) {
         var info = null;
 
@@ -1531,16 +1531,16 @@ export class LGraphNode {
     }
 
     /**
-         * Defines a widget inside the node, it will be rendered on top of the node, you can control lots of properties
-         *
-         * @method addWidget
-         * @param {String} type the widget type (could be "number","string","combo"
-         * @param {String} name the text to show on the widget
-         * @param {String} value the default value
-         * @param {Function|String} callback function to call when it changes (optionally, it can be the name of the property to modify)
-         * @param {Object} options the object that contains special properties of this widget
-         * @return {Object} the created widget object
-         */
+     * Defines a widget inside the node, it will be rendered on top of the node, you can control lots of properties
+     *
+     * @method addWidget
+     * @param {String} type the widget type (could be "number","string","combo"
+     * @param {String} name the text to show on the widget
+     * @param {String} value the default value
+     * @param {Function|String} callback function to call when it changes (optionally, it can be the name of the property to modify)
+     * @param {Object} options the object that contains special properties of this widget
+     * @return {Object} the created widget object
+     */
     addWidget(type: string, name: string, value: any, callback: IWidget["callback"], options?: any): IWidget {
         if (!this.widgets) {
             this.widgets = [];
@@ -1599,12 +1599,12 @@ export class LGraphNode {
     }
 
     /**
-         * returns the bounding of the object, used for rendering purposes
-         * @method getBounding
-         * @param out {Float32Array[4]?} [optional] a place to store the output, to free garbage
-         * @param compute_outer {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
-         * @return {Float32Array[4]} the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]
-         */
+     * returns the bounding of the object, used for rendering purposes
+     * @method getBounding
+     * @param out {Float32Array[4]?} [optional] a place to store the output, to free garbage
+     * @param compute_outer {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
+     * @return {Float32Array[4]} the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]
+     */
     getBounding(out?: Float32Array, compute_outer?: boolean): Float32Array {
         out = out || new Float32Array(4);
         const nodePos = this.pos;
@@ -1644,12 +1644,12 @@ export class LGraphNode {
     }
 
     /**
-         * checks if a point is inside the shape of a node
-         * @method isPointInside
-         * @param {number} x
-         * @param {number} y
-         * @return {boolean}
-         */
+     * checks if a point is inside the shape of a node
+     * @method isPointInside
+     * @param {number} x
+     * @param {number} y
+     * @return {boolean}
+     */
     isPointInside(x: number, y: number, margin?: number, skip_title?: boolean): boolean {
         margin = margin || 0;
 
@@ -1680,12 +1680,12 @@ export class LGraphNode {
     }
 
     /**
-         * checks if a point is inside a node slot, and returns info about which slot
-         * @method getSlotInPosition
-         * @param {number} x
-         * @param {number} y
-         * @return {Object} if found the object contains { input|output: slot object, slot: number, link_pos: [x,y] }
-         */
+     * checks if a point is inside a node slot, and returns info about which slot
+     * @method getSlotInPosition
+     * @param {number} x
+     * @param {number} y
+     * @return {Object} if found the object contains { input|output: slot object, slot: number, link_pos: [x,y] }
+     */
     getSlotInPosition(x: number, y: number): IFoundSlot | null {
         //search for inputs
         var link_pos = new Float32Array(2);
@@ -1727,12 +1727,12 @@ export class LGraphNode {
     }
 
     /**
-         * returns the input slot with a given name (used for dynamic slots), -1 if not found
-         * @method findInputSlot
-         * @param {string} name the name of the slot
-         * @param {boolean} returnObj if the obj itself wanted
-         * @return {number_or_object} the slot (-1 if not found)
-         */
+     * returns the input slot with a given name (used for dynamic slots), -1 if not found
+     * @method findInputSlot
+     * @param {string} name the name of the slot
+     * @param {boolean} returnObj if the obj itself wanted
+     * @return {number_or_object} the slot (-1 if not found)
+     */
     findInputSlot<TReturn extends false>(name: string, returnObj?: TReturn): number
     findInputSlot<TReturn extends true>(name: string, returnObj?: TReturn): INodeInputSlot
     findInputSlot(name: string, returnObj: boolean = false) {
@@ -1757,12 +1757,12 @@ export class LGraphNode {
     }
 
     /**
-         * returns the output slot with a given name (used for dynamic slots), -1 if not found
-         * @method findOutputSlot
-         * @param {string} name the name of the slot
-         * @param {boolean} returnObj if the obj itself wanted
-         * @return {number_or_object} the slot (-1 if not found)
-         */
+     * returns the output slot with a given name (used for dynamic slots), -1 if not found
+     * @method findOutputSlot
+     * @param {string} name the name of the slot
+     * @param {boolean} returnObj if the obj itself wanted
+     * @return {number_or_object} the slot (-1 if not found)
+     */
     findOutputSlot<TReturn extends false>(name: string, returnObj?: TReturn): number
     findOutputSlot<TReturn extends true>(name: string, returnObj?: TReturn): INodeOutputSlot
     findOutputSlot(name: string, returnObj: boolean = false) {
@@ -1780,11 +1780,11 @@ export class LGraphNode {
 
     // TODO refactor: USE SINGLE findInput/findOutput functions! :: merge options
     /**
-         * returns the first free input slot
-         * @method findInputSlotFree
-         * @param {object} options
-         * @return {number_or_object} the slot (-1 if not found)
-         */
+     * returns the first free input slot
+     * @method findInputSlotFree
+     * @param {object} options
+     * @return {number_or_object} the slot (-1 if not found)
+     */
     findInputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
     findInputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeInputSlot
     findInputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
@@ -1810,11 +1810,11 @@ export class LGraphNode {
     }
 
     /**
-         * returns the first output slot free
-         * @method findOutputSlotFree
-         * @param {object} options
-         * @return {number_or_object} the slot (-1 if not found)
-         */
+     * returns the first output slot free
+     * @method findOutputSlotFree
+     * @param {object} options
+     * @return {number_or_object} the slot (-1 if not found)
+     */
     findOutputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
     findOutputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeOutputSlot
     findOutputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
@@ -1840,28 +1840,28 @@ export class LGraphNode {
     }
 
     /**
-         * findSlotByType for INPUTS
-         */
+     * findSlotByType for INPUTS
+     */
     findInputSlotByType(type, returnObj, preferFreeSlot, doNotUseOccupied) {
         return this.findSlotByType(true, type, returnObj, preferFreeSlot, doNotUseOccupied);
     }
 
     /**
-         * findSlotByType for OUTPUTS
-         */
+     * findSlotByType for OUTPUTS
+     */
     findOutputSlotByType(type, returnObj, preferFreeSlot, doNotUseOccupied) {
         return this.findSlotByType(false, type, returnObj, preferFreeSlot, doNotUseOccupied);
     }
 
     /**
-         * returns the output (or input) slot with a given type, -1 if not found
-         * @method findSlotByType
-         * @param {boolean} input uise inputs instead of outputs
-         * @param {string} type the type of the slot
-         * @param {boolean} returnObj if the obj itself wanted
-         * @param {boolean} preferFreeSlot if we want a free slot (if not found, will return the first of the type anyway)
-         * @return {number_or_object} the slot (-1 if not found)
-         */
+     * returns the output (or input) slot with a given type, -1 if not found
+     * @method findSlotByType
+     * @param {boolean} input uise inputs instead of outputs
+     * @param {string} type the type of the slot
+     * @param {boolean} returnObj if the obj itself wanted
+     * @param {boolean} preferFreeSlot if we want a free slot (if not found, will return the first of the type anyway)
+     * @return {number_or_object} the slot (-1 if not found)
+     */
     findSlotByType(input, type, returnObj, preferFreeSlot, doNotUseOccupied) {
         input = input || false;
         returnObj = returnObj || false;
@@ -1913,13 +1913,13 @@ export class LGraphNode {
     }
 
     /**
-         * connect this node output to the input of another node BY TYPE
-         * @method connectByType
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @param {LGraphNode} node the target node
-         * @param {string} target_type the input slot type of the target node
-         * @return {Object} the link_info is created, otherwise null
-         */
+     * connect this node output to the input of another node BY TYPE
+     * @method connectByType
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {LGraphNode} node the target node
+     * @param {string} target_type the input slot type of the target node
+     * @return {Object} the link_info is created, otherwise null
+     */
     connectByType(slot: number, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: { reroutes?: RerouteId[] }): LLink | null {
         var optsIn = optsIn || {};
         var optsDef = {
@@ -1966,13 +1966,13 @@ export class LGraphNode {
     }
 
     /**
-         * connect this node input to the output of another node BY TYPE
-         * @method connectByType
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @param {LGraphNode} node the target node
-         * @param {string} target_type the output slot type of the target node
-         * @return {Object} the link_info is created, otherwise null
-         */
+     * connect this node input to the output of another node BY TYPE
+     * @method connectByType
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {LGraphNode} node the target node
+     * @param {string} target_type the output slot type of the target node
+     * @return {Object} the link_info is created, otherwise null
+     */
     connectByTypeOutput(slot: number, source_node: LGraphNode, source_slotType: ISlotType, optsIn?: unknown): any {
         var optsIn = optsIn || {};
         var optsDef = {
@@ -2021,13 +2021,13 @@ export class LGraphNode {
     }
 
     /**
-         * connect this node output to the input of another node
-         * @method connect
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @param {LGraphNode} node the target node
-         * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
-         * @return {Object} the link_info is created, otherwise null
-         */
+     * connect this node output to the input of another node
+     * @method connect
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {LGraphNode} node the target node
+     * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
+     * @return {Object} the link_info is created, otherwise null
+     */
     connect(slot: number, target_node: LGraphNode, target_slot: ISlotType, reroutes?: RerouteId[]): LLink | null {
         target_slot = target_slot || 0;
 
@@ -2231,12 +2231,12 @@ export class LGraphNode {
     }
 
     /**
-         * disconnect one output to an specific node
-         * @method disconnectOutput
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @param {LGraphNode} target_node the target node to which this slot is connected [Optional, if not target_node is specified all nodes will be disconnected]
-         * @return {boolean} if it was disconnected successfully
-         */
+     * disconnect one output to an specific node
+     * @method disconnectOutput
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {LGraphNode} target_node the target node to which this slot is connected [Optional, if not target_node is specified all nodes will be disconnected]
+     * @return {boolean} if it was disconnected successfully
+     */
     disconnectOutput(slot: string | number, target_node?: LGraphNode): boolean {
         if (slot.constructor === String) {
             slot = this.findOutputSlot(slot);
@@ -2388,11 +2388,11 @@ export class LGraphNode {
     }
 
     /**
-         * disconnect one input
-         * @method disconnectInput
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @return {boolean} if it was disconnected successfully
-         */
+     * disconnect one input
+     * @method disconnectInput
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @return {boolean} if it was disconnected successfully
+     */
     disconnectInput(slot: number | string): boolean {
         //seek for the output slot
         if (slot.constructor === String) {
@@ -2480,13 +2480,13 @@ export class LGraphNode {
     }
 
     /**
-         * returns the center of a connection point in canvas coords
-         * @method getConnectionPos
-         * @param {boolean} is_input true if if a input slot, false if it is an output
-         * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-         * @param {vec2} out [optional] a place to store the output, to free garbage
-         * @return {[x,y]} the position
-         **/
+     * returns the center of a connection point in canvas coords
+     * @method getConnectionPos
+     * @param {boolean} is_input true if if a input slot, false if it is an output
+     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {vec2} out [optional] a place to store the output, to free garbage
+     * @return {[x,y]} the position
+     **/
     getConnectionPos(is_input: boolean, slot_number: number, out?: Point): Point {
         out = out || new Float32Array(2);
         var num_slots = 0;
@@ -2682,9 +2682,9 @@ export class LGraphNode {
     }
 
     /**
-         * Collapse the node to make it smaller on the canvas
-         * @method collapse
-         **/
+     * Collapse the node to make it smaller on the canvas
+     * @method collapse
+     **/
     collapse(force?: boolean): void {
         this.graph._version++;
         if (!this.collapsible && !force) {
@@ -2703,9 +2703,9 @@ export class LGraphNode {
     }
 
     /**
-         * Forces the node to do not move or realign on Z or resize
-         * @method pin
-         **/
+     * Forces the node to do not move or realign on Z or resize
+     * @method pin
+     **/
     pin(v?) {
         this.graph._version++;
         if (v === undefined) {
