@@ -12,6 +12,7 @@ export default defineConfig({
     },
     minify: false,
     sourcemap: true,
+    target: ['es2022'],
   },
   plugins: [
     dts({
