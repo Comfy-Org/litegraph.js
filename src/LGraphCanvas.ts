@@ -198,6 +198,7 @@ export class LGraphCanvas {
     drag_mode: boolean
     dragging_rectangle?: Rect
     filter?: string
+    set_canvas_dirty_on_mouse_event: boolean
     always_render_background: boolean
     render_shadows: boolean
     render_canvas_border: boolean
@@ -212,6 +213,7 @@ export class LGraphCanvas {
     links_render_mode: number
     mouse: Point
     graph_mouse: Point
+    canvas_mouse: Point
     onSearchBox?: (helper: Element, str: string, canvas: LGraphCanvas) => any
     onSearchBoxSelection?: (name: any, event: any, canvas: LGraphCanvas) => void
     onMouse?: (e: CanvasMouseEvent) => boolean
@@ -278,7 +280,9 @@ export class LGraphCanvas {
     last_mouse_dragging: boolean
     onMouseDown: (arg0: CanvasMouseEvent) => void
     _highlight_pos?: Point
-    _highlight_input?: INodeInputSlot
+    _highlight_input?: Point
+    _highlight_input_slot?: INodeInputSlot
+    _highlight_output?: Point
     // TODO: Check if panels are used
     node_panel
     options_panel
