@@ -228,6 +228,7 @@ export class LGraphNode {
     onMouseMove?(this: LGraphNode, e: MouseEvent, pos: Point, arg2: LGraphCanvas): void
     onPropertyChange?(this: LGraphNode): void
     updateOutputData?(this: LGraphNode, origin_slot: number): void
+    isValidWidgetLink?(slot_index: number, node: LGraphNode, overWidget: IWidget): boolean | undefined
 
     constructor(title: string) {
         this._ctor(title);
@@ -2705,7 +2706,7 @@ export class LGraphNode {
          * Forces the node to do not move or realign on Z or resize
          * @method pin
          **/
-    pin(v) {
+    pin(v?) {
         this.graph._version++;
         if (v === undefined) {
             this.flags.pinned = !this.flags.pinned;

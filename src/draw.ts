@@ -31,7 +31,7 @@ export enum LabelPosition {
 
 export function drawSlot(
   ctx: CanvasRenderingContext2D,
-  slot: INodeSlot,
+  slot: Partial<INodeSlot>,
   pos: Vector2,
   {
     label_color = "#AAA",

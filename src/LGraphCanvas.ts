@@ -131,7 +131,6 @@ export class LGraphCanvas {
         yellow: { color: "#432", bgcolor: "#653", groupcolor: "#b58b2a" },
         black: { color: "#222", bgcolor: "#000", groupcolor: "#444" }
     }
-    public pointer_is_down: boolean = false
 
     private _dragging_canvas: boolean = false
     get dragging_canvas(): boolean {
@@ -242,6 +241,8 @@ export class LGraphCanvas {
     node_over?: LGraphNode
     node_capturing_input?: LGraphNode
     highlighted_links: Dictionary<boolean>
+    link_over_widget?: IWidget
+    link_over_widget_type?: string
 
     dirty_canvas: boolean
     dirty_bgcanvas: boolean
@@ -7837,6 +7838,7 @@ export class LGraphCanvas {
                 {
                     content: node.pinned ? "Unpin" : "Pin",
                     callback: (...args) => {
+                        // @ts-expect-error Not impl.
                         LGraphCanvas.onMenuNodePin(...args)
                         for (const i in this.selected_nodes) {
                             const node = this.selected_nodes[i]

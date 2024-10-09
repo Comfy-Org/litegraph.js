@@ -17,6 +17,7 @@ export class LLink {
     _data?: unknown
     _pos: Float32Array
     _last_time?: number
+    path?: Path2D
 
     constructor(id, type, origin_id, origin_slot, target_id, target_slot) {
         this.id = id;
