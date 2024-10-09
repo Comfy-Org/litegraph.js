@@ -6301,14 +6301,14 @@ export class LGraphCanvas {
 
         let dialogCloseTimer = null
         let prevent_timeout = false
-        LiteGraph.pointerListenerAdd(dialog, "leave", function (e) {
+        LiteGraph.pointerListenerAdd(dialog, "leave", function () {
             if (prevent_timeout)
                 return
             if (LiteGraph.dialog_close_on_mouse_leave)
                 if (!dialog.is_modified && LiteGraph.dialog_close_on_mouse_leave)
                     dialogCloseTimer = setTimeout(dialog.close, LiteGraph.dialog_close_on_mouse_leave_delay) //dialog.close();
         })
-        LiteGraph.pointerListenerAdd(dialog, "enter", function (e) {
+        LiteGraph.pointerListenerAdd(dialog, "enter", function () {
             if (LiteGraph.dialog_close_on_mouse_leave && dialogCloseTimer)
                 clearTimeout(dialogCloseTimer)
         })
@@ -6323,10 +6323,6 @@ export class LGraphCanvas {
         }
         this.prompt_box?.close()
         this.prompt_box = dialog
-
-        const first = null
-        const timeout = null
-        const selected = null
 
         const name_element = dialog.querySelector(".name")
         name_element.innerText = title
@@ -6353,7 +6349,7 @@ export class LGraphCanvas {
         })
 
         const button = dialog.querySelector("button")
-        button.addEventListener("click", function (e) {
+        button.addEventListener("click", function () {
             callback?.(input.value)
             that.setDirty(true)
             dialog.close()
