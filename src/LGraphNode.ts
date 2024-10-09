@@ -28,9 +28,6 @@ interface IMouseOverData {
     outputId: number
 }
 
-// *************************************************************
-//   Node CLASS                                          *******
-// *************************************************************
 /*
 title: string
 pos: [x,y]
@@ -82,12 +79,12 @@ supported callbacks:
     + onAction: action slot triggered
     + getExtraMenuOptions: to add option to context menu
 */
+
 /**
  * Base Class for all the node type classes
  * @class LGraphNode
  * @param {String} name a name for the node
  */
-
 export class LGraphNode {
     // Static properties used by dynamic child classes
     static title?: string
@@ -499,7 +496,6 @@ export class LGraphNode {
         return JSON.stringify(this.serialize());
     }
 
-    //LGraphNode.prototype.deserialize = function(info) {} //this cannot be done from within, must be done in LiteGraph
     /**
      * get the title string
      * @method getTitle
@@ -538,7 +534,6 @@ export class LGraphNode {
             }
     }
 
-    // Execution *************************
     /**
      * sets the output data
      * @method setOutputData
@@ -1184,7 +1179,6 @@ export class LGraphNode {
         return o;
     }
 
-    //connections
     /**
      * add a new output slot to use in this node
      * @method addOutput
@@ -1778,7 +1772,6 @@ export class LGraphNode {
         return -1;
     }
 
-    // TODO refactor: USE SINGLE findInput/findOutput functions! :: merge options
     /**
      * returns the first free input slot
      * @method findInputSlotFree
@@ -2615,44 +2608,6 @@ export class LGraphNode {
         return img;
     }
 
-    //safe LGraphNode action execution (not sure if safe)
-    /*
-    LGraphNode.prototype.executeAction = function(action)
-    {
-        if(action == "") return false;
-    
-        if( action.indexOf(";") != -1 || action.indexOf("}") != -1)
-        {
-            this.trace("Error: Action contains unsafe characters");
-            return false;
-        }
-    
-        var tokens = action.split("(");
-        var func_name = tokens[0];
-        if( typeof(this[func_name]) != "function")
-        {
-            this.trace("Error: Action not found on node: " + func_name);
-            return false;
-        }
-    
-        var code = action;
-    
-        try
-        {
-            var _foo = eval;
-            eval = null;
-            (new Function("with(this) { " + code + "}")).call(this);
-            eval = _foo;
-        }
-        catch (err)
-        {
-            this.trace("Error executing action {" + action + "} :" + err);
-            return false;
-        }
-    
-        return true;
-    }
-    */
     /* Allows to get onMouseMove and onMouseUp events even if the mouse is out of focus */
     captureInput(v: boolean): void {
         if (!this.graph || !this.graph.list_of_graphcanvas) {
