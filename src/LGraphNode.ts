@@ -8,7 +8,7 @@ import type { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge";
 import { LiteGraph } from "./litegraph";
-import { isInsideRectangle } from "./LiteGraphGlobal";
+import { isInsideRectangle } from "./measure";
 import { LLink } from "./LLink";
 
 export type NodeId = number | string
