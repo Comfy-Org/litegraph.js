@@ -5954,17 +5954,18 @@ export class LGraphCanvas {
         return LGraphCanvas.getBoundaryNodes(Object.values(this.selected_nodes))
     }
     showLinkMenu(link: LLink, e: CanvasMouseEvent): boolean {
-        const that = this
-        // console.log(link);
-        const node_left = that.graph.getNodeById(link.origin_id)
-        const node_right = that.graph.getNodeById(link.target_id)
-        let fromType = false
-        if (node_left && node_left.outputs && node_left.outputs[link.origin_slot]) fromType = node_left.outputs[link.origin_slot].type
-        let destType = false
-        if (node_right && node_right.outputs && node_right.outputs[link.target_slot]) destType = node_right.inputs[link.target_slot].type
+        const graph = this.graph
+        const node_left = graph.getNodeById(link.origin_id)
+        const node_right = graph.getNodeById(link.target_id)
+        // TODO: Replace ternary with ?? ""
+        const fromType = node_left?.outputs?.[link.origin_slot]
+            ? node_left.outputs[link.origin_slot].type
+            : false
+        const destType = node_right?.outputs?.[link.target_slot]
+            ? node_right.inputs[link.target_slot].type
+            : false
 
         const options = ["Add Node", null, "Delete", null]
-
 
         const menu = new LiteGraph.ContextMenu(options, {
             event: e,
@@ -5972,16 +5973,16 @@ export class LGraphCanvas {
             callback: inner_clicked
         })
 
-        function inner_clicked(v, options, e) {
+        function inner_clicked(v: string, options: unknown, e: MouseEvent) {
             switch (v) {
                 case "Add Node":
                     LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
-                        // console.debug("node autoconnect");
-                        if (!node.inputs || !node.inputs.length || !node.outputs || !node.outputs.length) {
-                            return
-                        }
+                        if (!node.inputs?.length || !node.outputs?.length) return
+
                         // leave the connection type checking inside connectByType
+                        // @ts-expect-error Assigning from check to false results in the type being treated as "*".  This should fail.
                         if (node_left.connectByType(link.origin_slot, node, fromType)) {
+                            // @ts-expect-error Assigning from check to false results in the type being treated as "*".  This should fail.
                             node.connectByType(link.target_slot, node_right, destType)
                             node.pos[0] -= node.size[0] * 0.5
                         }
@@ -5989,17 +5990,9 @@ export class LGraphCanvas {
                     break
 
                 case "Delete":
-                    that.graph.removeLink(link.id)
+                    graph.removeLink(link.id)
                     break
                 default:
-                /*var nodeCreated = createDefaultNodeForSlot({   nodeFrom: node_left
-                                                                ,slotFrom: link.origin_slot
-                                                                ,nodeTo: node
-                                                                ,slotTo: link.target_slot
-                                                                ,e: e
-                                                                ,nodeType: "AUTO"
-                                                            });
-                if(nodeCreated) console.log("new node in beetween "+v+" created");*/
             }
         }
 
