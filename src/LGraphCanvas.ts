@@ -4540,11 +4540,11 @@ export class LGraphCanvas {
         const data = link.data
         let text: string = null
 
-        if (data.constructor === Number)
+        if (typeof data === "number")
             text = data.toFixed(2)
-        else if (data.constructor === String)
+        else if (typeof data === "string")
             text = "\"" + data + "\""
-        else if (data.constructor === Boolean)
+        else if (typeof data === "boolean")
             text = String(data)
         else if (data.toToolTip)
             text = data.toToolTip()
