@@ -185,7 +185,7 @@ export class LGraphNode {
      * @returns {number | null} If a number is returned, the connection will be made to that input index.
      * If an invalid index or non-number (false, null, NaN etc) is returned, the connection will be cancelled.
      */
-    onBeforeConnectInput?(this: LGraphNode, target_slot: number, requested_slot: number | string): number | false | null
+    onBeforeConnectInput?(this: LGraphNode, target_slot: number, requested_slot?: number | string): number | false | null
     onShowCustomPanelInfo?(this: LGraphNode, panel: any): void
     onAddPropertyToPanel?(this: LGraphNode, pName: string, panel: any): boolean
     onWidgetChanged?(this: LGraphNode, name: string, value: unknown, old_value: unknown, w: IWidget): void
@@ -378,7 +378,7 @@ export class LGraphNode {
      */
     serialize(): ISerialisedNode {
         //create serialization object
-        const o = {
+        const o: ISerialisedNode = {
             id: this.id,
             type: this.type,
             pos: this.pos,
@@ -613,7 +613,7 @@ export class LGraphNode {
         }
 
         const link_id = this.inputs[slot].link
-        const link = this.graph.links[link_id]
+        const link: LLink = this.graph.links[link_id]
         if (!link) {
             //bug: weird case but it happens sometimes
             return null
@@ -849,7 +849,7 @@ export class LGraphNode {
             return null
         }
 
-        const r = []
+        const r: LGraphNode[] = []
         for (let i = 0; i < output.links.length; i++) {
             const link_id = output.links[i]
             const link = this.graph.links[link_id]
@@ -910,6 +910,7 @@ export class LGraphNode {
             case LiteGraph.ALWAYS:
                 break
 
+            // @ts-expect-error Not impl.
             case LiteGraph.ON_REQUEST:
                 break
 
@@ -1132,7 +1133,7 @@ export class LGraphNode {
         default_value: unknown,
         type?: string,
         extra_info?: Dictionary<unknown>): INodePropertyInfo {
-        const o = { name: name, type: type, default_value: default_value }
+        const o: INodePropertyInfo = { name: name, type: type, default_value: default_value }
         if (extra_info) {
             for (const i in extra_info) {
                 o[i] = extra_info[i]
@@ -1244,7 +1245,7 @@ export class LGraphNode {
      */
     addInput(name: string, type: ISlotType, extra_info?: object): INodeInputSlot {
         type = type || 0
-        const input = { name: name, type: type, link: null }
+        const input: INodeInputSlot = { name: name, type: type, link: null }
         if (extra_info) {
             for (const i in extra_info) {
                 input[i] = extra_info[i]
@@ -1275,7 +1276,7 @@ export class LGraphNode {
     addInputs(array: [string, ISlotType, Record<string, unknown>][]): void {
         for (let i = 0; i < array.length; ++i) {
             const info = array[i]
-            const o = { name: info[0], type: info[1], link: null }
+            const o: INodeInputSlot = { name: info[0], type: info[1], link: null }
             if (array[2]) {
                 for (const j in info[2]) {
                     o[j] = info[2][j]
@@ -1521,7 +1522,8 @@ export class LGraphNode {
             callback = null
         }
 
-        const w = {
+        const w: IWidget = {
+            // @ts-expect-error Type check or just assert?
             type: type.toLowerCase(),
             name: name,
             value: value,
@@ -1710,7 +1712,7 @@ export class LGraphNode {
      * returns the output slot with a given name (used for dynamic slots), -1 if not found
      * @param {string} name the name of the slot
      * @param {boolean} returnObj if the obj itself wanted
-     * @return {number_or_object} the slot (-1 if not found)
+     * @return {number | INodeOutputSlot} the slot (-1 if not found)
      */
     findOutputSlot<TReturn extends false>(name: string, returnObj?: TReturn): number
     findOutputSlot<TReturn extends true>(name: string, returnObj?: TReturn): INodeOutputSlot
@@ -1729,12 +1731,12 @@ export class LGraphNode {
 
     /**
      * returns the first free input slot
-     * @param {object} options
-     * @return {number_or_object} the slot (-1 if not found)
+     * @param {object} optsIn
+     * @return {number | INodeInputSlot} the slot (-1 if not found)
      */
-    findInputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
-    findInputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeInputSlot
-    findInputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
+    findInputSlotFree<TReturn extends false>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): number
+    findInputSlotFree<TReturn extends true>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): INodeInputSlot
+    findInputSlotFree(optsIn?: { typesNotAccepted?: number[], returnObj?: boolean }) {
         optsIn = optsIn || {}
         const optsDef = {
             returnObj: false,
@@ -1758,12 +1760,12 @@ export class LGraphNode {
 
     /**
      * returns the first output slot free
-     * @param {object} options
-     * @return {number_or_object} the slot (-1 if not found)
+     * @param {object} optsIn
+     * @return {number | INodeOutputSlot} the slot (-1 if not found)
      */
-    findOutputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
-    findOutputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeOutputSlot
-    findOutputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
+    findOutputSlotFree<TReturn extends false>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): number
+    findOutputSlotFree<TReturn extends true>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): INodeOutputSlot
+    findOutputSlotFree(optsIn?: { typesNotAccepted?: number[], returnObj?: boolean }) {
         optsIn = optsIn || {}
         const optsDef = {
             returnObj: false,
@@ -1821,6 +1823,7 @@ export class LGraphNode {
     findSlotByType<TSlot extends true, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeInputSlot
     findSlotByType<TSlot extends false, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeOutputSlot
     findSlotByType<TSlot extends true | false>(input: TSlot, type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
+        // TODO: Write wrappers to sanitise the "returnObj" situation
         // @ts-expect-error
         input = input || false
         returnObj = returnObj || false
@@ -1984,7 +1987,7 @@ export class LGraphNode {
      * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
      * @return {Object} the link_info is created, otherwise null
      */
-    connect(slot: number, target_node: LGraphNode, target_slot: ISlotType): LLink | null {
+    connect(slot: number, target_node: LGraphNode, target_slot: ISlotType | false): LLink | null {
         target_slot = target_slot || 0
 
         if (!this.graph) {
@@ -2531,7 +2534,7 @@ export class LGraphNode {
     }
 
     /* Console output */
-    trace(msg?: string) {
+    trace(msg?: string): void {
         if (!this.console) {
             this.console = []
         }
@@ -2546,7 +2549,7 @@ export class LGraphNode {
     }
 
     /* Forces to redraw or the main canvas (LGraphNode) or the bg canvas (links) */
-    setDirtyCanvas(dirty_foreground: boolean, dirty_background?: boolean) {
+    setDirtyCanvas(dirty_foreground: boolean, dirty_background?: boolean): void {
         if (!this.graph) {
             return
         }
@@ -2556,13 +2559,15 @@ export class LGraphNode {
         ])
     }
 
-    loadImage(url: string): any {
-        const img = new Image()
+    loadImage(url: string): HTMLImageElement {
+        interface AsyncImageElement extends HTMLImageElement { ready?: boolean }
+
+        const img: AsyncImageElement = new Image()
         img.src = LiteGraph.node_images_path + url
         img.ready = false
 
         const that = this
-        img.onload = function () {
+        img.onload = function (this: AsyncImageElement) {
             this.ready = true
             that.setDirtyCanvas(true)
         }
@@ -2647,10 +2652,11 @@ export class LGraphNode {
     }
 
     get height() {
+        // @ts-expect-error Not impl.
         return this.collapsed ? LiteGraph.NODE_COLLAPSED_HEIGHT : this.size[1]
     }
 
-    drawBadges(ctx, { gap = 2 } = {}) {
+    drawBadges(ctx: CanvasRenderingContext2D, { gap = 2 } = {}): void {
         const badgeInstances = this.badges.map(badge => badge instanceof LGraphBadge ? badge : badge())
         const isLeftAligned = this.badgePosition === BadgePosition.TopLeft
 
