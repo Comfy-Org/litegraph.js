@@ -1739,7 +1739,7 @@ export class LGraphNode {
     findInputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
     findInputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeInputSlot
     findInputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
-        var optsIn = optsIn || {}
+        optsIn = optsIn || {}
         const optsDef = {
             returnObj: false,
             typesNotAccepted: []
@@ -1768,7 +1768,7 @@ export class LGraphNode {
     findOutputSlotFree<TReturn extends false>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): number
     findOutputSlotFree<TReturn extends true>(optsIn: { typesNotAccepted: number[], returnObj?: TReturn }): INodeOutputSlot
     findOutputSlotFree(optsIn: { typesNotAccepted: number[], returnObj?: boolean }) {
-        var optsIn = optsIn || {}
+        optsIn = optsIn || {}
         const optsDef = {
             returnObj: false,
             typesNotAccepted: []
@@ -1869,7 +1869,7 @@ export class LGraphNode {
      * @return {Object} the link_info is created, otherwise null
      */
     connectByType(slot: number, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: unknown): LLink | null {
-        var optsIn = optsIn || {}
+        optsIn = optsIn || {}
         const optsDef = {
             createEventInCase: true,
             firstFreeIfOutputGeneralInCase: true,
@@ -1879,7 +1879,7 @@ export class LGraphNode {
         if (target_node && target_node.constructor === Number) {
             target_node = this.graph.getNodeById(target_node)
         }
-        var target_slot = target_node.findInputSlotByType(target_slotType, false, true)
+        let target_slot = target_node.findInputSlotByType(target_slotType, false, true)
         if (target_slot >= 0 && target_slot !== null) {
             //console.debug("CONNbyTYPE type "+target_slotType+" for "+target_slot)
             return this.connect(slot, target_node, target_slot)
@@ -1892,7 +1892,7 @@ export class LGraphNode {
             }
             // connect to the first general output slot if not found a specific type and 
             if (opts.generalTypeInCase) {
-                var target_slot = target_node.findInputSlotByType(0, false, true, true)
+                target_slot = target_node.findInputSlotByType(0, false, true, true)
                 //console.debug("connect TO a general type (*, 0), if not found the specific type ",target_slotType," to ",target_node,"RES_SLOT:",target_slot);
                 if (target_slot >= 0) {
                     return this.connect(slot, target_node, target_slot)
@@ -1900,7 +1900,7 @@ export class LGraphNode {
             }
             // connect to the first free input slot if not found a specific type and this output is general
             if (opts.firstFreeIfOutputGeneralInCase && (target_slotType == 0 || target_slotType == "*" || target_slotType == "")) {
-                var target_slot = target_node.findInputSlotFree({ typesNotAccepted: [LiteGraph.EVENT] })
+                target_slot = target_node.findInputSlotFree({ typesNotAccepted: [LiteGraph.EVENT] })
                 //console.debug("connect TO TheFirstFREE ",target_slotType," to ",target_node,"RES_SLOT:",target_slot);
                 if (target_slot >= 0) {
                     return this.connect(slot, target_node, target_slot)
@@ -1921,7 +1921,7 @@ export class LGraphNode {
      * @return {Object} the link_info is created, otherwise null
      */
     connectByTypeOutput(slot: number, source_node: LGraphNode, source_slotType: ISlotType, optsIn?: unknown): any {
-        var optsIn = optsIn || {}
+        optsIn = optsIn || {}
         const optsDef = {
             createEventInCase: true,
             firstFreeIfInputGeneralInCase: true,
@@ -1931,7 +1931,7 @@ export class LGraphNode {
         if (source_node && source_node.constructor === Number) {
             source_node = this.graph.getNodeById(source_node)
         }
-        var source_slot = source_node.findOutputSlotByType(source_slotType, false, true)
+        let source_slot = source_node.findOutputSlotByType(source_slotType, false, true)
         if (source_slot >= 0 && source_slot !== null) {
             //console.debug("CONNbyTYPE OUT! type "+source_slotType+" for "+source_slot)
             return source_node.connect(source_slot, this, slot)
@@ -1939,7 +1939,7 @@ export class LGraphNode {
 
             // connect to the first general output slot if not found a specific type and 
             if (opts.generalTypeInCase) {
-                var source_slot = source_node.findOutputSlotByType(0, false, true, true)
+                source_slot = source_node.findOutputSlotByType(0, false, true, true)
                 if (source_slot >= 0) {
                     return source_node.connect(source_slot, this, slot)
                 }
@@ -1948,13 +1948,13 @@ export class LGraphNode {
             if (opts.createEventInCase && source_slotType == LiteGraph.EVENT) {
                 // WILL CREATE THE onExecuted OUT SLOT
                 if (LiteGraph.do_add_triggers_slots) {
-                    var source_slot = source_node.addOnExecutedOutput()
+                    source_slot = source_node.addOnExecutedOutput()
                     return source_node.connect(source_slot, this, slot)
                 }
             }
             // connect to the first free output slot if not found a specific type and this input is general
             if (opts.firstFreeIfInputGeneralInCase && (source_slotType == 0 || source_slotType == "*" || source_slotType == "")) {
-                var source_slot = source_node.findOutputSlotFree({ typesNotAccepted: [LiteGraph.EVENT] })
+                source_slot = source_node.findOutputSlotFree({ typesNotAccepted: [LiteGraph.EVENT] })
                 if (source_slot >= 0) {
                     return source_node.connect(source_slot, this, slot)
                 }
@@ -2276,7 +2276,7 @@ export class LGraphNode {
                     continue
                 }
 
-                var target_node = this.graph.getNodeById(link_info.target_id)
+                target_node = this.graph.getNodeById(link_info.target_id)
                 var input = null
                 if (this.graph) {
                     this.graph._version++
