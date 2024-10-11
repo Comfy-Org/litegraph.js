@@ -1347,9 +1347,8 @@ export class LGraphNode {
      * @return {vec2} the total size
      */
     computeSize(out?: Size): Size {
-        if (this.constructor.size) {
-            return this.constructor.size.concat()
-        }
+        const ctorSize = this.constructor.size
+        if (ctorSize) return [ctorSize[0], ctorSize[1]]
 
         let rows = Math.max(
             this.inputs ? this.inputs.length : 1,
