@@ -10,7 +10,6 @@ export default defineConfig({
       fileName: (format) => `litegraph.${format}.js`,
       formats: ['es', 'umd']
     },
-    // minify: false,
     sourcemap: true,
     target: ['es2022'],
   },
