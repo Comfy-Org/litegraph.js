@@ -129,12 +129,15 @@ export class ContextMenu {
 
         //entries
         for (let i = 0; i < values.length; i++) {
-            let name = values.constructor == Array ? values[i] : String(i)
-            if (name != null && typeof name !== "string") {
-                name = name.content === undefined ? String(name) : name.content
-            }
             const value = values[i]
-            // @ts-expect-error
+            let name = Array.isArray(values) ? value : String(i)
+
+            if (typeof name !== "string") {
+                name = name != null
+                    ? name.content === undefined ? String(name) : name.content
+                    : name as null | undefined
+            }
+
             this.addItem(name, value, options)
         }
 
