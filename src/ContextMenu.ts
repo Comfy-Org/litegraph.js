@@ -253,12 +253,8 @@ export class ContextMenu {
             const value = this.value
             let close_parent = true
 
-            if (that.current_submenu) {
-                that.current_submenu.close(e)
-            }
-            if (value?.has_submenu || value?.submenu) {
-                setAriaExpanded()
-            }
+            if (that.current_submenu) that.current_submenu.close(e)
+            if (value?.has_submenu || value?.submenu) setAriaExpanded()
 
             //global callback
             if (options.callback) {
@@ -315,9 +311,7 @@ export class ContextMenu {
     }
 
     close(e?: MouseEvent, ignore_parent_menu?: boolean): void {
-        if (this.root.parentNode) {
-            this.root.parentNode.removeChild(this.root)
-        }
+        this.root.parentNode?.removeChild(this.root)
         if (this.parentMenu && !ignore_parent_menu) {
             this.parentMenu.lock = false
             this.parentMenu.current_submenu = null
@@ -328,9 +322,7 @@ export class ContextMenu {
                 ContextMenu.trigger(this.parentMenu.root, LiteGraph.pointerevents_method + "leave", e)
             }
         }
-        if (this.current_submenu) {
-            this.current_submenu.close(e, true)
-        }
+        this.current_submenu?.close(e, true)
 
         if (this.root.closing_timer)
             clearTimeout(this.root.closing_timer)
