@@ -34,7 +34,6 @@ export class ContextMenu {
     constructor(values: (IContextMenuValue | string)[], options: IContextMenuOptions) {
         options ||= {}
         this.options = options
-        const that = this
 
         //to link a menu with its parent
         const parent = options.parentMenu
@@ -96,10 +95,10 @@ export class ContextMenu {
         )
 
         LiteGraph.pointerListenerAdd(root, "down",
-            function (e: MouseEvent) {
+            (e: MouseEvent) => {
                 //console.log("pointerevents: ContextMenu down");
                 if (e.button == 2) {
-                    that.close()
+                    this.close()
                     e.preventDefault()
                     return true
                 }
@@ -192,7 +191,6 @@ export class ContextMenu {
     }
 
     addItem(name: string, value: IContextMenuValue | string, options: IContextMenuOptions): HTMLElement {
-        const that = this
         options ||= {}
 
         const element: ContextMenuDivElement = document.createElement("div")
@@ -237,8 +235,8 @@ export class ContextMenu {
         if (!disabled && options.autoopen)
             LiteGraph.pointerListenerAdd(element, "enter", inner_over)
 
-        function setAriaExpanded() {
-            const entries = that.root.querySelectorAll("div.litemenu-entry.has_submenu")
+        const setAriaExpanded = () => {
+            const entries = this.root.querySelectorAll("div.litemenu-entry.has_submenu")
             if (entries) {
                 for (let i = 0; i < entries.length; i++) {
                     entries[i].setAttribute("aria-expanded", "false")
@@ -247,7 +245,7 @@ export class ContextMenu {
             element.setAttribute("aria-expanded", "true")
         }
 
-        function inner_over(this: ContextMenuDivElement, e: any) {
+        function inner_over(this: ContextMenuDivElement, e: MouseEvent) {
             const value = this.value
             if (!value || !(value as IContextMenuValue).has_submenu) return
 
@@ -257,11 +255,12 @@ export class ContextMenu {
         }
 
         //menu option clicked
+        const that = this
         function inner_onclick(this: ContextMenuDivElement, e: MouseEvent) {
             const value = this.value
             let close_parent = true
 
-            if (that.current_submenu) that.current_submenu.close(e)
+            that.current_submenu?.close(e)
             if ((value as IContextMenuValue)?.has_submenu || (value as IContextMenuValue)?.submenu) setAriaExpanded()
 
             //global callback
@@ -336,7 +335,7 @@ export class ContextMenu {
     }
 
     //this code is used to trigger events easily (used in the context menu mouseleave
-    static trigger(element: HTMLDivElement, event_name: string, params: MouseEvent, origin?: undefined) {
+    static trigger(element: HTMLDivElement, event_name: string, params: MouseEvent, origin?: unknown): CustomEvent {
         const evt = document.createEvent("CustomEvent")
         evt.initCustomEvent(event_name, true, true, params) //canBubble, cancelable, detail
         // @ts-expect-error
