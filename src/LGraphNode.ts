@@ -1060,9 +1060,6 @@ export class LGraphNode {
                 continue
             }
 
-            //used to mark events in graph
-            var target_connection = node.inputs[link_info.target_slot]
-
             if (node.mode === LiteGraph.ON_TRIGGER) {
                 // generate unique trigger ID if not present
                 if (!options.action_call) options.action_call = this.id + "_trigg_" + Math.floor(Math.random() * 9999)
@@ -1075,7 +1072,7 @@ export class LGraphNode {
                 // generate unique action ID if not present
                 if (!options.action_call) options.action_call = this.id + "_act_" + Math.floor(Math.random() * 9999)
                 //pass the action name
-                var target_connection = node.inputs[link_info.target_slot]
+                const target_connection = node.inputs[link_info.target_slot]
                 // wrap node.onAction(target_connection.name, param);
                 node.actionDo(target_connection.name, param, options)
             }
@@ -2380,7 +2377,8 @@ export class LGraphNode {
                 }
 
                 //search in the inputs list for this link
-                for (var i = 0, l = output.links.length; i < l; i++) {
+                let i = 0
+                for (const l = output.links.length; i < l; i++) {
                     if (output.links[i] == link_id) {
                         output.links.splice(i, 1)
                         break
