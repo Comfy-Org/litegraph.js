@@ -1788,15 +1788,25 @@ export class LGraphNode {
     /**
      * findSlotByType for INPUTS
      */
-    findInputSlotByType(type, returnObj, preferFreeSlot, doNotUseOccupied) {
-        return this.findSlotByType(true, type, returnObj, preferFreeSlot, doNotUseOccupied)
+    findInputSlotByType<TReturn extends false>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
+    findInputSlotByType<TReturn extends true>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeInputSlot
+    findInputSlotByType(type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
+        // Requires refactor
+        return returnObj
+            ? this.findSlotByType(true, type, true, preferFreeSlot, doNotUseOccupied)
+            : this.findSlotByType(true, type, false, preferFreeSlot, doNotUseOccupied)
     }
 
     /**
      * findSlotByType for OUTPUTS
      */
-    findOutputSlotByType(type, returnObj, preferFreeSlot, doNotUseOccupied) {
-        return this.findSlotByType(false, type, returnObj, preferFreeSlot, doNotUseOccupied)
+    findOutputSlotByType<TReturn extends false>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
+    findOutputSlotByType<TReturn extends true>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeOutputSlot
+    findOutputSlotByType(type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
+        // Requires refactor
+        return returnObj
+            ? this.findSlotByType(false, type, true, preferFreeSlot, doNotUseOccupied)
+            : this.findSlotByType(false, type, false, preferFreeSlot, doNotUseOccupied)
     }
 
     /**
@@ -1807,7 +1817,11 @@ export class LGraphNode {
      * @param {boolean} preferFreeSlot if we want a free slot (if not found, will return the first of the type anyway)
      * @return {number_or_object} the slot (-1 if not found)
      */
-    findSlotByType(input, type, returnObj, preferFreeSlot, doNotUseOccupied) {
+    findSlotByType<TSlot extends true | false, TReturn extends false>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
+    findSlotByType<TSlot extends true, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeInputSlot
+    findSlotByType<TSlot extends false, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeOutputSlot
+    findSlotByType<TSlot extends true | false>(input: TSlot, type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
+        // @ts-expect-error
         input = input || false
         returnObj = returnObj || false
         preferFreeSlot = preferFreeSlot || false
