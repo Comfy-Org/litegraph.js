@@ -2078,7 +2078,7 @@ export class LGraphNode {
         if (target_slot === false || target_slot === null || !LiteGraph.isValidConnection(output.type, input.type)) {
             this.setDirtyCanvas(false, true)
             if (changed)
-                this.graph.connectionChange(this, link_info)
+                this.graph.connectionChange(this)
             return null
         } else {
             //console.debug("valid connection",output.type, input.type);
@@ -2099,7 +2099,7 @@ export class LGraphNode {
         //if there is something already plugged there, disconnect
         if (target_node.inputs[target_slot] && target_node.inputs[target_slot].link != null) {
             this.graph.beforeChange()
-            target_node.disconnectInput(target_slot, { doProcessChange: false })
+            target_node.disconnectInput(target_slot)
             changed = true
         }
         if (output.links !== null && output.links.length) {
@@ -2107,7 +2107,7 @@ export class LGraphNode {
                 case LiteGraph.EVENT:
                     if (!LiteGraph.allow_multi_output_for_events) {
                         this.graph.beforeChange()
-                        this.disconnectOutput(slot, false, { doProcessChange: false }) // Input(target_slot, {doProcessChange: false});
+                        this.disconnectOutput(slot)
                         changed = true
                     }
                     break
@@ -2184,7 +2184,7 @@ export class LGraphNode {
 
         this.setDirtyCanvas(false, true)
         this.graph.afterChange()
-        this.graph.connectionChange(this, link_info)
+        this.graph.connectionChange(this)
 
         return link_info
     }
