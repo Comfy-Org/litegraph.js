@@ -289,9 +289,7 @@ export class LGraphNode {
                 //i don't want to clone properties, I want to reuse the old container
                 for (const k in info.properties) {
                     this.properties[k] = info.properties[k]
-                    if (this.onPropertyChanged) {
-                        this.onPropertyChanged(k, info.properties[k])
-                    }
+                    this.onPropertyChanged?.(k, info.properties[k])
                 }
                 continue
             }
@@ -300,8 +298,8 @@ export class LGraphNode {
                 continue
             } else if (typeof info[j] == "object") {
                 //object
-                if (this[j] && this[j].configure) {
-                    this[j].configure(info[j])
+                if (this[j]?.configure) {
+                    this[j]?.configure(info[j])
                 } else {
                     this[j] = LiteGraph.cloneObject(info[j], this[j])
                 }
@@ -318,13 +316,9 @@ export class LGraphNode {
         if (this.inputs) {
             for (let i = 0; i < this.inputs.length; ++i) {
                 const input = this.inputs[i]
-                const link_info = this.graph ? this.graph.links[input.link] : null
-                if (this.onConnectionsChange)
-                    this.onConnectionsChange(LiteGraph.INPUT, i, true, link_info, input) //link_info has been created now, so its updated
-
-                if (this.onInputAdded)
-                    this.onInputAdded(input)
-
+                const link = this.graph ? this.graph.links[input.link] : null
+                this.onConnectionsChange?.(LiteGraph.INPUT, i, true, link, input)
+                this.onInputAdded?.(input)
             }
         }
 
@@ -335,13 +329,10 @@ export class LGraphNode {
                     continue
                 }
                 for (let j = 0; j < output.links.length; ++j) {
-                    const link_info = this.graph ? this.graph.links[output.links[j]] : null
-                    if (this.onConnectionsChange)
-                        this.onConnectionsChange(LiteGraph.OUTPUT, i, true, link_info, output) //link_info has been created now, so its updated
+                    const link = this.graph ? this.graph.links[output.links[j]] : null
+                    this.onConnectionsChange?.(LiteGraph.OUTPUT, i, true, link, output)
                 }
-
-                if (this.onOutputAdded)
-                    this.onOutputAdded(output)
+                this.onOutputAdded?.(output)
             }
         }
 
@@ -350,7 +341,7 @@ export class LGraphNode {
                 const w = this.widgets[i]
                 if (!w)
                     continue
-                if (w.options && w.options.property && (this.properties[w.options.property] != undefined))
+                if (w.options?.property && (this.properties[w.options.property] != undefined))
                     w.value = JSON.parse(JSON.stringify(this.properties[w.options.property]))
             }
             if (info.widgets_values) {
@@ -365,9 +356,7 @@ export class LGraphNode {
         // Sync the state of this.resizable.
         if (this.pinned) this.pin(true)
 
-        if (this.onConfigure) {
-            this.onConfigure(info)
-        }
+        this.onConfigure?.(info)
     }
 
     /**
@@ -420,13 +409,7 @@ export class LGraphNode {
         if (this.boxcolor) o.boxcolor = this.boxcolor
         if (this.shape) o.shape = this.shape
 
-        if (this.onSerialize) {
-            if (this.onSerialize(o)) {
-                console.warn(
-                    "node onSerialize shouldnt return anything, data should be stored in the object pass in the first parameter"
-                )
-            }
-        }
+        if (this.onSerialize?.(o)) console.warn("node onSerialize shouldnt return anything, data should be stored in the object pass in the first parameter")
 
         return o
     }
@@ -490,10 +473,10 @@ export class LGraphNode {
 
         const prev_value = this.properties[name]
         this.properties[name] = value
-        if (this.onPropertyChanged) {
-            if (this.onPropertyChanged(name, value, prev_value) === false) //abort change
-                this.properties[name] = prev_value
-        }
+        //abort change
+        if (this.onPropertyChanged?.(name, value, prev_value) === false)
+            this.properties[name] = prev_value
+
         if (this.widgets) //widgets could be linked to properties
             for (let i = 0; i < this.widgets.length; ++i) {
                 const w = this.widgets[i]
@@ -582,8 +565,8 @@ export class LGraphNode {
 
         if (node.updateOutputData) {
             node.updateOutputData(link.origin_slot)
-        } else if (node.onExecute) {
-            node.onExecute()
+        } else {
+            node.onExecute?.()
         }
 
         return link.data
@@ -851,13 +834,13 @@ export class LGraphNode {
 
             // save execution/action ref
             this.exec_version = this.graph.iteration
-            if (options && options.action_call) {
+            if (options?.action_call) {
                 this.action_call = options.action_call // if (param)
                 this.graph.nodes_executedAction[this.id] = options.action_call
             }
         }
         this.execute_triggered = 2 // the nFrames it will be used (-- each step), means "how old" is the event
-        if (this.onAfterExecuteNode) this.onAfterExecuteNode(param, options) // callback
+        this.onAfterExecuteNode?.(param, options) // callback
     }
 
     /**
@@ -877,13 +860,13 @@ export class LGraphNode {
             this.graph.nodes_actioning[this.id] = false //.pop();
 
             // save execution/action ref
-            if (options && options.action_call) {
+            if (options?.action_call) {
                 this.action_call = options.action_call // if (param)
                 this.graph.nodes_executedAction[this.id] = options.action_call
             }
         }
         this.action_triggered = 2 // the nFrames it will be used (-- each step), means "how old" is the event
-        if (this.onAfterExecuteNode) this.onAfterExecuteNode(param, options)
+        this.onAfterExecuteNode?.(param, options)
     }
 
     /**
@@ -952,10 +935,8 @@ export class LGraphNode {
             if (node.mode === LiteGraph.ON_TRIGGER) {
                 // generate unique trigger ID if not present
                 if (!options.action_call) options.action_call = this.id + "_trigg_" + Math.floor(Math.random() * 9999)
-                if (node.onExecute) {
-                    // -- wrapping node.onExecute(param); --
-                    node.doExecute(param, options)
-                }
+                // -- wrapping node.onExecute(param); --
+                node.doExecute?.(param, options)
             }
             else if (node.onAction) {
                 // generate unique action ID if not present
@@ -1002,8 +983,7 @@ export class LGraphNode {
      */
     setSize(size: Size): void {
         this.size = size
-        if (this.onResize)
-            this.onResize(this.size)
+        this.onResize?.(this.size)
     }
 
     /**
@@ -1046,9 +1026,7 @@ export class LGraphNode {
 
         this.outputs ||= []
         this.outputs.push(output)
-        if (this.onOutputAdded) {
-            this.onOutputAdded(output)
-        }
+        this.onOutputAdded?.(output)
 
         if (LiteGraph.auto_load_slot_types) LiteGraph.registerNodeAndSlotType(this, type, true)
 
@@ -1073,9 +1051,7 @@ export class LGraphNode {
 
             this.outputs ||= []
             this.outputs.push(o)
-            if (this.onOutputAdded) {
-                this.onOutputAdded(o)
-            }
+            this.onOutputAdded?.(o)
 
             if (LiteGraph.auto_load_slot_types) LiteGraph.registerNodeAndSlotType(this, info[1], true)
 
@@ -1105,9 +1081,7 @@ export class LGraphNode {
         }
 
         this.setSize(this.computeSize())
-        if (this.onOutputRemoved) {
-            this.onOutputRemoved(slot)
-        }
+        this.onOutputRemoved?.(slot)
         this.setDirtyCanvas(true, true)
     }
 
@@ -1130,10 +1104,7 @@ export class LGraphNode {
         this.inputs.push(input)
         this.setSize(this.computeSize())
 
-        if (this.onInputAdded) {
-            this.onInputAdded(input)
-        }
-
+        this.onInputAdded?.(input)
         LiteGraph.registerNodeAndSlotType(this, type)
 
         this.setDirtyCanvas(true, true)
@@ -1157,9 +1128,7 @@ export class LGraphNode {
 
             this.inputs ||= []
             this.inputs.push(o)
-            if (this.onInputAdded) {
-                this.onInputAdded(o)
-            }
+            this.onInputAdded?.(o)
 
             LiteGraph.registerNodeAndSlotType(this, info[1])
         }
@@ -1184,9 +1153,7 @@ export class LGraphNode {
             link.target_slot -= 1
         }
         this.setSize(this.computeSize())
-        if (this.onInputRemoved) {
-            this.onInputRemoved(slot, slot_info[0])
-        }
+        this.onInputRemoved?.(slot, slot_info[0])
         this.setDirtyCanvas(true, true)
     }
 
@@ -1252,14 +1219,13 @@ export class LGraphNode {
 
         size[0] = Math.max(input_width + output_width + 10, title_width)
         size[0] = Math.max(size[0], LiteGraph.NODE_WIDTH)
-        if (this.widgets && this.widgets.length) {
+        if (this.widgets?.length)
             size[0] = Math.max(size[0], LiteGraph.NODE_WIDTH * 1.5)
-        }
 
         size[1] = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
 
         let widgets_height = 0
-        if (this.widgets && this.widgets.length) {
+        if (this.widgets?.length) {
             for (let i = 0, l = this.widgets.length; i < l; ++i) {
                 const widget = this.widgets[i]
 
@@ -1329,7 +1295,7 @@ export class LGraphNode {
         if (this.constructor["@" + property])
             info = this.constructor["@" + property]
 
-        if (this.constructor.widgets_info && this.constructor.widgets_info[property])
+        if (this.constructor.widgets_info?.[property])
             info = this.constructor.widgets_info[property]
 
         //litescene mode using the constructor
@@ -1447,9 +1413,7 @@ export class LGraphNode {
             ? LiteGraph.NODE_TITLE_HEIGHT + bottom_offset
             : nodeSize[1] + LiteGraph.NODE_TITLE_HEIGHT + bottom_offset
 
-        if (this.onBounding) {
-            this.onBounding(out)
-        }
+        this.onBounding?.(out)
         return out
     }
 
@@ -1466,7 +1430,7 @@ export class LGraphNode {
             ? 0
             : LiteGraph.NODE_TITLE_HEIGHT
 
-        if (this.flags && this.flags.collapsed) {
+        if (this.flags?.collapsed) {
             //if ( distance([x,y], [this.pos[0] + this.size[0]*0.5, this.pos[1] + this.size[1]*0.5]) < LiteGraph.NODE_COLLAPSED_RADIUS)
             if (isInsideRectangle(
                 x,
@@ -1575,9 +1539,7 @@ export class LGraphNode {
 
         for (let i = 0, l = this.inputs.length; i < l; ++i) {
             if (this.inputs[i].link) continue
-            if (opts.typesNotAccepted && opts.typesNotAccepted.includes && opts.typesNotAccepted.includes(this.inputs[i].type)) {
-                continue
-            }
+            if (opts.typesNotAccepted?.includes?.(this.inputs[i].type)) continue
             return !opts.returnObj ? i : this.inputs[i]
         }
         return -1
@@ -1600,9 +1562,7 @@ export class LGraphNode {
 
         for (let i = 0, l = this.outputs.length; i < l; ++i) {
             if (this.outputs[i].links) continue
-            if (opts.typesNotAccepted && opts.typesNotAccepted.includes && opts.typesNotAccepted.includes(this.outputs[i].type)) {
-                continue
-            }
+            if (opts.typesNotAccepted?.includes?.(this.outputs[i].type)) continue
             return !opts.returnObj ? i : this.outputs[i]
         }
         return -1
@@ -2047,43 +2007,26 @@ export class LGraphNode {
                     delete graph.links[link_id] //remove the link from the links pool //remove the link from the links pool
                     if (graph) graph._version++
 
-                    if (target_node.onConnectionsChange) {
-                        target_node.onConnectionsChange(
-                            LiteGraph.INPUT,
-                            link_info.target_slot,
-                            false,
-                            link_info,
-                            input
-                        )
-                    } //link_info hasn't been modified so its ok
-                    if (this.onConnectionsChange) {
-                        this.onConnectionsChange(
-                            LiteGraph.OUTPUT,
-                            slot,
-                            false,
-                            link_info,
-                            output
-                        )
-                    }
-                    if (this.graph && this.graph.onNodeConnectionChange) {
-                        this.graph.onNodeConnectionChange(
-                            LiteGraph.OUTPUT,
-                            this,
-                            slot
-                        )
-                    }
-                    if (this.graph && this.graph.onNodeConnectionChange) {
-                        this.graph.onNodeConnectionChange(
-                            LiteGraph.OUTPUT,
-                            this,
-                            slot
-                        )
-                        this.graph.onNodeConnectionChange(
-                            LiteGraph.INPUT,
-                            target_node,
-                            link_info.target_slot
-                        )
-                    }
+                    //link_info hasn't been modified so its ok
+                    target_node.onConnectionsChange?.(
+                        LiteGraph.INPUT,
+                        link_info.target_slot,
+                        false,
+                        link_info,
+                        input
+                    )
+                    this.onConnectionsChange?.(
+                        LiteGraph.OUTPUT,
+                        slot,
+                        false,
+                        link_info,
+                        output
+                    )
+
+                    // FIXME: Called twice.
+                    graph?.onNodeConnectionChange?.(LiteGraph.OUTPUT, this, slot)
+                    graph?.onNodeConnectionChange?.(LiteGraph.OUTPUT, this, slot)
+                    graph?.onNodeConnectionChange?.(LiteGraph.INPUT, target_node, link_info.target_slot)
                     break
                 }
             }
@@ -2103,45 +2046,29 @@ export class LGraphNode {
                     //remove other side link
                     input.link = null
 
-                    if (target_node.onConnectionsChange) {
-                        target_node.onConnectionsChange(
-                            LiteGraph.INPUT,
-                            link_info.target_slot,
-                            false,
-                            link_info,
-                            input
-                        )
-                    } //link_info hasn't been modified so its ok
-                    if (this.graph && this.graph.onNodeConnectionChange) {
-                        this.graph.onNodeConnectionChange(
-                            LiteGraph.INPUT,
-                            target_node,
-                            link_info.target_slot
-                        )
-                    }
-                }
-                delete this.graph.links[link_id] //remove the link from the links pool
-                if (this.onConnectionsChange) {
-                    this.onConnectionsChange(
-                        LiteGraph.OUTPUT,
-                        slot,
+                    //link_info hasn't been modified so its ok
+                    target_node.onConnectionsChange?.(
+                        LiteGraph.INPUT,
+                        link_info.target_slot,
                         false,
                         link_info,
-                        output
+                        input
                     )
+                    // FIXME: Called twice.
+                    graph?.onNodeConnectionChange?.(LiteGraph.INPUT, target_node, link_info.target_slot)
                 }
-                if (this.graph && this.graph.onNodeConnectionChange) {
-                    this.graph.onNodeConnectionChange(
-                        LiteGraph.OUTPUT,
-                        this,
-                        slot
-                    )
-                    this.graph.onNodeConnectionChange(
-                        LiteGraph.INPUT,
-                        target_node,
-                        link_info.target_slot
-                    )
-                }
+                //remove the link from the links pool
+                delete graph.links[link_id]
+
+                this.onConnectionsChange?.(
+                    LiteGraph.OUTPUT,
+                    slot,
+                    false,
+                    link_info,
+                    output
+                )
+                graph?.onNodeConnectionChange?.(LiteGraph.OUTPUT, this, slot)
+                graph?.onNodeConnectionChange?.(LiteGraph.INPUT, target_node, link_info.target_slot)
             }
             output.links = null
         }
@@ -2205,38 +2132,27 @@ export class LGraphNode {
                 delete this.graph.links[link_id] //remove from the pool
                 if (this.graph) this.graph._version++
 
-                if (this.onConnectionsChange) {
-                    this.onConnectionsChange(
-                        LiteGraph.INPUT,
-                        slot,
-                        false,
-                        link_info,
-                        input
-                    )
-                }
-                if (target_node.onConnectionsChange) {
-                    target_node.onConnectionsChange(
-                        LiteGraph.OUTPUT,
-                        i,
-                        false,
-                        link_info,
-                        output
-                    )
-                }
-                if (this.graph && this.graph.onNodeConnectionChange) {
-                    this.graph.onNodeConnectionChange(
-                        LiteGraph.OUTPUT,
-                        target_node,
-                        i
-                    )
-                    this.graph.onNodeConnectionChange(LiteGraph.INPUT, this, slot)
-                }
+                this.onConnectionsChange?.(
+                    LiteGraph.INPUT,
+                    slot,
+                    false,
+                    link_info,
+                    input
+                )
+                target_node.onConnectionsChange?.(
+                    LiteGraph.OUTPUT,
+                    i,
+                    false,
+                    link_info,
+                    output
+                )
+                this.graph?.onNodeConnectionChange?.(LiteGraph.OUTPUT, target_node, i)
+                this.graph?.onNodeConnectionChange?.(LiteGraph.INPUT, this, slot)
             }
-        } //link != null
+        }
 
         this.setDirtyCanvas(false, true)
-        if (this.graph)
-            this.graph.connectionChange(this)
+        this.graph?.connectionChange(this)
         return true
     }
 
@@ -2329,16 +2245,12 @@ export class LGraphNode {
         if (this.console.length > LGraphNode.MAX_CONSOLE)
             this.console.shift()
 
-        if (this.graph.onNodeTrace)
-            this.graph.onNodeTrace(this, msg)
+        this.graph.onNodeTrace?.(this, msg)
     }
 
     /* Forces to redraw or the main canvas (LGraphNode) or the bg canvas (links) */
     setDirtyCanvas(dirty_foreground: boolean, dirty_background?: boolean): void {
-        if (!this.graph) {
-            return
-        }
-        this.graph.sendActionToCanvas("setDirty", [
+        this.graph?.sendActionToCanvas("setDirty", [
             dirty_foreground,
             dirty_background
         ])
