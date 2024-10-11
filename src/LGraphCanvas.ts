@@ -4011,10 +4011,8 @@ export class LGraphCanvas {
         return was_clicked
     }
     isAreaClicked(x: number, y: number, w: number, h: number, hold_click: boolean): boolean {
-        let pos = this.mouse
-        const hover = LiteGraph.isInsideRectangle(pos[0], pos[1], x, y, w, h)
-        pos = this.last_click_position
-        const clicked = pos && hover
+        const clickPos = this.last_click_position
+        const clicked = clickPos && LiteGraph.isInsideRectangle(clickPos[0], clickPos[1], x, y, w, h)
         const was_clicked = clicked && !this.block_click
         if (clicked && hold_click) this.blockClick()
         return was_clicked
