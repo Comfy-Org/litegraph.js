@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalInputsData, ISlotType, Point, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { IWidget, TWidgetValue } from "./types/widgets"
@@ -1824,53 +1823,46 @@ export class LGraphNode {
     findSlotByType<TSlot extends true | false>(input: TSlot, type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
         // TODO: Write wrappers to sanitise the "returnObj" situation
         // @ts-expect-error
-        input = input || false
-        returnObj = returnObj || false
-        preferFreeSlot = preferFreeSlot || false
-        doNotUseOccupied = doNotUseOccupied || false
-        const aSlots = input ? this.inputs : this.outputs
-        if (!aSlots) {
-            return -1
-        }
+        input ||= false
+        returnObj ||= false
+        preferFreeSlot ||= false
+        doNotUseOccupied ||= false
+        const slots = input ? this.inputs : this.outputs
+        if (!slots) return -1
+
         // !! empty string type is considered 0, * !!
         if (type == "" || type == "*") type = 0
-        for (let i = 0, l = aSlots.length; i < l; ++i) {
-            const tFound = false
-            const aSource = (type + "").toLowerCase().split(",")
-            let aDest = aSlots[i].type == "0" || aSlots[i].type == "*" ? "0" : aSlots[i].type
-            aDest = (aDest + "").toLowerCase().split(",")
-            for (let sI = 0; sI < aSource.length; sI++) {
-                for (let dI = 0; dI < aDest.length; dI++) {
-                    if (aSource[sI] == "_event_") aSource[sI] = LiteGraph.EVENT
-                    if (aDest[sI] == "_event_") aDest[sI] = LiteGraph.EVENT
-                    if (aSource[sI] == "*") aSource[sI] = 0
-                    if (aDest[sI] == "*") aDest[sI] = 0
-                    if (aSource[sI] == aDest[dI]) {
-                        if (preferFreeSlot && (aSlots[i].links && aSlots[i].links !== null) || (aSlots[i].link && aSlots[i].link !== null)) continue
-                        return !returnObj ? i : aSlots[i]
-                    }
-                }
-            }
-        }
-        // if didnt find some, stop checking for free slots
-        if (preferFreeSlot && !doNotUseOccupied) {
-            for (let i = 0, l = aSlots.length; i < l; ++i) {
-                const tFound = false
-                const aSource = (type + "").toLowerCase().split(",")
-                let aDest = aSlots[i].type == "0" || aSlots[i].type == "*" ? "0" : aSlots[i].type
-                aDest = (aDest + "").toLowerCase().split(",")
-                for (let sI = 0; sI < aSource.length; sI++) {
-                    for (let dI = 0; dI < aDest.length; dI++) {
-                        if (aSource[sI] == "*") aSource[sI] = 0
-                        if (aDest[sI] == "*") aDest[sI] = 0
-                        if (aSource[sI] == aDest[dI]) {
-                            return !returnObj ? i : aSlots[i]
+        const sourceTypes = String(type).toLowerCase().split(",")
+
+        // Run the search
+        let occupiedSlot: number | INodeInputSlot | INodeOutputSlot = null
+        for (let i = 0, l = slots.length; i < l; ++i) {
+            const slot = slots[i]
+            const destTypes = slot.type == "0" || slot.type == "*"
+                ? ["0"]
+                : String(slot.type).toLowerCase().split(",")
+
+            for (const sourceType of sourceTypes) {
+                // TODO: Remove _event_ entirely.
+                const source = sourceType == "_event_" ? LiteGraph.EVENT : sourceType
+
+                for (const destType of destTypes) {
+                    const dest = destType == "_event_" ? LiteGraph.EVENT : destType
+
+                    if (source == dest || source === "*" || dest === "*") {
+                        // @ts-expect-error I/O link vs links issue
+                        if (preferFreeSlot && (slot.links?.length > 0 || slot.link != null)) {
+                            // In case we can't find a free slot.
+                            occupiedSlot ??= returnObj ? slot : i
+                            continue
                         }
+                        return returnObj ? slot : i
                     }
                 }
             }
         }
-        return -1
+
+        return doNotUseOccupied ? -1 : occupiedSlot
     }
 
     /**
