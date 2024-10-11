@@ -811,11 +811,7 @@ export class LGraphNode {
         if (!this.outputs) {
             return false
         }
-        return (
-            slot < this.outputs.length &&
-            this.outputs[slot].links &&
-            this.outputs[slot].links.length
-        )
+        return slot < this.outputs.length && this.outputs[slot].links?.length > 0
     }
 
     /**
