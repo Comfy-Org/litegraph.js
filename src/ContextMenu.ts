@@ -2,9 +2,13 @@ import type { IContextMenuOptions, IContextMenuValue } from "./interfaces"
 import { LiteGraph } from "./litegraph"
 
 interface ContextMenuDivElement extends HTMLDivElement {
-    value?: IContextMenuValue
+    value?: IContextMenuValue | string
     onclick_callback?: never
     closing_timer?: number
+}
+
+export interface ContextMenu {
+    constructor: new (...args: ConstructorParameters<typeof ContextMenu>) => ContextMenu
 }
 
 /**
@@ -242,9 +246,9 @@ export class ContextMenu {
             element.setAttribute("aria-expanded", "true")
         }
 
-        function inner_over(e) {
+        function inner_over(this: ContextMenuDivElement, e: any) {
             const value = this.value
-            if (!value || !value.has_submenu) return
+            if (!value || !(value as IContextMenuValue).has_submenu) return
 
             //if it is a submenu, autoopen like the item was clicked
             inner_onclick.call(this, e)
@@ -252,12 +256,12 @@ export class ContextMenu {
         }
 
         //menu option clicked
-        function inner_onclick(e) {
+        function inner_onclick(this: ContextMenuDivElement, e: MouseEvent) {
             const value = this.value
             let close_parent = true
 
             if (that.current_submenu) that.current_submenu.close(e)
-            if (value?.has_submenu || value?.submenu) setAriaExpanded()
+            if ((value as IContextMenuValue)?.has_submenu || (value as IContextMenuValue)?.submenu) setAriaExpanded()
 
             //global callback
             if (options.callback) {
@@ -292,7 +296,6 @@ export class ContextMenu {
                     if (!value.submenu.options)
                         throw "ContextMenu submenu needs options"
 
-                    // @ts-expect-error
                     new that.constructor(value.submenu.options, {
                         callback: value.submenu.callback,
                         event: e,

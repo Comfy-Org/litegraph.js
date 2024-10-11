@@ -131,8 +131,12 @@ export interface IContextMenuValue extends IContextMenuBase {
     content: string
     has_submenu?: boolean
     disabled?: boolean
-    submenu?: unknown
+    submenu?: IContextMenuSubmenu
     property?: string
     type?: string
     slot?: IFoundSlot
+}
+
+export interface IContextMenuSubmenu extends IContextMenuOptions {
+    options: ConstructorParameters<typeof ContextMenu>[0]
 }
