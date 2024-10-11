@@ -1020,7 +1020,7 @@ export class LGraphNode {
             return
         }
 
-        if (slot.constructor !== Number)
+        if (typeof slot !== "number")
             console.warn("slot must be a number, use node.trigger('name') if you want to use a string")
 
         const output = this.outputs[slot]
@@ -1500,15 +1500,15 @@ export class LGraphNode {
             this.widgets = []
         }
 
-        if (!options && callback && callback.constructor === Object) {
+        if (!options && callback && typeof callback === "object") {
             options = callback
             callback = null
         }
 
-        if (options && options.constructor === String) //options can be the property name
+        if (options && typeof options === "string") //options can be the property name
             options = { property: options }
 
-        if (callback && callback.constructor === String) //callback can be the property name
+        if (callback && typeof callback === "string") //callback can be the property name
         {
             if (!options)
                 options = {}
@@ -1516,7 +1516,7 @@ export class LGraphNode {
             callback = null
         }
 
-        if (callback && callback.constructor !== Function) {
+        if (callback && typeof callback !== "function") {
             console.warn("addWidget: callback must be a function")
             callback = null
         }
@@ -1886,7 +1886,7 @@ export class LGraphNode {
             generalTypeInCase: true
         }
         const opts = Object.assign(optsDef, optsIn)
-        if (target_node && target_node.constructor === Number) {
+        if (target_node && typeof target_node === "number") {
             target_node = this.graph.getNodeById(target_node)
         }
         let target_slot = target_node.findInputSlotByType(target_slotType, false, true)
@@ -1938,7 +1938,7 @@ export class LGraphNode {
             generalTypeInCase: true
         }
         const opts = Object.assign(optsDef, optsIn)
-        if (source_node && source_node.constructor === Number) {
+        if (source_node && typeof source_node === "number") {
             source_node = this.graph.getNodeById(source_node)
         }
         let source_slot = source_node.findOutputSlotByType(source_slotType, false, true)
@@ -1996,7 +1996,7 @@ export class LGraphNode {
         }
 
         //seek for the output slot
-        if (slot.constructor === String) {
+        if (typeof slot === "string") {
             slot = this.findOutputSlot(slot)
             if (slot == -1) {
                 if (LiteGraph.debug) {
@@ -2011,7 +2011,7 @@ export class LGraphNode {
             return null
         }
 
-        if (target_node && target_node.constructor === Number) {
+        if (target_node && typeof target_node === "number") {
             target_node = this.graph.getNodeById(target_node)
         }
         if (!target_node) {
@@ -2024,7 +2024,7 @@ export class LGraphNode {
         }
 
         //you can specify the slot by name
-        if (target_slot.constructor === String) {
+        if (typeof target_slot === "string") {
             target_slot = target_node.findInputSlot(target_slot)
             if (target_slot == -1) {
                 if (LiteGraph.debug) {
@@ -2193,7 +2193,7 @@ export class LGraphNode {
      * @return {boolean} if it was disconnected successfully
      */
     disconnectOutput(slot: string | number, target_node?: LGraphNode): boolean {
-        if (slot.constructor === String) {
+        if (typeof slot === "string") {
             slot = this.findOutputSlot(slot)
             if (slot == -1) {
                 if (LiteGraph.debug) {
@@ -2216,7 +2216,7 @@ export class LGraphNode {
 
         //one of the output links in this slot
         if (target_node) {
-            if (target_node.constructor === Number) {
+            if (typeof target_node === "number") {
                 target_node = this.graph.getNodeById(target_node)
             }
             if (!target_node) {
@@ -2349,7 +2349,7 @@ export class LGraphNode {
      */
     disconnectInput(slot: number | string): boolean {
         //seek for the output slot
-        if (slot.constructor === String) {
+        if (typeof slot === "string") {
             slot = this.findInputSlot(slot)
             if (slot == -1) {
                 if (LiteGraph.debug) {
