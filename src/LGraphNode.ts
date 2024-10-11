@@ -1,13 +1,14 @@
 // @ts-nocheck
 import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalInputsData, ISlotType, Point, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { IWidget } from "./types/widgets"
+import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
 import type { RenderShape } from "./types/globalEnums"
 import type { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
+import type { DragAndScale } from "./DragAndScale"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
-import { LiteGraph } from "./litegraph"
+import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { isInsideRectangle } from "./measure"
 import { LLink } from "./LLink"
 
@@ -79,6 +80,10 @@ supported callbacks:
     + onAction: action slot triggered
     + getExtraMenuOptions: to add option to context menu
 */
+
+export interface LGraphNode {
+    constructor?: LGraphNodeConstructor
+}
 
 /**
  * Base Class for all the node type classes
@@ -1866,7 +1871,7 @@ export class LGraphNode {
      * @param {string} target_type the input slot type of the target node
      * @return {Object} the link_info is created, otherwise null
      */
-    connectByType(slot: number, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: { reroutes?: RerouteId[] }): LLink | null {
+    connectByType(slot: number, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: unknown): LLink | null {
         var optsIn = optsIn || {}
         var optsDef = {
             createEventInCase: true,
@@ -1972,7 +1977,7 @@ export class LGraphNode {
      * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
      * @return {Object} the link_info is created, otherwise null
      */
-    connect(slot: number, target_node: LGraphNode, target_slot: ISlotType, reroutes?: RerouteId[]): LLink | null {
+    connect(slot: number, target_node: LGraphNode, target_slot: ISlotType): LLink | null {
         target_slot = target_slot || 0
 
         if (!this.graph) {
@@ -2607,7 +2612,7 @@ export class LGraphNode {
     /**
      * Forces the node to do not move or realign on Z or resize
      **/
-    pin(v?) {
+    pin(v?: boolean): void {
         this.graph._version++
         if (v === undefined) {
             this.flags.pinned = !this.flags.pinned
