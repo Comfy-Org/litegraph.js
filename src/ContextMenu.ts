@@ -83,10 +83,8 @@ export class ContextMenu {
         root.addEventListener(
             "contextmenu",
             function (e: MouseEvent) {
-                if (e.button != 2) {
-                    //right button
-                    return false
-                }
+                //right button
+                if (e.button != 2) return false
                 e.preventDefault()
                 return false
             },
@@ -140,20 +138,7 @@ export class ContextMenu {
             this.addItem(name, value, options)
         }
 
-        //close on leave? touch enabled devices won't work TODO use a global device detector and condition on that
-        /*LiteGraph.pointerListenerAdd(root,"leave", function(e) {
-            console.log("pointerevents: ContextMenu leave");
-            if (that.lock) {
-                return;
-            }
-            if (root.closing_timer) {
-                clearTimeout(root.closing_timer);
-            }
-            root.closing_timer = setTimeout(that.close.bind(that, e), 500);
-            //that.close(e);
-        });*/
         LiteGraph.pointerListenerAdd(root, "enter", function () {
-            //console.log("pointerevents: ContextMenu enter");
             if (root.closing_timer) {
                 clearTimeout(root.closing_timer)
             }
@@ -174,9 +159,7 @@ export class ContextMenu {
         if (options.event) {
             left = options.event.clientX - 10
             top = options.event.clientY - 10
-            if (options.title) {
-                top -= 20
-            }
+            if (options.title) top -= 20
 
             if (parent) {
                 const rect = parent.root.getBoundingClientRect()
@@ -188,20 +171,17 @@ export class ContextMenu {
             if (body_rect.height == 0)
                 console.error("document.body height is 0. That is dangerous, set html,body { height: 100%; }")
 
-            if (body_rect.width && left > body_rect.width - root_rect.width - 10) {
+            if (body_rect.width && left > body_rect.width - root_rect.width - 10)
                 left = body_rect.width - root_rect.width - 10
-            }
-            if (body_rect.height && top > body_rect.height - root_rect.height - 10) {
+            if (body_rect.height && top > body_rect.height - root_rect.height - 10)
                 top = body_rect.height - root_rect.height - 10
-            }
         }
 
         root.style.left = left + "px"
         root.style.top = top + "px"
 
-        if (options.scale) {
-            root.style.transform = "scale(" + options.scale + ")"
-        }
+        if (options.scale)
+            root.style.transform = `scale(${options.scale})`
     }
 
     addItem(name: string, value: IContextMenuValue, options: IContextMenuOptions): HTMLElement {
@@ -240,18 +220,14 @@ export class ContextMenu {
                 element.dataset["value"] = String(value)
             }
 
-            if (value.className) {
+            if (value.className)
                 element.className += " " + value.className
-            }
         }
 
         this.root.appendChild(element)
-        if (!disabled) {
-            element.addEventListener("click", inner_onclick)
-        }
-        if (!disabled && options.autoopen) {
+        if (!disabled) element.addEventListener("click", inner_onclick)
+        if (!disabled && options.autoopen) 
             LiteGraph.pointerListenerAdd(element, "enter", inner_over)
-        }
 
         function setAriaExpanded() {
             const entries = that.root.querySelectorAll("div.litemenu-entry.has_submenu")
@@ -265,9 +241,8 @@ export class ContextMenu {
 
         function inner_over(e) {
             const value = this.value
-            if (!value || !value.has_submenu) {
-                return
-            }
+            if (!value || !value.has_submenu) return
+
             //if it is a submenu, autoopen like the item was clicked
             inner_onclick.call(this, e)
             setAriaExpanded()
@@ -295,9 +270,7 @@ export class ContextMenu {
                     that,
                     options.node
                 )
-                if (r === true) {
-                    close_parent = false
-                }
+                if (r === true) close_parent = false
             }
 
             //special cases
@@ -314,14 +287,12 @@ export class ContextMenu {
                         that,
                         options.extra
                     )
-                    if (r === true) {
-                        close_parent = false
-                    }
+                    if (r === true) close_parent = false
                 }
                 if (value.submenu) {
-                    if (!value.submenu.options) {
+                    if (!value.submenu.options)
                         throw "ContextMenu submenu needs options"
-                    }
+
                     // @ts-expect-error
                     new that.constructor(value.submenu.options, {
                         callback: value.submenu.callback,
@@ -336,9 +307,8 @@ export class ContextMenu {
                 }
             }
 
-            if (close_parent && !that.lock) {
+            if (close_parent && !that.lock)
                 that.close()
-            }
         }
 
         return element
@@ -362,12 +332,8 @@ export class ContextMenu {
             this.current_submenu.close(e, true)
         }
 
-        if (this.root.closing_timer) {
+        if (this.root.closing_timer)
             clearTimeout(this.root.closing_timer)
-        }
-
-        // TODO implement : LiteGraph.contextMenuClosed(); :: keep track of opened / closed / current ContextMenu
-        // on key press, allow filtering/selecting the context menu elements
     }
 
     //this code is used to trigger events easily (used in the context menu mouseleave
@@ -376,39 +342,32 @@ export class ContextMenu {
         evt.initCustomEvent(event_name, true, true, params) //canBubble, cancelable, detail
         // @ts-expect-error
         evt.srcElement = origin
-        if (element.dispatchEvent) {
-            element.dispatchEvent(evt)
-            // @ts-expect-error
-        } else if (element.__events) {
-            // @ts-expect-error
-            element.__events.dispatchEvent(evt)
-        }
+        if (element.dispatchEvent) element.dispatchEvent(evt)
+        // @ts-expect-error
+        else if (element.__events) element.__events.dispatchEvent(evt)
         //else nothing seems binded here so nothing to do
         return evt
     }
 
     //returns the top most menu
     getTopMenu(): ContextMenu {
-        if (this.options.parentMenu) {
-            return this.options.parentMenu.getTopMenu()
-        }
-        return this
+        return this.options.parentMenu
+            ? this.options.parentMenu.getTopMenu()
+            : this
     }
 
     getFirstEvent(): MouseEvent {
-        if (this.options.parentMenu) {
-            return this.options.parentMenu.getFirstEvent()
-        }
-        return this.options.event
+        return this.options.parentMenu
+            ? this.options.parentMenu.getFirstEvent()
+            : this.options.event
     }
 
     static isCursorOverElement(event: MouseEvent, element: HTMLDivElement): boolean {
         const left = event.clientX
         const top = event.clientY
         const rect = element.getBoundingClientRect()
-        if (!rect) {
-            return false
-        }
+        if (!rect) return false
+
         if (top > rect.top &&
             top < rect.top + rect.height &&
             left > rect.left &&
