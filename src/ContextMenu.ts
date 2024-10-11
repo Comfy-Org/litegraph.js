@@ -191,7 +191,7 @@ export class ContextMenu {
             root.style.transform = `scale(${options.scale})`
     }
 
-    addItem(name: string, value: IContextMenuValue, options: IContextMenuOptions): HTMLElement {
+    addItem(name: string, value: IContextMenuValue | string, options: IContextMenuOptions): HTMLElement {
         const that = this
         options ||= {}
 
@@ -203,11 +203,11 @@ export class ContextMenu {
         if (value === null) {
             element.classList.add("separator")
         } else {
-            element.innerHTML = value && value.title ? value.title : name
-            element.value = value
-            element.setAttribute("role", "menuitem")
+            if (typeof value === "string") {
+                element.innerHTML = name
+            } else {
+                element.innerHTML = value?.title ?? name
 
-            if (value) {
                 if (value.disabled) {
                     disabled = true
                     element.classList.add("disabled")
@@ -218,22 +218,23 @@ export class ContextMenu {
                     element.setAttribute("aria-haspopup", "true")
                     element.setAttribute("aria-expanded", "false")
                 }
+                if (value.className)
+                    element.className += " " + value.className
             }
+            element.value = value
+            element.setAttribute("role", "menuitem")
 
-            if (typeof value == "function") {
+            if (typeof value === "function") {
                 element.dataset["value"] = name
                 element.onclick_callback = value
             } else {
                 element.dataset["value"] = String(value)
             }
-
-            if (value.className)
-                element.className += " " + value.className
         }
 
         this.root.appendChild(element)
         if (!disabled) element.addEventListener("click", inner_onclick)
-        if (!disabled && options.autoopen) 
+        if (!disabled && options.autoopen)
             LiteGraph.pointerListenerAdd(element, "enter", inner_over)
 
         function setAriaExpanded() {
@@ -277,7 +278,7 @@ export class ContextMenu {
             }
 
             //special cases
-            if (value) {
+            if (typeof value === "object") {
                 if (value.callback &&
                     !options.ignore_item_callbacks &&
                     value.disabled !== true) {
