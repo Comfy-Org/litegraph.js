@@ -7,7 +7,7 @@ import type { ContextMenu } from "./ContextMenu"
 import type { CurveEditor } from "./CurveEditor"
 import { LiteGraph } from "./litegraph"
 import { LGraphNode } from "./LGraphNode"
-import { drawSlot, SlotShape, SlotDirection, SlotType, LabelPosition } from "./draw"
+import { SlotShape, SlotDirection, SlotType, LabelPosition } from "./draw"
 import type { Dictionary, ISlotType, Rect } from "./interfaces"
 import { distance, isInsideRectangle, overlapBounding } from "./measure"
 
