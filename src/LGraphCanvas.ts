@@ -7290,8 +7290,6 @@ export class LGraphCanvas {
                 if (value)
                     elem.classList.add("bool-on")
                 elem.addEventListener("click", function () {
-                    //var v = node.properties[this.dataset["property"]]; 
-                    //node.setProperty(this.dataset["property"],!v); this.innerText = v ? "true" : "false"; 
                     const propname = this.dataset["property"]
                     this.value = !this.value
                     this.classList.toggle("bool-on")
@@ -7361,103 +7359,6 @@ export class LGraphCanvas {
         document.querySelector("#node-panel")?.close()
         // @ts-expect-error
         document.querySelector("#option-panel")?.close()
-    }
-    showShowGraphOptionsPanel(refOpts, obEv) {
-        let graphcanvas
-        if (this.constructor && this.constructor.name == "HTMLDivElement") {
-            // assume coming from the menu event click
-            if (!obEv || !obEv.event || !obEv.event.target || !obEv.event.target.lgraphcanvas) {
-                console.warn("Canvas not found") // need a ref to canvas obj
-
-                /*console.debug(event);
-                console.debug(event.target);*/
-                return
-            }
-            graphcanvas = obEv.event.target.lgraphcanvas
-        } else {
-            // assume called internally
-            graphcanvas = this
-        }
-        graphcanvas.closePanels()
-        const ref_window = graphcanvas.getCanvasWindow()
-        // @ts-expect-error
-        panel = graphcanvas.createPanel("Options", {
-            closable: true,
-            window: ref_window,
-            onOpen: function () {
-                graphcanvas.OPTIONPANEL_IS_OPEN = true
-            },
-            onClose: function () {
-                graphcanvas.OPTIONPANEL_IS_OPEN = false
-                graphcanvas.options_panel = null
-            }
-        })
-        // @ts-expect-error
-        graphcanvas.options_panel = panel
-        // @ts-expect-error
-        panel.id = "option-panel"
-        // @ts-expect-error
-        panel.classList.add("settings")
-
-        function inner_refresh() {
-
-            // @ts-expect-error
-            panel.content.innerHTML = "" //clear
-
-            const fUpdate = function (name, value, options) {
-                switch (name) {
-                    /*case "Render mode":
-                        // Case ""..
-                        if (options.values && options.key){
-                            var kV = Object.values(options.values).indexOf(value);
-                            if (kV>=0 && options.values[kV]){
-                                console.debug("update graph options: "+options.key+": "+kV);
-                                graphcanvas[options.key] = kV;
-                                //console.debug(graphcanvas);
-                                break;
-                            }
-                        }
-                        console.warn("unexpected options");
-                        console.debug(options);
-                        break;*/
-                    default:
-                        //console.debug("want to update graph options: "+name+": "+value);
-                        if (options?.key) {
-                            name = options.key
-                        }
-                        if (options.values) {
-                            value = Object.values(options.values).indexOf(value)
-                        }
-                        //console.debug("update graph option: "+name+": "+value);
-                        graphcanvas[name] = value
-                        break
-                }
-            }
-
-            // panel.addWidget( "string", "Graph name", "", {}, fUpdate); // implement
-            // @ts-expect-error Doesn't exist.  Check for downstream consumers then remove.
-            const aProps = LiteGraph.availableCanvasOptions
-            aProps.sort()
-            for (const pI in aProps) {
-                const pX = aProps[pI]
-                // @ts-expect-error
-                panel.addWidget("boolean", pX, graphcanvas[pX], { key: pX, on: "True", off: "False" }, fUpdate)
-            }
-
-            // @ts-expect-error
-            panel.addWidget("combo", "Render mode", LiteGraph.LINK_RENDER_MODES[graphcanvas.links_render_mode], { key: "links_render_mode", values: LiteGraph.LINK_RENDER_MODES }, fUpdate)
-
-            // @ts-expect-error
-            panel.addSeparator()
-
-            // @ts-expect-error
-            panel.footer.innerHTML = "" // clear
-
-        }
-        inner_refresh()
-        // @ts-expect-error
-
-        graphcanvas.canvas.parentNode.appendChild(panel)
     }
     showShowNodePanel(node: LGraphNode): void {
         this.SELECTED_NODE = node
@@ -7558,21 +7459,10 @@ export class LGraphCanvas {
             panel.classList.remove("settings")
             panel.classList.add("centered")
 
-            /*if(window.CodeFlask) //disabled for now
-            {
-                panel.content.innerHTML = "<div class='code'></div>";
-                var flask = new CodeFlask( "div.code", { language: 'js' });
-                flask.updateCode(node.properties[propname]);
-                flask.onUpdate( function(code) {
-                    node.setProperty(propname, code);
-                });
-            }
-            else
-            {*/
             panel.alt_content.innerHTML = "<textarea class='code'></textarea>"
             const textarea = panel.alt_content.querySelector("textarea")
             const fDoneWith = function () {
-                panel.toggleAltContent(false) //if(node_prop_div) node_prop_div.style.display = "block"; // panel.close();
+                panel.toggleAltContent(false)
                 panel.toggleFooterVisibility(true)
                 textarea.parentNode.removeChild(textarea)
                 panel.classList.add("settings")
@@ -7589,15 +7479,15 @@ export class LGraphCanvas {
             panel.toggleAltContent(true)
             panel.toggleFooterVisibility(false)
             textarea.style.height = "calc(100% - 40px)"
-            /*}*/
+
             const assign = panel.addButton("Assign", function () {
                 node.setProperty(propname, textarea.value)
                 fDoneWith()
             })
-            panel.alt_content.appendChild(assign) //panel.content.appendChild(assign);
+            panel.alt_content.appendChild(assign)
             const button = panel.addButton("Close", fDoneWith)
             button.style.float = "right"
-            panel.alt_content.appendChild(button) // panel.content.appendChild(button);
+            panel.alt_content.appendChild(button)
         }
 
         inner_refresh()
@@ -7746,9 +7636,6 @@ export class LGraphCanvas {
                 //{ content: "Arrange", callback: that.graph.arrange },
                 //{content:"Collapse All", callback: LGraphCanvas.onMenuCollapseAll }
             ]
-            /*if (LiteGraph.showCanvasOptions){
-                options.push({ content: "Options", callback: that.showShowGraphOptionsPanel });
-            }*/
             if (Object.keys(this.selected_nodes).length > 1) {
                 options.push({
                     content: "Align",
