@@ -144,10 +144,8 @@ export class LiteGraphGlobal {
     registered_slot_out_types = {} // slot types for nodeclass
     slot_types_in = [] // slot types IN
     slot_types_out = [] // slot types OUT
-    // @ts-expect-error
-    slot_types_default_in: Record<string, string[]> = [] // specify for each IN slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
-    // @ts-expect-error
-    slot_types_default_out: Record<string, string[]> = [] // specify for each OUT slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
+    slot_types_default_in: Record<string, string[]> = {} // specify for each IN slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
+    slot_types_default_out: Record<string, string[]> = {} // specify for each OUT slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
 
     alt_drag_do_clone_nodes = false // [true!] very handy, ALT click to clone and drag the new node
 
