@@ -293,9 +293,9 @@ export class LiteGraphGlobal {
         if (!base_class) throw "node type not found: " + type
 
         delete this.registered_node_types[base_class.type]
-        if (base_class.constructor.name) {
-            delete this.Nodes[base_class.constructor.name]
-        }
+
+        const name = base_class.constructor.name
+        if (name) delete this.Nodes[name]
     }
 
     /**
@@ -335,16 +335,12 @@ export class LiteGraphGlobal {
                 this[registerTo][slotType].nodes.push(class_type)
 
             // check if is a new type
-            if (!out) {
-                if (!this.slot_types_in.includes(slotType.toLowerCase())) {
-                    this.slot_types_in.push(slotType.toLowerCase())
-                    this.slot_types_in.sort()
-                }
-            } else {
-                if (!this.slot_types_out.includes(slotType.toLowerCase())) {
-                    this.slot_types_out.push(slotType.toLowerCase())
-                    this.slot_types_out.sort()
-                }
+            const types = out
+                ? this.slot_types_out
+                : this.slot_types_in
+            if (!types.includes(slotType.toLowerCase())) {
+                types.push(slotType.toLowerCase())
+                types.sort()
             }
         }
     }
