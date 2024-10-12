@@ -13,9 +13,6 @@ import { distance, isInsideRectangle, overlapBounding } from "./measure"
 
 /**
  * The Global Scope. It contains all the registered node classes.
- *
- * @class LiteGraph
- * @constructor
  */
 export class LiteGraphGlobal {
     // Enums
@@ -195,7 +192,6 @@ export class LiteGraphGlobal {
 
     /**
      * Register a node class so it can be listed when the user wants to create a new one
-     * @method registerNodeType
      * @param {String} type name of the node and path
      * @param {Class} base_class class containing the structure of a node
      */
@@ -301,7 +297,6 @@ export class LiteGraphGlobal {
 
     /**
      * removes a node type from the system
-     * @method unregisterNodeType
      * @param {String|Object} type name of the node or the node constructor itself
      */
     unregisterNodeType(type: string | typeof LGraphNode): void {
@@ -319,7 +314,6 @@ export class LiteGraphGlobal {
 
     /**
      * Save a slot type and his node
-     * @method registerSlotType
      * @param {String|Object} type name of the node or the node constructor itself
      * @param {String} slot_type name of the slot type (variable type), eg. string, number, array, boolean, ..
      */
@@ -375,7 +369,6 @@ export class LiteGraphGlobal {
     /**
      * Create a new nodetype by passing a function, it wraps it with a proper class and generates inputs according to the parameters of the function.
      * Useful to wrap simple methods that do not require properties, and that only process some input to generate an output.
-     * @method wrapFunctionAsNode
      * @param {String} name node name with namespace (p.e.: 'math/sum')
      * @param {Function} func
      * @param {Array} param_types [optional] an array containing the type of every parameter, otherwise parameters will accept any type
@@ -439,7 +432,6 @@ export class LiteGraphGlobal {
     /**
      * Adds this method to all nodetypes, existing and to be created
      * (You can add it to LGraphNode.prototype but then existing node types wont have it)
-     * @method addNodeMethod
      * @param {Function} func
      */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -456,7 +448,6 @@ export class LiteGraphGlobal {
 
     /**
      * Create a node of a given type with a name. The node is not attached to any graph yet.
-     * @method createNode
      * @param {String} type full name of the node class. p.e. "math/sin"
      * @param {String} name a name to distinguish from other nodes
      * @param {Object} options to set options
@@ -531,7 +522,6 @@ export class LiteGraphGlobal {
 
     /**
      * Returns a registered node type with a given name
-     * @method getNodeType
      * @param {String} type full name of the node class. p.e. "math/sin"
      * @return {Class} the node class
      */
@@ -541,7 +531,6 @@ export class LiteGraphGlobal {
 
     /**
      * Returns a list of node types matching one category
-     * @method getNodeType
      * @param {String} category category name
      * @return {Array} array with all the node classes
      */
@@ -571,7 +560,6 @@ export class LiteGraphGlobal {
 
     /**
      * Returns a list with all the node type categories
-     * @method getNodeTypesCategories
      * @param {String} filter only nodes with ctor.filter equal can be shown
      * @return {Array} array with all the names of the categories
      */
@@ -661,7 +649,6 @@ export class LiteGraphGlobal {
 
     /**
      * Returns if the types of two slots are compatible (taking into account wildcards, etc)
-     * @method isValidConnection
      * @param {String} type_a
      * @param {String} type_b
      * @return {Boolean} true if they can be connected
@@ -704,7 +691,6 @@ export class LiteGraphGlobal {
 
     /**
      * Register a string in the search box so when the user types it it will recommend this node
-     * @method registerSearchboxExtra
      * @param {String} node_type the node recommended
      * @param {String} description text to show next to it
      * @param {Object} data it could contain info of how the node should be configured
@@ -720,7 +706,6 @@ export class LiteGraphGlobal {
 
     /**
      * Wrapper to load files (from url using fetch or from file using FileReader)
-     * @method fetchFile
      * @param {String|File|Blob} url the url of the file (or the file itself)
      * @param {String} type an string to know how to fetch it: "text","arraybuffer","json","blob"
      * @param {Function} on_complete callback(data)
