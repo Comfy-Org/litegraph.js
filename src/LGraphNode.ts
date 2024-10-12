@@ -124,7 +124,7 @@ export class LGraphNode {
     color: string
     bgcolor: string
     boxcolor: string
-    shape?: Rect
+    shape?: RenderShape
     exec_version: number
     action_call?: string
     execute_triggered: number
