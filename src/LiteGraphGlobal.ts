@@ -204,7 +204,7 @@ export class LiteGraphGlobal {
         }
         base_class.type = type
 
-        if (LiteGraph.debug) {
+        if (this.debug) {
             console.log("Node registered: " + type)
         }
 
@@ -230,28 +230,28 @@ export class LiteGraphGlobal {
         }
         if (!Object.prototype.hasOwnProperty.call(base_class.prototype, "shape")) {
             Object.defineProperty(base_class.prototype, "shape", {
-                set: function (v) {
+                set(this: LGraphNode, v: RenderShape | "default" | "box" | "round" | "circle" | "card") {
                     switch (v) {
                         case "default":
                             delete this._shape
                             break
                         case "box":
-                            this._shape = LiteGraph.BOX_SHAPE
+                            this._shape = RenderShape.BOX
                             break
                         case "round":
-                            this._shape = LiteGraph.ROUND_SHAPE
+                            this._shape = RenderShape.ROUND
                             break
                         case "circle":
-                            this._shape = LiteGraph.CIRCLE_SHAPE
+                            this._shape = RenderShape.CIRCLE
                             break
                         case "card":
-                            this._shape = LiteGraph.CARD_SHAPE
+                            this._shape = RenderShape.CARD
                             break
                         default:
                             this._shape = v
                     }
                 },
-                get: function () {
+                get() {
                     return this._shape
                 },
                 enumerable: true,
