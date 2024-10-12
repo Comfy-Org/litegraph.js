@@ -272,7 +272,7 @@ export class LiteGraphGlobal {
             if (base_class.supported_extensions) {
                 for (let i in base_class.supported_extensions) {
                     const ext = base_class.supported_extensions[i]
-                    if (ext && ext.constructor === String) {
+                    if (ext && typeof ext === "string") {
                         this.node_types_by_file_extension[ext.toLowerCase()] = base_class
                     }
                 }
@@ -314,7 +314,7 @@ export class LiteGraphGlobal {
      * @param {String|Object} type name of the node or the node constructor itself
      */
     unregisterNodeType(type: string | typeof LGraphNode): void {
-        const base_class = type.constructor === String
+        const base_class = typeof type === "string"
             ? this.registered_node_types[type]
             : type
         if (!base_class) {
@@ -334,10 +334,7 @@ export class LiteGraphGlobal {
     */
     registerNodeAndSlotType(type: ISlotType | LGraphNode, slot_type: ISlotType, out?: boolean): void {
         out = out || false
-        const base_class = type.constructor === String &&
-            // @ts-ignore
-            this.registered_node_types[type] !== "anonymous"
-            // @ts-ignore
+        const base_class = typeof type === "string" && this.registered_node_types[type] !== "anonymous"
             ? this.registered_node_types[type]
             : type
 
@@ -744,7 +741,7 @@ export class LiteGraphGlobal {
             return null
 
         type = type || "text"
-        if (url.constructor === String) {
+        if (typeof url === "string") {
             if (url.substr(0, 4) == "http" && this.proxy) {
                 url = this.proxy + url.substr(url.indexOf(":") + 3)
             }
@@ -771,7 +768,7 @@ export class LiteGraphGlobal {
                         on_error(error)
                 })
         }
-        else if (url.constructor === File || url.constructor === Blob) {
+        else if (url instanceof File || url instanceof Blob) {
             var reader = new FileReader()
             reader.onload = function (e) {
                 var v = e.target.result
