@@ -180,9 +180,7 @@ export class DragAndScale {
         this.offset[0] += x / this.scale
         this.offset[1] += y / this.scale
 
-        if (this.onredraw) {
-            this.onredraw(this)
-        }
+        this.onredraw?.(this)
     }
 
     changeScale(value: number, zooming_center?: Point): void {
@@ -215,9 +213,7 @@ export class DragAndScale {
         this.offset[0] += delta_offset[0]
         this.offset[1] += delta_offset[1]
 
-        if (this.onredraw) {
-            this.onredraw(this)
-        }
+        this.onredraw?.(this)
     }
 
     changeDeltaScale(value: number, zooming_center?: Point): void {
