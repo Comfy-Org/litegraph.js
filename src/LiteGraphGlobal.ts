@@ -178,6 +178,14 @@ export class LiteGraphGlobal {
     onNodeTypeRegistered?(type: string, base_class: typeof LGraphNode): void
     onNodeTypeReplaced?(type: string, base_class: typeof LGraphNode, prev: unknown): void
 
+    static {
+        LGraphCanvas.link_type_colors = {
+            "-1": LiteGraphGlobal.DEFAULT_EVENT_LINK_COLOR,
+            number: "#AAA",
+            node: "#DCA"
+        }
+    }
+
     constructor() {
         //timer that works everywhere
         if (typeof performance != "undefined") {
