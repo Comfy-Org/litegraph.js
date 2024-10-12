@@ -583,7 +583,7 @@ export class LiteGraphGlobal {
      */
     getNodeTypesCategories(filter: string): string[] {
         const categories = { "": 1 }
-        for (var i in this.registered_node_types) {
+        for (const i in this.registered_node_types) {
             const type = this.registered_node_types[i]
             if (type.category && !type.skip_list) {
                 if (type.filter != filter)
@@ -592,7 +592,7 @@ export class LiteGraphGlobal {
             }
         }
         const result = []
-        for (var i in categories) {
+        for (const i in categories) {
             result.push(i)
         }
         return this.auto_sort_node_types ? result.sort() : result
@@ -603,14 +603,14 @@ export class LiteGraphGlobal {
         const tmp = document.getElementsByTagName("script")
         //weird, this array changes by its own, so we use a copy
         const script_files = []
-        for (var i = 0; i < tmp.length; i++) {
+        for (let i = 0; i < tmp.length; i++) {
             script_files.push(tmp[i])
         }
 
         const docHeadObj = document.getElementsByTagName("head")[0]
         folder_wildcard = document.location.href + folder_wildcard
 
-        for (var i = 0; i < script_files.length; i++) {
+        for (let i = 0; i < script_files.length; i++) {
             const src = script_files[i].src
             if (!src ||
                 src.substr(0, folder_wildcard.length) != folder_wildcard) {
@@ -1000,11 +1000,11 @@ export class LiteGraphGlobal {
         }
 
         const result = []
-        for (var i = 0; i < elements.length; i++) {
+        for (let i = 0; i < elements.length; i++) {
             result.push(elements[i])
         }
 
-        for (var i = 0; i < result.length; i++) {
+        for (let i = 0; i < result.length; i++) {
             if (result[i].close) {
                 result[i].close()
             } else if (result[i].parentNode) {
@@ -1014,7 +1014,7 @@ export class LiteGraphGlobal {
     }
 
     extendClass(target: any, origin: any): void {
-        for (var i in origin) {
+        for (const i in origin) {
             //copy class properties
             if (target.hasOwnProperty(i)) {
                 continue
@@ -1024,7 +1024,7 @@ export class LiteGraphGlobal {
 
         if (origin.prototype) {
             //copy prototype properties
-            for (var i in origin.prototype) {
+            for (const i in origin.prototype) {
                 //only enumerable
                 if (!origin.prototype.hasOwnProperty(i)) {
                     continue
