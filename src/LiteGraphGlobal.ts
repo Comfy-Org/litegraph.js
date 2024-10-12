@@ -189,7 +189,7 @@ export class LiteGraphGlobal {
             this.getTime = Date.now.bind(Date)
         } else if (typeof process != "undefined") {
             this.getTime = function () {
-                var t = process.hrtime()
+                const t = process.hrtime()
                 return t[0] * 0.001 + t[1] * 1e-6
             }
         } else {
@@ -225,7 +225,7 @@ export class LiteGraphGlobal {
         }
 
         //extend class
-        for (var i in LGraphNode.prototype) {
+        for (const i in LGraphNode.prototype) {
             if (!base_class.prototype[i]) {
                 base_class.prototype[i] = LGraphNode.prototype[i]
             }
@@ -268,7 +268,7 @@ export class LiteGraphGlobal {
 
             //used to know which nodes to create when dragging files to the canvas
             if (base_class.supported_extensions) {
-                for (let i in base_class.supported_extensions) {
+                for (const i in base_class.supported_extensions) {
                     const ext = base_class.supported_extensions[i]
                     if (ext && typeof ext === "string") {
                         this.node_types_by_file_extension[ext.toLowerCase()] = base_class
@@ -395,10 +395,10 @@ export class LiteGraphGlobal {
         return_type: string,
         properties: unknown
     ) {
-        var params = Array(func.length)
-        var code = ""
-        var names = this.getParameterNames(func)
-        for (var i = 0; i < names.length; ++i) {
+        const params = Array(func.length)
+        let code = ""
+        const names = this.getParameterNames(func)
+        for (let i = 0; i < names.length; ++i) {
             code +=
                 "this.addInput('" +
                 names[i] +
@@ -416,16 +416,16 @@ export class LiteGraphGlobal {
             code +=
                 "this.properties = " + JSON.stringify(properties) + ";\n"
         }
-        var classobj = Function(code)
+        const classobj = Function(code)
         // @ts-ignore
         classobj.title = name.split("/").pop()
         // @ts-ignore
         classobj.desc = "Generated from " + func.name
         classobj.prototype.onExecute = function onExecute() {
-            for (var i = 0; i < params.length; ++i) {
+            for (let i = 0; i < params.length; ++i) {
                 params[i] = this.getInputData(i)
             }
-            var r = func.apply(this, params)
+            const r = func.apply(this, params)
             this.setOutputData(0, r)
         }
         // @ts-expect-error Required to make this kludge work
@@ -451,8 +451,8 @@ export class LiteGraphGlobal {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     addNodeMethod(name: string, func: Function): void {
         LGraphNode.prototype[name] = func
-        for (var i in this.registered_node_types) {
-            var type = this.registered_node_types[i]
+        for (const i in this.registered_node_types) {
+            const type = this.registered_node_types[i]
             if (type.prototype[name]) {
                 type.prototype["_" + name] = type.prototype[name]
             } //keep old in case of replacing
@@ -468,7 +468,7 @@ export class LiteGraphGlobal {
      * @param {Object} options to set options
      */
     createNode(type: string, title?: string, options?: Dictionary<unknown>): LGraphNode {
-        var base_class = this.registered_node_types[type]
+        const base_class = this.registered_node_types[type]
         if (!base_class) {
             if (this.debug) {
                 console.log(
@@ -478,11 +478,11 @@ export class LiteGraphGlobal {
             return null
         }
 
-        var prototype = base_class.prototype || base_class
+        const prototype = base_class.prototype || base_class
 
         title = title || base_class.title || type
 
-        var node = null
+        let node = null
 
         if (this.catch_exceptions) {
             try {
@@ -522,7 +522,7 @@ export class LiteGraphGlobal {
 
         //extra options
         if (options) {
-            for (var i in options) {
+            for (const i in options) {
                 node[i] = options[i]
             }
         }
@@ -552,9 +552,9 @@ export class LiteGraphGlobal {
      * @return {Array} array with all the node classes
      */
     getNodeTypesInCategory(category: string, filter: any) {
-        var r = []
-        for (var i in this.registered_node_types) {
-            var type = this.registered_node_types[i]
+        const r = []
+        for (const i in this.registered_node_types) {
+            const type = this.registered_node_types[i]
             if (type.filter != filter) {
                 continue
             }
@@ -582,16 +582,16 @@ export class LiteGraphGlobal {
      * @return {Array} array with all the names of the categories
      */
     getNodeTypesCategories(filter: string): string[] {
-        var categories = { "": 1 }
+        const categories = { "": 1 }
         for (var i in this.registered_node_types) {
-            var type = this.registered_node_types[i]
+            const type = this.registered_node_types[i]
             if (type.category && !type.skip_list) {
                 if (type.filter != filter)
                     continue
                 categories[type.category] = 1
             }
         }
-        var result = []
+        const result = []
         for (var i in categories) {
             result.push(i)
         }
@@ -600,18 +600,18 @@ export class LiteGraphGlobal {
 
     //debug purposes: reloads all the js scripts that matches a wildcard
     reloadNodes(folder_wildcard: string): void {
-        var tmp = document.getElementsByTagName("script")
+        const tmp = document.getElementsByTagName("script")
         //weird, this array changes by its own, so we use a copy
-        var script_files = []
+        const script_files = []
         for (var i = 0; i < tmp.length; i++) {
             script_files.push(tmp[i])
         }
 
-        var docHeadObj = document.getElementsByTagName("head")[0]
+        const docHeadObj = document.getElementsByTagName("head")[0]
         folder_wildcard = document.location.href + folder_wildcard
 
         for (var i = 0; i < script_files.length; i++) {
-            var src = script_files[i].src
+            const src = script_files[i].src
             if (!src ||
                 src.substr(0, folder_wildcard.length) != folder_wildcard) {
                 continue
@@ -621,7 +621,7 @@ export class LiteGraphGlobal {
                 if (this.debug) {
                     console.log("Reloading: " + src)
                 }
-                var dynamicScript = document.createElement("script")
+                const dynamicScript = document.createElement("script")
                 dynamicScript.type = "text/javascript"
                 dynamicScript.src = src
                 docHeadObj.appendChild(dynamicScript)
@@ -646,12 +646,12 @@ export class LiteGraphGlobal {
         if (obj == null) {
             return null
         }
-        var r = JSON.parse(JSON.stringify(obj))
+        const r = JSON.parse(JSON.stringify(obj))
         if (!target) {
             return r
         }
 
-        for (var i in r) {
+        for (const i in r) {
             target[i] = r[i]
         }
         return target
@@ -694,10 +694,10 @@ export class LiteGraphGlobal {
         }
 
         // Check all permutations to see if one is valid
-        var supported_types_a = type_a.split(",")
-        var supported_types_b = type_b.split(",")
-        for (var i = 0; i < supported_types_a.length; ++i) {
-            for (var j = 0; j < supported_types_b.length; ++j) {
+        const supported_types_a = type_a.split(",")
+        const supported_types_b = type_b.split(",")
+        for (let i = 0; i < supported_types_a.length; ++i) {
+            for (let j = 0; j < supported_types_b.length; ++j) {
                 if (this.isValidConnection(supported_types_a[i], supported_types_b[j])) {
                     //if (supported_types_a[i] == supported_types_b[j]) {
                     return true
@@ -734,7 +734,7 @@ export class LiteGraphGlobal {
      * @return {FileReader|Promise} returns the object used to
      */
     fetchFile(url: string | URL | Request | Blob, type: string, on_complete: (data: string | ArrayBuffer) => void, on_error: (error: unknown) => void): void | Promise<void> {
-        var that = this
+        const that = this
         if (!url)
             return null
 
@@ -767,9 +767,9 @@ export class LiteGraphGlobal {
                 })
         }
         else if (url instanceof File || url instanceof Blob) {
-            var reader = new FileReader()
+            const reader = new FileReader()
             reader.onload = function (e) {
-                var v = e.target.result
+                let v = e.target.result
                 if (type == "json")
                     // @ts-ignore
                     v = JSON.parse(v)
@@ -807,8 +807,8 @@ export class LiteGraphGlobal {
             return // -- break --
         }
 
-        var sMethod = LiteGraph.pointerevents_method
-        var sEvent = sEvIn
+        let sMethod = LiteGraph.pointerevents_method
+        let sEvent = sEvIn
 
         // UNDER CONSTRUCTION
         // convert pointerevents to touch event when not available
@@ -898,7 +898,7 @@ export class LiteGraphGlobal {
     getTime: () => number
 
     compareObjects(a: object, b: object): boolean {
-        for (var i in a) {
+        for (const i in a) {
             if (a[i] != b[i]) {
                 return false
             }
@@ -963,11 +963,11 @@ export class LiteGraphGlobal {
             hex = hex.slice(1)
         } //Remove the '#' char - if there is one.
         hex = hex.toUpperCase()
-        var hex_alphabets = "0123456789ABCDEF"
-        var value = new Array(3)
-        var k = 0
-        var int1, int2
-        for (var i = 0; i < 6; i += 2) {
+        const hex_alphabets = "0123456789ABCDEF"
+        const value = new Array(3)
+        let k = 0
+        let int1, int2
+        for (let i = 0; i < 6; i += 2) {
             int1 = hex_alphabets.indexOf(hex.charAt(i))
             int2 = hex_alphabets.indexOf(hex.charAt(i + 1))
             value[k] = int1 * 16 + int2
@@ -979,10 +979,10 @@ export class LiteGraphGlobal {
     //Give a array with three values as the argument and the function will return
     //	the corresponding hex triplet.
     num2hex(triplet: number[]): string {
-        var hex_alphabets = "0123456789ABCDEF"
-        var hex = "#"
-        var int1, int2
-        for (var i = 0; i < 3; i++) {
+        const hex_alphabets = "0123456789ABCDEF"
+        let hex = "#"
+        let int1, int2
+        for (let i = 0; i < 3; i++) {
             int1 = triplet[i] / 16
             int2 = triplet[i] % 16
 
@@ -994,12 +994,12 @@ export class LiteGraphGlobal {
     closeAllContextMenus(ref_window: Window): void {
         ref_window = ref_window || window
 
-        var elements = ref_window.document.querySelectorAll(".litecontextmenu")
+        const elements = ref_window.document.querySelectorAll(".litecontextmenu")
         if (!elements.length) {
             return
         }
 
-        var result = []
+        const result = []
         for (var i = 0; i < elements.length; i++) {
             result.push(elements[i])
         }
