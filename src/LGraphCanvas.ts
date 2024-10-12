@@ -4159,16 +4159,6 @@ export class LGraphCanvas {
             }
 
             this.onDrawBackground?.(ctx, this.visible_area)
-            // TODO: Just delete this...
-            // @ts-expect-error
-            if (this.onBackgroundRender) {
-                //LEGACY
-                console.error(
-                    "WARNING! onBackgroundRender deprecated, now is named onDrawBackground "
-                )
-                // @ts-expect-error
-                this.onBackgroundRender = null
-            }
 
             //DEBUG: show clipping area
             //ctx.fillStyle = "red";
