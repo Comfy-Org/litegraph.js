@@ -1793,15 +1793,17 @@ export class LGraphCanvas {
 
             // clone node ALT dragging
             if (LiteGraph.alt_drag_do_clone_nodes && e.altKey && !e.ctrlKey && node && this.allow_interaction && !skip_action && !this.read_only) {
-                const cloned = node.clone()
+                const node_data = node.clone()?.serialize()
+                const cloned = LiteGraph.createNode(node_data.type)
                 if (cloned) {
+                    cloned.configure(node_data)
                     cloned.pos[0] += 5
                     cloned.pos[1] += 5
+
                     // @ts-expect-error Not impl. - harmless
                     this.graph.add(cloned, false, { doCalcSize: false })
                     node = cloned
                     skip_action = true
-
                     if (this.allow_dragnodes) {
                         this.graph.beforeChange()
                         this.node_dragged = node
