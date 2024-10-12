@@ -1,7 +1,7 @@
 import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalInputsData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { LGraphNode, NodeId } from "./LGraphNode"
-import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent } from "./types/events"
+import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail } from "./types/events"
 import type { LinkDirection, RenderShape, TitleMode } from "./types/globalEnums"
 import type { IClipboardContents } from "./types/serialisation"
 import type { LLink } from "./LLink"
@@ -11,7 +11,7 @@ import type { ContextMenu } from "./ContextMenu"
 import { isInsideRectangle, distance, overlapBounding, isPointInRectangle } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
-import { LiteGraph, clamp } from "./litegraph"
+import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrNull } from "./strings"
 import { distributeNodes } from "./utils/arrange"
 
@@ -2115,17 +2115,11 @@ export class LGraphCanvas {
                         }
 
                         if (is_double_click) {
-                            this.canvas.dispatchEvent(new CustomEvent(
-                                "litegraph:canvas",
-                                {
-                                    bubbles: true,
-                                    detail: {
-                                        subType: "group-double-click",
-                                        originalEvent: e,
-                                        group: this.selected_group,
-                                    }
-                                }
-                            ))
+                            this.emitEvent({
+                                subType: "group-double-click",
+                                originalEvent: e,
+                                group: this.selected_group,
+                            })
                         }
                     } else if (is_double_click && !this.read_only) {
                         // Double click within group should not trigger the searchbox.
@@ -2134,16 +2128,10 @@ export class LGraphCanvas {
                             e.preventDefault()
                             e.stopPropagation()
                         }
-                        this.canvas.dispatchEvent(new CustomEvent(
-                            "litegraph:canvas",
-                            {
-                                bubbles: true,
-                                detail: {
-                                    subType: "empty-double-click",
-                                    originalEvent: e,
-                                }
-                            }
-                        ))
+                        this.emitEvent({
+                            subType: "empty-double-click",
+                            originalEvent: e,
+                        })
                     }
 
                     clicking_canvas_bg = true
@@ -2716,19 +2704,14 @@ export class LGraphCanvas {
                         type_filter_out: firstLink.input.type
                     }
                     // For external event only.
-                    const linkReleaseContextExtended = {
+                    const linkReleaseContextExtended: LinkReleaseContextExtended = {
                         links: this.connecting_links,
                     }
-                    this.canvas.dispatchEvent(new CustomEvent(
-                        "litegraph:canvas", {
-                        bubbles: true,
-                        detail: {
-                            subType: "empty-release",
-                            originalEvent: e,
-                            linkReleaseContext: linkReleaseContextExtended,
-                        },
-                    }
-                    ))
+                    this.emitEvent({
+                        subType: "empty-release",
+                        originalEvent: e,
+                        linkReleaseContext: linkReleaseContextExtended,
+                    })
                     // add menu when releasing link in empty space
                     if (LiteGraph.release_link_on_empty_shows_menu) {
                         if (e.shiftKey) {
@@ -3084,7 +3067,7 @@ export class LGraphCanvas {
         )
     }
 
-    emitEvent(detail) {
+    emitEvent(detail: CanvasEventDetail): void {
         this.canvas.dispatchEvent(new CustomEvent(
             "litegraph:canvas",
             {
@@ -3094,13 +3077,13 @@ export class LGraphCanvas {
         ))
     }
 
-    emitBeforeChange() {
+    emitBeforeChange(): void {
         this.emitEvent({
             subType: "before-change",
         })
     }
 
-    emitAfterChange() {
+    emitAfterChange(): void {
         this.emitEvent({
             subType: "after-change",
         })

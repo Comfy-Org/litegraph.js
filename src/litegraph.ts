@@ -3,6 +3,7 @@ import type { INodeSlot, INodeInputSlot, INodeOutputSlot, CanvasColour, Directio
 import type { SlotShape, LabelPosition, SlotDirection, SlotType } from "./draw"
 import type { IWidget } from "./types/widgets"
 import type { TitleMode } from "./types/globalEnums"
+import type { CanvasEventDetail } from "./types/events"
 import { LiteGraphGlobal } from "./LiteGraphGlobal"
 import { loadPolyfills } from "./polyfills"
 
@@ -71,14 +72,10 @@ export interface LinkReleaseContextExtended {
     links: ConnectingLink[]
 }
 
+/** @deprecated Confirm no downstream consumers, then remove. */
 export type LiteGraphCanvasEventType = "empty-release" | "empty-double-click" | "group-double-click"
 
-export interface LiteGraphCanvasEvent extends CustomEvent<{
-    subType: string
-    originalEvent: Event
-    linkReleaseContext?: LinkReleaseContextExtended
-    group?: LGraphGroup
-}> { }
+export interface LiteGraphCanvasEvent extends CustomEvent<CanvasEventDetail> { }
 
 export interface LiteGraphCanvasGroupEvent extends CustomEvent<{
     subType: "group-double-click"
