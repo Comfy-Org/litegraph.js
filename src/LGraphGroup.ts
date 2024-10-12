@@ -17,7 +17,6 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
 }
 
 export class LGraphGroup {
-    pos: Point
     color: string
     title: string
     font?: string
@@ -28,7 +27,6 @@ export class LGraphGroup {
     _nodes: LGraphNode[]
     graph?: LGraph
     flags: IGraphGroupFlags
-    size?: Size
 
     constructor(title?: string) {
         this._ctor(title)
@@ -46,32 +44,28 @@ export class LGraphGroup {
         this._nodes = []
         this.graph = null
         this.flags = {}
+    }
 
-        Object.defineProperty(this, "pos", {
-            set(this: LGraphGroup, v: Point) {
-                if (!v || v.length < 2) return
+    /** Position of the group, as x,y co-ordinates in graph space */
+    get pos() {
+        return this._pos
+    }
+    set pos(v) {
+        if (!v || v.length < 2) return
 
-                this._pos[0] = v[0]
-                this._pos[1] = v[1]
-            },
-            get(this: LGraphGroup): Point {
-                return this._pos
-            },
-            enumerable: true
-        })
+        this._pos[0] = v[0]
+        this._pos[1] = v[1]
+    }
 
-        Object.defineProperty(this, "size", {
-            set(this: LGraphGroup, v) {
-                if (!v || v.length < 2) return
+    /** Size of the group, as width,height in graph units */
+    get size() {
+        return this._size
+    }
+    set size(v) {
+        if (!v || v.length < 2) return
 
-                this._size[0] = Math.max(140, v[0])
-                this._size[1] = Math.max(80, v[1])
-            },
-            get(this: LGraphGroup): Size {
-                return this._size
-            },
-            enumerable: true
-        })
+        this._size[0] = Math.max(140, v[0])
+        this._size[1] = Math.max(80, v[1])
     }
 
     get nodes() {
