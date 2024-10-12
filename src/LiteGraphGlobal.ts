@@ -65,7 +65,6 @@ export class LiteGraphGlobal {
     DEFAULT_POSITION = [100, 100] //default node position
     VALID_SHAPES = ["default", "box", "round", "card"] //,"circle"
 
-
     //shapes are used for nodes but also for slots
     BOX_SHAPE = 1
     ROUND_SHAPE = 2
@@ -73,7 +72,6 @@ export class LiteGraphGlobal {
     CARD_SHAPE = 4
     ARROW_SHAPE = 5
     GRID_SHAPE = 6 // intended for slot arrays
-
 
     //enums
     INPUT = 1
@@ -138,7 +136,6 @@ export class LiteGraphGlobal {
 
     auto_load_slot_types = false // [if want false, use true, run, get vars values to be statically set, than disable] nodes types and nodeclass association with node types need to be calculated, if dont want this, calculate once and set registered_slot_[in/out]_types and slot_types_[in/out]
 
-
     // set these values if not using auto_load_slot_types
     registered_slot_in_types: Record<string, { nodes: string[] }> = {} // slot types for nodeclass
     registered_slot_out_types: Record<string, { nodes: string[] }> = {} // slot types for nodeclass
@@ -159,11 +156,8 @@ export class LiteGraphGlobal {
 
     pointerevents_method = "pointer" // "mouse"|"pointer" use mouse for retrocompatibility issues? (none found @ now)
 
-
     // TODO implement pointercancel, gotpointercapture, lostpointercapture, (pointerover, pointerout if necessary)
     ctrl_shift_v_paste_connect_unselected_outputs = true //[true!] allows ctrl + shift + v to paste nodes with the outputs of the unselected nodes connected with the inputs of the newly pasted nodes
-
-
 
     // if true, all newly created nodes/links will use string UUIDs for their id fields instead of integers.
     // use this if you must have node IDs that are unique across all graphs and subgraphs.
@@ -265,7 +259,6 @@ export class LiteGraphGlobal {
                 configurable: true
             })
 
-
             //used to know which nodes to create when dragging files to the canvas
             if (base_class.supported_extensions) {
                 for (const i in base_class.supported_extensions) {
@@ -325,11 +318,11 @@ export class LiteGraphGlobal {
     }
 
     /**
-    * Save a slot type and his node
-    * @method registerSlotType
-    * @param {String|Object} type name of the node or the node constructor itself
-    * @param {String} slot_type name of the slot type (variable type), eg. string, number, array, boolean, ..
-    */
+     * Save a slot type and his node
+     * @method registerSlotType
+     * @param {String|Object} type name of the node or the node constructor itself
+     * @param {String} slot_type name of the slot type (variable type), eg. string, number, array, boolean, ..
+     */
     registerNodeAndSlotType(type: ISlotType | LGraphNode, slot_type: ISlotType, out?: boolean): void {
         out = out || false
         const base_class = typeof type === "string" && this.registered_node_types[type] !== "anonymous"
@@ -658,8 +651,8 @@ export class LiteGraphGlobal {
     }
 
     /*
-        * https://gist.github.com/jed/982883?permalink_comment_id=852670#gistcomment-852670
-        */
+     * https://gist.github.com/jed/982883?permalink_comment_id=852670#gistcomment-852670
+     */
     uuidv4(): string {
         // @ts-ignore
         return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, a => (a ^ Math.random() * 16 >> a / 4).toString(16))
@@ -953,7 +946,6 @@ export class LiteGraphGlobal {
         }
         return true
     }
-
 
     //Convert a hex value to its decimal value - the inputted hex must be in the
     //	format of a hex triplet - the kind we use for HTML colours. The function
