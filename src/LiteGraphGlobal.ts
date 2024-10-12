@@ -112,9 +112,9 @@ export class LiteGraphGlobal {
     catch_exceptions = true
     throw_errors = true
     allow_scripts = false //if set to true some nodes like Formula would be allowed to evaluate code that comes from unsafe sources (like node configuration), which could lead to exploits
-    registered_node_types = {} //nodetypes by string
+    registered_node_types: Record<string, typeof LGraphNode> = {} //nodetypes by string
     node_types_by_file_extension = {} //used for dropping files in the canvas
-    Nodes = {} //node types by classname
+    Nodes: Record<string, typeof LGraphNode> = {} //node types by classname
     Globals = {} //used to store vars between graphs
 
     searchbox_extras = {} //used to add extra features to the search box
@@ -323,12 +323,14 @@ export class LiteGraphGlobal {
      * @param {String|Object} type name of the node or the node constructor itself
      * @param {String} slot_type name of the slot type (variable type), eg. string, number, array, boolean, ..
      */
-    registerNodeAndSlotType(type: ISlotType | LGraphNode, slot_type: ISlotType, out?: boolean): void {
+    registerNodeAndSlotType(type: LGraphNode, slot_type: ISlotType, out?: boolean): void {
         out = out || false
+        // @ts-expect-error Confirm this function no longer supports string types - base_class should always be an instance not a constructor.
         const base_class = typeof type === "string" && this.registered_node_types[type] !== "anonymous"
             ? this.registered_node_types[type]
             : type
 
+        // @ts-expect-error Confirm this function no longer supports string types - base_class should always be an instance not a constructor.
         const class_type = base_class.constructor.type
 
         let allTypes = []
@@ -382,8 +384,7 @@ export class LiteGraphGlobal {
      */
     wrapFunctionAsNode(
         name: string,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-        func: Function,
+        func: (...args: any) => any,
         param_types: string[],
         return_type: string,
         properties: unknown
@@ -780,7 +781,7 @@ export class LiteGraphGlobal {
     }
 
     //used to create nodes from wrapping functions
-    getParameterNames(func: Function): string[] {
+    getParameterNames(func: (...args: any) => any): string[] {
         return (func + "")
             .replace(/[/][/].*$/gm, "") // strip single-line comments
             .replace(/\s+/g, "") // strip white space
