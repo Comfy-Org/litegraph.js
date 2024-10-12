@@ -12,7 +12,7 @@ import { isInsideRectangle, distance, overlapBounding, isPointInRectangle } from
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
-import { stringOrNull } from "./strings"
+import { stringOrEmpty, stringOrNull } from "./strings"
 import { distributeNodes } from "./utils/arrange"
 
 interface IShowSearchOptions {
@@ -1800,8 +1800,7 @@ export class LGraphCanvas {
                     cloned.pos[0] += 5
                     cloned.pos[1] += 5
 
-                    // @ts-expect-error Not impl. - harmless
-                    this.graph.add(cloned, false, { doCalcSize: false })
+                    this.graph.add(cloned, false)
                     node = cloned
                     skip_action = true
                     if (this.allow_dragnodes) {
@@ -3129,8 +3128,7 @@ export class LGraphCanvas {
                 node.pos[0] += this.graph_mouse[0] - posMin[0] //+= 5;
                 node.pos[1] += this.graph_mouse[1] - posMin[1] //+= 5;
 
-                // @ts-expect-error This can be changed to just "true", given the functionality of .add() - but the param should be removed
-                this.graph.add(node, { doProcessChange: false })
+                this.graph.add(node, true)
 
                 nodes.push(node)
             }
@@ -5387,8 +5385,7 @@ export class LGraphCanvas {
             }
             ctx.fillStyle = "#FFF"
             ctx.fillText(
-                // @ts-expect-error type coercion
-                node.order,
+                stringOrEmpty(node.order),
                 node.pos[0] + LiteGraph.NODE_TITLE_HEIGHT * -0.5,
                 node.pos[1] - 6
             )
@@ -6999,7 +6996,7 @@ export class LGraphCanvas {
             options
         )
 
-        let input: boolean | HTMLElement = false
+        let input: HTMLInputElement | HTMLSelectElement
         if ((type == "enum" || type == "combo") && info.values) {
             input = dialog.querySelector("select")
             // FIXME: No optional chaining
@@ -7053,7 +7050,6 @@ export class LGraphCanvas {
         button.addEventListener("click", inner)
 
         function inner() {
-            // @ts-expect-error
             setValue(input.value)
         }
 
@@ -7143,7 +7139,7 @@ export class LGraphCanvas {
         }
 
         let dialogCloseTimer = null
-        let prevent_timeout = false
+        let prevent_timeout = 0
         dialog.addEventListener("mouseleave", function () {
             if (prevent_timeout)
                 return
@@ -7157,11 +7153,8 @@ export class LGraphCanvas {
         const selInDia = dialog.querySelectorAll("select")
         // if filtering, check focus changed to comboboxes and prevent closing
         selInDia?.forEach(function (selIn) {
-            // @ts-expect-error
             selIn.addEventListener("click", function () { prevent_timeout++ })
-            // @ts-expect-error
             selIn.addEventListener("blur", function () { prevent_timeout = 0 })
-            // @ts-expect-error
             selIn.addEventListener("change", function () { prevent_timeout = -1 })
         })
 
