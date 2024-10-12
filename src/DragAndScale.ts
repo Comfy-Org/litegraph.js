@@ -93,7 +93,6 @@ export class DragAndScale {
 
         const is_inside = !this.viewport || (this.viewport && x >= this.viewport[0] && x < (this.viewport[0] + this.viewport[2]) && y >= this.viewport[1] && y < (this.viewport[1] + this.viewport[3]))
 
-        //console.log("pointerevents: DragAndScale onMouse "+e.type+" "+is_inside);
         let ignore = false
         if (this.onmouse) {
             ignore = this.onmouse(e)
@@ -154,7 +153,6 @@ export class DragAndScale {
     }
 
     convertOffsetToCanvas(pos: Point): Point {
-        //return [pos[0] / this.scale - this.offset[0], pos[1] / this.scale - this.offset[1]];
         return [
             (pos[0] + this.offset[0]) * this.scale,
             (pos[1] + this.offset[1]) * this.scale
