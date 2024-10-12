@@ -1,4 +1,4 @@
-import type { Point, Size } from "./interfaces"
+import type { IContextMenuValue, Point, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
@@ -48,26 +48,26 @@ export class LGraphGroup {
         this.flags = {}
 
         Object.defineProperty(this, "pos", {
-            set: function (v) {
+            set(this: LGraphGroup, v: Point) {
                 if (!v || v.length < 2) return
 
                 this._pos[0] = v[0]
                 this._pos[1] = v[1]
             },
-            get: function () {
+            get(this: LGraphGroup): Point {
                 return this._pos
             },
             enumerable: true
         })
 
         Object.defineProperty(this, "size", {
-            set: function (v) {
+            set(this: LGraphGroup, v) {
                 if (!v || v.length < 2) return
 
                 this._size[0] = Math.max(140, v[0])
                 this._size[1] = Math.max(80, v[1])
             },
-            get: function () {
+            get(this: LGraphGroup): Size {
                 return this._size
             },
             enumerable: true
@@ -90,15 +90,15 @@ export class LGraphGroup {
         return !!this.flags.pinned
     }
 
-    pin() {
+    pin(): void {
         this.flags.pinned = true
     }
 
-    unpin() {
+    unpin(): void {
         delete this.flags.pinned
     }
 
-    configure(o) {
+    configure(o: ISerialisedGroup): void {
         this.title = o.title
         this._bounding.set(o.bounding)
         this.color = o.color
@@ -106,7 +106,7 @@ export class LGraphGroup {
         if (o.font_size) this.font_size = o.font_size
     }
 
-    serialize() {
+    serialize(): ISerialisedGroup {
         const b = this._bounding
         return {
             title: this.title,
@@ -127,7 +127,7 @@ export class LGraphGroup {
      * @param {LGraphCanvas} graphCanvas
      * @param {CanvasRenderingContext2D} ctx
      */
-    draw(graphCanvas, ctx) {
+    draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
         const padding = 4
 
         ctx.fillStyle = this.color
@@ -163,14 +163,14 @@ export class LGraphGroup {
         }
     }
 
-    resize(width, height) {
+    resize(width: number, height: number): void {
         if (this.pinned) return
 
         this._size[0] = width
         this._size[1] = height
     }
 
-    move(deltax, deltay, ignore_nodes) {
+    move(deltax: number, deltay: number, ignore_nodes: boolean): void {
         if (this.pinned) return
 
         this._pos[0] += deltax
@@ -184,7 +184,7 @@ export class LGraphGroup {
         }
     }
 
-    recomputeInsideNodes() {
+    recomputeInsideNodes(): void {
         this._nodes.length = 0
         const nodes = this.graph._nodes
         const node_bounding = new Float32Array(4)
@@ -206,7 +206,7 @@ export class LGraphGroup {
      * @param {number} [padding=10] - The padding around the group
      * @returns {void}
      */
-    addNodes(nodes, padding = 10) {
+    addNodes(nodes: LGraphNode[], padding: number = 10): void {
         if (!this._nodes && nodes.length === 0) return
 
         const allNodes = [...(this._nodes || []), ...nodes]
@@ -240,7 +240,7 @@ export class LGraphGroup {
         ]
     }
 
-    getMenuOptions() {
+    getMenuOptions(): IContextMenuValue[] {
         return [
             {
                 content: this.pinned ? "Unpin" : "Pin",
