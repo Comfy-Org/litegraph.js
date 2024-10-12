@@ -1,6 +1,6 @@
-// @ts-nocheck
 import type { Point, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
+import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { overlapBounding } from "./measure"
@@ -34,7 +34,7 @@ export class LGraphGroup {
         this._ctor(title)
     }
 
-    _ctor(title?: string) {
+    _ctor(title?: string): void {
         this.title = title || "Group"
         this.font_size = LiteGraph.DEFAULT_GROUP_FONT || 24
         this.color = LGraphCanvas.node_colors.pale_blue
@@ -49,9 +49,8 @@ export class LGraphGroup {
 
         Object.defineProperty(this, "pos", {
             set: function (v) {
-                if (!v || v.length < 2) {
-                    return
-                }
+                if (!v || v.length < 2) return
+
                 this._pos[0] = v[0]
                 this._pos[1] = v[1]
             },
@@ -63,9 +62,8 @@ export class LGraphGroup {
 
         Object.defineProperty(this, "size", {
             set: function (v) {
-                if (!v || v.length < 2) {
-                    return
-                }
+                if (!v || v.length < 2) return
+
                 this._size[0] = Math.max(140, v[0])
                 this._size[1] = Math.max(80, v[1])
             },
@@ -105,9 +103,7 @@ export class LGraphGroup {
         this._bounding.set(o.bounding)
         this.color = o.color
         this.flags = o.flags || this.flags
-        if (o.font_size) {
-            this.font_size = o.font_size
-        }
+        if (o.font_size) this.font_size = o.font_size
     }
 
     serialize() {
@@ -168,22 +164,19 @@ export class LGraphGroup {
     }
 
     resize(width, height) {
-        if (this.pinned) {
-            return
-        }
+        if (this.pinned) return
+
         this._size[0] = width
         this._size[1] = height
     }
 
     move(deltax, deltay, ignore_nodes) {
-        if (this.pinned) {
-            return
-        }
+        if (this.pinned) return
+
         this._pos[0] += deltax
         this._pos[1] += deltay
-        if (ignore_nodes) {
-            return
-        }
+        if (ignore_nodes) return
+
         for (let i = 0; i < this._nodes.length; ++i) {
             const node = this._nodes[i]
             node.pos[0] += deltax
@@ -199,9 +192,10 @@ export class LGraphGroup {
         for (let i = 0; i < nodes.length; ++i) {
             const node = nodes[i]
             node.getBounding(node_bounding)
-            if (!overlapBounding(this._bounding, node_bounding)) {
+            //out of the visible area
+            if (!overlapBounding(this._bounding, node_bounding))
                 continue
-            } //out of the visible area
+
             this._nodes.push(node)
         }
     }
@@ -251,7 +245,8 @@ export class LGraphGroup {
             {
                 content: this.pinned ? "Unpin" : "Pin",
                 callback: () => {
-                    this.pinned ? this.unpin() : this.pin()
+                    if (this.pinned) this.unpin()
+                    else this.pin()
                     this.setDirtyCanvas(false, true)
                 },
             },
