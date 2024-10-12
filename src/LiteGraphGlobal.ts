@@ -5,6 +5,7 @@ import type { DragAndScale } from "./DragAndScale"
 import type { LGraphCanvas } from "./LGraphCanvas"
 import type { ContextMenu } from "./ContextMenu"
 import type { CurveEditor } from "./CurveEditor"
+import { LGraphEventMode, LinkDirection, LinkRenderType, NodeSlotType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LiteGraph } from "./litegraph"
 import { LGraphNode } from "./LGraphNode"
 import { SlotShape, SlotDirection, SlotType, LabelPosition } from "./draw"
@@ -63,43 +64,45 @@ export class LiteGraphGlobal {
     VALID_SHAPES = ["default", "box", "round", "card"] //,"circle"
 
     //shapes are used for nodes but also for slots
-    BOX_SHAPE = 1
-    ROUND_SHAPE = 2
-    CIRCLE_SHAPE = 3
-    CARD_SHAPE = 4
-    ARROW_SHAPE = 5
-    GRID_SHAPE = 6 // intended for slot arrays
+    BOX_SHAPE = RenderShape.BOX
+    ROUND_SHAPE = RenderShape.ROUND
+    CIRCLE_SHAPE = RenderShape.CIRCLE
+    CARD_SHAPE = RenderShape.CARD
+    ARROW_SHAPE = RenderShape.ARROW
+    GRID_SHAPE = RenderShape.GRID // intended for slot arrays
 
     //enums
-    INPUT = 1
-    OUTPUT = 2
+    INPUT = NodeSlotType.INPUT
+    OUTPUT = NodeSlotType.OUTPUT
 
-    EVENT = -1 //for outputs
-    ACTION = -1 //for inputs
+    // TODO: -1 can lead to ambiguity in JS; these should be updated to a more explicit constant or Symbol.
+    EVENT = -1 as const //for outputs
+    ACTION = -1 as const //for inputs
 
     NODE_MODES = ["Always", "On Event", "Never", "On Trigger"] // helper, will add "On Request" and more in the future
     NODE_MODES_COLORS = ["#666", "#422", "#333", "#224", "#626"] // use with node_box_coloured_by_mode
-    ALWAYS = 0
-    ON_EVENT = 1
-    NEVER = 2
-    ON_TRIGGER = 3
+    ALWAYS = LGraphEventMode.ALWAYS
+    ON_EVENT = LGraphEventMode.ON_EVENT
+    NEVER = LGraphEventMode.NEVER
+    ON_TRIGGER = LGraphEventMode.ON_TRIGGER
 
-    UP = 1
-    DOWN = 2
-    LEFT = 3
-    RIGHT = 4
-    CENTER = 5
+    UP = LinkDirection.UP
+    DOWN = LinkDirection.DOWN
+    LEFT = LinkDirection.LEFT
+    RIGHT = LinkDirection.RIGHT
+    CENTER = LinkDirection.CENTER
 
     LINK_RENDER_MODES = ["Straight", "Linear", "Spline"] // helper
-    HIDDEN_LINK = -1
-    STRAIGHT_LINK = 0
-    LINEAR_LINK = 1
-    SPLINE_LINK = 2
+    HIDDEN_LINK = LinkRenderType.HIDDEN_LINK
+    STRAIGHT_LINK = LinkRenderType.STRAIGHT_LINK
+    LINEAR_LINK = LinkRenderType.LINEAR_LINK
+    SPLINE_LINK = LinkRenderType.SPLINE_LINK
 
-    NORMAL_TITLE = 0
-    NO_TITLE = 1
-    TRANSPARENT_TITLE = 2
-    AUTOHIDE_TITLE = 3
+    NORMAL_TITLE = TitleMode.NORMAL_TITLE
+    NO_TITLE = TitleMode.NO_TITLE
+    TRANSPARENT_TITLE = TitleMode.TRANSPARENT_TITLE
+    AUTOHIDE_TITLE = TitleMode.AUTOHIDE_TITLE
+
     VERTICAL_LAYOUT = "vertical" // arrange nodes vertically
 
     proxy = null //used to redirect calls
