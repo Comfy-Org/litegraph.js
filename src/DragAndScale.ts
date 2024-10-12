@@ -1,4 +1,5 @@
 import type { Point, Rect, Rect32 } from "./interfaces"
+import type { CanvasMouseEvent } from "./types/events"
 import { LiteGraph } from "./litegraph"
 
 export class DragAndScale {
@@ -16,7 +17,7 @@ export class DragAndScale {
 
     onredraw?(das: DragAndScale): void
     /** @deprecated */
-    onmouse?(e: any): boolean
+    onmouse?(e: unknown): boolean
 
     constructor(element?: HTMLCanvasElement, skip_events?: boolean) {
         this.offset = new Float32Array([0, 0])
@@ -37,7 +38,7 @@ export class DragAndScale {
         }
     }
 
-    bindEvents(element) {
+    bindEvents(element: Node): void {
         this.last_mouse = new Float32Array(2)
 
         this._binded_mouse_callback = this.onMouse.bind(this)
@@ -77,7 +78,7 @@ export class DragAndScale {
         this.visible_area[3] = endy - starty
     }
 
-    onMouse(e) {
+    onMouse(e: CanvasMouseEvent) {
         if (!this.enabled) {
             return
         }
@@ -167,7 +168,7 @@ export class DragAndScale {
         return out
     }
 
-    mouseDrag(x, y) {
+    mouseDrag(x: number, y: number): void {
         this.offset[0] += x / this.scale
         this.offset[1] += y / this.scale
 
@@ -220,7 +221,7 @@ export class DragAndScale {
         }
     }
 
-    changeDeltaScale(value: number, zooming_center?: Point) {
+    changeDeltaScale(value: number, zooming_center?: Point): void {
         this.changeScale(this.scale * value, zooming_center)
     }
 
