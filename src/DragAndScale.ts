@@ -3,7 +3,9 @@ import type { CanvasMouseEvent } from "./types/events"
 import { LiteGraph } from "./litegraph"
 
 export class DragAndScale {
+    /** Maximum scale (zoom in) */
     max_scale: number
+    /** Minimum scale (zoom out) */
     min_scale: number
     offset: Point
     scale: number
@@ -38,6 +40,7 @@ export class DragAndScale {
         }
     }
 
+    /** @deprecated Has not been kept up to date */
     bindEvents(element: Node): void {
         this.last_mouse = new Float32Array(2)
 
@@ -78,6 +81,7 @@ export class DragAndScale {
         this.visible_area[3] = endy - starty
     }
 
+    /** @deprecated Has not been kept up to date */
     onMouse(e: CanvasMouseEvent) {
         if (!this.enabled) {
             return
@@ -87,7 +91,10 @@ export class DragAndScale {
         const rect = canvas.getBoundingClientRect()
         const x = e.clientX - rect.left
         const y = e.clientY - rect.top
+        // FIXME: "canvasx" / y are not referenced anywhere - wrong case
+        // @ts-expect-error Incorrect case
         e.canvasx = x
+        // @ts-expect-error Incorrect case
         e.canvasy = y
         e.dragging = this.dragging
 
@@ -120,20 +127,22 @@ export class DragAndScale {
             (e.type == "mousewheel" ||
                 e.type == "wheel" ||
                 e.type == "DOMMouseScroll")) {
+            // @ts-expect-error Deprecated
             e.eventType = "mousewheel"
-            if (e.type == "wheel") {
-                e.wheel = -e.deltaY
-            } else {
-                e.wheel =
-                    e.wheelDeltaY != null ? e.wheelDeltaY : e.detail * -60
-            }
+            // @ts-expect-error Deprecated
+            if (e.type == "wheel") e.wheel = -e.deltaY
+            // @ts-expect-error Deprecated
+            else e.wheel = e.wheelDeltaY != null ? e.wheelDeltaY : e.detail * -60
 
             //from stack overflow
+            // @ts-expect-error Deprecated
             e.delta = e.wheelDelta
+                // @ts-expect-error Deprecated
                 ? e.wheelDelta / 40
                 : e.deltaY
                     ? -e.deltaY / 3
                     : 0
+            // @ts-expect-error Deprecated
             this.changeDeltaScale(1.0 + e.delta * 0.05)
         }
 
@@ -166,6 +175,7 @@ export class DragAndScale {
         return out
     }
 
+    /** @deprecated Has not been kept up to date */
     mouseDrag(x: number, y: number): void {
         this.offset[0] += x / this.scale
         this.offset[1] += y / this.scale
@@ -182,18 +192,11 @@ export class DragAndScale {
             value = this.max_scale
         }
 
-        if (value == this.scale) {
-            return
-        }
-
-        if (!this.element) {
-            return
-        }
+        if (value == this.scale) return
+        if (!this.element) return
 
         const rect = this.element.getBoundingClientRect()
-        if (!rect) {
-            return
-        }
+        if (!rect) return
 
         zooming_center = zooming_center || [
             rect.width * 0.5,
@@ -201,9 +204,7 @@ export class DragAndScale {
         ]
         const center = this.convertCanvasToOffset(zooming_center)
         this.scale = value
-        if (Math.abs(this.scale - 1) < 0.01) {
-            this.scale = 1
-        }
+        if (Math.abs(this.scale - 1) < 0.01) this.scale = 1
 
         const new_center = this.convertCanvasToOffset(zooming_center)
         const delta_offset = [
