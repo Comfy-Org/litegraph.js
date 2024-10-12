@@ -140,10 +140,10 @@ export class LiteGraphGlobal {
 
 
     // set these values if not using auto_load_slot_types
-    registered_slot_in_types = {} // slot types for nodeclass
-    registered_slot_out_types = {} // slot types for nodeclass
-    slot_types_in = [] // slot types IN
-    slot_types_out = [] // slot types OUT
+    registered_slot_in_types: Record<string, { nodes: string[] }> = {} // slot types for nodeclass
+    registered_slot_out_types: Record<string, { nodes: string[] }> = {} // slot types for nodeclass
+    slot_types_in: string[] = [] // slot types IN
+    slot_types_out: string[] = [] // slot types OUT
     slot_types_default_in: Record<string, string[]> = {} // specify for each IN slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
     slot_types_default_out: Record<string, string[]> = {} // specify for each OUT slot type a(/many) default node(s), use single string, array, or object (with node, title, parameters, ..) like for search
 
