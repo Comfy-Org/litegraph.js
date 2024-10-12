@@ -175,6 +175,9 @@ export class LiteGraphGlobal {
     ContextMenu: typeof ContextMenu
     CurveEditor: typeof CurveEditor
 
+    onNodeTypeRegistered?(type: string, base_class: typeof LGraphNode): void
+    onNodeTypeReplaced?(type: string, base_class: typeof LGraphNode, prev: unknown): void
+
     constructor() {
         //timer that works everywhere
         if (typeof performance != "undefined") {
@@ -199,29 +202,22 @@ export class LiteGraphGlobal {
      * @param {Class} base_class class containing the structure of a node
      */
     registerNodeType(type: string, base_class: typeof LGraphNode): void {
-        if (!base_class.prototype) {
+        if (!base_class.prototype)
             throw "Cannot register a simple object, it must be a class with a prototype"
-        }
         base_class.type = type
 
-        if (this.debug) {
-            console.log("Node registered: " + type)
-        }
+        if (this.debug) console.log("Node registered: " + type)
 
         const classname = base_class.name
 
         const pos = type.lastIndexOf("/")
         base_class.category = type.substring(0, pos)
 
-        if (!base_class.title) {
-            base_class.title = classname
-        }
+        base_class.title ||= classname
 
         //extend class
         for (const i in LGraphNode.prototype) {
-            if (!base_class.prototype[i]) {
-                base_class.prototype[i] = LGraphNode.prototype[i]
-            }
+            base_class.prototype[i] ||= LGraphNode.prototype[i]
         }
 
         const prev = this.registered_node_types[type]
@@ -270,9 +266,7 @@ export class LiteGraphGlobal {
         }
 
         this.registered_node_types[type] = base_class
-        if (base_class.constructor.name) {
-            this.Nodes[classname] = base_class
-        }
+        if (base_class.constructor.name) this.Nodes[classname] = base_class
         if (this.onNodeTypeRegistered) {
             this.onNodeTypeRegistered(type, base_class)
         }
@@ -281,22 +275,12 @@ export class LiteGraphGlobal {
         }
 
         //warnings
-        if (base_class.prototype.onPropertyChange) {
-            console.warn(
-                "LiteGraph node class " +
-                type +
-                " has onPropertyChange method, it must be called onPropertyChanged with d at the end"
-            )
-        }
+        if (base_class.prototype.onPropertyChange)
+            console.warn(`LiteGraph node class ${type} has onPropertyChange method, it must be called onPropertyChanged with d at the end`)
 
         // TODO one would want to know input and ouput :: this would allow through registerNodeAndSlotType to get all the slots types
-        if (this.auto_load_slot_types) {
-            new base_class(base_class.title || "tmpnode")
-        }
+        if (this.auto_load_slot_types) new base_class(base_class.title || "tmpnode")
     }
-
-    onNodeTypeRegistered?(type: string, base_class: typeof LGraphNode): void
-    onNodeTypeReplaced?(type: string, base_class: typeof LGraphNode, prev: unknown): void
 
     /**
      * removes a node type from the system
@@ -306,9 +290,8 @@ export class LiteGraphGlobal {
         const base_class = typeof type === "string"
             ? this.registered_node_types[type]
             : type
-        if (!base_class) {
-            throw "node type not found: " + type
-        }
+        if (!base_class) throw "node type not found: " + type
+
         delete this.registered_node_types[base_class.type]
         if (base_class.constructor.name) {
             delete this.Nodes[base_class.constructor.name]
@@ -321,7 +304,7 @@ export class LiteGraphGlobal {
      * @param {String} slot_type name of the slot type (variable type), eg. string, number, array, boolean, ..
      */
     registerNodeAndSlotType(type: LGraphNode, slot_type: ISlotType, out?: boolean): void {
-        out = out || false
+        out ||= false
         // @ts-expect-error Confirm this function no longer supports string types - base_class should always be an instance not a constructor.
         const base_class = typeof type === "string" && this.registered_node_types[type] !== "anonymous"
             ? this.registered_node_types[type]
@@ -341,18 +324,15 @@ export class LiteGraphGlobal {
 
         for (let i = 0; i < allTypes.length; ++i) {
             let slotType = allTypes[i]
-            if (slotType === "") {
-                slotType = "*"
-            }
+            if (slotType === "") slotType = "*"
+
             const registerTo = out
                 ? "registered_slot_out_types"
                 : "registered_slot_in_types"
-            if (this[registerTo][slotType] === undefined) {
+            if (this[registerTo][slotType] === undefined)
                 this[registerTo][slotType] = { nodes: [] }
-            }
-            if (!this[registerTo][slotType].nodes.includes(class_type)) {
+            if (!this[registerTo][slotType].nodes.includes(class_type))
                 this[registerTo][slotType].nodes.push(class_type)
-            }
 
             // check if is a new type
             if (!out) {
@@ -389,23 +369,11 @@ export class LiteGraphGlobal {
         let code = ""
         const names = this.getParameterNames(func)
         for (let i = 0; i < names.length; ++i) {
-            code +=
-                "this.addInput('" +
-                names[i] +
-                "'," +
-                (param_types && param_types[i]
-                    ? "'" + param_types[i] + "'"
-                    : "0") +
-                ");\n"
+            code += `this.addInput('${names[i]}',${param_types && param_types[i] ? `'${param_types[i]}'` : "0"});\n`
         }
-        code +=
-            "this.addOutput('out'," +
-            (return_type ? "'" + return_type + "'" : 0) +
-            ");\n"
-        if (properties) {
-            code +=
-                "this.properties = " + JSON.stringify(properties) + ";\n"
-        }
+        code += `this.addOutput('out',${return_type ? `'${return_type}'` : 0});\n`
+        if (properties) code += `this.properties = ${JSON.stringify(properties)};\n`
+
         const classobj = Function(code)
         // @ts-ignore
         classobj.title = name.split("/").pop()
@@ -442,9 +410,8 @@ export class LiteGraphGlobal {
         LGraphNode.prototype[name] = func
         for (const i in this.registered_node_types) {
             const type = this.registered_node_types[i]
-            if (type.prototype[name]) {
-                type.prototype["_" + name] = type.prototype[name]
-            } //keep old in case of replacing
+            //keep old in case of replacing
+            if (type.prototype[name]) type.prototype["_" + name] = type.prototype[name]
             type.prototype[name] = func
         }
     }
@@ -458,11 +425,7 @@ export class LiteGraphGlobal {
     createNode(type: string, title?: string, options?: Dictionary<unknown>): LGraphNode {
         const base_class = this.registered_node_types[type]
         if (!base_class) {
-            if (this.debug) {
-                console.log(
-                    'GraphNode type "' + type + '" not registered.'
-                )
-            }
+            if (this.debug) console.log(`GraphNode type "${type}" not registered.`)
             return null
         }
 
@@ -483,28 +446,14 @@ export class LiteGraphGlobal {
 
         node.type = type
 
-        if (!node.title && title) {
-            node.title = title
-        }
-        if (!node.properties) {
-            node.properties = {}
-        }
-        if (!node.properties_info) {
-            node.properties_info = []
-        }
-        if (!node.flags) {
-            node.flags = {}
-        }
-        if (!node.size) {
-            node.size = node.computeSize()
-            //call onresize?
-        }
-        if (!node.pos) {
-            node.pos = this.DEFAULT_POSITION.concat()
-        }
-        if (!node.mode) {
-            node.mode = this.ALWAYS
-        }
+        if (!node.title && title) node.title = title
+        node.properties ||= {}
+        node.properties_info ||= []
+        node.flags ||= {}
+        //call onresize?
+        node.size ||= node.computeSize()
+        node.pos ||= this.DEFAULT_POSITION.concat()
+        node.mode ||= this.ALWAYS
 
         //extra options
         if (options) {
@@ -539,21 +488,19 @@ export class LiteGraphGlobal {
         const r = []
         for (const i in this.registered_node_types) {
             const type = this.registered_node_types[i]
-            if (type.filter != filter) {
-                continue
-            }
+            if (type.filter != filter) continue
 
             if (category == "") {
-                if (type.category == null) {
-                    r.push(type)
-                }
+                if (type.category == null) r.push(type)
             } else if (type.category == category) {
                 r.push(type)
             }
         }
 
         if (this.auto_sort_node_types) {
-            r.sort(function (a, b) { return a.title.localeCompare(b.title) })
+            r.sort(function (a, b) {
+                return a.title.localeCompare(b.title)
+            })
         }
 
         return r
@@ -595,44 +542,31 @@ export class LiteGraphGlobal {
 
         for (let i = 0; i < script_files.length; i++) {
             const src = script_files[i].src
-            if (!src ||
-                src.substr(0, folder_wildcard.length) != folder_wildcard) {
+            if (!src || src.substr(0, folder_wildcard.length) != folder_wildcard)
                 continue
-            }
 
             try {
-                if (this.debug) {
-                    console.log("Reloading: " + src)
-                }
+                if (this.debug) console.log("Reloading: " + src)
                 const dynamicScript = document.createElement("script")
                 dynamicScript.type = "text/javascript"
                 dynamicScript.src = src
                 docHeadObj.appendChild(dynamicScript)
                 docHeadObj.removeChild(script_files[i])
             } catch (err) {
-                if (this.throw_errors) {
-                    throw err
-                }
-                if (this.debug) {
-                    console.log("Error while reloading " + src)
-                }
+                if (this.throw_errors) throw err
+                if (this.debug) console.log("Error while reloading " + src)
             }
         }
 
-        if (this.debug) {
-            console.log("Nodes reloaded")
-        }
+        if (this.debug) console.log("Nodes reloaded")
     }
 
     //separated just to improve if it doesn't work
     cloneObject<T extends object>(obj: T, target?: T): T {
-        if (obj == null) {
-            return null
-        }
+        if (obj == null) return null
+
         const r = JSON.parse(JSON.stringify(obj))
-        if (!target) {
-            return r
-        }
+        if (!target) return r
 
         for (const i in r) {
             target[i] = r[i]
@@ -650,19 +584,16 @@ export class LiteGraphGlobal {
 
     /**
      * Returns if the types of two slots are compatible (taking into account wildcards, etc)
-     * @param {String} type_a
-     * @param {String} type_b
+     * @param {String} type_a output
+     * @param {String} type_b input
      * @return {Boolean} true if they can be connected
      */
     isValidConnection(type_a: ISlotType, type_b: ISlotType): boolean {
         if (type_a == "" || type_a === "*") type_a = 0
         if (type_b == "" || type_b === "*") type_b = 0
-        if (!type_a //generic output
-            || !type_b // generic input
-            || type_a == type_b //same type (is valid for triggers)
-            || (type_a == this.EVENT && type_b == this.ACTION)) {
+        // If generic in/output, matching types (valid for triggers), or event/action types
+        if (!type_a || !type_b || type_a == type_b || (type_a == this.EVENT && type_b == this.ACTION))
             return true
-        }
 
         // Enforce string type to handle toLowerCase call (-1 number not ok)
         type_a = String(type_a)
@@ -671,19 +602,16 @@ export class LiteGraphGlobal {
         type_b = type_b.toLowerCase()
 
         // For nodes supporting multiple connection types
-        if (type_a.indexOf(",") == -1 && type_b.indexOf(",") == -1) {
+        if (type_a.indexOf(",") == -1 && type_b.indexOf(",") == -1)
             return type_a == type_b
-        }
 
         // Check all permutations to see if one is valid
         const supported_types_a = type_a.split(",")
         const supported_types_b = type_b.split(",")
         for (let i = 0; i < supported_types_a.length; ++i) {
             for (let j = 0; j < supported_types_b.length; ++j) {
-                if (this.isValidConnection(supported_types_a[i], supported_types_b[j])) {
-                    //if (supported_types_a[i] == supported_types_b[j]) {
+                if (this.isValidConnection(supported_types_a[i], supported_types_b[j]))
                     return true
-                }
             }
         }
 
@@ -714,14 +642,13 @@ export class LiteGraphGlobal {
      * @return {FileReader|Promise} returns the object used to
      */
     fetchFile(url: string | URL | Request | Blob, type: string, on_complete: (data: string | ArrayBuffer) => void, on_error: (error: unknown) => void): void | Promise<void> {
-        if (!url)
-            return null
+        if (!url) return null
 
         type = type || "text"
         if (typeof url === "string") {
-            if (url.substr(0, 4) == "http" && this.proxy) {
+            if (url.substr(0, 4) == "http" && this.proxy)
                 url = this.proxy + url.substr(url.indexOf(":") + 3)
-            }
+
             return fetch(url)
                 .then(function (response) {
                     if (!response.ok)
@@ -744,8 +671,7 @@ export class LiteGraphGlobal {
                     if (on_error)
                         on_error(error)
                 })
-        }
-        else if (url instanceof File || url instanceof Blob) {
+        } else if (url instanceof File || url instanceof Blob) {
             const reader = new FileReader()
             reader.onload = function (e) {
                 let v = e.target.result
@@ -781,10 +707,7 @@ export class LiteGraphGlobal {
     /* helper for interaction: pointer, touch, mouse Listeners
     used by LGraphCanvas DragAndScale ContextMenu*/
     pointerListenerAdd(oDOM: Node, sEvIn: string, fCall: (e: Event) => boolean | void, capture = false): void {
-        if (!oDOM || !oDOM.addEventListener || !sEvIn || typeof fCall !== "function") {
-            //console.log("cant pointerListenerAdd "+oDOM+", "+sEvent+", "+fCall);
-            return // -- break --
-        }
+        if (!oDOM || !oDOM.addEventListener || !sEvIn || typeof fCall !== "function") return
 
         let sMethod = LiteGraph.pointerevents_method
         let sEvent = sEvIn
@@ -847,10 +770,8 @@ export class LiteGraphGlobal {
         }
     }
     pointerListenerRemove(oDOM: Node, sEvent: string, fCall: (e: Event) => boolean | void, capture = false): void {
-        if (!oDOM || !oDOM.removeEventListener || !sEvent || typeof fCall !== "function") {
-            //console.log("cant pointerListenerRemove "+oDOM+", "+sEvent+", "+fCall);
-            return // -- break --
-        }
+        if (!oDOM || !oDOM.removeEventListener || !sEvent || typeof fCall !== "function") return
+
         switch (sEvent) {
             // @ts-expect-error
             //both pointer and move events
@@ -878,9 +799,7 @@ export class LiteGraphGlobal {
 
     compareObjects(a: object, b: object): boolean {
         for (const i in a) {
-            if (a[i] != b[i]) {
-                return false
-            }
+            if (a[i] != b[i]) return false
         }
         return true
     }
@@ -973,9 +892,7 @@ export class LiteGraphGlobal {
         ref_window = ref_window || window
 
         const elements = ref_window.document.querySelectorAll(".litecontextmenu")
-        if (!elements.length) {
-            return
-        }
+        if (!elements.length) return
 
         const result = []
         for (let i = 0; i < elements.length; i++) {
@@ -994,9 +911,7 @@ export class LiteGraphGlobal {
     extendClass(target: any, origin: any): void {
         for (const i in origin) {
             //copy class properties
-            if (target.hasOwnProperty(i)) {
-                continue
-            }
+            if (target.hasOwnProperty(i)) continue
             target[i] = origin[i]
         }
 
@@ -1004,14 +919,10 @@ export class LiteGraphGlobal {
             //copy prototype properties
             for (const i in origin.prototype) {
                 //only enumerable
-                if (!origin.prototype.hasOwnProperty(i)) {
-                    continue
-                }
+                if (!origin.prototype.hasOwnProperty(i)) continue
 
-                if (target.prototype.hasOwnProperty(i)) {
-                    //avoid overwriting existing ones
-                    continue
-                }
+                //avoid overwriting existing ones
+                if (target.prototype.hasOwnProperty(i)) continue
 
                 //copy getters
                 if (origin.prototype.__lookupGetter__(i)) {
