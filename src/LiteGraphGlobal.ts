@@ -466,8 +466,6 @@ export class LiteGraphGlobal {
             return null
         }
 
-        const prototype = base_class.prototype || base_class
-
         title = title || base_class.title || type
 
         let node = null
@@ -716,7 +714,6 @@ export class LiteGraphGlobal {
      * @return {FileReader|Promise} returns the object used to
      */
     fetchFile(url: string | URL | Request | Blob, type: string, on_complete: (data: string | ArrayBuffer) => void, on_error: (error: unknown) => void): void | Promise<void> {
-        const that = this
         if (!url)
             return null
 
