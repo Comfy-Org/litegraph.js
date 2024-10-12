@@ -164,7 +164,7 @@ export class LGraphGroup {
         this._size[1] = height
     }
 
-    move(deltax: number, deltay: number, ignore_nodes: boolean): void {
+    move(deltax: number, deltay: number, ignore_nodes = false): void {
         if (this.pinned) return
 
         this._pos[0] += deltax
