@@ -2,7 +2,7 @@ import type { Point, ConnectingLink } from "./interfaces"
 import type { INodeSlot, INodeInputSlot, INodeOutputSlot, CanvasColour, Direction, IBoundaryNodes, IContextMenuOptions, IContextMenuValue, IFoundSlot, IInputOrOutput, INodeFlags, IOptionalInputsData, ISlotType, KeysOfType, MethodNames, PickByType, Rect, Rect32, Size } from "./interfaces"
 import type { SlotShape, LabelPosition, SlotDirection, SlotType } from "./draw"
 import type { IWidget } from "./types/widgets"
-import type { TitleMode } from "./types/globalEnums"
+import type { RenderShape, TitleMode } from "./types/globalEnums"
 import type { CanvasEventDetail } from "./types/events"
 import { LiteGraphGlobal } from "./LiteGraphGlobal"
 import { loadPolyfills } from "./polyfills"
@@ -93,6 +93,12 @@ export interface LGraphNodeConstructor<T extends LGraphNode = LGraphNode> {
     slot_start_y?: number
     widgets_info?: any
     collapsable?: boolean
+    color?: string
+    bgcolor?: string
+    shape?: RenderShape
+    title_mode?: TitleMode
+    title_color?: string
+    title_text_color?: string
     nodeData: any
     new(): T
 }
