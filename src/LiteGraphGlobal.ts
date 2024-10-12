@@ -267,12 +267,9 @@ export class LiteGraphGlobal {
 
         this.registered_node_types[type] = base_class
         if (base_class.constructor.name) this.Nodes[classname] = base_class
-        if (this.onNodeTypeRegistered) {
-            this.onNodeTypeRegistered(type, base_class)
-        }
-        if (prev && this.onNodeTypeReplaced) {
-            this.onNodeTypeReplaced(type, base_class, prev)
-        }
+
+        this.onNodeTypeRegistered?.(type, base_class)
+        if (prev) this.onNodeTypeReplaced?.(type, base_class, prev)
 
         //warnings
         if (base_class.prototype.onPropertyChange)
@@ -459,10 +456,7 @@ export class LiteGraphGlobal {
         }
 
         // callback
-        if (node.onNodeCreated) {
-            node.onNodeCreated()
-        }
-
+        node.onNodeCreated?.()
         return node
     }
 
@@ -658,14 +652,12 @@ export class LiteGraphGlobal {
                     else if (type == "blob")
                         return response.blob()
                 })
-                .then(function (data) {
-                    if (on_complete)
-                        on_complete(data)
+                .then(function (data: string | ArrayBuffer): void {
+                    on_complete?.(data)
                 })
                 .catch(function (error) {
                     console.error("error fetching file:", url)
-                    if (on_error)
-                        on_error(error)
+                    on_error?.(error)
                 })
         } else if (url instanceof File || url instanceof Blob) {
             const reader = new FileReader()
@@ -674,8 +666,7 @@ export class LiteGraphGlobal {
                 if (type == "json")
                     // @ts-ignore
                     v = JSON.parse(v)
-                if (on_complete)
-                    on_complete(v)
+                on_complete?.(v)
             }
             if (type == "arraybuffer")
                 return reader.readAsArrayBuffer(url)
