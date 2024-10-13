@@ -37,6 +37,19 @@ interface ConnectByTypeOptions {
     typedToWildcard?: boolean
 }
 
+/** Internal type used for type safety when implementing generic checks for inputs & outputs */
+interface IGenericLinkOrLinks {
+    links?: INodeOutputSlot["links"]
+    link?: INodeInputSlot["link"]
+}
+
+interface FindFreeSlotOptions {
+    /** Slots matching these types will be ignored.  Default: [] */
+    typesNotAccepted?: ISlotType[]
+    /** If true, the slot itself is returned instead of the index.  Default: false */
+    returnObj?: boolean
+}
+
 /*
 title: string
 pos: [x,y]
@@ -1556,47 +1569,47 @@ export class LGraphNode {
     }
 
     /**
-     * returns the first free input slot
+     * Finds the first free input slot.
      * @param {object} optsIn
-     * @return {number | INodeInputSlot} the slot (-1 if not found)
+     * @return The index of the first matching slot, the slot itself if returnObj is true, or -1 if not found.
      */
-    findInputSlotFree<TReturn extends false>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): number
-    findInputSlotFree<TReturn extends true>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): INodeInputSlot
-    findInputSlotFree(optsIn?: { typesNotAccepted?: number[], returnObj?: boolean }) {
-        const optsDef = {
-            returnObj: false,
-            typesNotAccepted: []
-        }
-        const opts = Object.assign(optsDef, optsIn || {})
-        if (!this.inputs) return -1
-
-        for (let i = 0, l = this.inputs.length; i < l; ++i) {
-            if (this.inputs[i].link) continue
-            if (opts.typesNotAccepted?.includes?.(this.inputs[i].type)) continue
-            return !opts.returnObj ? i : this.inputs[i]
-        }
-        return -1
+    findInputSlotFree<TReturn extends false>(optsIn?: FindFreeSlotOptions & { returnObj?: TReturn }): number
+    findInputSlotFree<TReturn extends true>(optsIn?: FindFreeSlotOptions & { returnObj?: TReturn }): INodeInputSlot
+    findInputSlotFree(optsIn?: FindFreeSlotOptions) {
+        return this.#findFreeSlot(this.inputs, optsIn)
     }
 
     /**
-     * returns the first output slot free
+     * Finds the first free output slot.
      * @param {object} optsIn
-     * @return {number | INodeOutputSlot} the slot (-1 if not found)
+     * @return The index of the first matching slot, the slot itself if returnObj is true, or -1 if not found.
      */
-    findOutputSlotFree<TReturn extends false>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): number
-    findOutputSlotFree<TReturn extends true>(optsIn?: { typesNotAccepted?: number[], returnObj?: TReturn }): INodeOutputSlot
-    findOutputSlotFree(optsIn?: { typesNotAccepted?: number[], returnObj?: boolean }) {
-        const optsDef = {
+    findOutputSlotFree<TReturn extends false>(optsIn?: FindFreeSlotOptions & { returnObj?: TReturn }): number
+    findOutputSlotFree<TReturn extends true>(optsIn?: FindFreeSlotOptions & { returnObj?: TReturn }): INodeOutputSlot
+    findOutputSlotFree(optsIn?: FindFreeSlotOptions) {
+        return this.#findFreeSlot(this.outputs, optsIn)
+    }
+
+    /**
+     * Finds the next free slot
+     * @param isInput If true, search for an input.  Otherwise, search for an output.
+     * @param slots The slots to search, i.e. this.inputs or this.outputs.  Must match provided value in isInput.
+     * @param options Options
+     */
+    #findFreeSlot<TSlot extends INodeInputSlot | INodeOutputSlot>(slots: TSlot[], options?: FindFreeSlotOptions): TSlot | number {
+        const defaults = {
             returnObj: false,
             typesNotAccepted: []
         }
-        const opts = Object.assign(optsDef, optsIn || {})
-        if (!this.outputs) return -1
+        const opts = Object.assign(defaults, options || {})
+        const length = slots?.length
+        if (!(length > 0)) return -1
 
-        for (let i = 0, l = this.outputs.length; i < l; ++i) {
-            if (this.outputs[i].links) continue
-            if (opts.typesNotAccepted?.includes?.(this.outputs[i].type)) continue
-            return !opts.returnObj ? i : this.outputs[i]
+        for (let i = 0; i < length; ++i) {
+            const slot: TSlot & IGenericLinkOrLinks = slots[i]
+            if (!slot || slot.link || slot.links?.length) continue
+            if (opts.typesNotAccepted?.includes?.(slot.type)) continue
+            return !opts.returnObj ? i : slot
         }
         return -1
     }
