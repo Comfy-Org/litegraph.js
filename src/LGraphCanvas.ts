@@ -5,9 +5,9 @@ import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDe
 import type { LinkDirection, RenderShape, TitleMode } from "./types/globalEnums"
 import type { IClipboardContents } from "./types/serialisation"
 import type { LLink } from "./LLink"
-import type { LGraphGroup } from "./LGraphGroup"
 import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
+import { LGraphGroup } from "./LGraphGroup"
 import { isInsideRectangle, distance, overlapBounding, isPointInRectangle } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
@@ -323,7 +323,7 @@ export class LGraphCanvas {
         //	throw ("No graph assigned");
         this.background_image = LGraphCanvas.DEFAULT_BACKGROUND_IMAGE
 
-        if (canvas && canvas.constructor === String) {
+        if (canvas && typeof canvas === "string") {
             canvas = document.querySelector(canvas)
         }
 
@@ -867,7 +867,7 @@ export class LGraphCanvas {
             const value = v.value[1]
 
             if (value &&
-                (value.constructor === Object || value.constructor === Array)) {
+                (typeof value === "object" || Array.isArray(value))) {
                 //submenu why?
                 const entries = []
                 for (const i in value) {
@@ -1068,11 +1068,11 @@ export class LGraphCanvas {
         if (!values)
             return String(value)
 
-        if (values.constructor === Array) {
+        if (Array.isArray(values)) {
             return String(value)
         }
 
-        if (values.constructor === Object) {
+        if (typeof values === "object") {
             let desc_value = ""
             for (const k in values) {
                 if (values[k] != value)
@@ -1174,7 +1174,7 @@ export class LGraphCanvas {
 
             const fApplyColor = function (node: LGraphNode) {
                 if (color) {
-                    if (node.constructor === LiteGraph.LGraphGroup) {
+                    if (node instanceof LGraphGroup) {
                         node.color = color.groupcolor
                     } else {
                         node.color = color.color
@@ -1441,7 +1441,7 @@ export class LGraphCanvas {
      */
     setCanvas(canvas?: string | HTMLCanvasElement, skip_events?: boolean) {
         // TODO: Remove input mutation
-        if (canvas?.constructor === String) {
+        if (typeof canvas === "string") {
             // @ts-expect-error
             canvas = document.getElementById(canvas)
             if (!canvas) {
@@ -5549,10 +5549,10 @@ export class LGraphCanvas {
                             let v = typeof w.value === "number" ? String(w.value) : w.value
                             if (w.options.values) {
                                 let values = w.options.values
-                                if (values.constructor === Function)
+                                if (typeof values === "function")
                                     // @ts-expect-error
                                     values = values()
-                                if (values && values.constructor !== Array)
+                                if (values && !Array.isArray(values))
                                     v = values[w.value]
                             }
                             const labelWidth = ctx.measureText(w.label || w.name).width + margin * 2
@@ -5710,14 +5710,14 @@ export class LGraphCanvas {
                         }
                     } else if (event.type == LiteGraph.pointerevents_method + "down") {
                         values = w.options.values
-                        if (values && values.constructor === Function) {
+                        if (typeof values === "function") {
                             // @ts-expect-error
                             values = w.options.values(w, node)
                         }
                         values_list = null
 
                         if (w.type != "number")
-                            values_list = values.constructor === Array ? values : Object.keys(values)
+                            values_list = Array.isArray(values) ? values : Object.keys(values)
 
                         delta = x < 40 ? -1 : x > widget_width - 40 ? 1 : 0
                         if (w.type == "number") {
@@ -5731,14 +5731,14 @@ export class LGraphCanvas {
                         } else if (delta) { //clicked in arrow, used for combos 
                             let index = -1
                             this.last_mouseclick = 0 //avoids dobl click event
-                            index = values.constructor === Object
+                            index = typeof values === "object"
                                 ? values_list.indexOf(String(w.value)) + delta
                                 : values_list.indexOf(w.value) + delta
 
                             if (index >= values_list.length) index = values_list.length - 1
                             if (index < 0) index = 0
 
-                            w.value = values.constructor === Array
+                            w.value = Array.isArray(values)
                                 ? values[index]
                                 : index
                         } else { //combo clicked 
@@ -6948,7 +6948,7 @@ export class LGraphCanvas {
         } else if ((type == "enum" || type == "combo") && info.values) {
             input_html = "<select autofocus type='text' class='value'>"
             for (const i in info.values) {
-                const v = info.values.constructor === Array
+                const v = Array.isArray(info.values)
                     ? info.values[i]
                     : i
 
@@ -7036,7 +7036,7 @@ export class LGraphCanvas {
 
         function setValue(value: string | number) {
 
-            if (info?.values && info.values.constructor === Object && info.values[value] != undefined)
+            if (info?.values && typeof info.values === "object" && info.values[value] != undefined)
                 value = info.values[value]
 
             if (typeof node.properties[property] == "number") {
@@ -7152,9 +7152,9 @@ export class LGraphCanvas {
         root.header = root.querySelector(".dialog-header")
 
         if (options.width)
-            root.style.width = options.width + (options.width.constructor === Number ? "px" : "")
+            root.style.width = options.width + (typeof options.width === "number" ? "px" : "")
         if (options.height)
-            root.style.height = options.height + (options.height.constructor === Number ? "px" : "")
+            root.style.height = options.height + (typeof options.height === "number" ? "px" : "")
         if (options.closable) {
             const close = document.createElement("span")
             close.innerHTML = "&#10005;"
