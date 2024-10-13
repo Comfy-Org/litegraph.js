@@ -4214,9 +4214,7 @@ export class LGraphCanvas {
     drawNode(node: LGraphNode, ctx: CanvasRenderingContext2D): void {
         this.current_node = node
 
-        // @ts-expect-error ctor props
         const color = node.color || node.constructor.color || LiteGraph.NODE_DEFAULT_COLOR
-        // @ts-expect-error ctor props
         let bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
 
         const low_quality = this.ds.scale < 0.6 //zoomed out
@@ -4583,10 +4581,7 @@ export class LGraphCanvas {
         const low_quality = this.ds.scale < 0.5
 
         //render node area depending on shape
-        // @ts-expect-error ctor props
         const shape = node._shape || node.constructor.shape || LiteGraph.ROUND_SHAPE
-
-        // @ts-expect-error ctor props
         const title_mode = node.constructor.title_mode
 
         let render_title = true
@@ -4646,10 +4641,10 @@ export class LGraphCanvas {
             //title bar
             if (node.onDrawTitleBar) {
                 node.onDrawTitleBar(ctx, title_height, size, this.ds.scale, fgcolor)
-            } else if (title_mode != LiteGraph.TRANSPARENT_TITLE &&
-                // @ts-expect-error ctor props
-                (node.constructor.title_color || this.render_title_colored)) {
-                // @ts-expect-error ctor props
+            } else if (
+                title_mode != LiteGraph.TRANSPARENT_TITLE &&
+                (node.constructor.title_color || this.render_title_colored)
+            ) {
                 const title_color = node.constructor.title_color || fgcolor
 
                 if (node.flags.collapsed) {
@@ -4658,10 +4653,14 @@ export class LGraphCanvas {
 
                 //* gradient test
                 if (this.use_gradients) {
+                    // TODO: This feature may not have been completed.  Could finish or remove.
+                    // Original impl. may cause CanvasColour to be used as index key.  Also, colour requires validation before blindly passing on.
+                    // @ts-expect-error Fix or remove gradient feature
                     let grad = LGraphCanvas.gradients[title_color]
                     if (!grad) {
+                        // @ts-expect-error Fix or remove gradient feature
                         grad = LGraphCanvas.gradients[title_color] = ctx.createLinearGradient(0, 0, 400, 0)
-                        grad.addColorStop(0, title_color) // TODO refactor: validate color !! prevent DOMException
+                        grad.addColorStop(0, title_color)
                         grad.addColorStop(1, "#000")
                     }
                     ctx.fillStyle = grad
@@ -4770,7 +4769,6 @@ export class LGraphCanvas {
                         ctx.fillStyle = LiteGraph.NODE_SELECTED_TITLE_COLOR
                     } else {
                         ctx.fillStyle =
-                            // @ts-expect-error ctor props
                             node.constructor.title_text_color || this.node_title_color
                     }
                     if (node.flags.collapsed) {
