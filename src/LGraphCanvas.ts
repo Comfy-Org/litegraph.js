@@ -4563,12 +4563,9 @@ export class LGraphCanvas {
         const shape = node._shape || node.constructor.shape || LiteGraph.ROUND_SHAPE
         const title_mode = node.constructor.title_mode
 
-        let render_title = true
-        if (title_mode == LiteGraph.TRANSPARENT_TITLE || title_mode == LiteGraph.NO_TITLE) {
-            render_title = false
-        } else if (title_mode == LiteGraph.AUTOHIDE_TITLE && mouse_over) {
-            render_title = true
-        }
+        const render_title = title_mode == LiteGraph.TRANSPARENT_TITLE || title_mode == LiteGraph.NO_TITLE
+            ? false
+            : true
 
         const area = LGraphCanvas.#tmp_area
         area[0] = 0 //x
