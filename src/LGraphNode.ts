@@ -1619,10 +1619,7 @@ export class LGraphNode {
     findInputSlotByType<TReturn extends false>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
     findInputSlotByType<TReturn extends true>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeInputSlot
     findInputSlotByType(type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
-        // Requires refactor
-        return returnObj
-            ? this.findSlotByType(true, type, true, preferFreeSlot, doNotUseOccupied)
-            : this.findSlotByType(true, type, false, preferFreeSlot, doNotUseOccupied)
+        return this.#findSlotByType(this.inputs, type, returnObj, preferFreeSlot, doNotUseOccupied)
     }
 
     /**
@@ -1631,10 +1628,7 @@ export class LGraphNode {
     findOutputSlotByType<TReturn extends false>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
     findOutputSlotByType<TReturn extends true>(type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeOutputSlot
     findOutputSlotByType(type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
-        // Requires refactor
-        return returnObj
-            ? this.findSlotByType(false, type, true, preferFreeSlot, doNotUseOccupied)
-            : this.findSlotByType(false, type, false, preferFreeSlot, doNotUseOccupied)
+        return this.#findSlotByType(this.outputs, type, returnObj, preferFreeSlot, doNotUseOccupied)
     }
 
     /**
@@ -1648,24 +1642,36 @@ export class LGraphNode {
     findSlotByType<TSlot extends true | false, TReturn extends false>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): number
     findSlotByType<TSlot extends true, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeInputSlot
     findSlotByType<TSlot extends false, TReturn extends true>(input: TSlot, type: ISlotType, returnObj?: TReturn, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): INodeOutputSlot
-    findSlotByType<TSlot extends true | false>(input: TSlot, type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
-        // TODO: Write wrappers to sanitise the "returnObj" situation
-        // @ts-expect-error
-        input ||= false
-        returnObj ||= false
-        preferFreeSlot ||= false
-        doNotUseOccupied ||= false
-        const slots = input ? this.inputs : this.outputs
-        if (!slots) return -1
+    findSlotByType(input: boolean, type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean) {
+        return input
+            ? this.#findSlotByType(this.inputs, type, returnObj, preferFreeSlot, doNotUseOccupied)
+            : this.#findSlotByType(this.outputs, type, returnObj, preferFreeSlot, doNotUseOccupied)
+    }
+
+    /**
+     * Finds a matching slot from those provided, returning the slot itself or its index in {@link slots}.
+     * @param slots Slots to search (this.inputs or this.outputs)
+     * @param type Type of slot to look for
+     * @param returnObj If true, returns the slot itself.  Otherwise, the index.
+     * @param preferFreeSlot Prefer a free slot, but if none are found, fall back to an occupied slot.
+     * @param doNotUseOccupied Do not fall back to occupied slots.
+     * @see {findSlotByType}
+     * @see {findOutputSlotByType}
+     * @see {findInputSlotByType}
+     * @returns If a match is found, the slot if returnObj is true, otherwise the index.  If no matches are found, -1
+     */
+    #findSlotByType<TSlot extends INodeInputSlot | INodeOutputSlot>(slots: TSlot[], type: ISlotType, returnObj?: boolean, preferFreeSlot?: boolean, doNotUseOccupied?: boolean): TSlot | number {
+        const length = slots?.length
+        if (!length) return -1
 
         // !! empty string type is considered 0, * !!
         if (type == "" || type == "*") type = 0
         const sourceTypes = String(type).toLowerCase().split(",")
 
         // Run the search
-        let occupiedSlot: number | INodeInputSlot | INodeOutputSlot = null
-        for (let i = 0, l = slots.length; i < l; ++i) {
-            const slot = slots[i]
+        let occupiedSlot: number | TSlot | null = null
+        for (let i = 0; i < length; ++i) {
+            const slot: TSlot & IGenericLinkOrLinks = slots[i]
             const destTypes = slot.type == "0" || slot.type == "*"
                 ? ["0"]
                 : String(slot.type).toLowerCase().split(",")
@@ -1678,8 +1684,7 @@ export class LGraphNode {
                     const dest = destType == "_event_" ? LiteGraph.EVENT : destType
 
                     if (source == dest || source === "*" || dest === "*") {
-                        // @ts-expect-error I/O link vs links issue
-                        if (preferFreeSlot && (slot.links?.length > 0 || slot.link != null)) {
+                        if (preferFreeSlot && (slot.links?.length || slot.link != null)) {
                             // In case we can't find a free slot.
                             occupiedSlot ??= returnObj ? slot : i
                             continue
@@ -1690,7 +1695,7 @@ export class LGraphNode {
             }
         }
 
-        return doNotUseOccupied ? -1 : occupiedSlot
+        return doNotUseOccupied ? -1 : occupiedSlot ?? -1
     }
 
     /**
