@@ -54,10 +54,9 @@ export interface IBoundaryNodes {
 
 export type Direction = "top" | "bottom" | "left" | "right"
 
-// TODO: Rename IOptionalSlotsData
-export interface IOptionalInputsData {
+export interface IOptionalSlotData<TSlot extends INodeInputSlot | INodeOutputSlot> {
     content: string
-    value?
+    value: TSlot
     className?: string
 }
 

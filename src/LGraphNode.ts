@@ -1,4 +1,4 @@
-import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalInputsData, ISlotType, Point, Rect, Size } from "./interfaces"
+import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
@@ -244,7 +244,7 @@ export class LGraphNode {
     onDrawCollapsed?(this: LGraphNode, ctx: CanvasRenderingContext2D, cavnas: LGraphCanvas): boolean
     onDrawForeground?(this: LGraphNode, ctx: CanvasRenderingContext2D, canvas: LGraphCanvas, canvasElement: HTMLCanvasElement): void
     onMouseLeave?(this: LGraphNode, e: CanvasMouseEvent): void
-    getSlotMenuOptions?(this: LGraphNode, slot: any): IOptionalInputsData[]
+    getSlotMenuOptions?(this: LGraphNode, slot: IFoundSlot): IContextMenuValue[]
     // FIXME: Re-typing
     onDropItem?(this: LGraphNode, event: Event): boolean
     onDropData?(this: LGraphNode, data: string | ArrayBuffer, filename: any, file: any): void
@@ -257,8 +257,8 @@ export class LGraphNode {
     onGetPropertyInfo?(this: LGraphNode, property: string): any
     onNodeOutputAdd?(this: LGraphNode, value): void
     onNodeInputAdd?(this: LGraphNode, value): void
-    onMenuNodeInputs?(this: LGraphNode, entries: IOptionalInputsData[]): IOptionalInputsData[]
-    onMenuNodeOutputs?(this: LGraphNode, entries: IOptionalInputsData[]): IOptionalInputsData[]
+    onMenuNodeInputs?(this: LGraphNode, entries: IOptionalSlotData<INodeInputSlot>[]): IOptionalSlotData<INodeInputSlot>[]
+    onMenuNodeOutputs?(this: LGraphNode, entries: IOptionalSlotData<INodeOutputSlot>[]): IOptionalSlotData<INodeOutputSlot>[]
     onGetInputs?(this: LGraphNode): INodeInputSlot[]
     onGetOutputs?(this: LGraphNode): INodeOutputSlot[]
     onMouseUp?(this: LGraphNode, e: CanvasMouseEvent, pos: Point): void
