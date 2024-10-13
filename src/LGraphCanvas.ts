@@ -208,8 +208,8 @@ export class LGraphCanvas {
     allow_reconnect_links: boolean
     align_to_grid: boolean
     drag_mode: boolean
-    dragging_rectangle?: Rect
-    filter?: string
+    dragging_rectangle: Rect | null
+    filter?: string | null
     set_canvas_dirty_on_mouse_event: boolean
     always_render_background: boolean
     render_shadows: boolean
@@ -223,23 +223,30 @@ export class LGraphCanvas {
     render_title_colored: boolean
     render_link_tooltip: boolean
     links_render_mode: number
+    /** mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle */
     mouse: Point
+    /** mouse in graph coordinates, where 0,0 is the top-left corner of the blue rectangle */
     graph_mouse: Point
+    /** @deprecated LEGACY: REMOVE THIS, USE {@link graph_mouse} INSTEAD */
     canvas_mouse: Point
+    /** to personalize the search box */
     onSearchBox?: (helper: Element, str: string, canvas: LGraphCanvas) => any
     onSearchBoxSelection?: (name: any, event: any, canvas: LGraphCanvas) => void
     onMouse?: (e: CanvasMouseEvent) => boolean
+    /** to render background objects (behind nodes and connections) in the canvas affected by transform */
     onDrawBackground?: (ctx: CanvasRenderingContext2D, visible_area: any) => void
+    /** to render foreground objects (above nodes and connections) in the canvas affected by transform */
     onDrawForeground?: (arg0: CanvasRenderingContext2D, arg1: any) => void
     connections_width: number
     round_radius: number
-    current_node: LGraphNode
-    node_widget?: [LGraphNode, IWidget]
-    over_link_center: LLink
+    current_node: LGraphNode | null
+    /** used for widgets */
+    node_widget?: [LGraphNode, IWidget] | null
+    over_link_center: LLink | null
     last_mouse_position: Point
     visible_area?: Rect32
     visible_links?: LLink[]
-    connecting_links: ConnectingLink[]
+    connecting_links: ConnectingLink[] | null
     viewport?: Rect
     autoresize: boolean
     static active_canvas: LGraphCanvas
@@ -312,12 +319,18 @@ export class LGraphCanvas {
     getMenuOptions?(): IContextMenuValue[]
     getExtraMenuOptions?(canvas: LGraphCanvas, options: IContextMenuValue[]): IContextMenuValue[]
     static active_node: LGraphNode
+    /** called before modifying the graph */
     onBeforeChange?(graph: LGraph): void
+    /** called after modifying the graph */
     onAfterChange?(graph: LGraph): void
     onClear?: () => void
+    /** called after moving a node */
     onNodeMoved?: (node_dragged: LGraphNode) => void
+    /** called if the selection changes */
     onSelectionChange?: (selected_nodes: Dictionary<LGraphNode>) => void
+    /** called when rendering a tooltip */
     onDrawLinkTooltip?: (ctx: CanvasRenderingContext2D, link: LLink, canvas?: LGraphCanvas) => boolean
+    /** to render foreground objects not affected by transform (for GUIs) */
     onDrawOverlay?: (ctx: CanvasRenderingContext2D) => void
     onRenderBackground?: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => boolean
     onNodeDblClicked?: (n: LGraphNode) => void
@@ -409,9 +422,9 @@ export class LGraphCanvas {
 
         this.links_render_mode = LiteGraph.SPLINE_LINK
 
-        this.mouse = [0, 0] //mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle
-        this.graph_mouse = [0, 0] //mouse in graph coordinates, where 0,0 is the top-left corner of the blue rectangle
-        this.canvas_mouse = this.graph_mouse //LEGACY: REMOVE THIS, USE GRAPH_MOUSE INSTEAD
+        this.mouse = [0, 0]
+        this.graph_mouse = [0, 0]
+        this.canvas_mouse = this.graph_mouse
 
         //to personalize the search box
         this.onSearchBox = null
@@ -419,23 +432,24 @@ export class LGraphCanvas {
 
         //callbacks
         this.onMouse = null
-        this.onDrawBackground = null //to render background objects (behind nodes and connections) in the canvas affected by transform
-        this.onDrawForeground = null //to render foreground objects (above nodes and connections) in the canvas affected by transform
-        this.onDrawOverlay = null //to render foreground objects not affected by transform (for GUIs)
-        this.onDrawLinkTooltip = null //called when rendering a tooltip
-        this.onNodeMoved = null //called after moving a node
-        this.onSelectionChange = null //called if the selection changes
+        this.onDrawBackground = null
+        this.onDrawForeground = null
+        this.onDrawOverlay = null
+        this.onDrawLinkTooltip = null
+        this.onNodeMoved = null
+        this.onSelectionChange = null
         // FIXME: Typo, does nothing
+        //called before any link changes
         // @ts-expect-error
-        this.onConnectingChange = null //called before any link changes
-        this.onBeforeChange = null //called before modifying the graph
-        this.onAfterChange = null //called after modifying the graph
+        this.onConnectingChange = null
+        this.onBeforeChange = null
+        this.onAfterChange = null
 
         this.connections_width = 3
         this.round_radius = 8
 
         this.current_node = null
-        this.node_widget = null //used for widgets
+        this.node_widget = null
         this.over_link_center = null
         this.last_mouse_position = [0, 0]
         this.visible_area = this.ds.visible_area
