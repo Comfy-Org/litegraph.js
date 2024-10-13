@@ -331,16 +331,19 @@ export class LGraphCanvas {
     // FIXME: Has never worked - undefined
     visible_rect?: Rect
 
-    constructor(canvas: HTMLCanvasElement, graph: LGraph, options?: { viewport?: any; skip_events?: any; skip_render?: any; autoresize?: any }) {
-        this.options = options = options || {}
+    /**
+     * Creates a new instance of LGraphCanvas.
+     * @param canvas The canvas HTML element (or its id) to use, or null / undefined to leave blank.
+     * @param graph The graph that owns this canvas.
+     * @param options 
+     */
+    constructor(canvas: HTMLCanvasElement, graph: LGraph, options?: LGraphCanvas["options"]) {
+        options ||= {}
+        this.options = options
 
         //if(graph === undefined)
         //	throw ("No graph assigned");
         this.background_image = LGraphCanvas.DEFAULT_BACKGROUND_IMAGE
-
-        if (canvas && typeof canvas === "string") {
-            canvas = document.querySelector(canvas)
-        }
 
         this.ds = new DragAndScale()
         this.zoom_modify_alpha = true //otherwise it generates ugly patterns when scaling down too much
@@ -1454,22 +1457,28 @@ export class LGraphCanvas {
         return this.graph
     }
     /**
+     * Finds the canvas if required, throwing on failure.
+     * @param canvas Canvas element, or its element ID
+     * @returns The canvas element
+     * @throws If {@link canvas} is an element ID that does not belong to a valid HTML canvas element
+     */
+    #validateCanvas(canvas: string | HTMLCanvasElement): HTMLCanvasElement & { data?: LGraphCanvas } {
+        if (typeof canvas === "string") {
+            const el = document.getElementById(canvas)
+            if (!(el instanceof HTMLCanvasElement)) throw "Error validating LiteGraph canvas: Canvas element not found"
+            return el
+        }
+        return canvas
+    }
+    /**
      * Sets the current HTML canvas element.
      * Calls bindEvents to add input event listeners, and (re)creates the background canvas.
      *
      * @param canvas The canvas element to assign, or its HTML element ID.  If null or undefined, the current reference is cleared.
      * @param skip_events If true, events on the previous canvas will not be removed.  Has no effect on the first invocation.
      */
-    setCanvas(canvas: string | HTMLCanvasElement & { data?: LGraphCanvas }, skip_events?: boolean) {
-        let element: HTMLCanvasElement & { data?: LGraphCanvas }
-        if (typeof canvas === "string") {
-            const el = document.getElementById(canvas)
-            if (!(el instanceof HTMLCanvasElement)) throw "Error creating LiteGraph canvas: Canvas not found"
-            element = el
-        } else {
-            element = canvas
-        }
-
+    setCanvas(canvas: string | HTMLCanvasElement, skip_events?: boolean) {
+        const element = this.#validateCanvas(canvas)
         if (element === this.canvas) return
         //maybe detach events from old_canvas
         if (!element && this.canvas && !skip_events) this.unbindEvents()
