@@ -251,35 +251,35 @@ export class LGraphCanvas {
     autoresize: boolean
     static active_canvas: LGraphCanvas
     static onMenuNodeOutputs?(entries: IOptionalSlotData<INodeOutputSlot>[]): IOptionalSlotData<INodeOutputSlot>[]
-    frame: number
-    last_draw_time: number
-    render_time: number
-    fps: number
-    selected_nodes: Dictionary<LGraphNode>
+    frame = 0
+    last_draw_time = 0
+    render_time = 0
+    fps = 0
+    selected_nodes: Dictionary<LGraphNode> = {}
     /** @deprecated Temporary implementation only - will be replaced with `selectedItems: Set<Positionable>`. */
-    selectedGroups: Set<LGraphGroup>
-    selected_group: LGraphGroup
-    visible_nodes: LGraphNode[]
+    selectedGroups: Set<LGraphGroup> = new Set()
+    selected_group: LGraphGroup | null = null
+    visible_nodes: LGraphNode[] = []
     node_dragged?: LGraphNode
     node_over?: LGraphNode
     node_capturing_input?: LGraphNode
-    highlighted_links: Dictionary<boolean>
+    highlighted_links: Dictionary<boolean> = {}
     link_over_widget?: IWidget
     link_over_widget_type?: string
 
-    dirty_canvas: boolean
-    dirty_bgcanvas: boolean
+    dirty_canvas: boolean = true
+    dirty_bgcanvas: boolean = true
     /** A map of nodes that require selective-redraw */
     dirty_nodes = new Map<NodeId, LGraphNode>()
     dirty_area?: Rect
     // Unused
     node_in_panel?: LGraphNode
-    last_mouse: Point
-    last_mouseclick: number
-    pointer_is_down: boolean
-    pointer_is_double: boolean
-    graph: LGraph
-    _graph_stack: LGraph[]
+    last_mouse: Point = [0, 0]
+    last_mouseclick: number = 0
+    pointer_is_down: boolean = false
+    pointer_is_double: boolean = false
+    graph!: LGraph
+    _graph_stack: LGraph[] | null = null
     canvas: HTMLCanvasElement
     bgcanvas: HTMLCanvasElement
     ctx?: CanvasRenderingContext2D
