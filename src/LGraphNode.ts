@@ -103,7 +103,7 @@ supported callbacks:
 */
 
 export interface LGraphNode {
-    constructor?: LGraphNodeConstructor
+    constructor: LGraphNodeConstructor
 }
 
 /**
@@ -1088,7 +1088,7 @@ export class LGraphNode {
     addOutputs(array: [string, ISlotType, Record<string, unknown>][]): void {
         for (let i = 0; i < array.length; ++i) {
             const info = array[i]
-            const o = { name: info[0], type: info[1], link: null }
+            const o = { name: info[0], type: info[1], links: null }
             if (array[2]) {
                 for (const j in info[2]) {
                     o[j] = info[2][j]

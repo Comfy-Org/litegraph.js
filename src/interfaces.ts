@@ -87,12 +87,12 @@ export interface INodeFlags {
 }
 
 export interface INodeInputSlot extends INodeSlot {
-    link?: LinkId
+    link: LinkId | null
     not_subgraph_input?: boolean
 }
 
 export interface INodeOutputSlot extends INodeSlot {
-    links?: LinkId[]
+    links: LinkId[] | null
     _data?: unknown
     slot_index?: number
     not_subgraph_output?: boolean
