@@ -1435,43 +1435,36 @@ export class LGraphCanvas {
         return this.graph
     }
     /**
-     * assigns a canvas
+     * Sets the current HTML canvas element.
+     * Calls bindEvents to add input event listeners, and (re)creates the background canvas.
      *
-     * @param {Canvas} assigns a canvas (also accepts the ID of the element (not a selector)
+     * @param canvas The canvas element to assign, or its HTML element ID.  If null or undefined, the current reference is cleared.
+     * @param skip_events If true, events on the previous canvas will not be removed.  Has no effect on the first invocation.
      */
-    setCanvas(canvas?: string | HTMLCanvasElement, skip_events?: boolean) {
-        // TODO: Remove input mutation
+    setCanvas(canvas: string | HTMLCanvasElement & { data?: LGraphCanvas }, skip_events?: boolean) {
+        let element: HTMLCanvasElement & { data?: LGraphCanvas }
         if (typeof canvas === "string") {
-            // @ts-expect-error
-            canvas = document.getElementById(canvas)
-            if (!canvas) {
-                throw "Error creating LiteGraph canvas: Canvas not found"
-            }
+            const el = document.getElementById(canvas)
+            if (!(el instanceof HTMLCanvasElement)) throw "Error creating LiteGraph canvas: Canvas not found"
+            element = el
+        } else {
+            element = canvas
         }
 
-        if (canvas === this.canvas) return
+        if (element === this.canvas) return
+        //maybe detach events from old_canvas
+        if (!element && this.canvas && !skip_events) this.unbindEvents()
 
-        if (!canvas && this.canvas) {
-            //maybe detach events from old_canvas
-            if (!skip_events) {
-                this.unbindEvents()
-            }
-        }
+        this.canvas = element
+        this.ds.element = element
 
-        // @ts-expect-error
-        this.canvas = canvas
-        // @ts-expect-error
-        this.ds.element = canvas
+        if (!element) return
 
-        if (!canvas) return
-
-        //this.canvas.tabindex = "1000";
-        // @ts-expect-error
-        canvas.className += " lgraphcanvas"
-        // @ts-expect-error
-        canvas.data = this
-        // @ts-expect-error
-        canvas.tabindex = "1" //to allow key events
+        // TODO: classList.add
+        element.className += " lgraphcanvas"
+        element.data = this
+        // @ts-expect-error Likely safe to remove.  A decent default, but expectation is to be configured by calling app.
+        element.tabindex = "1" //to allow key events
 
         // Background canvas: To render objects behind nodes (background, links, groups)
         this.bgcanvas = null
@@ -1480,22 +1473,18 @@ export class LGraphCanvas {
             this.bgcanvas.width = this.canvas.width
             this.bgcanvas.height = this.canvas.height
         }
-        // @ts-expect-error
-        if (canvas.getContext == null) {
-            // @ts-expect-error
-            if (canvas.localName != "canvas") {
+        if (element.getContext == null) {
+            if (element.localName != "canvas") {
                 throw "Element supplied for LGraphCanvas must be a <canvas> element, you passed a " +
-                // @ts-expect-error
-                canvas.localName
+                element.localName
             }
             throw "This browser doesn't support Canvas"
         }
 
-        // @ts-expect-error
-        const ctx = (this.ctx = canvas.getContext("2d"))
+        const ctx = (this.ctx = element.getContext("2d"))
         if (ctx == null) {
-            // @ts-expect-error
-            if (!canvas.webgl_enabled) {
+            // @ts-expect-error WebGL
+            if (!element.webgl_enabled) {
                 console.warn(
                     "This canvas seems to be WebGL, enabling WebGL renderer"
                 )
