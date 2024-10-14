@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink } from "./interfaces"
+import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
@@ -13,7 +13,7 @@ import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrEmpty, stringOrNull } from "./strings"
-import { distributeNodes } from "./utils/arrange"
+import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 
 interface IShowSearchOptions {
     node_to?: LGraphNode
@@ -546,84 +546,29 @@ export class LGraphCanvas {
         canvas.graph.add(group)
     }
     /**
+     * @deprecated Functionality moved to {@link getBoundaryNodes}.  The new function returns null on failure, instead of an object with all null properties.
      * Determines the furthest nodes in each direction
      * @param {Dictionary<LGraphNode>} nodes the nodes to from which boundary nodes will be extracted
      * @return {{left: LGraphNode, top: LGraphNode, right: LGraphNode, bottom: LGraphNode}}
      */
-    static getBoundaryNodes(nodes: LGraphNode[] | Dictionary<LGraphNode>): IBoundaryNodes {
-        let top = null
-        let right = null
-        let bottom = null
-        let left = null
-        for (const nID in nodes) {
-            const node = nodes[nID]
-            const [x, y] = node.pos
-            const [width, height] = node.size
-
-            if (top === null || y < top.pos[1]) {
-                top = node
-            }
-            if (right === null || x + width > right.pos[0] + right.size[0]) {
-                right = node
-            }
-            if (bottom === null || y + height > bottom.pos[1] + bottom.size[1]) {
-                bottom = node
-            }
-            if (left === null || x < left.pos[0]) {
-                left = node
-            }
-        }
-
-        return {
-            "top": top,
-            "right": right,
-            "bottom": bottom,
-            "left": left
+    static getBoundaryNodes(nodes: LGraphNode[] | Dictionary<LGraphNode>): NullableProperties<IBoundaryNodes> {
+        const _nodes = Array.isArray(nodes) ? nodes : Object.values(nodes)
+        return getBoundaryNodes(_nodes) ?? {
+            top: null,
+            right: null,
+            bottom: null,
+            left: null
         }
     }
     /**
-     *
+     * @deprecated Functionality moved to {@link alignNodes}.  The new function does not set dirty canvas.
      * @param {Dictionary<LGraphNode>} nodes a list of nodes
      * @param {"top"|"bottom"|"left"|"right"} direction Direction to align the nodes
      * @param {LGraphNode?} align_to Node to align to (if null, align to the furthest node in the given direction)
      */
     static alignNodes(nodes: Dictionary<LGraphNode>, direction: Direction, align_to?: LGraphNode): void {
-        if (!nodes) {
-            return
-        }
-
-        const canvas = LGraphCanvas.active_canvas
-        let boundaryNodes: IBoundaryNodes
-        if (align_to === undefined) {
-            boundaryNodes = LGraphCanvas.getBoundaryNodes(nodes)
-        } else {
-            boundaryNodes = {
-                "top": align_to,
-                "right": align_to,
-                "bottom": align_to,
-                "left": align_to
-            }
-        }
-
-        for (const node of Object.values(canvas.selected_nodes)) {
-            switch (direction) {
-                case "right":
-                    node.pos[0] = boundaryNodes["right"].pos[0] + boundaryNodes["right"].size[0] - node.size[0]
-                    break
-                case "left":
-                    node.pos[0] = boundaryNodes["left"].pos[0]
-                    break
-                case "top":
-                    node.pos[1] = boundaryNodes["top"].pos[1]
-                    break
-                case "bottom":
-                    node.pos[1] = boundaryNodes["bottom"].pos[1] + boundaryNodes["bottom"].size[1] - node.size[1]
-                    break
-            }
-        }
-
-        canvas.dirty_canvas = true
-        canvas.dirty_bgcanvas = true
+        alignNodes(Object.values(nodes), direction, align_to)
+        LGraphCanvas.active_canvas.setDirty(true, true)
     }
     static onNodeAlign(value: IContextMenuValue, options: IContextMenuOptions, event: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): void {
         new LiteGraph.ContextMenu(["Top", "Bottom", "Left", "Right"], {
@@ -633,7 +578,8 @@ export class LGraphCanvas {
         })
 
         function inner_clicked(value: string) {
-            LGraphCanvas.alignNodes(LGraphCanvas.active_canvas.selected_nodes, (value.toLowerCase() as Direction), node)
+            alignNodes(Object.values(LGraphCanvas.active_canvas.selected_nodes), (value.toLowerCase() as Direction), node)
+            LGraphCanvas.active_canvas.setDirty(true, true)
         }
     }
     static onGroupAlign(value: IContextMenuValue, options: IContextMenuOptions, event: MouseEvent, prev_menu: ContextMenu): void {
@@ -644,7 +590,8 @@ export class LGraphCanvas {
         })
 
         function inner_clicked(value: string) {
-            LGraphCanvas.alignNodes(LGraphCanvas.active_canvas.selected_nodes, (value.toLowerCase() as Direction))
+            alignNodes(Object.values(LGraphCanvas.active_canvas.selected_nodes), (value.toLowerCase() as Direction))
+            LGraphCanvas.active_canvas.setDirty(true, true)
         }
     }
     static createDistributeMenu(value: IContextMenuValue, options: IContextMenuOptions, event: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): void {
@@ -6049,8 +5996,8 @@ export class LGraphCanvas {
      * Determines the furthest nodes in each direction for the currently selected nodes
      * @return {{left: LGraphNode, top: LGraphNode, right: LGraphNode, bottom: LGraphNode}}
      */
-    boundaryNodesForSelection(): IBoundaryNodes {
-        return LGraphCanvas.getBoundaryNodes(Object.values(this.selected_nodes))
+    boundaryNodesForSelection(): NullableProperties<IBoundaryNodes> {
+        return LGraphCanvas.getBoundaryNodes(this.selected_nodes)
     }
     showLinkMenu(link: LLink, e: CanvasMouseEvent): boolean {
         const graph = this.graph
