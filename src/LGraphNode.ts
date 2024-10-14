@@ -1423,6 +1423,22 @@ export class LGraphNode {
     }
 
     /**
+     * Measures the node for rendering, populating outArea with the results in graph space.
+     * @param out Results (x, y, width, height) are inserted into this array.
+     * @param pad Expands the area by this amount on each side.  Default: 0
+     */
+    measure(out: Rect, pad = 0): void {
+        const titleMode = this.constructor.title_mode
+        const renderTitle = titleMode != LiteGraph.TRANSPARENT_TITLE && titleMode != LiteGraph.NO_TITLE
+        const titleHeight = renderTitle ? LiteGraph.NODE_TITLE_HEIGHT : 0
+
+        out[0] = 0 - pad
+        out[1] = -titleHeight - pad
+        out[2] = this.size[0] + 1 + (2 * pad)
+        out[3] = this.size[1] + titleHeight + (2 * pad)
+    }
+
+    /**
      * returns the bounding of the object, used for rendering purposes
      * @param out {Float32Array[4]?} [optional] a place to store the output, to free garbage
      * @param compute_outer {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation

@@ -3846,27 +3846,8 @@ export class LGraphCanvas {
                     }
                     ctx.fill()
 
-                    ctx.fillStyle = "#ffcc00"
-                    if (this._highlight_pos) {
-                        ctx.beginPath()
-                        const shape = this._highlight_input?.shape
-
-                        if (shape === RenderShape.ARROW) {
-                            ctx.moveTo(highlightPos[0] + 8, highlightPos[1] + 0.5)
-                            ctx.lineTo(highlightPos[0] - 4, highlightPos[1] + 6 + 0.5)
-                            ctx.lineTo(highlightPos[0] - 4, highlightPos[1] - 6 + 0.5)
-                            ctx.closePath()
-                        } else {
-                            ctx.arc(
-                                highlightPos[0],
-                                highlightPos[1],
-                                6,
-                                0,
-                                Math.PI * 2
-                            )
-                        }
-                        ctx.fill()
-                    }
+                    // Gradient half-border over target node
+                    this.#renderSnapHighlight(ctx, highlightPos)
                 }
             }
 
@@ -3917,6 +3898,100 @@ export class LGraphCanvas {
             ? this._highlight_pos ?? this.graph_mouse
             : this.graph_mouse
     }
+
+    /**
+     * Renders indicators showing where a link will connect if released.
+     * Partial border over target node and a highlight over the slot itself.
+     * @param ctx Canvas 2D context
+     */
+    #renderSnapHighlight(ctx: CanvasRenderingContext2D, highlightPos: Point): void {
+        if (!this._highlight_pos) return
+
+        ctx.fillStyle = "#ffcc00"
+        ctx.beginPath()
+        const shape = this._highlight_input?.shape
+
+        if (shape === RenderShape.ARROW) {
+            ctx.moveTo(highlightPos[0] + 8, highlightPos[1] + 0.5)
+            ctx.lineTo(highlightPos[0] - 4, highlightPos[1] + 6 + 0.5)
+            ctx.lineTo(highlightPos[0] - 4, highlightPos[1] - 6 + 0.5)
+            ctx.closePath()
+        } else {
+            ctx.arc(
+                highlightPos[0],
+                highlightPos[1],
+                6,
+                0,
+                Math.PI * 2
+            )
+        }
+        ctx.fill()
+
+        if (!LiteGraph.snap_highlights_node) return
+
+        // Ensure we're mousing over a node and connecting a link
+        const node = this.node_over
+        if (!(node && this.connecting_links?.[0])) return
+
+        const transform = ctx.getTransform()
+        const { strokeStyle, lineWidth } = ctx
+
+        const area = LGraphCanvas.#tmp_area
+        node.measure(area)
+        node.onBounding?.(area)
+        const gap = 3
+        const radius = this.round_radius + gap
+
+        const x = area[0] - gap
+        const y = area[1] - gap
+        const width = area[2] + (gap * 2)
+        const height = area[3] + (gap * 2)
+
+        ctx.translate(node.pos[0], node.pos[1])
+        ctx.beginPath()
+        ctx.roundRect(x, y, width, height, radius)
+
+        // TODO: Currently works on LTR slots only.  Add support for other directions.
+        const start = this.connecting_links[0].output === null ? 0 : 1
+        const inverter = start ? -1 : 1
+
+        // Radial highlight centred on highlight pos
+        const hx = highlightPos[0] - node.pos[0]
+        const hy = highlightPos[1] - node.pos[1]
+        const gRadius = width < height
+            ? width
+            : width * Math.max(height / width, 0.5)
+
+        const gradient = ctx.createRadialGradient(hx, hy, 0, hx, hy, gRadius)
+        gradient.addColorStop(1, "#00000000")
+        gradient.addColorStop(0, "#ffcc00aa")
+
+        // Linear gradient over half the node.
+        const linearGradient = ctx.createLinearGradient(x, y, x + width, y)
+        linearGradient.addColorStop(0.5, "#00000000")
+        linearGradient.addColorStop(start + (0.67 * inverter), "#ddeeff33")
+        linearGradient.addColorStop(start + inverter, "#ffcc0055")
+
+        /**
+         * Workaround for a canvas render issue.
+         * In Chromium 129 (2024-10-15), rounded corners can be rendered with the wrong part of a gradient colour.
+         * Occurs only at certain thicknesses / arc sizes.
+         */
+        ctx.setLineDash([radius, radius * 0.001])
+
+        ctx.lineWidth = 1
+        ctx.strokeStyle = linearGradient
+        ctx.stroke()
+
+        ctx.strokeStyle = gradient
+        ctx.stroke()
+
+        ctx.setLineDash([])
+        ctx.lineWidth = lineWidth
+        ctx.strokeStyle = strokeStyle
+        ctx.setTransform(transform)
+    }
+
     /**
      * draws the panel in the corner that shows subgraph properties
      **/
@@ -4696,10 +4771,7 @@ export class LGraphCanvas {
             : true
 
         const area = LGraphCanvas.#tmp_area
-        area[0] = 0 //x
-        area[1] = render_title ? -title_height : 0 //y
-        area[2] = size[0] + 1 //w
-        area[3] = render_title ? size[1] + title_height : size[1] //h
+        node.measure(area)
 
         const old_alpha = ctx.globalAlpha
 
