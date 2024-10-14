@@ -1794,8 +1794,9 @@ export class LGraphNode {
      * @param {number | string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
      * @return {Object} the link_info is created, otherwise null
      */
-    connect(slot: number | string, target_node: LGraphNode, target_slot: ISlotType | false): LLink | null {
-        target_slot = target_slot || 0
+    connect(slot: number | string, target_node: LGraphNode, target_slot: ISlotType): LLink | null {
+        // Allow legacy API support for searching target_slot by string, without mutating the input variables
+        let targetIndex: number
 
         if (!this.graph) {
             //could be connected before adding it to a graph
@@ -1826,59 +1827,63 @@ export class LGraphNode {
 
         //you can specify the slot by name
         if (typeof target_slot === "string") {
-            target_slot = target_node.findInputSlot(target_slot)
-            if (target_slot == -1) {
-                if (LiteGraph.debug) console.log("Connect: Error, no slot of name " + target_slot)
+            targetIndex = target_node.findInputSlot(target_slot)
+            if (targetIndex == -1) {
+                if (LiteGraph.debug) console.log("Connect: Error, no slot of name " + targetIndex)
                 return null
             }
         } else if (target_slot === LiteGraph.EVENT) {
             // TODO: Events
             if (LiteGraph.do_add_triggers_slots) {
                 target_node.changeMode(LiteGraph.ON_TRIGGER)
-                target_slot = target_node.findInputSlot("onTrigger")
+                targetIndex = target_node.findInputSlot("onTrigger")
             } else {
-                return null // -- break --
+                return null
             }
-        } else if (!target_node.inputs ||
-            target_slot >= target_node.inputs.length) {
+        } else if (typeof target_slot === "number") {
+            targetIndex = target_slot
+        } else {
+            targetIndex = 0
+        }
+
+        // Allow target node to change slot
+        if (target_node.onBeforeConnectInput) {
+            // This way node can choose another slot (or make a new one?)
+            const requestedIndex: false | number | null = target_node.onBeforeConnectInput(targetIndex, target_slot)
+            targetIndex = typeof requestedIndex === "number" ? requestedIndex : null
+        }
+
+        if (targetIndex === null || !target_node.inputs || targetIndex >= target_node.inputs.length) {
             if (LiteGraph.debug) console.log("Connect: Error, slot number not found")
             return null
         }
 
         let changed = false
 
-        const input = target_node.inputs[target_slot]
+        const input = target_node.inputs[targetIndex]
         let link_info: LLink = null
         const output = this.outputs[slot]
 
         if (!this.outputs[slot]) return null
 
-        // allow target node to change slot
-        if (target_node.onBeforeConnectInput) {
-            // This way node can choose another slot (or make a new one?)
-            target_slot = target_node.onBeforeConnectInput(target_slot) //callback
-        }
-
-        //check target_slot and check connection types
-        if (target_slot === false || target_slot === null || !LiteGraph.isValidConnection(output.type, input.type)) {
+        //check targetSlot and check connection types
+        if (!LiteGraph.isValidConnection(output.type, input.type)) {
             this.setDirtyCanvas(false, true)
-            if (changed)
-                this.graph.connectionChange(this)
+            // @ts-expect-error Unused param
+            if (changed) this.graph.connectionChange(this, link_info)
             return null
-        } else {
-            //console.debug("valid connection",output.type, input.type);
         }
 
-        //allows nodes to block connection, callback
-        if (target_node.onConnectInput?.(target_slot, output.type, output, this, slot) === false)
+        // Allow nodes to block connection
+        if (target_node.onConnectInput?.(targetIndex, output.type, output, this, slot) === false)
             return null
-        if (this.onConnectOutput?.(slot, input.type, input, target_node, target_slot) === false)
+        if (this.onConnectOutput?.(slot, input.type, input, target_node, targetIndex) === false)
             return null
 
         //if there is something already plugged there, disconnect
-        if (target_node.inputs[target_slot] && target_node.inputs[target_slot].link != null) {
+        if (target_node.inputs[targetIndex]?.link != null) {
             this.graph.beforeChange()
-            target_node.disconnectInput(target_slot)
+            target_node.disconnectInput(targetIndex)
             changed = true
         }
         if (output.links?.length) {
@@ -1901,7 +1906,7 @@ export class LGraphNode {
             this.id,
             slot,
             target_node.id,
-            target_slot
+            targetIndex
         )
 
         //add to graph links list
@@ -1911,7 +1916,7 @@ export class LGraphNode {
         output.links ??= []
         output.links.push(link_info.id)
         //connect in input
-        target_node.inputs[target_slot].link = link_info.id
+        target_node.inputs[targetIndex].link = link_info.id
         if (this.graph) this.graph._version++
 
         //link_info has been created now, so its updated
@@ -1925,7 +1930,7 @@ export class LGraphNode {
 
         target_node.onConnectionsChange?.(
             LiteGraph.INPUT,
-            target_slot,
+            targetIndex,
             true,
             link_info,
             input
@@ -1933,7 +1938,7 @@ export class LGraphNode {
         this.graph?.onNodeConnectionChange?.(
             LiteGraph.INPUT,
             target_node,
-            target_slot,
+            targetIndex,
             this,
             slot
         )
@@ -1942,7 +1947,7 @@ export class LGraphNode {
             this,
             slot,
             target_node,
-            target_slot
+            targetIndex
         )
 
         this.setDirtyCanvas(false, true)
