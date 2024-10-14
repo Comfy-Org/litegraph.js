@@ -1788,10 +1788,10 @@ export class LGraphNode {
     }
 
     /**
-     * connect this node output to the input of another node
-     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
-     * @param {LGraphNode} node the target node
-     * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
+     * Connect an output of this node to an input of another node
+     * @param {number | string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {LGraphNode} target_node the target node
+     * @param {number | string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
      * @return {Object} the link_info is created, otherwise null
      */
     connect(slot: number | string, target_node: LGraphNode, target_slot: ISlotType | false): LLink | null {
@@ -1799,9 +1799,8 @@ export class LGraphNode {
 
         if (!this.graph) {
             //could be connected before adding it to a graph
-            console.log(
-                "Connect: Error, node doesn't belong to any graph. Nodes must be added first to a graph before connecting them."
-            ) //due to link ids being associated with graphs
+            //due to link ids being associated with graphs
+            console.log("Connect: Error, node doesn't belong to any graph. Nodes must be added first to a graph before connecting them.")
             return null
         }
 
@@ -1809,47 +1808,32 @@ export class LGraphNode {
         if (typeof slot === "string") {
             slot = this.findOutputSlot(slot)
             if (slot == -1) {
-                if (LiteGraph.debug) {
-                    console.log("Connect: Error, no slot of name " + slot)
-                }
+                if (LiteGraph.debug) console.log("Connect: Error, no slot of name " + slot)
                 return null
             }
         } else if (!this.outputs || slot >= this.outputs.length) {
-            if (LiteGraph.debug) {
-                console.log("Connect: Error, slot number not found")
-            }
+            if (LiteGraph.debug) console.log("Connect: Error, slot number not found")
             return null
         }
 
         if (target_node && typeof target_node === "number") {
             target_node = this.graph.getNodeById(target_node)
         }
-        if (!target_node) {
-            throw "target node is null"
-        }
+        if (!target_node) throw "target node is null"
 
         //avoid loopback
-        if (target_node == this) {
-            return null
-        }
+        if (target_node == this) return null
 
         //you can specify the slot by name
         if (typeof target_slot === "string") {
             target_slot = target_node.findInputSlot(target_slot)
             if (target_slot == -1) {
-                if (LiteGraph.debug) {
-                    console.log(
-                        "Connect: Error, no slot of name " + target_slot
-                    )
-                }
+                if (LiteGraph.debug) console.log("Connect: Error, no slot of name " + target_slot)
                 return null
             }
         } else if (target_slot === LiteGraph.EVENT) {
-
+            // TODO: Events
             if (LiteGraph.do_add_triggers_slots) {
-                //search for first slot with event? :: NO this is done outside
-                //console.log("Connect: Creating triggerEvent");
-                // force mode
                 target_node.changeMode(LiteGraph.ON_TRIGGER)
                 target_slot = target_node.findInputSlot("onTrigger")
             } else {
@@ -1857,23 +1841,17 @@ export class LGraphNode {
             }
         } else if (!target_node.inputs ||
             target_slot >= target_node.inputs.length) {
-            if (LiteGraph.debug) {
-                console.log("Connect: Error, slot number not found")
-            }
+            if (LiteGraph.debug) console.log("Connect: Error, slot number not found")
             return null
         }
 
         let changed = false
 
         const input = target_node.inputs[target_slot]
-        let link_info = null
+        let link_info: LLink = null
         const output = this.outputs[slot]
 
-        if (!this.outputs[slot]) {
-            /*console.debug("Invalid slot passed: "+slot);
-            console.debug(this.outputs);*/
-            return null
-        }
+        if (!this.outputs[slot]) return null
 
         // allow target node to change slot
         if (target_node.onBeforeConnectInput) {
@@ -1892,16 +1870,10 @@ export class LGraphNode {
         }
 
         //allows nodes to block connection, callback
-        if (target_node.onConnectInput) {
-            if (target_node.onConnectInput(target_slot, output.type, output, this, slot) === false) {
-                return null
-            }
-        }
-        if (this.onConnectOutput) { // callback
-            if (this.onConnectOutput(slot, input.type, input, target_node, target_slot) === false) {
-                return null
-            }
-        }
+        if (target_node.onConnectInput?.(target_slot, output.type, output, this, slot) === false)
+            return null
+        if (this.onConnectOutput?.(slot, input.type, input, target_node, target_slot) === false)
+            return null
 
         //if there is something already plugged there, disconnect
         if (target_node.inputs[target_slot] && target_node.inputs[target_slot].link != null) {
@@ -1909,27 +1881,18 @@ export class LGraphNode {
             target_node.disconnectInput(target_slot)
             changed = true
         }
-        if (output.links !== null && output.links.length) {
-            switch (output.type) {
-                case LiteGraph.EVENT:
-                    if (!LiteGraph.allow_multi_output_for_events) {
-                        this.graph.beforeChange()
-                        this.disconnectOutput(slot)
-                        changed = true
-                    }
-                    break
-                default:
-                    break
+        if (output.links?.length) {
+            if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
+                this.graph.beforeChange()
+                // @ts-expect-error Unused param
+                this.disconnectOutput(slot, false, { doProcessChange: false })
+                changed = true
             }
         }
 
-        let nextId
-        if (LiteGraph.use_uuids)
-            nextId = LiteGraph.uuidv4()
-
-
-        else
-            nextId = ++this.graph.last_link_id
+        const nextId = LiteGraph.use_uuids
+            ? LiteGraph.uuidv4()
+            : ++this.graph.last_link_id
 
         //create link class
         link_info = new LLink(
@@ -1945,49 +1908,42 @@ export class LGraphNode {
         this.graph.links[link_info.id] = link_info
 
         //connect in output
-        if (output.links == null) {
-            output.links = []
-        }
+        output.links ??= []
         output.links.push(link_info.id)
         //connect in input
         target_node.inputs[target_slot].link = link_info.id
-        if (this.graph) {
-            this.graph._version++
-        }
-        if (this.onConnectionsChange) {
-            this.onConnectionsChange(
-                LiteGraph.OUTPUT,
-                slot,
-                true,
-                link_info,
-                output
-            )
-        } //link_info has been created now, so its updated
-        if (target_node.onConnectionsChange) {
-            target_node.onConnectionsChange(
-                LiteGraph.INPUT,
-                target_slot,
-                true,
-                link_info,
-                input
-            )
-        }
-        if (this.graph && this.graph.onNodeConnectionChange) {
-            this.graph.onNodeConnectionChange(
-                LiteGraph.INPUT,
-                target_node,
-                target_slot,
-                this,
-                slot
-            )
-            this.graph.onNodeConnectionChange(
-                LiteGraph.OUTPUT,
-                this,
-                slot,
-                target_node,
-                target_slot
-            )
-        }
+        if (this.graph) this.graph._version++
+
+        //link_info has been created now, so its updated
+        this.onConnectionsChange?.(
+            LiteGraph.OUTPUT,
+            slot,
+            true,
+            link_info,
+            output
+        )
+
+        target_node.onConnectionsChange?.(
+            LiteGraph.INPUT,
+            target_slot,
+            true,
+            link_info,
+            input
+        )
+        this.graph?.onNodeConnectionChange?.(
+            LiteGraph.INPUT,
+            target_node,
+            target_slot,
+            this,
+            slot
+        )
+        this.graph?.onNodeConnectionChange?.(
+            LiteGraph.OUTPUT,
+            this,
+            slot,
+            target_node,
+            target_slot
+        )
 
         this.setDirtyCanvas(false, true)
         this.graph.afterChange()
