@@ -643,8 +643,8 @@ export class LGraphCanvas {
             parentMenu: prev_menu,
         })
 
-        function inner_clicked(value) {
-            LGraphCanvas.alignNodes(LGraphCanvas.active_canvas.selected_nodes, value.toLowerCase())
+        function inner_clicked(value: string) {
+            LGraphCanvas.alignNodes(LGraphCanvas.active_canvas.selected_nodes, (value.toLowerCase() as Direction))
         }
     }
     static createDistributeMenu(value: IContextMenuValue, options: IContextMenuOptions, event: MouseEvent, prev_menu: ContextMenu, node: LGraphNode): void {
