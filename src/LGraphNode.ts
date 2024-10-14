@@ -24,8 +24,9 @@ export type INodeProperties = Dictionary<unknown> & {
 }
 
 interface IMouseOverData {
-    inputId: number
-    outputId: number
+    inputId: number | null
+    outputId: number | null
+    overWidget: IWidget | null
 }
 
 interface ConnectByTypeOptions {
