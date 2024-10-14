@@ -1592,8 +1592,7 @@ export class LGraphNode {
 
     /**
      * Finds the next free slot
-     * @param isInput If true, search for an input.  Otherwise, search for an output.
-     * @param slots The slots to search, i.e. this.inputs or this.outputs.  Must match provided value in isInput.
+     * @param slots The slots to search, i.e. this.inputs or this.outputs
      * @param options Options
      */
     #findFreeSlot<TSlot extends INodeInputSlot | INodeOutputSlot>(slots: TSlot[], options?: FindFreeSlotOptions): TSlot | number {
@@ -1754,11 +1753,11 @@ export class LGraphNode {
     /**
      * connect this node output to the input of another node BY TYPE
      * @param {number} slot (could be the number of the slot or the string with the name of the slot)
-     * @param {LGraphNode} node the target node
-     * @param {string} target_type the input slot type of the target node
+     * @param {LGraphNode} target_node the target node
+     * @param {string} target_slotType the input slot type of the target node
      * @return {Object} the link_info is created, otherwise null
      */
-    connectByType(slot: number, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: ConnectByTypeOptions): LLink | null {
+    connectByType(slot: number | string, target_node: LGraphNode, target_slotType: ISlotType, optsIn?: ConnectByTypeOptions): LLink | null {
         const slotIndex = this.findConnectByTypeSlot(true, target_node, target_slotType, optsIn)
         if (slotIndex !== null) return this.connect(slot, target_node, slotIndex)
         return null
@@ -1767,12 +1766,12 @@ export class LGraphNode {
     /**
      * connect this node input to the output of another node BY TYPE
      * @method connectByType
-     * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
+     * @param {number | string} slot (could be the number of the slot or the string with the name of the slot)
      * @param {LGraphNode} source_node the target node
      * @param {string} source_slotType the output slot type of the target node
      * @return {Object} the link_info is created, otherwise null
      */
-    connectByTypeOutput(slot: number, source_node: LGraphNode, source_slotType: ISlotType, optsIn?: ConnectByTypeOptions): LLink | null {
+    connectByTypeOutput(slot: number | string, source_node: LGraphNode, source_slotType: ISlotType, optsIn?: ConnectByTypeOptions): LLink | null {
         // LEGACY: Old options names
         if (typeof optsIn === "object") {
             if ("firstFreeIfInputGeneralInCase" in optsIn) optsIn.wildcardToTyped = !!optsIn.firstFreeIfInputGeneralInCase
@@ -1790,7 +1789,7 @@ export class LGraphNode {
      * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
      * @return {Object} the link_info is created, otherwise null
      */
-    connect(slot: number, target_node: LGraphNode, target_slot: ISlotType | false): LLink | null {
+    connect(slot: number | string, target_node: LGraphNode, target_slot: ISlotType | false): LLink | null {
         target_slot = target_slot || 0
 
         if (!this.graph) {
