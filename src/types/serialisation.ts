@@ -1,4 +1,4 @@
-import type { Dictionary, INodeFlags, INodeInputSlot, INodeOutputSlot, Point, Rect, Size } from "@/interfaces"
+import type { ISlotType, Dictionary, INodeFlags, INodeInputSlot, INodeOutputSlot, Point, Rect, Size } from "@/interfaces"
 import type { LGraph } from "@/LGraph"
 import type { IGraphGroupFlags, LGraphGroup } from "@/LGraphGroup"
 import type { LGraphNode, NodeId } from "@/LGraphNode"
@@ -6,6 +6,18 @@ import type { LiteGraph } from "@/litegraph"
 import type { LinkId, LLink } from "@/LLink"
 import type { TWidgetValue } from "@/types/widgets"
 import { RenderShape } from "./globalEnums"
+
+/**
+ * An object that implements custom pre-serialization logic via {@link Serialisable.asSerialisable}.
+ */
+export interface Serialisable<SerialisableObject> {
+    /**
+     * Prepares this object for serialization.
+     * Creates a partial shallow copy of itself, with only the properties that should be serialised.
+     * @returns An object that can immediately be serialized to JSON.
+     */
+    asSerialisable(): SerialisableObject
+}
 
 /** Serialised LGraphNode */
 export interface ISerialisedNode {
@@ -59,4 +71,18 @@ export type TClipboardLink = [targetRelativeIndex: number, originSlot: number, n
 export interface IClipboardContents {
     nodes?: ISerialisedNode[]
     links?: TClipboardLink[]
+}
+export interface SerialisableLLink {
+    /** Link ID */
+    id: LinkId
+    /** Output node ID */
+    origin_id: NodeId
+    /** Output slot index */
+    origin_slot: number
+    /** Input node ID */
+    target_id: NodeId
+    /** Input slot index */
+    target_slot: number
+    /** Data type of the link */
+    type: ISlotType
 }
