@@ -8,16 +8,16 @@ export type SerialisedLLinkArray = [LinkId, NodeId, number, NodeId, number, ISlo
 //this is the class in charge of storing link information
 export class LLink {
     /** Link ID */
-    id?: LinkId
-    type?: ISlotType
+    id: LinkId
+    type: ISlotType
     /** Output node ID */
-    origin_id?: NodeId
+    origin_id: NodeId
     /** Output slot index */
-    origin_slot?: number
+    origin_slot: number
     /** Input node ID */
-    target_id?: NodeId
+    target_id: NodeId
     /** Input slot index */
-    target_slot?: number
+    target_slot: number
     data?: number | string | boolean | { toToolTip?(): string }
     _data?: unknown
     /** Centre point of the link, calculated during render only - can be inaccurate */
@@ -44,6 +44,10 @@ export class LLink {
 
         this._data = null
         this._pos = new Float32Array(2) //center
+    }
+
+    static createFromArray(data: SerialisedLLinkArray): LLink {
+        return new LLink(data[0], data[5], data[1], data[2], data[3], data[4])
     }
 
     configure(o: LLink | SerialisedLLinkArray) {

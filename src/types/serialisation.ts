@@ -37,7 +37,7 @@ export type ISerialisedGraph<
     last_link_id: LGraph["last_link_id"]
     last_reroute_id?: LGraph["last_reroute_id"]
     nodes: TNode[]
-    links: TLink[] | LLink[]
+    links: TLink[]
     groups: TGroup[]
     config: LGraph["config"]
     version: typeof LiteGraph.VERSION
