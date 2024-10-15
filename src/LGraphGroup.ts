@@ -5,6 +5,7 @@ import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { isInsideRectangle, overlapBounding } from "./measure"
 import { LGraphNode } from "./LGraphNode"
+import { RenderShape, TitleMode } from "./types/globalEnums"
 
 export interface IGraphGroup {
     _pos: Point
@@ -145,9 +146,9 @@ export class LGraphGroup {
 
         if (LiteGraph.highlight_selected_group && this.selected) {
             graphCanvas.drawSelectionBounding(ctx, this._bounding, {
-                shape: LiteGraph.BOX_SHAPE,
+                shape: RenderShape.BOX,
                 title_height: this.titleHeight,
-                title_mode: LiteGraph.NORMAL_TITLE,
+                title_mode: TitleMode.NORMAL_TITLE,
                 fgcolor: this.color,
                 padding,
             })
