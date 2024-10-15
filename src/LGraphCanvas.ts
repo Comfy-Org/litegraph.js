@@ -468,74 +468,17 @@ export class LGraphCanvas {
 
         this.autoresize = options.autoresize
     }
+
     static getFileExtension(url: string): string {
         const question = url.indexOf("?")
-        if (question != -1) {
-            url = url.substr(0, question)
-        }
+        if (question !== -1) url = url.substring(0, question)
+
         const point = url.lastIndexOf(".")
-        if (point == -1) {
-            return ""
-        }
-        return url.substr(point + 1).toLowerCase()
+        return point === -1
+            ? ""
+            : url.substring(point + 1).toLowerCase()
     }
-    /* this is an implementation for touch not in production and not ready
-         */
-    /*LGraphCanvas.prototype.touchHandler = function(event) {
-            //alert("foo");
-            var touches = event.changedTouches,
-                first = touches[0],
-                type = "";
-    
-            switch (event.type) {
-                case "touchstart":
-                    type = "mousedown";
-                    break;
-                case "touchmove":
-                    type = "mousemove";
-                    break;
-                case "touchend":
-                    type = "mouseup";
-                    break;
-                default:
-                    return;
-            }
-    
-            //initMouseEvent(type, canBubble, cancelable, view, clickCount,
-            //           screenX, screenY, clientX, clientY, ctrlKey,
-            //           altKey, shiftKey, metaKey, button, relatedTarget);
-    
-            // this is eventually a Dom object, get the LGraphCanvas back
-            if(typeof this.getCanvasWindow == "undefined"){
-                var window = this.lgraphcanvas.getCanvasWindow();
-            }else{
-                var window = this.getCanvasWindow();
-            }
-            
-            var document = window.document;
-    
-            var simulatedEvent = document.createEvent("MouseEvent");
-            simulatedEvent.initMouseEvent(
-                type,
-                true,
-                true,
-                window,
-                1,
-                first.screenX,
-                first.screenY,
-                first.clientX,
-                first.clientY,
-                false,
-                false,
-                false,
-                false,
-                0, //left
-                null
-            );
-            first.target.dispatchEvent(simulatedEvent);
-            event.preventDefault();
-        };*/
-    /* CONTEXT MENU ********************/
+
     static onGroupAdd(info: unknown, entry: unknown, mouse_event: MouseEvent): void {
         const canvas = LGraphCanvas.active_canvas
 
@@ -740,21 +683,18 @@ export class LGraphCanvas {
         )
 
         function inner_clicked(v, e, prev) {
-            if (!node) {
-                return
-            }
+            if (!node) return
 
             v.callback?.call(that, node, v, e, prev)
 
-            if (v.value) {
-                node.graph.beforeChange()
-                node.addInput(v.value[0], v.value[1], v.value[2])
+            if (!v.value) return
+            node.graph.beforeChange()
+            node.addInput(v.value[0], v.value[1], v.value[2])
 
-                // callback to the node when adding a slot
-                node.onNodeInputAdd?.(v.value)
-                node.setDirtyCanvas(true, true)
-                node.graph.afterChange()
-            }
+            // callback to the node when adding a slot
+            node.onNodeInputAdd?.(v.value)
+            canvas.setDirty(true, true)
+            node.graph.afterChange()
         }
 
         return false
@@ -812,9 +752,7 @@ export class LGraphCanvas {
         const retEntries = node.onMenuNodeOutputs?.(entries)
         if (retEntries) entries = retEntries
 
-        if (!entries.length) {
-            return
-        }
+        if (!entries.length) return
 
         new LiteGraph.ContextMenu(
             entries,
@@ -829,18 +767,12 @@ export class LGraphCanvas {
         )
 
         function inner_clicked(v, e, prev) {
-            if (!node) {
-                return
-            }
+            if (!node) return
 
-            if (v.callback) {
-                // TODO: This is a static method, so the below "that" appears broken.
-                v.callback.call(that, node, v, e, prev)
-            }
+            // TODO: This is a static method, so the below "that" appears broken.
+            if (v.callback) v.callback.call(that, node, v, e, prev)
 
-            if (!v.value) {
-                return
-            }
+            if (!v.value) return
 
             const value = v.value[1]
 
@@ -858,15 +790,16 @@ export class LGraphCanvas {
                     node: node
                 })
                 return false
-            } else {
-                node.graph.beforeChange()
-                node.addOutput(v.value[0], v.value[1], v.value[2])
-
-                // a callback to the node when adding a slot
-                node.onNodeOutputAdd?.(v.value)
-                node.setDirtyCanvas(true, true)
-                node.graph.afterChange()
             }
+
+            const graph = node.graph
+            graph.beforeChange()
+            node.addOutput(v.value[0], v.value[1], v.value[2])
+
+            // a callback to the node when adding a slot
+            node.onNodeOutputAdd?.(v.value)
+            canvas.setDirty(true, true)
+            graph.afterChange()
         }
 
         return false
@@ -941,16 +874,16 @@ export class LGraphCanvas {
             node.onResize?.(node.size)
         }
 
-        const graphcanvas = LGraphCanvas.active_canvas
-        if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+        const canvas = LGraphCanvas.active_canvas
+        if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
             fApplyMultiNode(node)
         } else {
-            for (const i in graphcanvas.selected_nodes) {
-                fApplyMultiNode(graphcanvas.selected_nodes[i])
+            for (const i in canvas.selected_nodes) {
+                fApplyMultiNode(canvas.selected_nodes[i])
             }
         }
 
-        node.setDirtyCanvas(true, true)
+        canvas.setDirty(true, true)
     }
     // TODO refactor :: this is used fot title but not for properties!
     static onShowPropertyEditor(item: { property: string; type: string }, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
@@ -991,10 +924,10 @@ export class LGraphCanvas {
             })
         }
 
-        const graphcanvas = LGraphCanvas.active_canvas
-        const canvas = graphcanvas.canvas
+        const canvas = LGraphCanvas.active_canvas
+        const canvasEl = canvas.canvas
 
-        const rect = canvas.getBoundingClientRect()
+        const rect = canvasEl.getBoundingClientRect()
         let offsetx = -20
         let offsety = -20
         if (rect) {
@@ -1006,13 +939,13 @@ export class LGraphCanvas {
             dialog.style.left = e.clientX + offsetx + "px"
             dialog.style.top = e.clientY + offsety + "px"
         } else {
-            dialog.style.left = canvas.width * 0.5 + offsetx + "px"
-            dialog.style.top = canvas.height * 0.5 + offsety + "px"
+            dialog.style.left = canvasEl.width * 0.5 + offsetx + "px"
+            dialog.style.top = canvasEl.height * 0.5 + offsety + "px"
         }
 
         const button = dialog.querySelector("button")
         button.addEventListener("click", inner)
-        canvas.parentNode.appendChild(dialog)
+        canvasEl.parentNode.appendChild(dialog)
 
         input?.focus()
 
@@ -1039,7 +972,7 @@ export class LGraphCanvas {
             }
             node[property] = value
             dialog.parentNode?.removeChild(dialog)
-            node.setDirtyCanvas(true, true)
+            canvas.setDirty(true, true)
         }
     }
     static getPropertyPrintableValue(value: unknown, values: unknown[] | object): string {
@@ -1164,15 +1097,15 @@ export class LGraphCanvas {
                 }
             }
 
-            const graphcanvas = LGraphCanvas.active_canvas
-            if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+            const canvas = LGraphCanvas.active_canvas
+            if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
                 fApplyColor(node)
             } else {
-                for (const i in graphcanvas.selected_nodes) {
-                    fApplyColor(graphcanvas.selected_nodes[i])
+                for (const i in canvas.selected_nodes) {
+                    fApplyColor(canvas.selected_nodes[i])
                 }
             }
-            node.setDirtyCanvas(true, true)
+            canvas.setDirty(true, true)
         }
 
         return false
@@ -1196,17 +1129,17 @@ export class LGraphCanvas {
                 node.shape = v
             }
 
-            const graphcanvas = LGraphCanvas.active_canvas
-            if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+            const canvas = LGraphCanvas.active_canvas
+            if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
                 fApplyMultiNode(node)
             } else {
-                for (const i in graphcanvas.selected_nodes) {
-                    fApplyMultiNode(graphcanvas.selected_nodes[i])
+                for (const i in canvas.selected_nodes) {
+                    fApplyMultiNode(canvas.selected_nodes[i])
                 }
             }
 
             node.graph.afterChange( /*?*/) //node
-            node.setDirtyCanvas(true)
+            canvas.setDirty(true)
         }
 
         return false
@@ -1223,24 +1156,24 @@ export class LGraphCanvas {
             graph.remove(node)
         }
 
-        const graphcanvas = LGraphCanvas.active_canvas
-        if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+        const canvas = LGraphCanvas.active_canvas
+        if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
             fApplyMultiNode(node)
         } else {
-            for (const i in graphcanvas.selected_nodes) {
-                fApplyMultiNode(graphcanvas.selected_nodes[i])
+            for (const i in canvas.selected_nodes) {
+                fApplyMultiNode(canvas.selected_nodes[i])
             }
         }
 
         graph.afterChange()
-        node.setDirtyCanvas(true, true)
+        canvas.setDirty(true, true)
     }
     static onMenuNodeToSubgraph(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
         const graph = node.graph
-        const graphcanvas = LGraphCanvas.active_canvas
-        if (!graphcanvas) return
+        const canvas = LGraphCanvas.active_canvas
+        if (!canvas) return
 
-        let nodes_list = Object.values(graphcanvas.selected_nodes || {})
+        let nodes_list = Object.values(canvas.selected_nodes || {})
         if (!nodes_list.length)
             nodes_list = [node]
 
@@ -1252,12 +1185,13 @@ export class LGraphCanvas {
         // @ts-expect-error Doesn't exist anywhere...
         subgraph_node.buildFromNodes(nodes_list)
 
-        graphcanvas.deselectAllNodes()
-        node.setDirtyCanvas(true, true)
+        canvas.deselectAllNodes()
+        canvas.setDirty(true, true)
     }
     static onMenuNodeClone(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
 
-        node.graph.beforeChange()
+        const graph = node.graph
+        graph.beforeChange()
 
         const newSelected: Dictionary<LGraphNode> = {}
 
@@ -1272,22 +1206,22 @@ export class LGraphCanvas {
             newSelected[newnode.id] = newnode
         }
 
-        const graphcanvas = LGraphCanvas.active_canvas
-        if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+        const canvas = LGraphCanvas.active_canvas
+        if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
             fApplyMultiNode(node)
         } else {
-            for (const i in graphcanvas.selected_nodes) {
-                fApplyMultiNode(graphcanvas.selected_nodes[i])
+            for (const i in canvas.selected_nodes) {
+                fApplyMultiNode(canvas.selected_nodes[i])
             }
         }
 
         if (Object.keys(newSelected).length) {
-            graphcanvas.selectNodes(newSelected)
+            canvas.selectNodes(newSelected)
         }
 
-        node.graph.afterChange()
+        graph.afterChange()
 
-        node.setDirtyCanvas(true, true)
+        canvas.setDirty(true, true)
     }
     /**
      * clears all the data inside
@@ -7125,7 +7059,7 @@ export class LGraphCanvas {
             node.onPropertyChanged?.(property, value)
             options.onclose?.()
             dialog.close()
-            node.setDirtyCanvas(true, true)
+            this.setDirty(true, true)
         }
 
         return dialog
