@@ -141,7 +141,7 @@ export class LGraphNode {
 
     // Execution order, automatically computed during run
     order?: number
-    mode: number
+    mode: LGraphEventMode
     last_serialization?: ISerialisedNode
     serialize_widgets?: boolean
     color: string
