@@ -1794,7 +1794,8 @@ export class LGraphNode {
         // Allow legacy API support for searching target_slot by string, without mutating the input variables
         let targetIndex: number
 
-        if (!this.graph) {
+        const graph = this.graph
+        if (!graph) {
             //could be connected before adding it to a graph
             //due to link ids being associated with graphs
             console.log("Connect: Error, node doesn't belong to any graph. Nodes must be added first to a graph before connecting them.")
@@ -1814,7 +1815,7 @@ export class LGraphNode {
         }
 
         if (target_node && typeof target_node === "number") {
-            target_node = this.graph.getNodeById(target_node)
+            target_node = graph.getNodeById(target_node)
         }
         if (!target_node) throw "target node is null"
 
@@ -1866,7 +1867,7 @@ export class LGraphNode {
         if (!LiteGraph.isValidConnection(output.type, input.type)) {
             this.setDirtyCanvas(false, true)
             // @ts-expect-error Unused param
-            if (changed) this.graph.connectionChange(this, link_info)
+            if (changed) graph.connectionChange(this, link_info)
             return null
         }
 
@@ -1878,13 +1879,13 @@ export class LGraphNode {
 
         //if there is something already plugged there, disconnect
         if (target_node.inputs[targetIndex]?.link != null) {
-            this.graph.beforeChange()
+            graph.beforeChange()
             target_node.disconnectInput(targetIndex)
             changed = true
         }
         if (output.links?.length) {
             if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
-                this.graph.beforeChange()
+                graph.beforeChange()
                 // @ts-expect-error Unused param
                 this.disconnectOutput(slot, false, { doProcessChange: false })
                 changed = true
@@ -1893,7 +1894,7 @@ export class LGraphNode {
 
         const nextId = LiteGraph.use_uuids
             ? LiteGraph.uuidv4()
-            : ++this.graph.last_link_id
+            : ++graph.last_link_id
 
         //create link class
         link_info = new LLink(
@@ -1906,14 +1907,14 @@ export class LGraphNode {
         )
 
         //add to graph links list
-        this.graph._links.set(link_info.id, link_info)
+        graph._links.set(link_info.id, link_info)
 
         //connect in output
         output.links ??= []
         output.links.push(link_info.id)
         //connect in input
         target_node.inputs[targetIndex].link = link_info.id
-        if (this.graph) this.graph._version++
+        graph._version++
 
         //link_info has been created now, so its updated
         this.onConnectionsChange?.(
@@ -1931,14 +1932,14 @@ export class LGraphNode {
             link_info,
             input
         )
-        this.graph?.onNodeConnectionChange?.(
+        graph.onNodeConnectionChange?.(
             NodeSlotType.INPUT,
             target_node,
             targetIndex,
             this,
             slot
         )
-        this.graph?.onNodeConnectionChange?.(
+        graph.onNodeConnectionChange?.(
             NodeSlotType.OUTPUT,
             this,
             slot,
@@ -1947,8 +1948,8 @@ export class LGraphNode {
         )
 
         this.setDirtyCanvas(false, true)
-        this.graph.afterChange()
-        this.graph.connectionChange(this)
+        graph.afterChange()
+        graph.connectionChange(this)
 
         return link_info
     }
