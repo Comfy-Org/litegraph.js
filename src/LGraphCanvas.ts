@@ -32,32 +32,32 @@ interface IShowSearchOptions {
 }
 
 interface INodeFromTo {
-    // input
+    /** input */
     nodeFrom?: LGraphNode
-    // input
+    /** input */
     slotFrom?: number | INodeOutputSlot | INodeInputSlot
-    // output
+    /** output */
     nodeTo?: LGraphNode
-    // output
+    /** output */
     slotTo?: number | INodeOutputSlot | INodeInputSlot
-    // pass the event coords
+    /** pass the event coords */
 }
 
 interface ICreateNodeOptions extends INodeFromTo {
     // FIXME: Should not be optional
-    position?: Point //,e: e
+    /** Position of new node */
+    position?: Point
 
     // FIXME: Should not be optional
-    // choose a nodetype to add, AUTO to set at first good
+    /** choose a nodetype to add, AUTO to set at first good */
     nodeType?: string //nodeNewType
-    // adjust x,y
+    /** adjust x,y */
     posAdd?: Point //-alphaPosY*30]
-    // alpha, adjust the position x,y based on the new node size w,h
+    /** alpha, adjust the position x,y based on the new node size w,h */
     posSizeFix?: Point //-alphaPosY*2*/
     e?: CanvasMouseEvent
     allow_searchbox?: boolean
     showSearchBox?: LGraphCanvas["showSearchBox"]
-    createDefaultNodeForSlot?: LGraphCanvas["createDefaultNodeForSlot"]
 }
 
 interface ICloseableDiv extends HTMLDivElement {
@@ -2010,7 +2010,7 @@ export class LGraphCanvas {
                         for (let i = 0; i < this.visible_links.length; ++i) {
                             const link = this.visible_links[i]
                             const center = link._pos
-                            let overLink = null
+                            let overLink: LLink = null
                             if (!center ||
                                 e.canvasX < center[0] - 4 ||
                                 e.canvasX > center[0] + 4 ||
@@ -2292,9 +2292,7 @@ export class LGraphCanvas {
             this.dirty_canvas = true
             this.dirty_bgcanvas = true
         } else if ((this.allow_interaction || (node && node.flags.allow_interaction)) && !this.read_only) {
-            if (this.connecting_links) {
-                this.dirty_canvas = true
-            }
+            if (this.connecting_links) this.dirty_canvas = true
 
             //remove mouseover flag
             this.updateMouseOverNodes(node, e)
@@ -6025,34 +6023,16 @@ export class LGraphCanvas {
         return false
     }
     createDefaultNodeForSlot(optPass: ICreateNodeOptions): boolean {
-        optPass = optPass || {}
-        const opts = Object.assign({
-            nodeFrom: null // input
-            ,
-
-            slotFrom: null // input
-            ,
-
-            nodeTo: null // output
-            ,
-
-            slotTo: null // output
-            ,
-
-            position: [] // pass the event coords
-            ,
-
-            nodeType: null // choose a nodetype to add, AUTO to set at first good
-            ,
-
-            posAdd: [0, 0] // adjust x,y
-            ,
-
-            posSizeFix: [0, 0] // alpha, adjust the position x,y based on the new node size w,h
-        },
-            optPass
-        )
-        const that = this
+        const opts = Object.assign<ICreateNodeOptions, ICreateNodeOptions>({
+            nodeFrom: null,
+            slotFrom: null,
+            nodeTo: null,
+            slotTo: null,
+            position: [0, 0],
+            nodeType: null,
+            posAdd: [0, 0],
+            posSizeFix: [0, 0]
+        }, optPass || {})
 
         const isFrom = opts.nodeFrom && opts.slotFrom !== null
         const isTo = !isFrom && opts.nodeTo && opts.slotTo !== null
@@ -6102,8 +6082,8 @@ export class LGraphCanvas {
                         break
                     }
                 }
-            } else {
-                if (opts.nodeType == slotTypesDefault[fromSlotType] || opts.nodeType == "AUTO") nodeNewType = slotTypesDefault[fromSlotType]
+            } else if (opts.nodeType == slotTypesDefault[fromSlotType] || opts.nodeType == "AUTO") {
+                nodeNewType = slotTypesDefault[fromSlotType]
             }
             if (nodeNewType) {
                 // TODO: Remove "any" kludge
@@ -6151,11 +6131,12 @@ export class LGraphCanvas {
                     }
 
                     // add the node
-                    that.graph.add(newNode)
-                    newNode.pos = [opts.position[0] + opts.posAdd[0] + (opts.posSizeFix[0] ? opts.posSizeFix[0] * newNode.size[0] : 0),
-                    opts.position[1] + opts.posAdd[1] + (opts.posSizeFix[1] ? opts.posSizeFix[1] * newNode.size[1] : 0)] //that.last_click_position; //[e.canvasX+30, e.canvasX+5];*/
+                    this.graph.add(newNode)
+                    newNode.pos = [
+                        opts.position[0] + opts.posAdd[0] + (opts.posSizeFix[0] ? opts.posSizeFix[0] * newNode.size[0] : 0),
+                        opts.position[1] + opts.posAdd[1] + (opts.posSizeFix[1] ? opts.posSizeFix[1] * newNode.size[1] : 0)
+                    ]
 
-                    //that.graph.afterChange();
                     // connect the two!
                     if (isFrom) {
                         opts.nodeFrom.connectByType(iSlotConn, newNode, fromSlotType)
@@ -6169,7 +6150,6 @@ export class LGraphCanvas {
                     }
 
                     return true
-
                 }
                 console.log("failed creating " + nodeNewType)
             }
@@ -6177,26 +6157,15 @@ export class LGraphCanvas {
         return false
     }
     showConnectionMenu(optPass: Partial<ICreateNodeOptions & { e: MouseEvent }>): void {
-        optPass ||= {}
-        const opts = Object.assign({
-            nodeFrom: null // input
-            ,
-
-            slotFrom: null // input
-            ,
-
-            nodeTo: null // output
-            ,
-
-            slotTo: null // output
-            ,
-
+        const opts = Object.assign<ICreateNodeOptions, ICreateNodeOptions>({
+            nodeFrom: null,
+            slotFrom: null,
+            nodeTo: null,
+            slotTo: null,
             e: null,
             allow_searchbox: this.allow_searchbox,
             showSearchBox: this.showSearchBox,
-        },
-            optPass
-        )
+        }, optPass || {})
         const that = this
 
         const isFrom = opts.nodeFrom && opts.slotFrom
@@ -6210,8 +6179,7 @@ export class LGraphCanvas {
         const nodeX = isFrom ? opts.nodeFrom : opts.nodeTo
         let slotX = isFrom ? opts.slotFrom : opts.slotTo
 
-        // TODO: Remove "any" kludge
-        let iSlotConn: any = false
+        let iSlotConn: number
         switch (typeof slotX) {
             case "string":
                 iSlotConn = isFrom ? nodeX.findOutputSlot(slotX, false) : nodeX.findInputSlot(slotX, false)
@@ -6226,8 +6194,6 @@ export class LGraphCanvas {
                 slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
                 break
             default:
-                // bad ?
-                //iSlotConn = 0;
                 console.warn("Cant get slot information " + slotX)
                 return
         }
@@ -6260,7 +6226,7 @@ export class LGraphCanvas {
         })
 
         // callback
-        function inner_clicked(v, options, e) {
+        function inner_clicked(v: string, options: unknown, e: MouseEvent) {
             //console.log("Process showConnectionMenu selection");
             switch (v) {
                 case "Add Node":
@@ -6282,7 +6248,7 @@ export class LGraphCanvas {
                 default: {
                     // check for defaults nodes for this slottype
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const nodeCreated = that.createDefaultNodeForSlot(Object.assign(opts, {
+                    const nodeCreated = that.createDefaultNodeForSlot(Object.assign<ICreateNodeOptions, ICreateNodeOptions>(opts, {
                         position: [opts.e.canvasX, opts.e.canvasY],
                         nodeType: v
                     }))
@@ -6390,7 +6356,7 @@ export class LGraphCanvas {
         setTimeout(function () {
             input.focus()
             const clickTime = Date.now()
-            function handleOutsideClick(e) {
+            function handleOutsideClick(e: MouseEvent) {
                 if (e.target === canvas && Date.now() - clickTime > 256) {
                     dialog.close()
                     canvas.parentNode.removeEventListener("click", handleOutsideClick)
