@@ -6196,10 +6196,6 @@ export class LGraphCanvas {
                 return false
         }
 
-        if (slotX === false || iSlotConn === false) {
-            console.warn("createDefaultNodeForSlot bad slotX " + slotX + " " + iSlotConn)
-        }
-
         // check for defaults nodes for this slottype
         const fromSlotType = slotX.type == LiteGraph.EVENT ? "_event_" : slotX.type
         const slotTypesDefault = isFrom ? LiteGraph.slot_types_default_out : LiteGraph.slot_types_default_in
