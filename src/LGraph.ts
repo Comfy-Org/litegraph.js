@@ -1322,8 +1322,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
         const node = this.getNodeById(link.target_id)
         node?.disconnectInput(link.target_slot)
+        
+        link.disconnect(this)
     }
-    //save and recover app state ***************************************
+
     /**
      * Creates a Object containing all the info about this graph, it can be serialized
      * @deprecated Use {@link asSerialisable}, which returns the newer schema version.

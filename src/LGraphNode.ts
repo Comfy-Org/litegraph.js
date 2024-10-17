@@ -2150,7 +2150,7 @@ export class LGraphNode implements Positionable, IPinnable {
                     }
                 }
 
-                this.graph._links.delete(link_id)
+                link_info.disconnect(this.graph)
                 if (this.graph) this.graph._version++
 
                 this.onConnectionsChange?.(
