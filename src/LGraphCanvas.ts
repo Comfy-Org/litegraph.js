@@ -2701,19 +2701,6 @@ export class LGraphCanvas {
                         this.dirty_canvas = true
                         this.dirty_bgcanvas = true
 
-                        /* no need to condition on event type.. just another type
-                        if (
-                            connType == LiteGraph.EVENT &&
-                            this.isOverNodeBox(node, e.canvasX, e.canvasY)
-                        ) {
-                            
-                            this.connecting_node.connect(
-                                this.connecting_slot,
-                                node,
-                                LiteGraph.EVENT
-                            );
-                            
-                        } else {*/
                         //slot below mouse? connect
                         if (link.output) {
 
@@ -2840,20 +2827,14 @@ export class LGraphCanvas {
             }
         } else if (e.which == 2) {
             //middle button
-            //trace("middle");
             this.dirty_canvas = true
             this.dragging_canvas = false
         } else if (e.which == 3) {
             //right button
-            //trace("right");
             this.dirty_canvas = true
             this.dragging_canvas = false
         }
 
-        /*
-        if((this.dirty_canvas || this.dirty_bgcanvas) && this.rendering_timer_id == null)
-            this.draw();
-        */
         if (is_primary) {
             this.pointer_is_down = false
             this.pointer_is_double = false
@@ -3515,25 +3496,6 @@ export class LGraphCanvas {
      **/
     setZoom(value: number, zooming_center: Point) {
         this.ds.changeScale(value, zooming_center)
-        /*
-    if(!zooming_center && this.canvas)
-        zooming_center = [this.canvas.width * 0.5,this.canvas.height * 0.5];
-
-    var center = this.convertOffsetToCanvas( zooming_center );
-
-    this.ds.scale = value;
-
-    if(this.scale > this.max_zoom)
-        this.scale = this.max_zoom;
-    else if(this.scale < this.min_zoom)
-        this.scale = this.min_zoom;
-
-    var new_center = this.convertOffsetToCanvas( zooming_center );
-    var delta_offset = [new_center[0] - center[0], new_center[1] - center[1]];
-
-    this.offset[0] += delta_offset[0];
-    this.offset[1] += delta_offset[1];
-    */
         this.dirty_canvas = true
         this.dirty_bgcanvas = true
     }
@@ -3580,7 +3542,6 @@ export class LGraphCanvas {
         this.graph._nodes.unshift(node)
     }
 
-    /* LGraphCanvas render */
     /**
      * Determines which nodes are visible and populates {@link out} with the results.
      * @param nodes The list of nodes to check - if falsy, all nodes in the graph will be checked
@@ -6190,8 +6151,6 @@ export class LGraphCanvas {
                 break
             case "undefined":
             default:
-                // bad ?
-                //iSlotConn = 0;
                 console.warn("Cant get slot information " + slotX)
                 return false
         }
@@ -6206,8 +6165,7 @@ export class LGraphCanvas {
                 for (const typeX in slotTypesDefault[fromSlotType]) {
                     if (opts.nodeType == slotTypesDefault[fromSlotType][typeX] || opts.nodeType == "AUTO") {
                         nodeNewType = slotTypesDefault[fromSlotType][typeX]
-                        // console.log("opts.nodeType == slotTypesDefault[fromSlotType][typeX] :: "+opts.nodeType);
-                        break // --------
+                        break
                     }
                 }
             } else {
@@ -6738,23 +6696,6 @@ export class LGraphCanvas {
             // @ts-expect-error
             helper.style.maxHeight = (rect.height - event.layerY - 20) + "px"
 
-        /*
-        var offsetx = -20;
-        var offsety = -20;
-        if (rect) {
-            offsetx -= rect.left;
-            offsety -= rect.top;
-        }
-
-        if (event) {
-            dialog.style.left = event.clientX + offsetx + "px";
-            dialog.style.top = event.clientY + offsety + "px";
-        } else {
-            dialog.style.left = canvas.width * 0.5 + offsetx + "px";
-            dialog.style.top = canvas.height * 0.5 + offsety + "px";
-        }
-        canvas.parentNode.appendChild(dialog);
-        */
         requestAnimationFrame(function () {
             input.focus()
         })
@@ -7019,38 +6960,18 @@ export class LGraphCanvas {
                         let sV = opts.inTypeOverride !== false
                             ? opts.inTypeOverride
                             : sIn.value
-                        //if (sV.toLowerCase() == "_event_") sV = LiteGraph.EVENT; // -1
-                        if (sIn && sV) {
-                            //console.log("will check filter against "+sV);
-                            if (LiteGraph.registered_slot_in_types[sV]?.nodes) { // type is stored
-                                //console.debug("check "+sType+" in "+LiteGraph.registered_slot_in_types[sV].nodes);
-                                const doesInc = LiteGraph.registered_slot_in_types[sV].nodes.includes(sType)
-                                if (doesInc !== false) {
-                                    //console.log(sType+" HAS "+sV);
-                                } else {
-                                    /*console.debug(LiteGraph.registered_slot_in_types[sV]);
-                                    console.log(+" DONT includes "+type);*/
-                                    return false
-                                }
-                            }
+                        // type is stored
+                        if (sIn && sV && LiteGraph.registered_slot_in_types[sV]?.nodes) {
+                            const doesInc = LiteGraph.registered_slot_in_types[sV].nodes.includes(sType)
+                            if (doesInc === false) return false
                         }
 
                         sV = sOut.value
                         if (opts.outTypeOverride !== false) sV = opts.outTypeOverride
-                        //if (sV.toLowerCase() == "_event_") sV = LiteGraph.EVENT; // -1
-                        if (sOut && sV) {
-                            //console.log("search will check filter against "+sV);
-                            if (LiteGraph.registered_slot_out_types[sV]?.nodes) { // type is stored
-                                //console.debug("check "+sType+" in "+LiteGraph.registered_slot_out_types[sV].nodes);
-                                const doesInc = LiteGraph.registered_slot_out_types[sV].nodes.includes(sType)
-                                if (doesInc !== false) {
-                                    //console.log(sType+" HAS "+sV);
-                                } else {
-                                    /*console.debug(LiteGraph.registered_slot_out_types[sV]);
-                                    console.log(+" DONT includes "+type);*/
-                                    return false
-                                }
-                            }
+                        // type is stored
+                        if (sOut && sV && LiteGraph.registered_slot_out_types[sV]?.nodes) {
+                            const doesInc = LiteGraph.registered_slot_out_types[sV].nodes.includes(sType)
+                            if (doesInc === false) return false
                         }
                     }
                     return true
