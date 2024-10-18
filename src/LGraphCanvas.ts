@@ -8,7 +8,7 @@ import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { EaseFunction, LGraphEventMode, LinkDirection, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { isInsideRectangle, distance, overlapBounding, isPointInRectangle, containsRect, createBounds } from "./measure"
+import { isInsideRectangle, distance, overlapBounding, isPointInRectangle, findPointOnCurve, containsRect, createBounds } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -5191,6 +5191,9 @@ export class LGraphCanvas {
         const innerA = LGraphCanvas.#lTempA
         const innerB = LGraphCanvas.#lTempB
 
+        /** Reference to {@link reroute._pos} if present, or {@link link._pos} if present.  Caches the centre point of the link. */
+        const pos: Point = reroute?._pos ?? link?._pos ?? [0, 0]
+
         for (let i = 0; i < num_sublines; i += 1) {
             const offsety = (i - (num_sublines - 1) * 0.5) * 5
             innerA[0] = a[0]
@@ -5220,6 +5223,8 @@ export class LGraphCanvas {
                     b[0],
                     b[1] + offsety
                 )
+
+                findPointOnCurve(pos, a, b, innerA, innerB, 0.5)
             } else if (this.links_render_mode == LinkRenderType.LINEAR_LINK) {
                 path.moveTo(a[0], a[1] + offsety)
                 const l = 15
@@ -5254,6 +5259,10 @@ export class LGraphCanvas {
                 path.lineTo(innerA[0], innerA[1] + offsety)
                 path.lineTo(innerB[0], innerB[1] + offsety)
                 path.lineTo(b[0], b[1] + offsety)
+
+                // Calculate centre point
+                pos[0] = (innerA[0] + innerB[0]) * 0.5
+                pos[1] = (innerA[1] + innerB[1]) * 0.5
             } else if (this.links_render_mode == LinkRenderType.STRAIGHT_LINK) {
                 path.moveTo(a[0], a[1])
                 if (start_dir == LinkDirection.RIGHT) {
@@ -5273,6 +5282,10 @@ export class LGraphCanvas {
                 path.lineTo(midX, innerB[1])
                 path.lineTo(innerB[0], innerB[1])
                 path.lineTo(b[0], b[1])
+
+                // Calculate centre point
+                pos[0] = midX
+                pos[1] = (innerA[1] + innerB[1]) * 0.5
             } else {
                 return
             } //unknown
@@ -5289,12 +5302,6 @@ export class LGraphCanvas {
         ctx.lineWidth = this.connections_width
         ctx.fillStyle = ctx.strokeStyle = color
         ctx.stroke(path)
-        //end line shape
-        const pos = this.computeConnectionPoint(a, b, 0.5, start_dir, end_dir)
-        if (link?._pos) {
-            link._pos[0] = pos[0]
-            link._pos[1] = pos[1]
-        }
 
         //render arrow in the middle
         if (this.ds.scale >= 0.6 &&
