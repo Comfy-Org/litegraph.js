@@ -5222,68 +5222,56 @@ export class LGraphCanvas {
                 )
             } else if (this.links_render_mode == LinkRenderType.LINEAR_LINK) {
                 path.moveTo(a[0], a[1] + offsety)
-                let start_offset_x = 0
-                let start_offset_y = 0
-                let end_offset_x = 0
-                let end_offset_y = 0
+                const l = 15
                 switch (start_dir) {
                     case LinkDirection.LEFT:
-                        start_offset_x = -1
+                        innerA[0] += -l
                         break
                     case LinkDirection.RIGHT:
-                        start_offset_x = 1
+                        innerA[0] += l
                         break
                     case LinkDirection.UP:
-                        start_offset_y = -1
+                        innerA[1] += -l
                         break
                     case LinkDirection.DOWN:
-                        start_offset_y = 1
+                        innerA[1] += l
                         break
                 }
                 switch (end_dir) {
                     case LinkDirection.LEFT:
-                        end_offset_x = -1
+                        innerB[0] += -l
                         break
                     case LinkDirection.RIGHT:
-                        end_offset_x = 1
+                        innerB[0] += l
                         break
                     case LinkDirection.UP:
-                        end_offset_y = -1
+                        innerB[1] += -l
                         break
                     case LinkDirection.DOWN:
-                        end_offset_y = 1
+                        innerB[1] += l
                         break
                 }
-                const l = 15
-                path.lineTo(
-                    a[0] + start_offset_x * l,
-                    a[1] + start_offset_y * l + offsety
-                )
-                path.lineTo(
-                    b[0] + end_offset_x * l,
-                    b[1] + end_offset_y * l + offsety
-                )
+                path.lineTo(innerA[0], innerA[1] + offsety)
+                path.lineTo(innerB[0], innerB[1] + offsety)
                 path.lineTo(b[0], b[1] + offsety)
             } else if (this.links_render_mode == LinkRenderType.STRAIGHT_LINK) {
                 path.moveTo(a[0], a[1])
-                let start_x = a[0]
-                let start_y = a[1]
-                let end_x = b[0]
-                let end_y = b[1]
                 if (start_dir == LinkDirection.RIGHT) {
-                    start_x += 10
+                    innerA[0] += 10
                 } else {
-                    start_y += 10
+                    innerA[1] += 10
                 }
                 if (end_dir == LinkDirection.LEFT) {
-                    end_x -= 10
+                    innerB[0] -= 10
                 } else {
-                    end_y -= 10
+                    innerB[1] -= 10
                 }
-                path.lineTo(start_x, start_y)
-                path.lineTo((start_x + end_x) * 0.5, start_y)
-                path.lineTo((start_x + end_x) * 0.5, end_y)
-                path.lineTo(end_x, end_y)
+                const midX = (innerA[0] + innerB[0]) * 0.5
+
+                path.lineTo(innerA[0], innerA[1])
+                path.lineTo(midX, innerA[1])
+                path.lineTo(midX, innerB[1])
+                path.lineTo(innerB[0], innerB[1])
                 path.lineTo(b[0], b[1])
             } else {
                 return
