@@ -63,7 +63,7 @@ export function isInsideRectangle(x: number, y: number, left: number, top: numbe
  * @param radius Radius to use as rough guide for octagon
  * @returns true if the point is roughly inside the octagon centred on 0,0 with specified radius
  */
-export function isSortaInsideOctagon(x: number, y: number, radius: number) {
+export function isSortaInsideOctagon(x: number, y: number, radius: number): boolean {
     const sum = Math.min(radius, Math.abs(x)) + Math.min(radius, Math.abs(y))
     return sum < radius * 0.75
 }
