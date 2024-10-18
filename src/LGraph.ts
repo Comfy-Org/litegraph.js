@@ -1076,7 +1076,7 @@ export class LGraph {
         this.onInputsOutputsChange?.()
         return true
     }
-    // TODO: Clean up - never implemented.
+    /** @todo Clean up - never implemented. */
     triggerInput(name: string, value: any): void {
         const nodes = this.findNodesByTitle(name)
         for (let i = 0; i < nodes.length; ++i) {
@@ -1084,7 +1084,7 @@ export class LGraph {
             nodes[i].onTrigger(value)
         }
     }
-    // TODO: Clean up - never implemented.
+    /** @todo Clean up - never implemented. */
     setCallback(name: string, func: any): void {
         const nodes = this.findNodesByTitle(name)
         for (let i = 0; i < nodes.length; ++i) {
