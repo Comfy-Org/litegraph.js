@@ -117,6 +117,8 @@ export class LGraphCanvas {
     static #link_bounding = new Float32Array(4)
     static #tempA = new Float32Array(2)
     static #tempB = new Float32Array(2)
+    static #lTempA: Point = new Float32Array(2)
+    static #lTempB: Point = new Float32Array(2)
 
     static DEFAULT_BACKGROUND_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAQBJREFUeNrs1rEKwjAUhlETUkj3vP9rdmr1Ysammk2w5wdxuLgcMHyptfawuZX4pJSWZTnfnu/lnIe/jNNxHHGNn//HNbbv+4dr6V+11uF527arU7+u63qfa/bnmh8sWLBgwYJlqRf8MEptXPBXJXa37BSl3ixYsGDBMliwFLyCV/DeLIMFCxYsWLBMwSt4Be/NggXLYMGCBUvBK3iNruC9WbBgwYJlsGApeAWv4L1ZBgsWLFiwYJmCV/AK3psFC5bBggULloJX8BpdwXuzYMGCBctgwVLwCl7Be7MMFixYsGDBsu8FH1FaSmExVfAxBa/gvVmwYMGCZbBg/W4vAQYA5tRF9QYlv/QAAAAASUVORK5CYII="
 
@@ -5167,7 +5169,9 @@ export class LGraphCanvas {
         start_dir = start_dir || LinkDirection.RIGHT
         end_dir = end_dir || LinkDirection.LEFT
 
-        const dist = distance(a, b)
+        const dist = this.links_render_mode == LinkRenderType.SPLINE_LINK && (!endControl || !startControl)
+            ? distance(a, b)
+            : null
 
         // TODO: Subline code below was inserted in the wrong place - should be before this statement
         if (this.render_connections_border && this.ds.scale > 0.6) {
@@ -5184,48 +5188,35 @@ export class LGraphCanvas {
         if (reroute) reroute.path = path
         else if (link) link.path = path
 
+        const innerA = LGraphCanvas.#lTempA
+        const innerB = LGraphCanvas.#lTempB
+
         for (let i = 0; i < num_sublines; i += 1) {
             const offsety = (i - (num_sublines - 1) * 0.5) * 5
+            innerA[0] = a[0]
+            innerA[1] = a[1]
+            innerB[0] = b[0]
+            innerB[1] = b[1]
 
             if (this.links_render_mode == LinkRenderType.SPLINE_LINK) {
                 path.moveTo(a[0], a[1] + offsety)
-                let start_offset_x = 0
-                let start_offset_y = 0
-                let end_offset_x = 0
-                let end_offset_y = 0
-                switch (start_dir) {
-                    case LinkDirection.LEFT:
-                        start_offset_x = dist * -0.25
-                        break
-                    case LinkDirection.RIGHT:
-                        start_offset_x = dist * 0.25
-                        break
-                    case LinkDirection.UP:
-                        start_offset_y = dist * -0.25
-                        break
-                    case LinkDirection.DOWN:
-                        start_offset_y = dist * 0.25
-                        break
+                if (endControl) {
+                    innerB[0] = b[0] + endControl[0]
+                    innerB[1] = b[1] + endControl[1]
+                } else {
+                    this.#addSplineOffset(innerB, end_dir, dist)
                 }
-                switch (end_dir) {
-                    case LinkDirection.LEFT:
-                        end_offset_x = dist * -0.25
-                        break
-                    case LinkDirection.RIGHT:
-                        end_offset_x = dist * 0.25
-                        break
-                    case LinkDirection.UP:
-                        end_offset_y = dist * -0.25
-                        break
-                    case LinkDirection.DOWN:
-                        end_offset_y = dist * 0.25
-                        break
+                if (startControl) {
+                    innerA[0] = a[0] + startControl[0]
+                    innerA[1] = a[1] + startControl[1]
+                } else {
+                    this.#addSplineOffset(innerA, start_dir, dist)
                 }
                 path.bezierCurveTo(
-                    a[0] + start_offset_x,
-                    a[1] + start_offset_y + offsety,
-                    b[0] + end_offset_x,
-                    b[1] + end_offset_y + offsety,
+                    innerA[0],
+                    innerA[1] + offsety,
+                    innerB[0],
+                    innerB[1] + offsety,
                     b[0],
                     b[1] + offsety
                 )
