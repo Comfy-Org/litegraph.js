@@ -188,3 +188,31 @@ export function rotateLink(offset: Point, from: LinkDirection, to: LinkDirection
 export function getOrientation(lineStart: PointReadOnly, lineEnd: PointReadOnly, x: number, y: number): number {
     return ((lineEnd[1] - lineStart[1]) * (x - lineEnd[0])) - ((lineEnd[0] - lineStart[0]) * (y - lineEnd[1]))
 }
+
+/**
+ * 
+ * @param out The array to store the point in
+ * @param a Start point
+ * @param b End point
+ * @param controlA Start curve control point
+ * @param controlB End curve control point
+ * @param t Time: factor of distance to travel along the curve (e.g 0.25 is 25% along the curve)
+ */
+export function findPointOnCurve(
+    out: Point,
+    a: Point,
+    b: Point,
+    controlA: Point,
+    controlB: Point,
+    t: number = 0.5,
+): void {
+    const iT = 1 - t
+
+    const c1 = iT * iT * iT
+    const c2 = 3 * (iT * iT) * t
+    const c3 = 3 * iT * (t * t)
+    const c4 = t * t * t
+
+    out[0] = (c1 * a[0]) + (c2 * controlA[0]) + (c3 * controlB[0]) + (c4 * b[0])
+    out[1] = (c1 * a[1]) + (c2 * controlA[1]) + (c3 * controlB[1]) + (c4 * b[1])
+}
