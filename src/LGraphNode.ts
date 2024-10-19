@@ -1423,7 +1423,7 @@ export class LGraphNode {
     }
 
     /**
-     * Measures the node for rendering, populating outArea with the results in graph space.
+     * Measures the node for rendering, populating {@link out} with the results in graph space.
      * @param out Results (x, y, width, height) are inserted into this array.
      * @param pad Expands the area by this amount on each side.  Default: 0
      */
@@ -1432,10 +1432,15 @@ export class LGraphNode {
         const renderTitle = titleMode != LiteGraph.TRANSPARENT_TITLE && titleMode != LiteGraph.NO_TITLE
         const titleHeight = renderTitle ? LiteGraph.NODE_TITLE_HEIGHT : 0
 
-        out[0] = 0 - pad
-        out[1] = -titleHeight - pad
-        out[2] = this.size[0] + 1 + (2 * pad)
-        out[3] = this.size[1] + titleHeight + (2 * pad)
+        out[0] = this.pos[0] - pad
+        out[1] = this.pos[1] + -titleHeight - pad
+        if (!this.flags?.collapsed) {
+            out[2] = this.size[0] + (2 * pad)
+            out[3] = this.size[1] + titleHeight + (2 * pad)
+        } else {
+            out[2] = (this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH) + (2 * pad)
+            out[3] = LiteGraph.NODE_TITLE_HEIGHT + (2 * pad)
+        }
     }
 
     /**
@@ -1446,36 +1451,16 @@ export class LGraphNode {
      */
     getBounding(out?: Float32Array, compute_outer?: boolean): Float32Array {
         out = out || new Float32Array(4)
-        const nodePos = this.pos
-        const isCollapsed = this.flags.collapsed
-        const nodeSize = this.size
-
-        let left_offset = 0
-        // 1 offset due to how nodes are rendered
-        let right_offset = 1
-        let top_offset = 0
-        let bottom_offset = 0
-
+        this.measure(out)
         if (compute_outer) {
             // 4 offset for collapsed node connection points
-            left_offset = 4
-            // 6 offset for right shadow and collapsed node connection points
-            right_offset = 6 + left_offset
-            // 4 offset for collapsed nodes top connection points
-            top_offset = 4
-            // 5 offset for bottom shadow and collapsed node connection points
-            bottom_offset = 5 + top_offset
+            out[0] -= 4
+            out[1] -= 4
+            // Add shadow & left offset
+            out[2] += 6 + 4
+            // Add shadow & top offsets
+            out[3] += 5 + 4
         }
-
-        out[0] = nodePos[0] - left_offset
-        out[1] = nodePos[1] - LiteGraph.NODE_TITLE_HEIGHT - top_offset
-        out[2] = isCollapsed
-            ? (this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH) + right_offset
-            : nodeSize[0] + right_offset
-        out[3] = isCollapsed
-            ? LiteGraph.NODE_TITLE_HEIGHT + bottom_offset
-            : nodeSize[1] + LiteGraph.NODE_TITLE_HEIGHT + bottom_offset
-
         this.onBounding?.(out)
         return out
     }

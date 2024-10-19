@@ -3933,7 +3933,6 @@ export class LGraphCanvas {
         const node = this.node_over
         if (!(node && this.connecting_links?.[0])) return
 
-        const transform = ctx.getTransform()
         const { strokeStyle, lineWidth } = ctx
 
         const area = LGraphCanvas.#tmp_area
@@ -3947,7 +3946,6 @@ export class LGraphCanvas {
         const width = area[2] + (gap * 2)
         const height = area[3] + (gap * 2)
 
-        ctx.translate(node.pos[0], node.pos[1])
         ctx.beginPath()
         ctx.roundRect(x, y, width, height, radius)
 
@@ -3956,8 +3954,8 @@ export class LGraphCanvas {
         const inverter = start ? -1 : 1
 
         // Radial highlight centred on highlight pos
-        const hx = highlightPos[0] - node.pos[0]
-        const hy = highlightPos[1] - node.pos[1]
+        const hx = highlightPos[0]
+        const hy = highlightPos[1]
         const gRadius = width < height
             ? width
             : width * Math.max(height / width, 0.5)
@@ -3989,7 +3987,6 @@ export class LGraphCanvas {
         ctx.setLineDash([])
         ctx.lineWidth = lineWidth
         ctx.strokeStyle = strokeStyle
-        ctx.setTransform(transform)
     }
 
     /**
@@ -4770,8 +4767,12 @@ export class LGraphCanvas {
             ? false
             : true
 
+        // Normalised node dimensions
         const area = LGraphCanvas.#tmp_area
         node.measure(area)
+        area[0] -= node.pos[0]
+        area[1] -= node.pos[1]
+        area[2]++
 
         const old_alpha = ctx.globalAlpha
 
