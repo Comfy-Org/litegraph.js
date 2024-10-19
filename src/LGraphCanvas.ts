@@ -2451,12 +2451,6 @@ export class LGraphCanvas {
                     nodes.add(n)
                     n.pos[0] += delta[0] / this.ds.scale
                     n.pos[1] += delta[1] / this.ds.scale
-                    /*
-                     * Don't call the function if the block is already selected.
-                     * Otherwise, it could cause the block to be unselected while dragging.
-                     */
-                    if (!n.selected) this.processNodeSelected(n, e)
-
                 }
 
                 if (this.selectedGroups) {
