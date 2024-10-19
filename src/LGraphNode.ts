@@ -2301,8 +2301,8 @@ export class LGraphNode {
      * Collapse the node to make it smaller on the canvas
      **/
     collapse(force?: boolean): void {
-        this.graph._version++
         if (!this.collapsible && !force) return
+        this.graph._version++
         this.flags.collapsed = !this.flags.collapsed
         this.setDirtyCanvas(true, true)
     }
