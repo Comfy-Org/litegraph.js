@@ -113,12 +113,14 @@ export function addDirectionalOffset(amount: number, direction: LinkDirection, o
 }
 
 /**
- * Flips axes of a 2D vector - "rotating" them by 90°
- * @param offset The offset to rotate
+ * Rotates an offset in 90° increments.
+ * 
+ * Swaps/flips axis values of a 2D vector offset - effectively rotating {@link offset} by 90°
+ * @param offset The zero-based offset to rotate
  * @param from Direction to rotate from
  * @param to Direction to rotate to
  */
-export function rotateLinkDirection(offset: Point, from: LinkDirection, to: LinkDirection): void {
+export function rotateLink(offset: Point, from: LinkDirection, to: LinkDirection): void {
     let x: number
     let y: number
 
