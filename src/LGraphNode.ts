@@ -1,4 +1,4 @@
-import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Rect, Size } from "./interfaces"
+import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Positionable, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
@@ -111,7 +111,7 @@ export interface LGraphNode {
  * Base Class for all the node type classes
  * @param {String} name a name for the node
  */
-export class LGraphNode {
+export class LGraphNode implements Positionable {
     // Static properties used by dynamic child classes
     static title?: string
     static MAX_CONSOLE?: number
@@ -166,7 +166,6 @@ export class LGraphNode {
     subgraph?: LGraph
     skip_subgraph_button?: boolean
     mouseOver?: IMouseOverData
-    is_selected?: boolean
     redraw_on_mouse?: boolean
     // Appears unused
     optional_inputs?
@@ -180,6 +179,7 @@ export class LGraphNode {
     has_errors?: boolean
     removable?: boolean
     block_delete?: boolean
+    selected?: boolean
     showAdvanced?: boolean
 
     _pos: Point = new Float32Array([10, 10])
@@ -216,6 +216,13 @@ export class LGraphNode {
             default:
                 this._shape = v
         }
+    }
+
+    public get is_selected(): boolean {
+        return this.selected
+    }
+    public set is_selected(value: boolean) {
+        this.selected = value
     }
 
     // Used in group node
@@ -1391,6 +1398,11 @@ export class LGraphNode {
         this.widgets ||= []
         this.widgets.push(custom_widget)
         return custom_widget
+    }
+
+    move(deltaX: number, deltaY: number): void {
+        this.pos[0] += deltaX
+        this.pos[1] += deltaY
     }
 
     /**

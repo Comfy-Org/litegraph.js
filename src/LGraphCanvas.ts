@@ -2002,7 +2002,7 @@ export class LGraphCanvas {
                             this.isDragging = true
                         }
                         // Account for shift + click + drag
-                        if (!(e.shiftKey && !e.ctrlKey && !e.altKey) || !node.is_selected) {
+                        if (!(e.shiftKey && !e.ctrlKey && !e.altKey) || !node.selected) {
                             this.processNodeSelected(node, e)
                         }
                     } else { // double-click
@@ -2010,7 +2010,7 @@ export class LGraphCanvas {
                          * Don't call the function if the block is already selected.
                          * Otherwise, it could cause the block to be unselected while its panel is open.
                          */
-                        if (!node.is_selected) this.processNodeSelected(node, e)
+                        if (!node.selected) this.processNodeSelected(node, e)
                     }
 
                     this.dirty_canvas = true
@@ -2455,7 +2455,7 @@ export class LGraphCanvas {
                      * Don't call the function if the block is already selected.
                      * Otherwise, it could cause the block to be unselected while dragging.
                      */
-                    if (!n.is_selected) this.processNodeSelected(n, e)
+                    if (!n.selected) this.processNodeSelected(n, e)
 
                 }
 
@@ -3248,15 +3248,15 @@ export class LGraphCanvas {
         if (typeof nodes == "string") nodes = [nodes]
         for (const i in nodes) {
             const node: LGraphNode = nodes[i]
-            if (node.is_selected) {
+            if (node.selected) {
                 this.deselectNode(node)
                 continue
             }
 
-            if (!node.is_selected) {
+            if (!node.selected) {
                 node.onSelected?.()
             }
-            node.is_selected = true
+            node.selected = true
             this.selected_nodes[node.id] = node
 
             if (node.inputs) {
@@ -3284,9 +3284,9 @@ export class LGraphCanvas {
      * removes a node from the current selection
      **/
     deselectNode(node: LGraphNode): void {
-        if (!node.is_selected) return
+        if (!node.selected) return
         node.onDeselected?.()
-        node.is_selected = false
+        node.selected = false
         delete this.selected_nodes[node.id]
 
         this.onNodeDeselected?.(node)
@@ -3316,11 +3316,11 @@ export class LGraphCanvas {
         const nodes = this.graph._nodes
         for (let i = 0, l = nodes.length; i < l; ++i) {
             const node = nodes[i]
-            if (!node.is_selected) {
+            if (!node.selected) {
                 continue
             }
             node.onDeselected?.()
-            node.is_selected = false
+            node.selected = false
             this.onNodeDeselected?.(node)
         }
         this.selected_nodes = {}
@@ -4313,7 +4313,7 @@ export class LGraphCanvas {
             size,
             color,
             bgcolor,
-            node.is_selected
+            node.selected
         )
 
         if (!low_quality) {
@@ -4590,7 +4590,7 @@ export class LGraphCanvas {
      * @param size Size of the background to draw, in graph units.  Differs from node size if collapsed, etc.
      * @param fgcolor Foreground colour - used for text
      * @param bgcolor Background colour of the node
-     * @param selected Whether to render the node as selected.  Likely to be removed in future, as current usage is simply the is_selected property of the node.
+     * @param selected Whether to render the node as selected.  Likely to be removed in future, as current usage is simply the selected property of the node.
      * @param mouse_over Deprecated
      */
     drawNodeShape(

@@ -1,4 +1,4 @@
-import type { IContextMenuValue, Point, Size } from "./interfaces"
+import type { IContextMenuValue, Point, Positionable, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
@@ -11,7 +11,7 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
     pinned?: true
 }
 
-export class LGraphGroup {
+export class LGraphGroup implements Positionable {
     color: string
     title: string
     font?: string
@@ -20,6 +20,7 @@ export class LGraphGroup {
     _pos: Point = this._bounding.subarray(0, 2)
     _size: Size = this._bounding.subarray(2, 4)
     _nodes: LGraphNode[] = []
+    _children: Set<Positionable> = new Set()
     graph: LGraph | null = null
     flags: IGraphGroupFlags = {}
     selected?: boolean
@@ -145,33 +146,31 @@ export class LGraphGroup {
         this._size[1] = height
     }
 
-    move(deltax: number, deltay: number, ignore_nodes = false): void {
+    move(deltaX: number, deltaY: number, skipChildren: boolean = false): void {
         if (this.pinned) return
 
-        this._pos[0] += deltax
-        this._pos[1] += deltay
-        if (ignore_nodes) return
+        this._pos[0] += deltaX
+        this._pos[1] += deltaY
+        if (skipChildren === true) return
 
-        for (let i = 0; i < this._nodes.length; ++i) {
-            const node = this._nodes[i]
-            node.pos[0] += deltax
-            node.pos[1] += deltay
+        for (const item of this._children) {
+            item.move(deltaX, deltaY)
         }
     }
 
     recomputeInsideNodes(): void {
-        this._nodes.length = 0
-        const nodes = this.graph._nodes
+        const { nodes } = this.graph
         const node_bounding = new Float32Array(4)
+        this._nodes.length = 0
+        this._children.clear()
 
-        for (let i = 0; i < nodes.length; ++i) {
-            const node = nodes[i]
+        for (const node of nodes) {
             node.getBounding(node_bounding)
-            //out of the visible area
-            if (!overlapBounding(this._bounding, node_bounding))
-                continue
-
-            this._nodes.push(node)
+            // Node overlaps with group
+            if (overlapBounding(this._bounding, node_bounding)) {
+                this._nodes.push(node)
+                this._children.add(node)
+            }
         }
     }
 

@@ -12,6 +12,21 @@ export type NullableProperties<T> = {
 
 export type CanvasColour = string | CanvasGradient | CanvasPattern
 
+export interface Positionable {
+    /** Position in graph coordinates.  Default: 0,0 */
+    pos: Point
+    /** true if this object is part of the selection, otherwise false. */
+    selected?: boolean
+
+    /**
+     * Adds a delta to the current position.
+     * @param deltaX X value to add to current position
+     * @param deltaY Y value to add to current position
+     * @param skipChildren If true, any child objects like group contents will not be moved
+     */
+    move(deltaX: number, deltaY: number, skipChildren?: boolean): void
+}
+
 export interface IInputOrOutput {
     // If an input, this will be defined
     input?: INodeInputSlot
