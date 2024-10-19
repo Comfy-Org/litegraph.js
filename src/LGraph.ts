@@ -816,7 +816,7 @@ export class LGraph {
      * @param {String} name the name of the node to search
      * @return {Node} the node or null
      */
-    findNodeByTitle(title: string): LGraphNode {
+    findNodeByTitle(title: string): LGraphNode | null {
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
             if (this._nodes[i].title == title)
                 return this._nodes[i]
@@ -843,7 +843,7 @@ export class LGraph {
      * @param {Array} nodes_list a list with all the nodes to search from, by default is all the nodes in the graph
      * @return {LGraphNode} the node at this position or null
      */
-    getNodeOnPos(x: number, y: number, nodes_list?: LGraphNode[], margin?: number): LGraphNode {
+    getNodeOnPos(x: number, y: number, nodes_list?: LGraphNode[], margin?: number): LGraphNode | null {
         nodes_list = nodes_list || this._nodes
         const nRet = null
         for (let i = nodes_list.length - 1; i >= 0; i--) {
@@ -956,7 +956,7 @@ export class LGraph {
      * @param {String} old_name
      * @param {String} new_name
      */
-    renameInput(old_name: string, name: string): boolean {
+    renameInput(old_name: string, name: string): boolean | undefined {
         if (name == old_name) return
 
         if (!this.inputs[old_name]) return false
@@ -978,7 +978,7 @@ export class LGraph {
      * @param {String} name
      * @param {String} type
      */
-    changeInputType(name: string, type: string): boolean {
+    changeInputType(name: string, type: string): boolean | undefined {
         if (!this.inputs[name]) return false
 
         if (this.inputs[name].type &&
@@ -1045,7 +1045,7 @@ export class LGraph {
      * @param {String} old_name
      * @param {String} new_name
      */
-    renameOutput(old_name: string, name: string): boolean {
+    renameOutput(old_name: string, name: string): boolean | undefined {
         if (!this.outputs[old_name]) return false
 
         if (this.outputs[name]) {
@@ -1066,7 +1066,7 @@ export class LGraph {
      * @param {String} name
      * @param {String} type
      */
-    changeOutputType(name: string, type: string): boolean {
+    changeOutputType(name: string, type: string): boolean | undefined {
         if (!this.outputs[name]) return false
 
         if (this.outputs[name].type &&
