@@ -3483,18 +3483,14 @@ export class LGraphCanvas {
     computeVisibleNodes(nodes?: LGraphNode[], out?: LGraphNode[]): LGraphNode[] {
         const visible_nodes = out || []
         visible_nodes.length = 0
-        nodes = nodes || this.graph._nodes
+        nodes ||= this.graph._nodes
         for (let i = 0, l = nodes.length; i < l; ++i) {
             const n = nodes[i]
 
             //skip rendering nodes in live mode
-            if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) {
-                continue
-            }
-
-            if (!overlapBounding(this.visible_area, n.getBounding(LGraphCanvas.#temp, true))) {
-                continue
-            } //out of the visible area
+            if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) continue
+            // Not in visible area
+            if (!overlapBounding(this.visible_area, n.getBounding(LGraphCanvas.#temp, true))) continue
 
             visible_nodes.push(n)
         }
