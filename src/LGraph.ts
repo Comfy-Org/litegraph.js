@@ -378,11 +378,11 @@ export class LGraph {
     }
     //This is more internal, it computes the executable nodes in order and returns it
     computeExecutionOrder(only_onExecute: boolean, set_level?: boolean): LGraphNode[] {
-        let L: LGraphNode[] = []
+        const L: LGraphNode[] = []
         const S: LGraphNode[] = []
         const M: Dictionary<LGraphNode> = {}
-        const visited_links: Record<number, boolean> = {} //to avoid repeating links
-        const remaining_links: Record<number, number> = {} //to a
+        const visited_links: Record<NodeId, boolean> = {} //to avoid repeating links
+        const remaining_links: Record<NodeId, number> = {} //to a
 
         //search for the nodes without inputs (starting nodes)
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
@@ -414,10 +414,10 @@ export class LGraph {
         }
 
         while (true) {
-            if (S.length == 0) break
-
             //get an starting node
             const node = S.shift()
+            if (node === undefined) break
+
             L.push(node) //add to ordered list
             delete M[node.id] //remove from the pending nodes
 
@@ -471,13 +471,22 @@ export class LGraph {
 
         const l = L.length
 
-        //save order number in the node
-        for (let i = 0; i < l; ++i) {
-            L[i].order = i
+        /** Ensure type is set */
+        type OrderedLGraphNode = LGraphNode & { order: number }
+
+        /** Sets the order property of each provided node to its index in {@link nodes}. */
+        function setOrder(nodes: LGraphNode[]): asserts nodes is OrderedLGraphNode[] {
+            const l = nodes.length
+            for (let i = 0; i < l; ++i) {
+                nodes[i].order = i
+            }
         }
 
+        //save order number in the node
+        setOrder(L)
+
         //sort now by priority
-        L = L.sort(function (A, B) {
+        L.sort(function (A, B) {
             // @ts-expect-error ctor props
             const Ap = A.constructor.priority || A.priority || 0
             // @ts-expect-error ctor props
@@ -490,9 +499,7 @@ export class LGraph {
         })
 
         //save order number in the node, again...
-        for (let i = 0; i < l; ++i) {
-            L[i].order = i
-        }
+        setOrder(L)
 
         return L
     }
