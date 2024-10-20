@@ -2483,13 +2483,8 @@ export class LGraphCanvas {
      * Called when a mouse up event has to be processed
      **/
     processMouseUp(e: CanvasPointerEvent): boolean {
-
-        const is_primary = (e.isPrimary === undefined || e.isPrimary)
-
         //early exit for extra pointer
-        if (!is_primary) return false
-
-        //console.log("pointerevents: processMouseUp "+e.pointerId+" "+e.isPrimary+" :: "+e.clientX+" "+e.clientY);
+        if (e.isPrimary === false) return false
         if (!this.graph) return
 
         const window = this.getCanvasWindow()
@@ -2750,10 +2745,8 @@ export class LGraphCanvas {
             this.dragging_canvas = false
         }
 
-        if (is_primary) {
-            this.pointer_is_down = false
-            this.pointer_is_double = false
-        }
+        this.pointer_is_down = false
+        this.pointer_is_double = false
 
         this.graph.change()
 
