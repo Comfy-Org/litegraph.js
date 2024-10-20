@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties } from "./interfaces"
+import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
@@ -239,6 +239,7 @@ export class LGraphCanvas {
     onDrawForeground?: (arg0: CanvasRenderingContext2D, arg1: any) => void
     connections_width: number
     round_radius: number
+    /** The current node being drawn by {@link drawNode}.  This should NOT be used to determine the currently selected node.  See {@link selectedItems} */
     current_node: LGraphNode | null
     /** used for widgets */
     node_widget?: [LGraphNode, IWidget] | null
@@ -256,8 +257,8 @@ export class LGraphCanvas {
     render_time = 0
     fps = 0
     selected_nodes: Dictionary<LGraphNode> = {}
-    /** @deprecated Temporary implementation only - will be replaced with `selectedItems: Set<Positionable>`. */
-    selectedGroups: Set<LGraphGroup> = new Set()
+    /** All selected nodes, groups, and reroutes */
+    selectedItems: Set<Positionable> = new Set()
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
     node_dragged?: LGraphNode
@@ -1251,8 +1252,6 @@ export class LGraphCanvas {
         this.dragging_rectangle = null
 
         this.selected_nodes = {}
-        /** All selected groups */
-        this.selectedGroups = null
         /** The group currently being resized */
         this.selected_group = null
 
@@ -2081,8 +2080,7 @@ export class LGraphCanvas {
                             if (isInsideRectangle(e.canvasX, e.canvasY, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
                                 this.selected_group.recomputeInsideNodes()
                                 if (!e.shiftKey && !e.ctrlKey && !e.metaKey) this.deselectAllNodes()
-                                this.selectedGroups ??= new Set()
-                                this.selectedGroups.add(group)
+                                this.selectedItems.add(group)
                                 group.selected = true
 
                                 this.isDragging = true
@@ -2537,9 +2535,7 @@ export class LGraphCanvas {
                 this.selected_group.pos[1] = Math.round(
                     this.selected_group.pos[1]
                 )
-                if (this.selected_group._nodes.length) {
-                    this.dirty_canvas = true
-                }
+                this.dirty_canvas = true
                 this.selected_group = null
             }
             this.selected_group_resizing = false
@@ -2590,8 +2586,7 @@ export class LGraphCanvas {
                         }
 
                         // Select groups
-                        if (!e.shiftKey) this.deselectGroups()
-                        this.selectedGroups ??= new Set()
+                        if (!e.shiftKey) this.selectedItems.clear()
 
                         const groups = this.graph.groups
                         for (const group of groups) {
@@ -2599,7 +2594,7 @@ export class LGraphCanvas {
                             const pos = group.pos
                             const size = group.size
                             if (!isInsideRectangle(pos[0], pos[1], r[0], r[1], r[2], r[3]) || !isInsideRectangle(pos[0] + size[0], pos[1] + size[1], r[0], r[1], r[2], r[3])) continue
-                            this.selectedGroups.add(group)
+                            this.selectedItems.add(group)
                             group.recomputeInsideNodes()
                             group.selected = true
                         }
@@ -3302,6 +3297,28 @@ export class LGraphCanvas {
             }
         }
     }
+
+    /**
+     * Deselects all items on the canvas.
+     */
+    deselectAll(): void {
+        if (!this.graph) return
+
+        const selected = this.selectedItems
+        for (const item of selected) {
+            item.onDeselected?.()
+            item.selected = false
+        }
+        this.selectedItems.clear()
+
+        this.selected_nodes = {}
+        this.current_node = null
+        this.highlighted_links = {}
+
+        this.onSelectionChange?.(this.selected_nodes)
+        this.setDirty(true)
+    }
+
     /**
      * removes all nodes from the current selection
      **/
@@ -3320,18 +3337,9 @@ export class LGraphCanvas {
         this.selected_nodes = {}
         this.current_node = null
         this.highlighted_links = {}
-        this.deselectGroups()
 
         this.onSelectionChange?.(this.selected_nodes)
         this.setDirty(true)
-    }
-
-    deselectGroups() {
-        if (!this.selectedGroups) return
-        for (const group of this.selectedGroups) {
-            delete group.selected
-        }
-        this.selectedGroups = null
     }
 
     /**
