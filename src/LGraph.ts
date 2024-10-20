@@ -49,7 +49,7 @@ export class LGraph {
      * ```
      */
     links: Map<LinkId, LLink> & Record<LinkId, LLink>
-    list_of_graphcanvas?: LGraphCanvas[]
+    list_of_graphcanvas: LGraphCanvas[] | null
     status: number
     last_node_id: number
     last_link_id: number
@@ -58,7 +58,7 @@ export class LGraph {
     _nodes: LGraphNode[]
     _nodes_by_id: Record<NodeId, LGraphNode>
     _nodes_in_order: LGraphNode[]
-    _nodes_executable: LGraphNode[]
+    _nodes_executable: LGraphNode[] | null
     _groups: LGraphGroup[]
     iteration: number
     globaltime: number
@@ -69,7 +69,7 @@ export class LGraph {
     last_update_time: number
     starttime: number
     catch_errors: boolean
-    execution_timer_id: number
+    execution_timer_id: number | null
     errors_in_execution: boolean
     execution_time: number
     _last_trigger_time?: number
@@ -101,8 +101,8 @@ export class LGraph {
     onOutputRenamed?(old_name: string, name: string): void
     onOutputTypeChanged?(name: string, type: string): void
     onOutputRemoved?(name: string): void
-    onBeforeChange?(graph: LGraph, info: LGraphNode): void
-    onAfterChange?(graph: LGraph, info: LGraphNode): void
+    onBeforeChange?(graph: LGraph, info?: LGraphNode): void
+    onAfterChange?(graph: LGraph, info?: LGraphNode): void
     onConnectionChange?(node: LGraphNode): void
     on_change?(graph: LGraph): void
     onSerialize?(data: ISerialisedGraph): void
@@ -515,7 +515,7 @@ export class LGraph {
 
         while (pending.length) {
             const current = pending.shift()
-            if (!current.inputs) continue
+            if (!current?.inputs) continue
 
             if (!visited[current.id] && current != node) {
                 visited[current.id] = true
@@ -542,7 +542,7 @@ export class LGraph {
         margin = margin || 100
 
         const nodes = this.computeExecutionOrder(false, true)
-        const columns = []
+        const columns: LGraphNode[][] = []
         for (let i = 0; i < nodes.length; ++i) {
             const node = nodes[i]
             const col = node._level || 1
@@ -641,7 +641,7 @@ export class LGraph {
      * Adds a new node instance to this graph
      * @param {LGraphNode} node the instance of the node
      */
-    add(node: LGraphNode | LGraphGroup, skip_compute_order?: boolean): LGraphNode | null {
+    add(node: LGraphNode | LGraphGroup, skip_compute_order?: boolean): LGraphNode | null | undefined {
         if (!node) return
 
         // LEGACY: This was changed from constructor === LGraphGroup
@@ -794,7 +794,7 @@ export class LGraph {
      * @return {Array} a list with all the nodes of this type
      */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    findNodesByClass(classObject: Function, result: LGraphNode[]): LGraphNode[] {
+    findNodesByClass(classObject: Function, result?: LGraphNode[]): LGraphNode[] {
         result = result || []
         result.length = 0
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
@@ -813,7 +813,7 @@ export class LGraph {
         result = result || []
         result.length = 0
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
-            if (this._nodes[i].type.toLowerCase() == matchType)
+            if (this._nodes[i].type?.toLowerCase() == matchType)
                 result.push(this._nodes[i])
         }
         return result
@@ -856,14 +856,8 @@ export class LGraph {
         for (let i = nodes_list.length - 1; i >= 0; i--) {
             const n = nodes_list[i]
             const skip_title = n.constructor.title_mode == TitleMode.NO_TITLE
-            if (n.isPointInside(x, y, margin, skip_title)) {
-                // check for lesser interest nodes (TODO check for overlapping, use the top)
-                /*if (typeof n == "LGraphGroup"){
-                    nRet = n;
-                }else{*/
+            if (n.isPointInside(x, y, margin, skip_title))
                 return n
-                /*}*/
-            }
         }
         return nRet
     }
@@ -1222,7 +1216,7 @@ export class LGraph {
      * @param {String} str configure a graph from a JSON string
      * @param {Boolean} returns if there was any error parsing
      */
-    configure(data: ISerialisedGraph, keep_old?: boolean): boolean {
+    configure(data: ISerialisedGraph, keep_old?: boolean): boolean | undefined {
         // TODO: Finish typing configure()
         if (!data) return
 

@@ -56,8 +56,8 @@ export type KeysOfType<T, Match> = { [P in keyof T]: T[P] extends Match ? P : ne
 /** A new type that contains only the properties of T that are of type Match */
 export type PickByType<T, Match> = { [P in keyof T]: Extract<T[P], Match> }
 
-/** The names of all methods and functions in T */
-export type MethodNames<T> = KeysOfType<T, (...args: any) => any>
+/** The names of all (optional) methods and functions in T */
+export type MethodNames<T> = KeysOfType<T, ((...args: any) => any) | undefined>
 
 export interface IBoundaryNodes {
     top: LGraphNode
