@@ -6020,14 +6020,12 @@ export class LGraphCanvas {
     }
     /**
      * resizes the canvas to a given size, if no size is passed, then it tries to fill the parentNode
+     * @todo Remove or rewrite
      **/
     resize(width?: number, height?: number): void {
         if (!width && !height) {
-            // TODO: Type-check parentNode
-            const parent = this.canvas.parentNode
-            // @ts-expect-error
+            const parent = this.canvas.parentElement
             width = parent.offsetWidth
-            // @ts-expect-error
             height = parent.offsetHeight
         }
 
