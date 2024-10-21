@@ -286,7 +286,7 @@ export class LGraphCanvas {
     /** A map of nodes that require selective-redraw */
     dirty_nodes = new Map<NodeId, LGraphNode>()
     dirty_area?: Rect
-    // Unused
+    /** @deprecated Unused */
     node_in_panel?: LGraphNode
     last_mouse: Point = [0, 0]
     last_mouseclick: number = 0
@@ -305,10 +305,13 @@ export class LGraphCanvas {
     _mouseout_callback?(e: CanvasMouseEvent): boolean
     _key_callback?(e: KeyboardEvent): boolean
     _ondrop_callback?(e: CanvasDragEvent): unknown
+    /** @deprecated WebGL */
     gl?: never
     bgctx?: CanvasRenderingContext2D
     is_rendering?: boolean
+    /** @deprecated Panels */
     block_click?: boolean
+    /** @deprecated Panels */
     last_click_position?: Point
     resizing_node?: LGraphNode
     /** @deprecated See {@link LGraphCanvas.resizingGroup} */
@@ -318,7 +321,9 @@ export class LGraphCanvas {
     _highlight_pos?: Point
     _highlight_input?: INodeInputSlot
     // TODO: Check if panels are used
+    /** @deprecated Panels */
     node_panel
+    /** @deprecated Panels */
     options_panel
     onDropItem: (e: Event) => any
     _bg_img: HTMLImageElement
@@ -327,7 +332,9 @@ export class LGraphCanvas {
     // TODO: This looks like another panel thing
     prompt_box: IDialog
     search_box: HTMLDivElement
+    /** @deprecated Panels */
     SELECTED_NODE: LGraphNode
+    /** @deprecated Panels */
     NODEPANEL_IS_OPEN: boolean
     getMenuOptions?(): IContextMenuValue[]
     getExtraMenuOptions?(canvas: LGraphCanvas, options: IContextMenuValue[]): IContextMenuValue[]
@@ -1741,8 +1748,8 @@ export class LGraphCanvas {
         let skip_action = false
         const now = LiteGraph.getTime()
         const is_double_click = (now - this.last_mouseclick < 300)
-        this.mouse[0] = e.clientX
-        this.mouse[1] = e.clientY
+        this.mouse[0] = x
+        this.mouse[1] = y
         this.graph_mouse[0] = e.canvasX
         this.graph_mouse[1] = e.canvasY
         this.last_click_position = [this.mouse[0], this.mouse[1]]
@@ -2222,7 +2229,7 @@ export class LGraphCanvas {
 
         }
 
-        this.last_mouse = [e.clientX, e.clientY]
+        this.last_mouse = [x, y]
         this.last_mouseclick = LiteGraph.getTime()
         this.last_mouse_dragging = true
 
