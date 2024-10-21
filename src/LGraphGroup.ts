@@ -159,11 +159,12 @@ export class LGraphGroup implements Positionable {
         }
     }
 
-    resize(width: number, height: number): void {
-        if (this.pinned) return
+    resize(width: number, height: number): boolean {
+        if (this.pinned) return false
 
         this._size[0] = width
         this._size[1] = height
+        return true
     }
 
     move(deltaX: number, deltaY: number, skipChildren: boolean = false): void {

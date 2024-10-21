@@ -260,6 +260,8 @@ export class LGraphCanvas {
     selected_nodes: Dictionary<LGraphNode> = {}
     /** All selected nodes, groups, and reroutes */
     selectedItems: Set<Positionable> = new Set()
+    /** The group currently being resized. */
+    resizingGroup: LGraphGroup | null = null
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
     node_dragged?: LGraphNode
@@ -299,6 +301,7 @@ export class LGraphCanvas {
     block_click?: boolean
     last_click_position?: Point
     resizing_node?: LGraphNode
+    /** @deprecated See {@link LGraphCanvas.resizingGroup} */
     selected_group_resizing?: boolean
     last_mouse_dragging: boolean
     onMouseDown: (arg0: CanvasMouseEvent) => void
@@ -2059,7 +2062,6 @@ export class LGraphCanvas {
 
 
                     this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
-                    this.selected_group_resizing = false
 
                     const group = this.selected_group
                     if (group && !this.read_only) {
@@ -2069,7 +2071,7 @@ export class LGraphCanvas {
 
                         const dist = distance([e.canvasX, e.canvasY], [group.pos[0] + group.size[0], group.pos[1] + group.size[1]])
                         if (dist * this.ds.scale < 10) {
-                            this.selected_group_resizing = true
+                            this.resizingGroup = group
                         } else {
                             const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
                             const headerHeight = f * 1.4
@@ -2259,19 +2261,20 @@ export class LGraphCanvas {
 
         //get node over
         const node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+        const { resizingGroup } = this
 
         if (this.dragging_rectangle) {
             this.dragging_rectangle[2] = e.canvasX - this.dragging_rectangle[0]
             this.dragging_rectangle[3] = e.canvasY - this.dragging_rectangle[1]
             this.dirty_canvas = true
         }
-        else if (this.selected_group_resizing && !this.read_only) {
-            //moving/resizing a group
-            this.selected_group.resize(
-                e.canvasX - this.selected_group.pos[0],
-                e.canvasY - this.selected_group.pos[1]
+        else if (resizingGroup && !this.read_only) {
+            // Resizing a group
+            const resized = resizingGroup.resize(
+                e.canvasX - resizingGroup.pos[0],
+                e.canvasY - resizingGroup.pos[1]
             )
-            this.dirty_bgcanvas = true
+            if (resized) this.dirty_bgcanvas = true
         } else if (this.dragging_canvas) {
             this.ds.offset[0] += delta[0] / this.ds.scale
             this.ds.offset[1] += delta[1] / this.ds.scale
@@ -2494,6 +2497,7 @@ export class LGraphCanvas {
         this.block_click &&= false
 
         if (e.which == 1) {
+            this.resizingGroup = null
 
             if (this.node_widget) {
                 this.processNodeWidgets(this.node_widget[0], this.graph_mouse, e)
@@ -2501,12 +2505,7 @@ export class LGraphCanvas {
 
             //left button
             this.node_widget = null
-
-            if (this.selected_group) {
-                this.dirty_canvas = true
-                this.selected_group = null
-            }
-            this.selected_group_resizing = false
+            this.selected_group = null
             this.isDragging = false
 
             let node = this.graph.getNodeOnPos(
