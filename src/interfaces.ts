@@ -122,7 +122,7 @@ export interface ConnectingLink extends IInputOrOutput {
 interface IContextMenuBase {
     title?: string
     className?: string
-    callback?(value?: unknown, options?: unknown, event?: MouseEvent, previous_menu?: ContextMenu, node?: LGraphNode): void
+    callback?(value?: unknown, options?: unknown, event?: MouseEvent, previous_menu?: ContextMenu, node?: LGraphNode): void | boolean
 }
 
 /** ContextMenu */
