@@ -1428,13 +1428,14 @@ export class LGraphCanvas {
 
         if (!skip_events) this.bindEvents()
     }
-    //used in some events to capture them
-    _doNothing(e: Event) {
+    /** Captures an event and prevents default - returns false. */
+    _doNothing(e: Event): boolean {
         //console.log("pointerevents: _doNothing "+e.type);
         e.preventDefault()
         return false
     }
-    _doReturnTrue(e: Event) {
+    /** Captures an event and prevents default - returns true. */
+    _doReturnTrue(e: Event): boolean {
         e.preventDefault()
         return true
     }
@@ -1722,7 +1723,6 @@ export class LGraphCanvas {
         let node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
         let skip_action = false
         const now = LiteGraph.getTime()
-        const is_primary = (e.isPrimary === undefined || !e.isPrimary)
         const is_double_click = (now - this.last_mouseclick < 300)
         this.mouse[0] = e.clientX
         this.mouse[1] = e.clientY
@@ -1730,7 +1730,7 @@ export class LGraphCanvas {
         this.graph_mouse[1] = e.canvasY
         this.last_click_position = [this.mouse[0], this.mouse[1]]
 
-        this.pointer_is_double = this.pointer_is_down && is_primary
+        this.pointer_is_double = this.pointer_is_down && e.isPrimary
         this.pointer_is_down = true
 
         this.canvas.focus()
