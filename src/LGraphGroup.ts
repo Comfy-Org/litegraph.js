@@ -114,25 +114,36 @@ export class LGraphGroup implements Positionable {
      */
     draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
         const padding = 4
+        const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
 
-        ctx.fillStyle = this.color
-        ctx.strokeStyle = this.color
         const [x, y] = this._pos
         const [width, height] = this._size
+
+        // Titlebar
         ctx.globalAlpha = 0.25 * graphCanvas.editor_alpha
+        ctx.fillStyle = this.color || '#335'
+        ctx.strokeStyle = this.color || '#335'
+        ctx.beginPath()
+        ctx.rect(x + 0.5, y + 0.5, width, font_size * 1.4)
+        ctx.fill()
+
+        // Group background, border
+        ctx.fillStyle = this.color
+        ctx.strokeStyle = this.color
         ctx.beginPath()
         ctx.rect(x + 0.5, y + 0.5, width, height)
         ctx.fill()
         ctx.globalAlpha = graphCanvas.editor_alpha
         ctx.stroke()
 
+        // Resize marker
         ctx.beginPath()
         ctx.moveTo(x + width, y + height)
         ctx.lineTo(x + width - 10, y + height)
         ctx.lineTo(x + width, y + height - 10)
         ctx.fill()
 
-        const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
+        // Title
         ctx.font = font_size + "px Arial"
         ctx.textAlign = "left"
         ctx.fillText(this.title + (this.pinned ? "📌" : ""), x + padding, y + font_size)
