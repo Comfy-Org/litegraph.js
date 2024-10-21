@@ -1,7 +1,5 @@
-import type { Point, Rect } from "./interfaces"
+import type { Point, ReadOnlyPoint, ReadOnlyRect } from "./interfaces"
 import { LinkDirection } from "./types/globalEnums"
-
-type PointReadOnly = readonly [x: number, y: number] | Float32Array | Float64Array
 
 /**
  * Calculates the distance between two points (2D vector)
@@ -9,7 +7,7 @@ type PointReadOnly = readonly [x: number, y: number] | Float32Array | Float64Arr
  * @param b Point b as x, y
  * @returns Distance between point a & b
  */
-export function distance(a: PointReadOnly, b: PointReadOnly): number {
+export function distance(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
     return Math.sqrt(
         (b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1])
     )
@@ -22,7 +20,7 @@ export function distance(a: PointReadOnly, b: PointReadOnly): number {
  * @param b Point b as x, y
  * @returns Distance2 (squared) between point a & b
  */
-export function dist2(a: PointReadOnly, b: PointReadOnly): number {
+export function dist2(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
     return ((b[0] - a[0]) * (b[0] - a[0])) + ((b[1] - a[1]) * (b[1] - a[1]))
 }
 
@@ -32,7 +30,7 @@ export function dist2(a: PointReadOnly, b: PointReadOnly): number {
  * @param rect The rectangle, as x, y, width, height
  * @returns true if the point is inside the rect, otherwise false
  */
-export function isPointInRectangle(point: PointReadOnly, rect: Rect): boolean {
+export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
     return rect[0] < point[0]
         && rect[0] + rect[2] > point[0]
         && rect[1] < point[1]
@@ -74,7 +72,7 @@ export function isSortaInsideOctagon(x: number, y: number, radius: number): bool
  * @param b Rectangle B as x, y, width, height
  * @returns true if rectangles overlap, otherwise false
  */
-export function overlapBounding(a: Rect, b: Rect): boolean {
+export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const aRight = a[0] + a[2]
     const aBottom = a[1] + a[3]
     const bRight = b[0] + b[2]
@@ -94,7 +92,7 @@ export function overlapBounding(a: Rect, b: Rect): boolean {
  * @param b Sub-rectangle B as x, y, width, height
  * @returns true if {@link a} contains most of {@link b}, otherwise false
  */
-export function containsCentre(a: Rect, b: Rect): boolean {
+export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const centreX = b[0] + (b[2] * 0.5)
     const centreY = b[1] + (b[3] * 0.5)
     return isInsideRectangle(centreX, centreY, a[0], a[1], a[2], a[3])
@@ -106,7 +104,7 @@ export function containsCentre(a: Rect, b: Rect): boolean {
  * @param b Sub-rectangle B as x, y, width, height
  * @returns true if {@link a} wholly contains {@link b}, otherwise false
  */
-export function containsRect(a: Rect, b: Rect): boolean {
+export function containsRect(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const aRight = a[0] + a[2]
     const aBottom = a[1] + a[3]
     const bRight = b[0] + b[2]
@@ -215,7 +213,7 @@ export function rotateLink(offset: Point, from: LinkDirection, to: LinkDirection
  * @param point The point to check
  * @returns 0 if all three points are in a straight line, a negative value if point is to the left of the projected line, or positive if the point is to the right
  */
-export function getOrientation(lineStart: PointReadOnly, lineEnd: PointReadOnly, x: number, y: number): number {
+export function getOrientation(lineStart: ReadOnlyPoint, lineEnd: ReadOnlyPoint, x: number, y: number): number {
     return ((lineEnd[1] - lineStart[1]) * (x - lineEnd[0])) - ((lineEnd[0] - lineStart[0]) * (y - lineEnd[1]))
 }
 
@@ -230,10 +228,10 @@ export function getOrientation(lineStart: PointReadOnly, lineEnd: PointReadOnly,
  */
 export function findPointOnCurve(
     out: Point,
-    a: Point,
-    b: Point,
-    controlA: Point,
-    controlB: Point,
+    a: ReadOnlyPoint,
+    b: ReadOnlyPoint,
+    controlA: ReadOnlyPoint,
+    controlB: ReadOnlyPoint,
     t: number = 0.5,
 ): void {
     const iT = 1 - t
