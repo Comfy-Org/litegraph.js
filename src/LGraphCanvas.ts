@@ -5247,7 +5247,7 @@ export class LGraphCanvas {
                 }
 
                 //render arrow
-                ctx.save()
+                const transform = ctx.getTransform()
                 ctx.translate(posA[0], posA[1])
                 ctx.rotate(angleA)
                 ctx.beginPath()
@@ -5255,8 +5255,8 @@ export class LGraphCanvas {
                 ctx.lineTo(0, +7)
                 ctx.lineTo(+5, -3)
                 ctx.fill()
-                ctx.restore()
-                ctx.save()
+                ctx.setTransform(transform)
+
                 ctx.translate(posC[0], posC[1])
                 ctx.rotate(angleB)
                 ctx.beginPath()
@@ -5264,7 +5264,7 @@ export class LGraphCanvas {
                 ctx.lineTo(0, +7)
                 ctx.lineTo(+5, -3)
                 ctx.fill()
-                ctx.restore()
+                ctx.setTransform(transform)
             }
 
             //circle
