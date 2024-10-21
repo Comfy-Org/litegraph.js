@@ -2205,8 +2205,7 @@ export class LGraphCanvas {
 
         }
 
-        this.last_mouse[0] = e.clientX
-        this.last_mouse[1] = e.clientY
+        this.last_mouse = [e.clientX, e.clientY]
         this.last_mouseclick = LiteGraph.getTime()
         this.last_mouse_dragging = true
 
