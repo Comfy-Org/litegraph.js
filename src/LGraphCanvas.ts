@@ -339,9 +339,6 @@ export class LGraphCanvas {
     /** Implement this function to allow conversion of widget types to input types, e.g. number -> INT or FLOAT for widget link validation checks */
     getWidgetLinkType?: (widget: IWidget, node: LGraphNode) => string | null | undefined
 
-    // FIXME: Has never worked - undefined
-    visible_rect?: Rect
-
     /**
      * Creates a new instance of LGraphCanvas.
      * @param canvas The canvas HTML element (or its id) to use, or null / undefined to leave blank.
@@ -3841,8 +3838,7 @@ export class LGraphCanvas {
                 this.onDrawLinkTooltip?.(ctx, null)
 
             //custom info
-            // FIXME: Has never worked - visible_rect is undefined
-            this.onDrawForeground?.(ctx, this.visible_rect)
+            this.onDrawForeground?.(ctx, this.visible_area)
 
             ctx.restore()
         }
