@@ -262,6 +262,7 @@ export class LGraphCanvas {
     selectedItems: Set<Positionable> = new Set()
     /** The group currently being resized. */
     resizingGroup: LGraphGroup | null = null
+    /** @deprecated See {@link LGraphCanvas.selectedItems} */
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
     node_dragged?: LGraphNode
@@ -1256,7 +1257,6 @@ export class LGraphCanvas {
         this.dragging_rectangle = null
 
         this.selected_nodes = {}
-        /** The group currently being resized */
         this.selected_group = null
 
         this.visible_nodes = []
@@ -2060,10 +2060,8 @@ export class LGraphCanvas {
                         this.ctx.lineWidth = lineWidth
                     }
 
-
-                    this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
-
-                    const group = this.selected_group
+                    const group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
+                    this.selected_group = group
                     if (group && !this.read_only) {
                         if (e.ctrlKey) {
                             this.dragging_rectangle = null
@@ -2088,7 +2086,7 @@ export class LGraphCanvas {
                             this.emitEvent({
                                 subType: "group-double-click",
                                 originalEvent: e,
-                                group: this.selected_group,
+                                group,
                             })
                         }
                     } else if (is_double_click && !this.read_only) {
