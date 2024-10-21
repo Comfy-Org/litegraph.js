@@ -1691,15 +1691,14 @@ export class LGraphCanvas {
 
         const x = e.clientX
         const y = e.clientY
-        //console.log(y,this.viewport);
-        //console.log("pointerevents: processMouseDown pointerId:"+e.pointerId+" which:"+e.which+" isPrimary:"+e.isPrimary+" :: x y "+x+" "+y);
         this.ds.viewport = this.viewport
         const is_inside = !this.viewport || (this.viewport && x >= this.viewport[0] && x < (this.viewport[0] + this.viewport[2]) && y >= this.viewport[1] && y < (this.viewport[1] + this.viewport[3]))
 
         //move mouse move event to the window in case it drags outside of the canvas
         if (!this.options.skip_events) {
             LiteGraph.pointerListenerRemove(this.canvas, "move", this._mousemove_callback)
-            LiteGraph.pointerListenerAdd(ref_window.document, "move", this._mousemove_callback, true) //catch for the entire window
+            //catch for the entire window
+            LiteGraph.pointerListenerAdd(ref_window.document, "move", this._mousemove_callback, true)
             LiteGraph.pointerListenerAdd(ref_window.document, "up", this._mouseup_callback, true)
         }
 
@@ -1764,9 +1763,10 @@ export class LGraphCanvas {
             //when clicked on top of a node
             //and it is not interactive
             if (node && (this.allow_interaction || node.flags.allow_interaction) && !skip_action && !this.read_only) {
+                //if it wasn't selected?
                 if (!this.live_mode && !node.flags.pinned) {
                     this.bringToFront(node)
-                } //if it wasn't selected?
+                }
 
                 //not dragging mouse to connect two slots
                 if (this.allow_interaction && !this.connecting_links && !node.flags.collapsed && !this.live_mode) {
@@ -1871,7 +1871,8 @@ export class LGraphCanvas {
                                     }
 
                                     if (input.link !== null) {
-                                        const link_info = this.graph.links[input.link] //before disconnecting
+                                        //before disconnecting
+                                        const link_info = this.graph.links[input.link]
                                         const slot = link_info.origin_slot
                                         const linked_node = this.graph._nodes_by_id[link_info.origin_id]
                                         if (LiteGraph.click_do_break_link_to || (LiteGraph.ctrl_alt_click_do_break_link && e.ctrlKey && e.altKey && !e.shiftKey)) {
@@ -1930,7 +1931,7 @@ export class LGraphCanvas {
                                 }
                             }
                         }
-                    } //not resizing
+                    }
                 }
 
                 //it wasn't clicked on the links boxes
@@ -2099,7 +2100,6 @@ export class LGraphCanvas {
             }
 
             if (!skip_action && clicking_canvas_bg && this.allow_dragcanvas) {
-                //console.log("pointerevents: dragging_canvas start");
                 this.dragging_canvas = true
             }
 
@@ -2141,16 +2141,15 @@ export class LGraphCanvas {
                                 }
                             }
                         }
-                        //console.log("middleClickSlots? "+mClikSlot+" & "+(mClikSlot_index!==false));
+                        // Middle clicked a slot
                         if (mClikSlot && mClikSlot_index !== false) {
 
                             const alphaPosY = 0.5 - ((mClikSlot_index + 1) / ((mClikSlot_isOut ? node.outputs.length : node.inputs.length)))
                             const node_bounding = node.getBounding()
                             // estimate a position: this is a bad semi-bad-working mess .. REFACTOR with a correct autoplacement that knows about the others slots and nodes
-                            const posRef: Point = [(!mClikSlot_isOut ? node_bounding[0] : node_bounding[0] + node_bounding[2]) // + node_bounding[0]/this.canvas.width*150
-                                ,
-
-                            e.canvasY - 80 // + node_bounding[0]/this.canvas.width*66 // vertical "derive"
+                            const posRef: Point = [
+                                (!mClikSlot_isOut ? node_bounding[0] : node_bounding[0] + node_bounding[2]),
+                                e.canvasY - 80
                             ]
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             const nodeCreated = this.createDefaultNodeForSlot({
@@ -2158,13 +2157,9 @@ export class LGraphCanvas {
                                 slotFrom: !mClikSlot_isOut ? null : mClikSlot_index,
                                 nodeTo: !mClikSlot_isOut ? node : null,
                                 slotTo: !mClikSlot_isOut ? mClikSlot_index : null,
-                                //,e: e
                                 position: posRef,
-                                //nodeNewType
                                 nodeType: "AUTO",
-                                //-alphaPosY*30]
                                 posAdd: [!mClikSlot_isOut ? -30 : 30, -alphaPosY * 130],
-                                //-alphaPosY*2*/
                                 posSizeFix: [!mClikSlot_isOut ? -1 : 0, 0]
                             })
                             skip_action = true
@@ -2173,8 +2168,8 @@ export class LGraphCanvas {
                 }
             }
 
+            // Drag canvas using middle mouse button
             if (!skip_action && this.allow_dragcanvas) {
-                //console.log("pointerevents: dragging_canvas start from middle button");
                 this.dragging_canvas = true
             }
 
@@ -2201,18 +2196,11 @@ export class LGraphCanvas {
 
         }
 
-        //TODO
-        //if(this.node_selected != prev_selected)
-        //	this.onNodeSelectionChange(this.node_selected);
         this.last_mouse[0] = e.clientX
         this.last_mouse[1] = e.clientY
         this.last_mouseclick = LiteGraph.getTime()
         this.last_mouse_dragging = true
 
-        /*
-    if( (this.dirty_canvas || this.dirty_bgcanvas) && this.rendering_timer_id == null)
-        this.draw();
-    */
         this.graph.change()
 
         //this is to ensure to defocus(blur) if a text input element is on focus
@@ -2251,9 +2239,7 @@ export class LGraphCanvas {
         this.graph_mouse[0] = e.canvasX
         this.graph_mouse[1] = e.canvasY
 
-        //console.log("pointerevents: processMouseMove "+e.pointerId+" "+e.isPrimary);
         if (this.block_click) {
-            //console.log("pointerevents: processMouseMove block_click");
             e.preventDefault()
             return false
         }
@@ -2286,7 +2272,6 @@ export class LGraphCanvas {
             )
             this.dirty_bgcanvas = true
         } else if (this.dragging_canvas) {
-            ////console.log("pointerevents: processMouseMove is dragging_canvas");
             this.ds.offset[0] += delta[0] / this.ds.scale
             this.ds.offset[1] += delta[1] / this.ds.scale
             this.dirty_canvas = true
@@ -2513,7 +2498,6 @@ export class LGraphCanvas {
 
         //restore the mousemove event back to the canvas
         if (!this.options.skip_events) {
-            //console.log("pointerevents: processMouseUp adjustEventListener");
             LiteGraph.pointerListenerRemove(document, "move", this._mousemove_callback, true)
             LiteGraph.pointerListenerAdd(this.canvas, "move", this._mousemove_callback, true)
             LiteGraph.pointerListenerRemove(document, "up", this._mouseup_callback, true)
@@ -2528,7 +2512,6 @@ export class LGraphCanvas {
         //used to avoid sending twice a click in an immediate button
         this.block_click &&= false
 
-        //console.log("pointerevents: processMouseUp which: "+e.which);
         if (e.which == 1) {
 
             if (this.node_widget) {
