@@ -1268,8 +1268,7 @@ export class LGraphCanvas {
 
         this.dragging_canvas = false
 
-        this.dirty_canvas = true
-        this.dirty_bgcanvas = true
+        this.#dirty()
         this.dirty_area = null
 
         this.node_in_panel = null
@@ -1573,6 +1572,13 @@ export class LGraphCanvas {
         if (fgcanvas) this.dirty_canvas = true
         if (bgcanvas) this.dirty_bgcanvas = true
     }
+
+    /** Marks the entire canvas as dirty. */
+    #dirty(): void {
+        this.dirty_canvas = true
+        this.dirty_bgcanvas = true
+    }
+
     /**
      * Used to attach the canvas in a popup
      *
@@ -2276,8 +2282,7 @@ export class LGraphCanvas {
         } else if (this.dragging_canvas) {
             this.ds.offset[0] += delta[0] / this.ds.scale
             this.ds.offset[1] += delta[1] / this.ds.scale
-            this.dirty_canvas = true
-            this.dirty_bgcanvas = true
+            this.#dirty()
         } else if ((this.allow_interaction || (node && node.flags.allow_interaction)) && !this.read_only) {
             if (this.connecting_links) this.dirty_canvas = true
 
@@ -2439,8 +2444,7 @@ export class LGraphCanvas {
                 const deltaY = delta[1] / this.ds.scale
                 allItems.forEach(x => x.move(deltaX, deltaY, true))
 
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
 
                 function addToSetRecursively(item: Positionable, items: Set<Positionable>): void {
                     if (items.has(item)) return
@@ -2458,8 +2462,7 @@ export class LGraphCanvas {
                 this.resizing_node.setSize(desired_size)
 
                 this.canvas.style.cursor = "se-resize"
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
             }
         }
 
@@ -2567,8 +2570,7 @@ export class LGraphCanvas {
                     for (const link of this.connecting_links) {
 
                         //dragging a connection
-                        this.dirty_canvas = true
-                        this.dirty_bgcanvas = true
+                        this.#dirty()
 
                         //slot below mouse? connect
                         if (link.output) {
@@ -2648,8 +2650,7 @@ export class LGraphCanvas {
                 this.connecting_links = null
             } //not dragging connection
             else if (this.resizing_node) {
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
                 this.graph.afterChange(this.resizing_node)
                 this.resizing_node = null
             } else if (this.node_dragged) {
@@ -2661,8 +2662,7 @@ export class LGraphCanvas {
                     node.collapse()
                 }
 
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
                 this.node_dragged.pos[0] = Math.round(this.node_dragged.pos[0])
                 this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1])
                 if (this.graph.config.align_to_grid || this.align_to_grid) {
@@ -3414,8 +3414,7 @@ export class LGraphCanvas {
      **/
     setZoom(value: number, zooming_center: Point) {
         this.ds.changeScale(value, zooming_center)
-        this.dirty_canvas = true
-        this.dirty_bgcanvas = true
+        this.#dirty()
     }
     /**
      * converts a coordinate from graph coordinates to canvas2D coordinates
@@ -5922,8 +5921,7 @@ export class LGraphCanvas {
     switchLiveMode(transition: boolean): void {
         if (!transition) {
             this.live_mode = !this.live_mode
-            this.dirty_canvas = true
-            this.dirty_bgcanvas = true
+            this.#dirty()
             return
         }
 
