@@ -3,9 +3,9 @@ import { LinkDirection } from "./types/globalEnums"
 
 /**
  * Calculates the distance between two points (2D vector)
- * @param a Point a as x, y
- * @param b Point b as x, y
- * @returns Distance between point a & b
+ * @param a Point a as `x, y`
+ * @param b Point b as `x, y`
+ * @returns Distance between point {@link a} & {@link b}
  */
 export function distance(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
     return Math.sqrt(
@@ -16,9 +16,9 @@ export function distance(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
 /**
  * Calculates the distance2 (squared) between two points (2D vector).
  * Much faster when only comparing distances (closest/furthest point).
- * @param a Point a as x, y
- * @param b Point b as x, y
- * @returns Distance2 (squared) between point a & b
+ * @param a Point a as `x, y`
+ * @param b Point b as `x, y`
+ * @returns Distance2 (squared) between point {@link a} & {@link b}
  */
 export function dist2(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
     return ((b[0] - a[0]) * (b[0] - a[0])) + ((b[1] - a[1]) * (b[1] - a[1]))
@@ -26,9 +26,9 @@ export function dist2(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
 
 /**
  * Determines whether a point is inside a rectangle.
- * @param point The point to check, as x, y
- * @param rect The rectangle, as x, y, width, height
- * @returns true if the point is inside the rect, otherwise false
+ * @param point The point to check, as `x, y`
+ * @param rect The rectangle, as `x, y, width, height`
+ * @returns `true` if the point is inside the rect, otherwise `false`
  */
 export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
     return rect[0] < point[0]
@@ -45,7 +45,7 @@ export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): bo
  * @param top Rect y
  * @param width Rect width
  * @param height Rect height
- * @returns true if the point is inside the rect, otherwise false
+ * @returns `true` if the point is inside the rect, otherwise `false`
  */
 export function isInsideRectangle(x: number, y: number, left: number, top: number, width: number, height: number): boolean {
     return left < x
@@ -59,7 +59,7 @@ export function isInsideRectangle(x: number, y: number, left: number, top: numbe
  * @param x Point x
  * @param y Point y
  * @param radius Radius to use as rough guide for octagon
- * @returns true if the point is roughly inside the octagon centred on 0,0 with specified radius
+ * @returns `true` if the point is roughly inside the octagon centred on 0,0 with specified radius
  */
 export function isSortaInsideOctagon(x: number, y: number, radius: number): boolean {
     const sum = Math.min(radius, Math.abs(x)) + Math.min(radius, Math.abs(y))
@@ -68,9 +68,9 @@ export function isSortaInsideOctagon(x: number, y: number, radius: number): bool
 
 /**
  * Determines if two rectangles have any overlap
- * @param a Rectangle A as x, y, width, height
- * @param b Rectangle B as x, y, width, height
- * @returns true if rectangles overlap, otherwise false
+ * @param a Rectangle A as `x, y, width, height`
+ * @param b Rectangle B as `x, y, width, height`
+ * @returns `true` if rectangles overlap, otherwise `false`
  */
 export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const aRight = a[0] + a[2]
@@ -88,9 +88,9 @@ export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 
 /**
  * Determines if rectangle {@link a} contains the centre point of rectangle {@link b}.
- * @param a Container rectangle A as x, y, width, height
- * @param b Sub-rectangle B as x, y, width, height
- * @returns true if {@link a} contains most of {@link b}, otherwise false
+ * @param a Container rectangle A as `x, y, width, height`
+ * @param b Sub-rectangle B as `x, y, width, height`
+ * @returns `true` if {@link a} contains most of {@link b}, otherwise `false`
  */
 export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const centreX = b[0] + (b[2] * 0.5)
@@ -100,9 +100,9 @@ export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 
 /**
  * Determines if rectangle {@link a} wholly contains rectangle {@link b}.
- * @param a Container rectangle A as x, y, width, height
- * @param b Sub-rectangle B as x, y, width, height
- * @returns true if {@link a} wholly contains {@link b}, otherwise false
+ * @param a Container rectangle A as `x, y, width, height`
+ * @param b Sub-rectangle B as `x, y, width, height`
+ * @returns `true` if {@link a} wholly contains {@link b}, otherwise `false`
  */
 export function containsRect(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const aRight = a[0] + a[2]
