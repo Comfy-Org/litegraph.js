@@ -12,12 +12,15 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
 }
 
 export class LGraphGroup implements Positionable {
+    static minWidth = 140
+    static minHeight = 80
+
     id: number
     color: string
     title: string
     font?: string
     font_size: number = LiteGraph.DEFAULT_GROUP_FONT || 24
-    _bounding: Float32Array = new Float32Array([10, 10, 140, 80])
+    _bounding: Float32Array = new Float32Array([10, 10, LGraphGroup.minWidth, LGraphGroup.minHeight])
     _pos: Point = this._bounding.subarray(0, 2)
     _size: Size = this._bounding.subarray(2, 4)
     /** @deprecated See {@link _children} */
@@ -54,9 +57,10 @@ export class LGraphGroup implements Positionable {
     set size(v) {
         if (!v || v.length < 2) return
 
-        this._size[0] = Math.max(140, v[0])
-        this._size[1] = Math.max(80, v[1])
+        this._size[0] = Math.max(LGraphGroup.minWidth, v[0])
+        this._size[1] = Math.max(LGraphGroup.minHeight, v[1])
     }
+
 
     get boundingRect() {
         return this._bounding
@@ -162,8 +166,8 @@ export class LGraphGroup implements Positionable {
     resize(width: number, height: number): boolean {
         if (this.pinned) return false
 
-        this._size[0] = width
-        this._size[1] = height
+        this._size[0] = Math.max(LGraphGroup.minWidth, width)
+        this._size[1] = Math.max(LGraphGroup.minHeight, height)
         return true
     }
 
