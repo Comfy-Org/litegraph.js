@@ -39,6 +39,20 @@ export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): bo
 
 /**
  * Determines whether a point is inside a rectangle.
+ * @param x X co-ordinate of the point to check
+ * @param y Y co-ordinate of the point to check
+ * @param rect The rectangle, as `x, y, width, height`
+ * @returns `true` if the point is inside the rect, otherwise `false`
+ */
+export function isXyInRectangle(x: number, y: number, rect: ReadOnlyRect): boolean {
+    return rect[0] <= x
+        && rect[0] + rect[2] > x
+        && rect[1] <= y
+        && rect[1] + rect[3] > y
+}
+
+/**
+ * Determines whether a point is inside a rectangle.
  * @param x Point x
  * @param y Point y
  * @param left Rect x

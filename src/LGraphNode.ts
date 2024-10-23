@@ -8,7 +8,7 @@ import type { DragAndScale } from "./DragAndScale"
 import { LGraphEventMode, NodeSlotType, TitleMode, RenderShape } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
-import { isInsideRectangle } from "./measure"
+import { isInsideRectangle, isXyInRectangle } from "./measure"
 import { LLink } from "./LLink"
 
 export type NodeId = number | string
@@ -1509,33 +1509,8 @@ export class LGraphNode implements Positionable {
      * @param {number} y
      * @return {boolean}
      */
-    isPointInside(x: number, y: number, margin?: number, skip_title?: boolean): boolean {
-        margin ||= 0
-
-        const margin_top = skip_title || this.graph?.isLive()
-            ? 0
-            : LiteGraph.NODE_TITLE_HEIGHT
-
-        if (this.flags.collapsed) {
-            //if ( distance([x,y], [this.pos[0] + this.size[0]*0.5, this.pos[1] + this.size[1]*0.5]) < LiteGraph.NODE_COLLAPSED_RADIUS)
-            if (isInsideRectangle(
-                x,
-                y,
-                this.pos[0] - margin,
-                this.pos[1] - LiteGraph.NODE_TITLE_HEIGHT - margin,
-                (this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH) +
-                2 * margin,
-                LiteGraph.NODE_TITLE_HEIGHT + 2 * margin
-            )) {
-                return true
-            }
-        } else if (this.pos[0] - 4 - margin < x &&
-            this.pos[0] + this.size[0] + 4 + margin > x &&
-            this.pos[1] - margin_top - margin < y &&
-            this.pos[1] + this.size[1] + margin > y) {
-            return true
-        }
-        return false
+    isPointInside(x: number, y: number): boolean {
+        return isXyInRectangle(x, y, this.boundingRect)
     }
 
     /**
