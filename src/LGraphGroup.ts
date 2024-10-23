@@ -7,12 +7,6 @@ import { isInsideRectangle, overlapBounding } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { RenderShape, TitleMode } from "./types/globalEnums"
 
-export interface IGraphGroup {
-    _pos: Point
-    _size: Size
-    title: string
-}
-
 export interface IGraphGroupFlags extends Record<string, unknown> {
     pinned?: true
 }
