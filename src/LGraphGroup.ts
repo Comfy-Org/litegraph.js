@@ -54,6 +54,10 @@ export class LGraphGroup implements Positionable {
         this._size[1] = Math.max(80, v[1])
     }
 
+    get boundingRect() {
+        return this._bounding
+    }
+
     get nodes() {
         return this._nodes
     }
@@ -181,10 +185,9 @@ export class LGraphGroup implements Positionable {
      */
     resizeTo(objects: Iterable<Positionable>, padding: number = 10): void {
         const bounds = new Float32Array([Infinity, Infinity, -Infinity, -Infinity])
-        const rect = new Float32Array(4)
 
         for (const obj of objects) {
-            obj.measure(rect)
+            const rect = obj.boundingRect
             bounds[0] = Math.min(bounds[0], rect[0])
             bounds[1] = Math.min(bounds[1], rect[1])
             bounds[2] = Math.max(bounds[2], rect[0] + rect[2])

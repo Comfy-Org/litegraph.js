@@ -18,6 +18,8 @@ export interface Positionable {
     /** true if this object is part of the selection, otherwise false. */
     selected?: boolean
 
+    readonly children?: ReadonlySet<Positionable>
+
     /**
      * Adds a delta to the current position.
      * @param deltaX X value to add to current position
@@ -25,6 +27,17 @@ export interface Positionable {
      * @param skipChildren If true, any child objects like group contents will not be moved
      */
     move(deltaX: number, deltaY: number, skipChildren?: boolean): void
+
+    /**
+     * Cached position & size as `x, y, width, height`.
+     * @readonly See {@link move}
+     */
+    readonly boundingRect: ReadOnlyRect
+
+    /** Called whenever the item is selected */
+    onSelected?(): void
+    /** Called whenever the item is deselected */
+    onDeselected?(): void
 }
 
 export interface IInputOrOutput {

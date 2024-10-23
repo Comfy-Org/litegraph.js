@@ -3468,16 +3468,17 @@ export class LGraphCanvas {
     computeVisibleNodes(nodes?: LGraphNode[], out?: LGraphNode[]): LGraphNode[] {
         const visible_nodes = out || []
         visible_nodes.length = 0
-        nodes ||= this.graph._nodes
-        for (let i = 0, l = nodes.length; i < l; ++i) {
-            const n = nodes[i]
 
+        const _nodes = nodes || this.graph._nodes
+        for (const node of _nodes) {
             //skip rendering nodes in live mode
-            if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) continue
-            // Not in visible area
-            if (!overlapBounding(this.visible_area, n.getBounding(LGraphCanvas.#temp, true))) continue
+            if (this.live_mode && !node.onDrawBackground && !node.onDrawForeground) continue
 
-            visible_nodes.push(n)
+            node.updateArea()
+            // Not in visible area
+            if (!overlapBounding(this.visible_area, node.renderArea)) continue
+
+            visible_nodes.push(node)
         }
         return visible_nodes
     }
@@ -3493,25 +3494,24 @@ export class LGraphCanvas {
         this.render_time = (now - this.last_draw_time) * 0.001
         this.last_draw_time = now
 
-        if (this.graph) {
-            this.ds.computeVisibleArea(this.viewport)
-        }
+        if (this.graph) this.ds.computeVisibleArea(this.viewport)
+
+        // Compute node size before drawing links.
+        if (this.dirty_canvas || force_canvas)
+            this.computeVisibleNodes(null, this.visible_nodes)
 
         if (this.dirty_bgcanvas ||
             force_bgcanvas ||
             this.always_render_background ||
-            (this.graph &&
-                this.graph._last_trigger_time &&
+            (this.graph?._last_trigger_time &&
                 now - this.graph._last_trigger_time < 1000)) {
             this.drawBackCanvas()
         }
 
-        if (this.dirty_canvas || force_canvas) {
-            this.drawFrontCanvas()
-        }
+        if (this.dirty_canvas || force_canvas) this.drawFrontCanvas()
 
         this.fps = this.render_time ? 1.0 / this.render_time : 0
-        this.frame += 1
+        this.frame++
     }
     /**
      * draws the front canvas (the one containing all the nodes)
@@ -3575,10 +3575,7 @@ export class LGraphCanvas {
             this.ds.toCanvasContext(ctx)
 
             //draw nodes
-            const visible_nodes = this.computeVisibleNodes(
-                null,
-                this.visible_nodes
-            )
+            const visible_nodes = this.visible_nodes
 
             for (let i = 0; i < visible_nodes.length; ++i) {
                 const node = visible_nodes[i]
@@ -3778,9 +3775,7 @@ export class LGraphCanvas {
 
         const { strokeStyle, lineWidth } = ctx
 
-        const area = LGraphCanvas.#tmp_area
-        node.measure(area)
-        node.onBounding?.(area)
+        const area = node.boundingRect
         const gap = 3
         const radius = this.round_radius + gap
 
@@ -4217,8 +4212,7 @@ export class LGraphCanvas {
         ctx.finish?.()
 
         this.dirty_bgcanvas = false
-        //to force to repaint the front canvas with the bgcanvas
-        // But why would you actually want to do this?
+        // Forces repaint of the front canvas.
         this.dirty_canvas = true
     }
     /**

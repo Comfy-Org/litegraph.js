@@ -1,4 +1,4 @@
-import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Positionable, Rect, Size } from "./interfaces"
+import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Positionable, ReadOnlyRect, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
@@ -133,8 +133,6 @@ export class LGraphNode implements Positionable {
     properties_info: INodePropertyInfo[] = []
     flags: INodeFlags = {}
     widgets?: IWidget[]
-
-    size: Size
     locked?: boolean
 
     // Execution order, automatically computed during run
@@ -158,6 +156,7 @@ export class LGraphNode implements Positionable {
     onOutputRemoved?(this: LGraphNode, slot: number): void
     onInputRemoved?(this: LGraphNode, slot: number, input: INodeInputSlot): void
     _collapsed_width: number
+    /** Called once at the start of every frame.  Caller may change the values in {@link out}, which will be reflected in {@link boundingRect}. */
     onBounding?(this: LGraphNode, out: Rect): void
     horizontal?: boolean
     console?: string[]
@@ -182,7 +181,33 @@ export class LGraphNode implements Positionable {
     selected?: boolean
     showAdvanced?: boolean
 
-    _pos: Point = new Float32Array([10, 10])
+    /** @inheritdoc {@link renderArea} */
+    #renderArea: Float32Array = new Float32Array(4)
+    /**
+     * Rect describing the node area, including shadows and any protrusions.
+     * Determines if the node is visible.  Calculated once at the start of every frame.
+    */
+    get renderArea(): ReadOnlyRect {
+        return this.#renderArea
+    }
+
+
+    /** @inheritdoc {@link boundingRect} */
+    #boundingRect: Float32Array = new Float32Array(4)
+    /**
+     * Cached node position & area as `x, y, width, height`.  Includes changes made by {@link onBounding}, if present.
+     * 
+     * Determines the node hitbox and other rendering effects.  Calculated once at the start of every frame.
+     */
+    get boundingRect(): ReadOnlyRect {
+        return this.#boundingRect
+    }
+
+    /** {@link pos} and {@link size} values are backed by this {@link Rect}. */
+    _posSize: Float32Array = new Float32Array(4)
+    _pos: Point = this._posSize.subarray(0, 2)
+    _size: Size = this._posSize.subarray(2, 4)
+
     public get pos() {
         return this._pos
     }
@@ -191,6 +216,16 @@ export class LGraphNode implements Positionable {
 
         this._pos[0] = value[0]
         this._pos[1] = value[1]
+    }
+
+    public get size() {
+        return this._size
+    }
+    public set size(value) {
+        if (!value || value.length < 2) return
+
+        this._size[0] = value[0]
+        this._size[1] = value[1]
     }
 
     get shape(): RenderShape {
@@ -298,6 +333,7 @@ export class LGraphNode implements Positionable {
         this.id = LiteGraph.use_uuids ? LiteGraph.uuidv4() : -1
         this.title = title || "Unnamed"
         this.size = [LiteGraph.NODE_WIDTH, 60]
+        this.pos = [10, 10]
     }
 
     /**
@@ -1406,8 +1442,11 @@ export class LGraphNode implements Positionable {
     }
 
     /**
-     * Measures the node for rendering, populating {@link out} with the results in graph space.
-     * @param out Results (x, y, width, height) are inserted into this array.
+     * Internal method to measure the node for rendering.  Prefer {@link boundingRect} where possible.
+     * 
+     * Populates {@link out} with the results in graph space.
+     * Adjusts for title and collapsed status, but does not call {@link onBounding}.
+     * @param out `x, y, width, height` are written to this array.
      * @param pad Expands the area by this amount on each side.  Default: 0
      */
     measure(out: Rect, pad = 0): void {
@@ -1429,23 +1468,39 @@ export class LGraphNode implements Positionable {
     /**
      * returns the bounding of the object, used for rendering purposes
      * @param out {Float32Array[4]?} [optional] a place to store the output, to free garbage
-     * @param compute_outer {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
+     * @param includeExternal {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
      * @return {Float32Array[4]} the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]
      */
-    getBounding(out?: Float32Array, compute_outer?: boolean): Float32Array {
-        out = out || new Float32Array(4)
-        this.measure(out)
-        if (compute_outer) {
-            // 4 offset for collapsed node connection points
-            out[0] -= 4
-            out[1] -= 4
-            // Add shadow & left offset
-            out[2] += 6 + 4
-            // Add shadow & top offsets
-            out[3] += 5 + 4
-        }
-        this.onBounding?.(out)
+    getBounding(out?: Rect, includeExternal?: boolean): Rect {
+        out ||= new Float32Array(4)
+
+        const rect = includeExternal ? this.renderArea : this.boundingRect
+        out[0] = rect[0]
+        out[1] = rect[1]
+        out[2] = rect[2]
+        out[3] = rect[3]
+
         return out
+    }
+
+    /**
+     * Calculates the render area of this node, populating both {@link boundingRect} and {@link renderArea}.
+     * Called automatically at the start of every frame.
+     */
+    updateArea(): void {
+        const bounds = this.#boundingRect
+        this.measure(bounds)
+        this.onBounding?.(bounds)
+
+        const renderArea = this.#renderArea
+        renderArea.set(bounds)
+        // 4 offset for collapsed node connection points
+        renderArea[0] -= 4
+        renderArea[1] -= 4
+        // Add shadow & left offset
+        renderArea[2] += 6 + 4
+        // Add shadow & top offsets
+        renderArea[3] += 5 + 4
     }
 
     /**
