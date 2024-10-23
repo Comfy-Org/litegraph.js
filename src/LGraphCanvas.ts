@@ -1701,7 +1701,7 @@ export class LGraphCanvas {
 
         if (!is_inside) return
 
-        let node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes, 5)
+        let node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
         let skip_action = false
         const now = LiteGraph.getTime()
         const is_primary = (e.isPrimary === undefined || !e.isPrimary)
