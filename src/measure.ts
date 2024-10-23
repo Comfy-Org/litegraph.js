@@ -31,9 +31,9 @@ export function dist2(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
  * @returns `true` if the point is inside the rect, otherwise `false`
  */
 export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
-    return rect[0] < point[0]
+    return rect[0] <= point[0]
         && rect[0] + rect[2] > point[0]
-        && rect[1] < point[1]
+        && rect[1] <= point[1]
         && rect[1] + rect[3] > point[1]
 }
 
