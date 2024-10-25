@@ -3644,7 +3644,7 @@ export class LGraphCanvas {
                 }
             }
 
-            if (this.connecting_links) {
+            if (this.connecting_links?.length) {
                 //current connection (the one being dragged by the mouse)
                 for (const link of this.connecting_links) {
                     ctx.lineWidth = this.connections_width
@@ -3652,8 +3652,8 @@ export class LGraphCanvas {
 
                     const connInOrOut = link.output || link.input
 
-                    const connType = connInOrOut.type
-                    let connDir = connInOrOut.dir
+                    const connType = connInOrOut?.type
+                    let connDir = connInOrOut?.dir
                     if (connDir == null) {
                         if (link.output)
                             connDir = link.node.horizontal ? LinkDirection.DOWN : LinkDirection.RIGHT
@@ -3661,7 +3661,7 @@ export class LGraphCanvas {
                         else
                             connDir = link.node.horizontal ? LinkDirection.UP : LinkDirection.LEFT
                     }
-                    const connShape = connInOrOut.shape
+                    const connShape = connInOrOut?.shape
 
                     switch (connType) {
                         case LiteGraph.EVENT:
@@ -4361,8 +4361,8 @@ export class LGraphCanvas {
         const render_text = !low_quality
         const highlightColour = LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
 
-        const out_slot = this.connecting_links ? this.connecting_links[0].output : null
-        const in_slot = this.connecting_links ? this.connecting_links[0].input : null
+        const out_slot = this.connecting_links?.[0]?.output
+        const in_slot = this.connecting_links?.[0]?.input
         ctx.lineWidth = 1
 
         let max_y = 0
