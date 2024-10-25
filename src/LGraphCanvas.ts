@@ -20,7 +20,7 @@ interface IShowSearchOptions {
     node_from?: LGraphNode
     slot_from: number | INodeOutputSlot | INodeInputSlot
     type_filter_in?: ISlotType
-    type_filter_out?: ISlotType
+    type_filter_out?: ISlotType | false
 
     // TODO check for registered_slot_[in/out]_types not empty // this will be checked for functionality enabled : filter on slot type, in and out
     do_type_filter?: boolean
@@ -6482,7 +6482,6 @@ export class LGraphCanvas {
             type_filter_in: false // these are default: pass to set initially set values
             ,
 
-            // @ts-expect-error
             type_filter_out: false,
             show_general_if_none_on_typefilter: true,
             show_general_after_typefiltered: true,
@@ -6673,7 +6672,6 @@ export class LGraphCanvas {
                     opt.value = aSlots[iK]
                     opt.innerHTML = aSlots[iK]
                     selOut.appendChild(opt)
-                    // @ts-expect-error
                     if (options.type_filter_out !== false && (options.type_filter_out + "").toLowerCase() == (aSlots[iK] + "").toLowerCase())
                         opt.selected = true
                 }
