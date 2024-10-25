@@ -1781,7 +1781,7 @@ export class LGraphCanvas {
 
         if (!is_inside) return
 
-        let node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+        const node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
 
         const now = LiteGraph.getTime()
         const is_double_click = (now - this.last_mouseclick < 300)
@@ -1791,8 +1791,8 @@ export class LGraphCanvas {
         this.graph_mouse[1] = e.canvasY
         this.last_click_position = [this.mouse[0], this.mouse[1]]
 
-        this.pointer.isDouble = this.pointer.isDown && e.isPrimary
-        this.pointer.isDown = true
+        pointer.isDouble = pointer.isDown && e.isPrimary
+        pointer.isDown = true
 
         this.canvas.focus()
 
@@ -1807,7 +1807,7 @@ export class LGraphCanvas {
         const ctrlAlt = ctrlOrMeta && !e.shiftKey && e.altKey
 
         //left button mouse / single finger
-        if (e.button === 0 && !this.pointer.isDouble) {
+        if (e.button === 0 && !pointer.isDouble) {
             this.#processPrimaryButton(ctrlOrMeta, e, node, is_double_click)
         } else if (e.button === 1) {
             // Middle button
@@ -1881,7 +1881,7 @@ export class LGraphCanvas {
             if (!skip_action && this.allow_dragcanvas) {
                 this.dragging_canvas = true
             }
-        } else if ((e.button === 2 || this.pointer.isDouble) && this.allow_interaction && !this.read_only) {
+        } else if ((e.button === 2 || pointer.isDouble) && this.allow_interaction && !this.read_only) {
             // Right / aux button
 
             // Sticky select - won't remove single nodes
