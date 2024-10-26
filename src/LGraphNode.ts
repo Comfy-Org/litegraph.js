@@ -322,8 +322,11 @@ export class LGraphNode implements Positionable, IPinnable {
     onGetOutputs?(this: LGraphNode): INodeOutputSlot[]
     onMouseUp?(this: LGraphNode, e: CanvasMouseEvent, pos: Point): void
     onMouseEnter?(this: LGraphNode, e: CanvasMouseEvent): void
+    /** Blocks drag if return value is truthy. @param pos Offset from {@link LGraphNode.pos}. */
     onMouseDown?(this: LGraphNode, e: CanvasMouseEvent, pos: Point, canvas: LGraphCanvas): boolean
+    /** @param pos Offset from {@link LGraphNode.pos}. */
     onDblClick?(this: LGraphNode, e: CanvasMouseEvent, pos: Point, canvas: LGraphCanvas): void
+    /** @param pos Offset from {@link LGraphNode.pos}. */
     onNodeTitleDblClick?(this: LGraphNode, e: CanvasMouseEvent, pos: Point, canvas: LGraphCanvas): void
     onDrawTitle?(this: LGraphNode, ctx: CanvasRenderingContext2D): void
     onDrawTitleText?(this: LGraphNode, ctx: CanvasRenderingContext2D, title_height: number, size: Size, scale: number, title_text_font: string, selected: boolean): void
