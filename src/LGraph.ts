@@ -1223,18 +1223,6 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         this.canvasAction(c => c.onConnectionChange?.())
     }
     /**
-     * returns if the graph is in live mode
-     */
-    isLive(): boolean {
-        if (!this.list_of_graphcanvas) return false
-
-        for (let i = 0; i < this.list_of_graphcanvas.length; ++i) {
-            const c = this.list_of_graphcanvas[i]
-            if (c.live_mode) return true
-        }
-        return false
-    }
-    /**
      * clears the triggered slot animation in all links (stop visual animation)
      */
     clearTriggeredSlots(): void {

@@ -237,7 +237,6 @@ export class LGraphCanvas {
     clear_background: boolean
     clear_background_color: string
     render_only_selected: boolean
-    live_mode: boolean
     show_info: boolean
     allow_dragcanvas: boolean
     allow_dragnodes: boolean
@@ -448,7 +447,6 @@ export class LGraphCanvas {
         this.clear_background_color = "#222"
 
         this.render_only_selected = true
-        this.live_mode = false
         this.show_info = true
         this.allow_dragcanvas = true
         this.allow_dragnodes = true
@@ -1775,8 +1773,7 @@ export class LGraphCanvas {
                 this.allow_interaction &&
                 !this.read_only &&
                 !this.connecting_links &&
-                !node.flags.collapsed &&
-                !this.live_mode
+                !node.flags.collapsed
             ) {
                 //not dragging mouse to connect two slots
                 let mClikSlot: INodeSlot | false = false
@@ -1920,12 +1917,12 @@ export class LGraphCanvas {
             pointer.onClick = () => this.processSelect(node, e)
 
             // Immediately bring to front
-            if (!this.live_mode && !node.flags.pinned) {
+            if (!node.flags.pinned) {
                 this.bringToFront(node)
             }
 
             // Not collapsed
-            if (!node.flags.collapsed && !this.live_mode) {
+            if (!node.flags.collapsed) {
                 // Resize node
                 if (node.resizable !== false && node.inResizeCorner(x, y)) {
                     pointer.onDragStart = () => {
@@ -2098,12 +2095,6 @@ export class LGraphCanvas {
             // Mousedown callback - can block drag
             if (node.onMouseDown?.(e, pos, this)) {
                 block_drag_node = true
-            } else {
-                if (this.live_mode) {
-                    pointer.finally = () => this.dragging_canvas = false
-                    this.dragging_canvas = true
-                    return
-                }
             }
 
             if (!pointer.onDragStart && !block_drag_node && this.allow_dragnodes) {
@@ -2459,7 +2450,7 @@ export class LGraphCanvas {
             }
 
             // Items being dragged
-            if (this.isDragging && !this.live_mode) {
+            if (this.isDragging) {
                 const selected = this.selectedItems
                 const allItems = e.ctrlKey ? selected : getAllNestedItems(selected)
 
@@ -2472,7 +2463,7 @@ export class LGraphCanvas {
                 this.#dirty()
             }
 
-            if (this.resizing_node && !this.live_mode) {
+            if (this.resizing_node) {
                 //convert mouse to node space
                 const desired_size: Size = [e.canvasX - this.resizing_node.pos[0], e.canvasY - this.resizing_node.pos[1]]
                 const min_size = this.resizing_node.computeSize()
@@ -3560,9 +3551,6 @@ export class LGraphCanvas {
 
         const _nodes = nodes || this.graph._nodes
         for (const node of _nodes) {
-            //skip rendering nodes in live mode
-            if (this.live_mode && !node.onDrawBackground && !node.onDrawForeground) continue
-
             node.updateArea()
             // Not in visible area
             if (!overlapBounding(this.visible_area, node.renderArea)) continue
@@ -3687,9 +3675,7 @@ export class LGraphCanvas {
 
             //connections ontop?
             if (this.graph.config.links_ontop) {
-                if (!this.live_mode) {
-                    this.drawConnections(ctx)
-                }
+                this.drawConnections(ctx)
             }
 
             if (this.connecting_links?.length) {
@@ -4073,7 +4059,7 @@ export class LGraphCanvas {
             }
 
             //groups
-            if (this.graph._groups.length && !this.live_mode) {
+            if (this.graph._groups.length) {
                 this.drawGroups(canvas, ctx)
             }
 
@@ -4098,9 +4084,7 @@ export class LGraphCanvas {
             }
 
             //draw connections
-            if (!this.live_mode) {
-                this.drawConnections(ctx)
-            }
+            this.drawConnections(ctx)
 
             ctx.shadowColor = "rgba(0,0,0,0)"
 
@@ -4126,16 +4110,6 @@ export class LGraphCanvas {
         let bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
 
         const low_quality = this.ds.scale < 0.6 //zoomed out
-
-        //only render if it forces it to do it
-        if (this.live_mode) {
-            if (!node.flags.collapsed) {
-                ctx.shadowColor = "transparent"
-                node.onDrawForeground?.(ctx, this, this.canvas)
-            }
-            return
-        }
-
         const editor_alpha = this.editor_alpha
         ctx.globalAlpha = editor_alpha
 
@@ -5907,39 +5881,6 @@ export class LGraphCanvas {
         this.bgcanvas.width = this.canvas.width
         this.bgcanvas.height = this.canvas.height
         this.setDirty(true, true)
-    }
-    /**
-     * switches to live mode (node shapes are not rendered, only the content)
-     * this feature was designed when graphs where meant to create user interfaces
-     **/
-    switchLiveMode(transition: boolean): void {
-        if (!transition) {
-            this.live_mode = !this.live_mode
-            this.#dirty()
-            return
-        }
-
-        const self = this
-        const delta = this.live_mode ? 1.1 : 0.9
-        if (this.live_mode) {
-            this.live_mode = false
-            this.editor_alpha = 0.1
-        }
-
-        const t = setInterval(function () {
-            self.editor_alpha *= delta
-            self.dirty_canvas = true
-            self.dirty_bgcanvas = true
-
-            if (delta < 1 && self.editor_alpha < 0.01) {
-                clearInterval(t)
-                if (delta < 1) self.live_mode = true
-            }
-            if (delta > 1 && self.editor_alpha > 0.99) {
-                clearInterval(t)
-                self.editor_alpha = 1
-            }
-        }, 1)
     }
 
     onNodeSelectionChange(): void { }
