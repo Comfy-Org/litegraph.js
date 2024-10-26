@@ -1369,49 +1369,6 @@ export class LGraphCanvas {
             : this.graph
     }
     /**
-     * opens a graph contained inside a node in the current graph
-     *
-     * @param {LGraph} graph
-     */
-    openSubgraph(graph: LGraph): void {
-        if (!graph) throw "graph cannot be null"
-
-        if (this.graph == graph) throw "graph cannot be the same"
-
-        this.clear()
-
-        if (this.graph) {
-            this._graph_stack ||= []
-            this._graph_stack.push(this.graph)
-        }
-
-        graph.attachCanvas(this)
-        this.checkPanels()
-        this.setDirty(true, true)
-    }
-    /**
-     * closes a subgraph contained inside a node
-     *
-     * @param {LGraph} assigns a graph
-     */
-    closeSubgraph(): void {
-        if (!this._graph_stack || this._graph_stack.length == 0) return
-
-        const subgraph_node = this.graph._subgraph_node
-        const graph = this._graph_stack.pop()
-        this.selected_nodes = {}
-        this.highlighted_links = {}
-        graph.attachCanvas(this)
-        this.setDirty(true, true)
-        if (subgraph_node) {
-            this.centerOnNode(subgraph_node)
-            this.selectNodes([subgraph_node])
-        }
-        // when close sub graph back to offset [0, 0] scale 1
-        this.ds.offset = [0, 0]
-        this.ds.scale = 1
-    }
-    /**
      * returns the visually active graph (in case there are more in the stack)
      * @return {LGraph} the active graph
      */
@@ -2142,11 +2099,6 @@ export class LGraphCanvas {
             if (node.onMouseDown?.(e, pos, this)) {
                 block_drag_node = true
             } else {
-                // FIXME: Subgraph - remove?
-                if (node.subgraph && !node.skip_subgraph_button && (!node.flags.collapsed && pos[0] > node.size[0] - LiteGraph.NODE_TITLE_HEIGHT && pos[1] < 0)) {
-                    setTimeout(() => this.openSubgraph(node.subgraph), 10)
-                }
-
                 if (this.live_mode) {
                     pointer.finally = () => this.dragging_canvas = false
                     this.dragging_canvas = true
@@ -3856,11 +3808,6 @@ export class LGraphCanvas {
             ctx.restore()
         }
 
-        //draws panel in the corner 
-        if (this._graph_stack?.length) {
-            this.drawSubgraphPanel(ctx)
-        }
-
         this.onDrawOverlay?.(ctx)
 
         if (area) ctx.restore()
@@ -3978,203 +3925,6 @@ export class LGraphCanvas {
         ctx.strokeStyle = strokeStyle
     }
 
-    /**
-     * draws the panel in the corner that shows subgraph properties
-     **/
-    drawSubgraphPanel(ctx: CanvasRenderingContext2D): void {
-        const subgraph = this.graph
-        const subnode = subgraph._subgraph_node
-        if (!subnode) {
-            console.warn("subgraph without subnode")
-            return
-        }
-        this.drawSubgraphPanelLeft(subgraph, subnode, ctx)
-        this.drawSubgraphPanelRight(subgraph, subnode, ctx)
-    }
-    drawSubgraphPanelLeft(subgraph: LGraph, subnode: LGraphNode, ctx: CanvasRenderingContext2D): void {
-        const num = subnode.inputs ? subnode.inputs.length : 0
-        const w = 200
-        const h = Math.floor(LiteGraph.NODE_SLOT_HEIGHT * 1.6)
-
-        ctx.fillStyle = "#111"
-        ctx.globalAlpha = 0.8
-        ctx.beginPath()
-        ctx.roundRect(10, 10, w, (num + 1) * h + 50, [8])
-        ctx.fill()
-        ctx.globalAlpha = 1
-
-        ctx.fillStyle = "#888"
-        ctx.font = "14px Arial"
-        ctx.textAlign = "left"
-        ctx.fillText("Graph Inputs", 20, 34)
-        // var pos = this.mouse;
-        if (this.drawButton(w - 20, 20, 20, 20, "X", "#151515")) {
-            this.closeSubgraph()
-            return
-        }
-
-        let y = 50
-        ctx.font = "14px Arial"
-        if (subnode.inputs)
-            for (let i = 0; i < subnode.inputs.length; ++i) {
-                const input = subnode.inputs[i]
-                if (input.not_subgraph_input) continue
-
-                //input button clicked
-                if (this.drawButton(20, y + 2, w - 20, h - 2)) {
-                    // @ts-expect-error ctor props
-                    const type = subnode.constructor.input_node_type || "graph/input"
-                    this.graph.beforeChange()
-                    const newnode = LiteGraph.createNode(type)
-                    if (newnode) {
-                        subgraph.add(newnode)
-                        this.block_click = false
-                        this.last_click_position = null
-                        this.selectNodes([newnode])
-                        this.node_dragged = newnode
-                        this.dragging_canvas = false
-                        newnode.setProperty("name", input.name)
-                        newnode.setProperty("type", input.type)
-                        this.node_dragged.pos[0] = this.graph_mouse[0] - 5
-                        this.node_dragged.pos[1] = this.graph_mouse[1] - 5
-                        this.graph.afterChange()
-                    }
-
-                    else
-                        console.error("graph input node not found:", type)
-                }
-                ctx.fillStyle = "#9C9"
-                ctx.beginPath()
-                ctx.arc(w - 16, y + h * 0.5, 5, 0, 2 * Math.PI)
-                ctx.fill()
-                ctx.fillStyle = "#AAA"
-                ctx.fillText(input.name, 30, y + h * 0.75)
-                // var tw = ctx.measureText(input.name);
-                ctx.fillStyle = "#777"
-                // @ts-expect-error FIXME: Should be a string?  Should be a number?
-                ctx.fillText(input.type, 130, y + h * 0.75)
-                y += h
-            }
-        //add + button
-        if (this.drawButton(20, y + 2, w - 20, h - 2, "+", "#151515", "#222")) {
-            this.showSubgraphPropertiesDialog(subnode)
-        }
-    }
-    drawSubgraphPanelRight(subgraph: LGraph, subnode: LGraphNode, ctx: CanvasRenderingContext2D): void {
-        const num = subnode.outputs ? subnode.outputs.length : 0
-        const canvas_w = this.bgcanvas.width
-        const w = 200
-        const h = Math.floor(LiteGraph.NODE_SLOT_HEIGHT * 1.6)
-
-        ctx.fillStyle = "#111"
-        ctx.globalAlpha = 0.8
-        ctx.beginPath()
-        ctx.roundRect(canvas_w - w - 10, 10, w, (num + 1) * h + 50, [8])
-        ctx.fill()
-        ctx.globalAlpha = 1
-
-        ctx.fillStyle = "#888"
-        ctx.font = "14px Arial"
-        ctx.textAlign = "left"
-        const title_text = "Graph Outputs"
-        const tw = ctx.measureText(title_text).width
-        ctx.fillText(title_text, (canvas_w - tw) - 20, 34)
-        // var pos = this.mouse;
-        if (this.drawButton(canvas_w - w, 20, 20, 20, "X", "#151515")) {
-            this.closeSubgraph()
-            return
-        }
-
-        let y = 50
-        ctx.font = "14px Arial"
-        if (subnode.outputs)
-            for (let i = 0; i < subnode.outputs.length; ++i) {
-                const output = subnode.outputs[i]
-                if (output.not_subgraph_input) continue
-
-                //output button clicked
-                if (this.drawButton(canvas_w - w, y + 2, w - 20, h - 2)) {
-                    // @ts-expect-error ctor props
-                    const type = subnode.constructor.output_node_type || "graph/output"
-                    this.graph.beforeChange()
-                    const newnode = LiteGraph.createNode(type)
-                    if (newnode) {
-                        subgraph.add(newnode)
-                        this.block_click = false
-                        this.last_click_position = null
-                        this.selectNodes([newnode])
-                        this.node_dragged = newnode
-                        this.dragging_canvas = false
-                        newnode.setProperty("name", output.name)
-                        newnode.setProperty("type", output.type)
-                        this.node_dragged.pos[0] = this.graph_mouse[0] - 5
-                        this.node_dragged.pos[1] = this.graph_mouse[1] - 5
-                        this.graph.afterChange()
-                    }
-
-                    else
-                        console.error("graph input node not found:", type)
-                }
-                ctx.fillStyle = "#9C9"
-                ctx.beginPath()
-                ctx.arc(canvas_w - w + 16, y + h * 0.5, 5, 0, 2 * Math.PI)
-                ctx.fill()
-                ctx.fillStyle = "#AAA"
-                ctx.fillText(output.name, canvas_w - w + 30, y + h * 0.75)
-                // var tw = ctx.measureText(input.name);
-                ctx.fillStyle = "#777"
-                // @ts-expect-error slot type issue
-                ctx.fillText(output.type, canvas_w - w + 130, y + h * 0.75)
-                y += h
-            }
-        //add + button
-        if (this.drawButton(canvas_w - w, y + 2, w - 20, h - 2, "+", "#151515", "#222")) {
-            this.showSubgraphPropertiesDialogRight(subnode)
-        }
-    }
-    //Draws a button into the canvas overlay and computes if it was clicked using the immediate gui paradigm
-    drawButton(x: number, y: number, w: number, h: number, text?: string, bgcolor?: CanvasColour, hovercolor?: CanvasColour, textcolor?: CanvasColour): boolean {
-        const ctx = this.ctx
-        bgcolor = bgcolor || LiteGraph.NODE_DEFAULT_COLOR
-        hovercolor = hovercolor || "#555"
-        textcolor = textcolor || LiteGraph.NODE_TEXT_COLOR
-        let pos = this.ds.convertOffsetToCanvas(this.graph_mouse)
-        const hover = LiteGraph.isInsideRectangle(pos[0], pos[1], x, y, w, h)
-        pos = this.last_click_position ? [this.last_click_position[0], this.last_click_position[1]] : null
-        if (pos) {
-            const rect = this.canvas.getBoundingClientRect()
-            pos[0] -= rect.left
-            pos[1] -= rect.top
-        }
-        const clicked = pos && LiteGraph.isInsideRectangle(pos[0], pos[1], x, y, w, h)
-
-        ctx.fillStyle = hover ? hovercolor : bgcolor
-        if (clicked) ctx.fillStyle = "#AAA"
-        ctx.beginPath()
-        ctx.roundRect(x, y, w, h, [4])
-        ctx.fill()
-
-        if (text != null) {
-            if (text.constructor == String) {
-                ctx.fillStyle = textcolor
-                ctx.textAlign = "center"
-                ctx.font = ((h * 0.65) | 0) + "px Arial"
-                ctx.fillText(text, x + w * 0.5, y + h * 0.75)
-                ctx.textAlign = "left"
-            }
-        }
-
-        const was_clicked = clicked && !this.block_click
-        if (clicked) this.blockClick()
-        return was_clicked
-    }
-    isAreaClicked(x: number, y: number, w: number, h: number, hold_click: boolean): boolean {
-        const clickPos = this.last_click_position
-        const clicked = clickPos && LiteGraph.isInsideRectangle(clickPos[0], clickPos[1], x, y, w, h)
-        const was_clicked = clicked && !this.block_click
-        if (clicked && hold_click) this.blockClick()
-        return was_clicked
-    }
     /**
      * draws some useful stats in the corner of the canvas
      **/
@@ -7670,115 +7420,6 @@ export class LGraphCanvas {
 
         this.canvas.parentNode.appendChild(panel)
     }
-    showSubgraphPropertiesDialog(node: LGraphNode) {
-        console.log("showing subgraph properties dialog")
-
-        const old_panel = this.canvas.parentNode.querySelector<ICloseableDiv>(".subgraph_dialog")
-        old_panel?.close()
-
-        const panel = this.createPanel("Subgraph Inputs", { closable: true, width: 500 })
-        panel.node = node
-        panel.classList.add("subgraph_dialog")
-
-        function inner_refresh() {
-            panel.clear()
-
-            //show currents
-            if (node.inputs)
-                for (let i = 0; i < node.inputs.length; ++i) {
-                    const input = node.inputs[i]
-                    if (input.not_subgraph_input)
-                        continue
-                    const html = "<button>&#10005;</button> <span class='bullet_icon'></span><span class='name'></span><span class='type'></span>"
-                    const elem = panel.addHTML(html, "subgraph_property")
-                    elem.dataset["name"] = input.name
-                    elem.dataset["slot"] = i
-                    elem.querySelector(".name").innerText = input.name
-                    elem.querySelector(".type").innerText = input.type
-                    elem.querySelector("button").addEventListener("click", function () {
-                        node.removeInput(Number(this.parentNode.dataset["slot"]))
-                        inner_refresh()
-                    })
-                }
-        }
-
-        //add extra
-        const html = " + <span class='label'>Name</span><input class='name'/><span class='label'>Type</span><input class='type'></input><button>+</button>"
-        const elem = panel.addHTML(html, "subgraph_property extra", true)
-        elem.querySelector("button").addEventListener("click", function () {
-            const elem = this.parentNode
-            const name = elem.querySelector(".name").value
-            const type = elem.querySelector(".type").value
-            if (!name || node.findInputSlot(name) != -1)
-                return
-            node.addInput(name, type)
-            elem.querySelector(".name").value = ""
-            elem.querySelector(".type").value = ""
-            inner_refresh()
-        })
-
-        inner_refresh()
-        this.canvas.parentNode.appendChild(panel)
-        return panel
-    }
-    showSubgraphPropertiesDialogRight(node: LGraphNode): any {
-
-        // console.log("showing subgraph properties dialog");
-        // old_panel if old_panel is exist close it
-        const old_panel = this.canvas.parentNode.querySelector<ICloseableDiv>(".subgraph_dialog")
-        old_panel?.close()
-        // new panel
-        const panel = this.createPanel("Subgraph Outputs", { closable: true, width: 500 })
-        panel.node = node
-        panel.classList.add("subgraph_dialog")
-
-        function inner_refresh() {
-            panel.clear()
-            //show currents
-            if (node.outputs)
-                for (let i = 0; i < node.outputs.length; ++i) {
-                    // FIXME: Rename - it's an output
-                    const input = node.outputs[i]
-                    if (input.not_subgraph_output)
-                        continue
-                    const html = "<button>&#10005;</button> <span class='bullet_icon'></span><span class='name'></span><span class='type'></span>"
-                    const elem = panel.addHTML(html, "subgraph_property")
-                    elem.dataset["name"] = input.name
-                    elem.dataset["slot"] = i
-                    elem.querySelector(".name").innerText = input.name
-                    elem.querySelector(".type").innerText = input.type
-                    elem.querySelector("button").addEventListener("click", function () {
-                        node.removeOutput(Number(this.parentNode.dataset["slot"]))
-                        inner_refresh()
-                    })
-                }
-        }
-
-        //add extra
-        const html = " + <span class='label'>Name</span><input class='name'/><span class='label'>Type</span><input class='type'></input><button>+</button>"
-        const elem = panel.addHTML(html, "subgraph_property extra", true)
-        elem.querySelector(".name").addEventListener("keydown", function (e) {
-            if (e.keyCode == 13) addOutput.apply(this)
-        })
-        elem.querySelector("button").addEventListener("click", function () {
-            addOutput.apply(this)
-        })
-        function addOutput() {
-            const elem = this.parentNode
-            const name = elem.querySelector(".name").value
-            const type = elem.querySelector(".type").value
-            if (!name || node.findOutputSlot(name) != -1)
-                return
-            node.addOutput(name, type)
-            elem.querySelector(".name").value = ""
-            elem.querySelector(".type").value = ""
-            inner_refresh()
-        }
-
-        inner_refresh()
-        this.canvas.parentNode.appendChild(panel)
-        return panel
-    }
     checkPanels(): void {
         if (!this.canvas) return
 
@@ -7812,13 +7453,6 @@ export class LGraphCanvas {
                     content: "Align",
                     has_submenu: true,
                     callback: LGraphCanvas.onGroupAlign,
-                })
-            }
-
-            if (this._graph_stack && this._graph_stack.length > 0) {
-                options.push(null, {
-                    content: "Close subgraph",
-                    callback: this.closeSubgraph.bind(this)
                 })
             }
         }
@@ -7933,12 +7567,6 @@ export class LGraphCanvas {
                 callback: LGraphCanvas.onMenuNodeClone
             })
         }
-
-        // TODO: Subgraph code never implemented.
-        // options.push({
-        //     content: "To Subgraph",
-        //     callback: LGraphCanvas.onMenuNodeToSubgraph
-        // })
 
         if (Object.keys(this.selected_nodes).length > 1) {
             options.push({
@@ -8122,9 +7750,6 @@ export class LGraphCanvas {
                 })
                 input.focus()
             }
-
-            //if(v.callback)
-            //	return v.callback.call(that, node, options, e, menu, that, event );
         }
     }
 
