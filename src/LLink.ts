@@ -2,7 +2,7 @@ import type { CanvasColour, ISlotType } from "./interfaces"
 import type { NodeId } from "./LGraphNode"
 import type { Serialisable, SerialisableLLink } from "./types/serialisation"
 
-export type LinkId = number | string
+export type LinkId = number
 
 export type SerialisedLLinkArray = [id: LinkId, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, type: ISlotType] 
 
