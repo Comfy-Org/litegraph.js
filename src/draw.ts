@@ -120,7 +120,7 @@ export function drawSlot(
     const text = slot.label != null ? slot.label : slot.name;
     if (text) {
       // TODO: Finish impl.  Highlight text on mouseover unless we're connecting links.
-      ctx.fillStyle = highlight ? "#EEE" : label_color;
+      ctx.fillStyle = label_color;
 
       if (label_position === LabelPosition.Right) {
         if (horizontal || slot.dir == LinkDirection.UP) {

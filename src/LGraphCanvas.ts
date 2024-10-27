@@ -4369,7 +4369,7 @@ export class LGraphCanvas {
                         horizontal,
                         low_quality,
                         render_text,
-                        label_color: LiteGraph.NODE_TEXT_COLOR,
+                        label_color: highlight ? LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR : LiteGraph.NODE_TEXT_COLOR,
                         label_position: LabelPosition.Right,
                         // Input slot is not stroked.
                         do_stroke: false,
@@ -4413,7 +4413,7 @@ export class LGraphCanvas {
                         horizontal,
                         low_quality,
                         render_text,
-                        label_color: LiteGraph.NODE_TEXT_COLOR,
+                        label_color: highlight ? LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR : LiteGraph.NODE_TEXT_COLOR,
                         label_position: LabelPosition.Left,
                         do_stroke: true,
                         highlight,
