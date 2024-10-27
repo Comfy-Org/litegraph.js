@@ -4326,6 +4326,7 @@ export class LGraphCanvas {
         ctx.font = this.inner_text_font
 
         const render_text = !low_quality
+        const highlightColour = LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
 
         const out_slot = this.connecting_links ? this.connecting_links[0].output : null
         const in_slot = this.connecting_links ? this.connecting_links[0].input : null
@@ -4346,6 +4347,7 @@ export class LGraphCanvas {
                     //change opacity of incompatible slots when dragging a connection
                     const isValid = !this.connecting_links || (out_slot && LiteGraph.isValidConnection(slot.type, out_slot.type))
                     const highlight = isValid && node.mouseOver?.inputId === i
+                    const label_color = highlight ? highlightColour : LiteGraph.NODE_TEXT_COLOR
                     ctx.globalAlpha = isValid ? editor_alpha : 0.4 * editor_alpha
 
                     ctx.fillStyle =
@@ -4369,7 +4371,7 @@ export class LGraphCanvas {
                         horizontal,
                         low_quality,
                         render_text,
-                        label_color: highlight ? LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR : LiteGraph.NODE_TEXT_COLOR,
+                        label_color,
                         label_position: LabelPosition.Right,
                         // Input slot is not stroked.
                         do_stroke: false,
@@ -4390,6 +4392,7 @@ export class LGraphCanvas {
                     //change opacity of incompatible slots when dragging a connection
                     const isValid = !this.connecting_links || (in_slot && LiteGraph.isValidConnection(slot_type, in_slot.type))
                     const highlight = isValid && node.mouseOver?.outputId === i
+                    const label_color = highlight ? highlightColour : LiteGraph.NODE_TEXT_COLOR
                     ctx.globalAlpha = isValid ? editor_alpha : 0.4 * editor_alpha
 
                     const pos = node.getConnectionPos(false, i, slot_pos)
@@ -4413,7 +4416,7 @@ export class LGraphCanvas {
                         horizontal,
                         low_quality,
                         render_text,
-                        label_color: highlight ? LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR : LiteGraph.NODE_TEXT_COLOR,
+                        label_color,
                         label_position: LabelPosition.Left,
                         do_stroke: true,
                         highlight,
