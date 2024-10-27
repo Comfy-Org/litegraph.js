@@ -2089,25 +2089,30 @@ export class LGraphCanvas {
                             }
 
                             // If we shift click on a link then start a link from that input
-                            if (e.shiftKey && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, e.canvasX, e.canvasY)) {
-                                const fromLink = linkSegment instanceof Reroute && linkSegment.linkIds.size
-                                    ? graph._links.get(linkSegment.linkIds.values().next().value)
-                                    : linkSegment instanceof LLink ? linkSegment : null
-                                if (!fromLink) break
+                            if ((e.shiftKey || e.altKey) && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, e.canvasX, e.canvasY)) {
+                                if (e.shiftKey && !e.altKey) {
+                                    const slot = linkSegment.origin_slot
+                                    const originNode = graph._nodes_by_id[linkSegment.origin_id]
 
-                                const slot = fromLink.origin_slot
-                                const originNode = graph._nodes_by_id[fromLink.origin_id]
+                                    const connecting: ConnectingLink = {
+                                        node: originNode,
+                                        slot,
+                                        output: originNode.outputs[slot],
+                                        pos: originNode.getConnectionPos(false, slot),
+                                    }
+                                    this.connecting_links = [connecting]
+                                    if (linkSegment.parentId) connecting.afterRerouteId = linkSegment.parentId
 
-                                this.connecting_links ??= []
-                                this.connecting_links.push({
-                                    node: originNode,
-                                    slot,
-                                    output: originNode.outputs[slot],
-                                    pos: originNode.getConnectionPos(false, slot),
-                                })
-                                if (fromLink.parentId) this.connecting_links[0].afterRerouteId = fromLink.parentId
-                                skip_action = true
-                                break
+                                    skip_action = true
+                                    break
+                                } else if (e.altKey && !e.shiftKey) {
+                                    const newReroute = graph.createReroute([e.canvasX, e.canvasY], linkSegment)
+                                    this.processSelect(newReroute, e)
+                                    this.isDragging = true
+
+                                    skip_action = true
+                                    break
+                                }
                             }
                         }
 
