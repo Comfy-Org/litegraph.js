@@ -1910,19 +1910,21 @@ export class LGraphCanvas {
 
     #processPrimaryButton(ctrlOrMeta: boolean, e: CanvasPointerEvent, node: LGraphNode, is_double_click: boolean) {
         const { pointer, graph } = this
+        const x = e.canvasX
+        const y = e.canvasY
         if (ctrlOrMeta && !e.altKey) {
             const dragRect = new Float32Array(4)
-            dragRect[0] = e.canvasX
-            dragRect[1] = e.canvasY
+            dragRect[0] = x
+            dragRect[1] = y
             dragRect[2] = 1
             dragRect[3] = 1
 
-            pointer.onClick = e => {
+            pointer.onClick = eUp => {
                 // Click, not drag
                 const clickedItem = node
-                    ?? (this.reroutesEnabled ? graph.getRerouteOnPos(e.canvasX, e.canvasY) : null)
-                    ?? graph.getGroupTitlebarOnPos(e.canvasX, e.canvasY)
-                this.processSelect(clickedItem, e)
+                    ?? (this.reroutesEnabled ? graph.getRerouteOnPos(eUp.canvasX, eUp.canvasY) : null)
+                    ?? graph.getGroupTitlebarOnPos(eUp.canvasX, eUp.canvasY)
+                this.processSelect(clickedItem, eUp)
             }
             pointer.onDragStart = () => this.dragging_rectangle = dragRect
             pointer.onDragEnd = upEvent => this.#handleMultiSelect(upEvent, dragRect)
@@ -1968,7 +1970,7 @@ export class LGraphCanvas {
             // Not collapsed
             if (!node.flags.collapsed && !this.live_mode) {
                 // Resize node
-                if (node.resizable !== false && node.inResizeCorner(e.canvasX, e.canvasY)) {
+                if (node.resizable !== false && node.inResizeCorner(x, y)) {
                     pointer.onDragStart = () => {
                         graph.beforeChange()
                         this.resizing_node = node
@@ -1987,8 +1989,8 @@ export class LGraphCanvas {
                         const output = node.outputs[i]
                         const link_pos = node.getConnectionPos(false, i)
                         if (isInsideRectangle(
-                            e.canvasX,
-                            e.canvasY,
+                            x,
+                            y,
                             link_pos[0] - 15,
                             link_pos[1] - 10,
                             30,
@@ -2055,8 +2057,8 @@ export class LGraphCanvas {
                         const input = node.inputs[i]
                         const link_pos = node.getConnectionPos(true, i)
                         if (isInsideRectangle(
-                            e.canvasX,
-                            e.canvasY,
+                            x,
+                            y,
                             link_pos[0] - 15,
                             link_pos[1] - 10,
                             30,
@@ -2114,7 +2116,7 @@ export class LGraphCanvas {
 
             // Click was inside the node, but not on input/output, or the resize corner
             let block_drag_node = node.pinned
-            const pos: Point = [e.canvasX - node.pos[0], e.canvasY - node.pos[1]]
+            const pos: Point = [x - node.pos[0], y - node.pos[1]]
 
             // Widget
             const widget = this.processNodeWidgets(node, this.graph_mouse, e)
@@ -2167,7 +2169,7 @@ export class LGraphCanvas {
             //clicked outside of nodes
             // Reroutes
             if (this.reroutesEnabled) {
-                const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
+                const reroute = graph.getRerouteOnPos(x, y)
                 if (reroute) {
                     if (e.shiftKey) {
                         // Connect new link from reroute
@@ -2212,7 +2214,7 @@ export class LGraphCanvas {
                 if (!centre) continue
 
                 // FIXME: Clean up
-                if (isInsideRectangle(e.canvasX, e.canvasY, centre[0] - 4, centre[1] - 4, 8, 8)) {
+                if (isInsideRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
                     this.showLinkMenu(linkSegment, e)
                     //clear tooltip
                     this.over_link_center = null
@@ -2220,7 +2222,7 @@ export class LGraphCanvas {
                 }
 
                 // If we shift click on a link then start a link from that input
-                if ((e.shiftKey || e.altKey) && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, e.canvasX, e.canvasY)) {
+                if ((e.shiftKey || e.altKey) && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, x, y)) {
                     if (e.shiftKey && !e.altKey) {
                         const slot = linkSegment.origin_slot
                         const originNode = graph._nodes_by_id[linkSegment.origin_id]
@@ -2238,7 +2240,7 @@ export class LGraphCanvas {
 
                         return
                     } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
-                        const newReroute = graph.createReroute([e.canvasX, e.canvasY], linkSegment)
+                        const newReroute = graph.createReroute([x, y], linkSegment)
                         pointer.onDragStart = () => {
                             this.processSelect(newReroute, e)
                             this.isDragging = true
@@ -2253,16 +2255,16 @@ export class LGraphCanvas {
             this.ctx.lineWidth = lineWidth
 
             // Groups
-            const group = graph.getGroupOnPos(e.canvasX, e.canvasY)
+            const group = graph.getGroupOnPos(x, y)
             this.selected_group = group
             if (group) {
-                if (group.isInResize(e.canvasX, e.canvasY)) {
+                if (group.isInResize(x, y)) {
                     pointer.onDragStart = () => this.resizingGroup = group
                     pointer.finally = () => this.resizingGroup = null
                 } else {
                     const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
                     const headerHeight = f * 1.4
-                    if (isInsideRectangle(e.canvasX, e.canvasY, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
+                    if (isInsideRectangle(x, y, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
                         pointer.onDragStart = () => {
                             group.recomputeInsideNodes()
                             this.processSelect(group, e, true)
