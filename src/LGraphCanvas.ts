@@ -2156,14 +2156,6 @@ export class LGraphCanvas {
                 const centre = linkSegment._pos
                 if (!centre) continue
 
-                // FIXME: Clean up
-                if (isInsideRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
-                    this.showLinkMenu(linkSegment, e)
-                    //clear tooltip
-                    this.over_link_center = null
-                    return
-                }
-
                 // If we shift click on a link then start a link from that input
                 if ((e.shiftKey || e.altKey) && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, x, y)) {
                     if (e.shiftKey && !e.altKey) {
@@ -2191,6 +2183,11 @@ export class LGraphCanvas {
                         pointer.finally = () => this.isDragging = false
                         return
                     }
+                } else if (isInsideRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
+                    this.showLinkMenu(linkSegment, e)
+                    //clear tooltip
+                    this.over_link_center = null
+                    return
                 }
             }
 
