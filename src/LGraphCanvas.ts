@@ -3339,9 +3339,12 @@ export class LGraphCanvas {
                 this.onNodeDeselected?.(node)
             } else if (item instanceof LGraphGroup) {
                 graph.remove(item)
+            } else if (item instanceof Reroute) {
+                graph.removeReroute(item.id)
             }
         }
 
+        this.selectedItems.clear()
         this.selected_nodes = {}
         this.selectedItems.clear()
         this.current_node = null
