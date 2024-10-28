@@ -28,15 +28,34 @@ export function dist2(x1: number, y1: number, x2: number, y2: number): number {
 
 /**
  * Determines whether a point is inside a rectangle.
+ * 
+ * Otherwise identical to {@link isInsideRectangle}, it also returns `true` if `x` equals `left` or `y` equals `top`.
+ * @param x Point x
+ * @param y Point y
+ * @param left Rect x
+ * @param top Rect y
+ * @param width Rect width
+ * @param height Rect height
+ * @returns `true` if the point is inside the rect, otherwise `false`
+ */
+export function isInRectangle(x: number, y: number, left: number, top: number, width: number, height: number): boolean {
+    return x >= left
+        && x < left + width
+        && y >= top
+        && y < top + height
+}
+
+/**
+ * Determines whether a point is inside a rectangle.
  * @param point The point to check, as `x, y`
  * @param rect The rectangle, as `x, y, width, height`
  * @returns `true` if the point is inside the rect, otherwise `false`
  */
 export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
-    return rect[0] <= point[0]
-        && rect[0] + rect[2] > point[0]
-        && rect[1] <= point[1]
-        && rect[1] + rect[3] > point[1]
+    return point[0] >= rect[0]
+        && point[0] < rect[0] + rect[2]
+        && point[1] >= rect[1]
+        && point[1] < rect[1] + rect[3]
 }
 
 /**
@@ -46,15 +65,21 @@ export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): bo
  * @param rect The rectangle, as `x, y, width, height`
  * @returns `true` if the point is inside the rect, otherwise `false`
  */
-export function isXyInRectangle(x: number, y: number, rect: ReadOnlyRect): boolean {
-    return rect[0] <= x
-        && rect[0] + rect[2] > x
-        && rect[1] <= y
-        && rect[1] + rect[3] > y
+export function isXyInRect(x: number, y: number, rect: ReadOnlyRect): boolean {
+    return x >= rect[0]
+        && x < rect[0] + rect[2]
+        && y >= rect[1]
+        && y < rect[1] + rect[3]
 }
 
 /**
- * Determines whether a point is inside a rectangle.
+ * Determines whether a point (`x, y`) is inside a rectangle.
+ * 
+ * This is the original litegraph implementation.  It returns `false` if `x` is equal to `left`, or `y` is equal to `top`.
+ * @deprecated
+ * Use {@link isInRectangle} to match inclusive of top left.
+ * This function returns a false negative when an integer point (e.g. pixel) is on the leftmost or uppermost edge of a rectangle.
+ * 
  * @param x Point x
  * @param y Point y
  * @param left Rect x
@@ -111,7 +136,7 @@ export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const centreX = b[0] + (b[2] * 0.5)
     const centreY = b[1] + (b[3] * 0.5)
-    return isXyInRectangle(centreX, centreY, a)
+    return isXyInRect(centreX, centreY, a)
 }
 
 /**

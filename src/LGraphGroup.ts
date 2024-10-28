@@ -3,7 +3,7 @@ import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { containsCentre, containsRect, isInsideRectangle, isPointInRectangle, createBounds } from "./measure"
+import { containsCentre, containsRect, isInRectangle, isPointInRectangle, createBounds } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { RenderShape, TitleMode } from "./types/globalEnums"
 
@@ -283,8 +283,8 @@ export class LGraphGroup implements Positionable, IPinnable {
     }
 
     isPointInTitlebar(x: number, y: number): boolean {
-        const b = this._bounding
-        return isInsideRectangle(x, y, b[0], b[1], b[2], this.titleHeight)
+        const b = this.boundingRect
+        return isInRectangle(x, y, b[0], b[1], b[2], this.titleHeight)
     }
 
     isInResize(x: number, y: number): boolean {
