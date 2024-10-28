@@ -1573,7 +1573,7 @@ export class LGraphNode implements Positionable, IPinnable {
      * @param canvasY Y co-ordinate in graph space
      * @returns The widget found, otherwise `null`
      */
-    getWidgetOnPos(canvasX: number, canvasY: number): IWidget | null {
+    getWidgetOnPos(canvasX: number, canvasY: number, includeDisabled = false): IWidget | null {
         const { widgets, pos, size } = this
         if (!widgets?.length) return null
 
@@ -1582,7 +1582,7 @@ export class LGraphNode implements Positionable, IPinnable {
         const nodeWidth = size[0]
 
         for (const widget of widgets) {
-            if (!widget || widget.disabled) continue
+            if (!widget || (widget.disabled && !includeDisabled)) continue
 
             const h = widget.computeSize
                 ? widget.computeSize(nodeWidth)[1]
