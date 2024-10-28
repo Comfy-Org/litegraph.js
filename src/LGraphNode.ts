@@ -1568,6 +1568,36 @@ export class LGraphNode implements Positionable, IPinnable {
     }
 
     /**
+     * Gets the widget on this node at the given co-ordinates.
+     * @param canvasX X co-ordinate in graph space
+     * @param canvasY Y co-ordinate in graph space
+     * @returns The widget found, otherwise `null`
+     */
+    getWidgetOnPos(canvasX: number, canvasY: number): IWidget | null {
+        const { widgets, pos, size } = this
+        if (!widgets?.length) return null
+
+        const x = canvasX - pos[0]
+        const y = canvasY - pos[1]
+        const nodeWidth = size[0]
+
+        for (const widget of widgets) {
+            if (!widget || widget.disabled) continue
+
+            const h = widget.computeSize
+                ? widget.computeSize(nodeWidth)[1]
+                : LiteGraph.NODE_WIDGET_HEIGHT
+            const w = widget.width || nodeWidth
+            if (
+                widget.last_y !== undefined &&
+                isInRectangle(x, y, 6, widget.last_y, w - 12, h)
+            )
+                return widget
+        }
+        return null
+    }
+
+    /**
      * Returns the input slot with a given name (used for dynamic slots), -1 if not found
      * @param name the name of the slot
      * @param returnObj if the obj itself wanted
