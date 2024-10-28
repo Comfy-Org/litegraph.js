@@ -15,6 +15,8 @@ export class LGraphGroup implements Positionable {
     static minWidth = 140
     static minHeight = 80
     static resizeLength = 10
+    static padding = 4
+    static defaultColour = '#335'
 
     id: number
     color: string
@@ -118,8 +120,7 @@ export class LGraphGroup implements Positionable {
      * @param {CanvasRenderingContext2D} ctx
      */
     draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
-        const padding = 4
-        const { resizeLength } = LGraphGroup
+        const { padding, resizeLength, defaultColour } = LGraphGroup
         const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
 
         const [x, y] = this._pos
@@ -127,8 +128,8 @@ export class LGraphGroup implements Positionable {
 
         // Titlebar
         ctx.globalAlpha = 0.25 * graphCanvas.editor_alpha
-        ctx.fillStyle = this.color || '#335'
-        ctx.strokeStyle = this.color || '#335'
+        ctx.fillStyle = this.color || defaultColour
+        ctx.strokeStyle = this.color || defaultColour
         ctx.beginPath()
         ctx.rect(x + 0.5, y + 0.5, width, font_size * 1.4)
         ctx.fill()
