@@ -1,7 +1,7 @@
 import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable, LinkSegment, ReadOnlyPoint, ReadOnlyRect } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import { LGraphNode, type NodeId } from "./LGraphNode"
-import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
+import type { CanvasDragEvent, CanvasMouseEvent, CanvasEventDetail, CanvasPointerEvent, ICanvasPosition, IDeltaPosition } from "./types/events"
 import type { ClipboardItems } from "./types/serialisation"
 import { LLink, type LinkId } from "./LLink"
 import type { LGraph } from "./LGraph"
@@ -335,14 +335,14 @@ export class LGraphCanvas {
     bgcanvas: HTMLCanvasElement
     ctx?: CanvasRenderingContext2D
     _events_binded?: boolean
-    _mousedown_callback?(e: CanvasMouseEvent): boolean
-    _mousewheel_callback?(e: CanvasMouseEvent): boolean
-    _mousemove_callback?(e: CanvasMouseEvent): boolean
-    _mouseup_callback?(e: CanvasMouseEvent): boolean
-    _mouseout_callback?(e: CanvasMouseEvent): boolean
-    _mousecancel_callback?(e: CanvasMouseEvent): boolean
+    _mousedown_callback?(e: PointerEvent): boolean
+    _mousewheel_callback?(e: WheelEvent): boolean
+    _mousemove_callback?(e: PointerEvent): boolean
+    _mouseup_callback?(e: PointerEvent): boolean
+    _mouseout_callback?(e: PointerEvent): boolean
+    _mousecancel_callback?(e: PointerEvent): boolean
     _key_callback?(e: KeyboardEvent): boolean
-    _ondrop_callback?(e: CanvasDragEvent): unknown
+    _ondrop_callback?(e: DragEvent): unknown
     /** @deprecated WebGL */
     gl?: never
     bgctx?: CanvasRenderingContext2D
@@ -1714,7 +1714,7 @@ export class LGraphCanvas {
         }
     }
 
-    processMouseDown(e: PointerEvent | CanvasPointerEvent): void {
+    processMouseDown(e: PointerEvent): void {
         const { graph, pointer } = this
         this.adjustMouseEvent(e)
         if (e.isPrimary) pointer.down(e)
@@ -2451,7 +2451,7 @@ export class LGraphCanvas {
     /**
      * Called when a mouse move event has to be processed
      **/
-    processMouseMove(e: PointerEvent | CanvasPointerEvent): void {
+    processMouseMove(e: PointerEvent): void {
         if (this.autoresize) this.resize()
 
         if (this.set_canvas_dirty_on_mouse_event)
@@ -2672,7 +2672,7 @@ export class LGraphCanvas {
     /**
      * Called when a mouse up event has to be processed
      **/
-    processMouseUp(e: PointerEvent | CanvasPointerEvent): void {
+    processMouseUp(e: PointerEvent): void {
         //early exit for extra pointer
         if (e.isPrimary === false) return
 
@@ -2854,8 +2854,9 @@ export class LGraphCanvas {
      * Called when the mouse moves off the canvas.  Clears all node hover states.
      * @param e
      */
-    processMouseOut(e: CanvasMouseEvent): void {
+    processMouseOut(e: MouseEvent): void {
         // TODO: Check if document.contains(e.relatedTarget) - handle mouseover node textarea etc.
+        this.adjustMouseEvent(e)
         this.updateMouseOverNodes(null, e)
     }
 
@@ -2867,7 +2868,7 @@ export class LGraphCanvas {
     /**
      * Called when a mouse wheel event has to be processed
      **/
-    processMouseWheel(e: CanvasWheelEvent): void {
+    processMouseWheel(e: WheelEvent): void {
         if (!this.graph || !this.allow_dragcanvas) return
 
         // TODO: Mouse wheel zoom rewrite
@@ -3278,7 +3279,7 @@ export class LGraphCanvas {
     /**
      * process a item drop event on top the canvas
      **/
-    processDrop(e: CanvasDragEvent): boolean {
+    processDrop(e: DragEvent): boolean {
         e.preventDefault()
         this.adjustMouseEvent(e)
         const x = e.clientX
@@ -3644,7 +3645,7 @@ export class LGraphCanvas {
     /**
      * adds some useful properties to a mouse event, like the position in graph coordinates
      **/
-    adjustMouseEvent(e: Partial<CanvasPointerEvent | CanvasDragEvent | CanvasWheelEvent>): asserts e is CanvasMouseEvent {
+    adjustMouseEvent<T extends MouseEvent>(e: T & Partial<ICanvasPosition & IDeltaPosition>): asserts e is T & CanvasMouseEvent {
         let clientX_rel = e.clientX
         let clientY_rel = e.clientY
 
@@ -3659,9 +3660,7 @@ export class LGraphCanvas {
         // Only set deltaX and deltaY if not already set.
         // If deltaX and deltaY are already present, they are read-only.
         // Setting them would result browser error => zoom in/out feature broken.
-        // @ts-expect-error This behaviour is not guaranteed but for now works on all browsers
         if (e.deltaX === undefined) e.deltaX = clientX_rel - this.last_mouse_position[0]
-        // @ts-expect-error This behaviour is not guaranteed but for now works on all browsers
         if (e.deltaY === undefined) e.deltaY = clientY_rel - this.last_mouse_position[1]
 
         this.last_mouse_position[0] = clientX_rel
@@ -6275,7 +6274,7 @@ export class LGraphCanvas {
 
         return dialog
     }
-    showSearchBox(event: CanvasMouseEvent, options?: IShowSearchOptions): HTMLDivElement {
+    showSearchBox(event: MouseEvent, options?: IShowSearchOptions): HTMLDivElement {
         // proposed defaults
         const def_options: IShowSearchOptions = {
             slot_from: null,
