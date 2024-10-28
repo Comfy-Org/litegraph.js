@@ -354,6 +354,7 @@ export class LGraphCanvas {
     resizing_node?: LGraphNode
     /** @deprecated See {@link LGraphCanvas.resizingGroup} */
     selected_group_resizing?: boolean
+    /** @deprecated See {@link pointer}.{@link CanvasPointer.dragStarted dragStarted} */
     last_mouse_dragging: boolean
     onMouseDown: (arg0: CanvasMouseEvent) => void
     _highlight_pos?: Point
@@ -1863,6 +1864,8 @@ export class LGraphCanvas {
         const { pointer, graph } = this
         const x = e.canvasX
         const y = e.canvasY
+
+        // Multi-select drag rectangle
         if (ctrlOrMeta && !e.altKey) {
             const dragRect = new Float32Array(4)
             dragRect[0] = x
@@ -2094,7 +2097,6 @@ export class LGraphCanvas {
 
             this.dirty_canvas = true
         } else {
-            //clicked outside of nodes
             // Reroutes
             if (this.reroutesEnabled) {
                 const reroute = graph.getRerouteOnPos(x, y)
@@ -2131,8 +2133,7 @@ export class LGraphCanvas {
                 }
             }
 
-            // Links, Groups, Canvas BG
-            //search for link connector
+            // Links - paths of links & reroutes
             // Set the width of the line for isPointInStroke checks
             const { lineWidth } = this.ctx
             this.ctx.lineWidth = this.connections_width + 7
