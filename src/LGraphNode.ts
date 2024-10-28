@@ -1582,7 +1582,7 @@ export class LGraphNode implements Positionable, IPinnable {
         const nodeWidth = size[0]
 
         for (const widget of widgets) {
-            if (!widget || (widget.disabled && !includeDisabled)) continue
+            if (!widget || (widget.disabled && !includeDisabled) || widget.hidden || (widget.advanced && !this.showAdvanced)) continue
 
             const h = widget.computeSize
                 ? widget.computeSize(nodeWidth)[1]
