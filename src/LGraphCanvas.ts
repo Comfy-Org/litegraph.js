@@ -89,7 +89,7 @@ interface IDrawSelectionBoundingOptions {
 
 /** @inheritdoc {@link LGraphCanvas.state} */
 export interface LGraphCanvasState {
-    /** Items are being dragged on the canvas. */
+    /** {@link Positionable} items are being dragged on the canvas. */
     draggingItems: boolean
     /** The canvas itself is being dragged. */
     draggingCanvas: boolean
@@ -169,6 +169,13 @@ export class LGraphCanvas {
     set read_only(value: boolean) {
         this.state.readOnly = value
     }
+
+    get isDragging(): boolean {
+        return this.state.draggingItems
+    }
+    set isDragging(value: boolean) {
+        this.state.draggingItems = value
+    }
     options: { skip_events?: any; viewport?: any; skip_render?: any; autoresize?: any }
     background_image: string
     ds: DragAndScale
@@ -244,7 +251,6 @@ export class LGraphCanvas {
     selected_nodes: Dictionary<LGraphNode>
     /** @deprecated Temporary implementation only - will be replaced with `selectedItems: Set<Positionable>`. */
     selectedGroups: Set<LGraphGroup>
-    isDragging?: boolean
     selected_group: LGraphGroup
     visible_nodes: LGraphNode[]
     node_dragged?: LGraphNode
