@@ -21,29 +21,20 @@ export interface IDeltaPosition {
     deltaY: number
 }
 
+interface LegacyMouseEvent {
+    /** @deprecated Part of DragAndScale mouse API - incomplete / not maintained */
+    dragging?: boolean
+    click_time?: number
+}
+
 /** PointerEvent with canvasX/Y and deltaX/Y properties */
 export interface CanvasPointerEvent extends PointerEvent, CanvasMouseEvent { }
 
 /** MouseEvent with canvasX/Y and deltaX/Y properties */
-export interface CanvasMouseEvent extends MouseEvent, ICanvasPosition, IDeltaPosition {
-    /** @deprecated Part of DragAndScale mouse API - incomplete / not maintained */
-    dragging?: boolean
-    click_time?: number
-    dataTransfer?: unknown
-}
-
-/** WheelEvent with canvasX/Y properties */
-export interface CanvasWheelEvent extends WheelEvent, ICanvasPosition {
-    dragging?: boolean
-    click_time?: number
-    dataTransfer?: unknown
-}
+export interface CanvasMouseEvent extends MouseEvent, Readonly<ICanvasPosition>, Readonly<IDeltaPosition>, LegacyMouseEvent { }
 
 /** DragEvent with canvasX/Y and deltaX/Y properties */
 export interface CanvasDragEvent extends DragEvent, ICanvasPosition, IDeltaPosition { }
-
-/** TouchEvent with canvasX/Y and deltaX/Y properties */
-export interface CanvasTouchEvent extends TouchEvent, ICanvasPosition, IDeltaPosition { }
 
 export type CanvasEventDetail =
     GenericEventDetail
