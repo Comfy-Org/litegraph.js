@@ -6,7 +6,7 @@ import type { ClipboardItems } from "./types/serialisation"
 import { LLink, type LinkId } from "./LLink"
 import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
-import { EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
+import { CanvasItem, EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
 import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
@@ -99,6 +99,11 @@ export interface LGraphCanvasState {
     draggingCanvas: boolean
     /** The canvas is read-only, preventing changes to nodes, disconnecting links, moving items, etc. */
     readOnly: boolean
+
+    /** Bit flags indicating what is currently below the pointer. */
+    hoveringOver: CanvasItem
+    /** If `true`, pointer move events will set the canvas cursor style. */
+    shouldSetCursor: boolean
 }
 
 /**
@@ -170,6 +175,8 @@ export class LGraphCanvas {
         draggingItems: false,
         draggingCanvas: false,
         readOnly: false,
+        hoveringOver: CanvasItem.Nothing,
+        shouldSetCursor: true,
     }
 
     // Whether the canvas was previously being dragged prior to pressing space key.
@@ -2482,6 +2489,8 @@ export class LGraphCanvas {
 
         e.dragging = this.last_mouse_dragging
 
+        /** See {@link state}.{@link LGraphCanvasState.hoveringOver hoveringOver} */
+        let underPointer = CanvasItem.Nothing
         //get node over
         const node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
         const { resizingGroup } = this
@@ -2498,6 +2507,7 @@ export class LGraphCanvas {
                 e.canvasX - resizingGroup.pos[0],
                 e.canvasY - resizingGroup.pos[1]
             )
+            underPointer |= CanvasItem.ResizeSe | CanvasItem.Group
             if (resized) this.dirty_bgcanvas = true
         } else if (this.dragging_canvas) {
             this.ds.offset[0] += delta[0] / this.ds.scale
@@ -2511,6 +2521,7 @@ export class LGraphCanvas {
 
             //mouse over a node
             if (node) {
+                underPointer |= CanvasItem.Node
 
                 if (node.redraw_on_mouse)
                     this.dirty_canvas = true
@@ -2609,28 +2620,24 @@ export class LGraphCanvas {
                     this.dirty_canvas = true
                 }
 
-                //Search for corner
+                // Resize corner
                 if (this.canvas && !e.ctrlKey) {
-                    this.canvas.style.cursor = node.inResizeCorner(e.canvasX, e.canvasY)
-                        ? "se-resize"
-                        : "crosshair"
+                    if (node.inResizeCorner(e.canvasX, e.canvasY)) underPointer |= CanvasItem.ResizeSe
                 }
             } else {
                 // Not over a node
                 const segment = this.#getLinkCentreOnPos(e)
                 if (this.over_link_center !== segment) {
+                    underPointer |= CanvasItem.Link
                     this.over_link_center = segment
                     this.dirty_bgcanvas = true
                 }
 
                 if (this.canvas) {
-                    let cursor = ""
-
                     const group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
                     if (group && !e.ctrlKey && !this.read_only && group.isInResize(e.canvasX, e.canvasY)) {
-                        cursor = "se-resize"
+                        underPointer |= CanvasItem.ResizeSe
                     }
-                    this.canvas.style.cursor = cursor
                 }
             } //end
 
@@ -2661,8 +2668,20 @@ export class LGraphCanvas {
                 desired_size[1] = Math.max(min_size[1], desired_size[1])
                 this.resizing_node.setSize(desired_size)
 
-                this.canvas.style.cursor = "se-resize"
+                underPointer |= CanvasItem.ResizeSe
                 this.#dirty()
+            }
+        }
+
+        this.state.hoveringOver = underPointer
+
+        if (this.state.shouldSetCursor) {
+            if (!underPointer) {
+                this.canvas.style.cursor = ""
+            } else if (underPointer & CanvasItem.ResizeSe) {
+                this.canvas.style.cursor = "se-resize"
+            } else if (underPointer & CanvasItem.Node) {
+                this.canvas.style.cursor = "crosshair"
             }
         }
 
