@@ -14,6 +14,7 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
 export class LGraphGroup implements Positionable {
     static minWidth = 140
     static minHeight = 80
+    static resizeLength = 10
 
     id: number
     color: string
@@ -118,6 +119,7 @@ export class LGraphGroup implements Positionable {
      */
     draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
         const padding = 4
+        const { resizeLength } = LGraphGroup
         const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
 
         const [x, y] = this._pos
@@ -143,8 +145,8 @@ export class LGraphGroup implements Positionable {
         // Resize marker
         ctx.beginPath()
         ctx.moveTo(x + width, y + height)
-        ctx.lineTo(x + width - 10, y + height)
-        ctx.lineTo(x + width, y + height - 10)
+        ctx.lineTo(x + width - resizeLength, y + height)
+        ctx.lineTo(x + width, y + height - resizeLength)
         ctx.fill()
 
         // Title
@@ -278,6 +280,16 @@ export class LGraphGroup implements Positionable {
     isPointInTitlebar(x: number, y: number): boolean {
         const b = this._bounding
         return isInsideRectangle(x, y, b[0], b[1], b[2], this.titleHeight)
+    }
+
+    isInResize(x: number, y: number): boolean {
+        const b = this._bounding
+        const right = b[0] + b[2]
+        const bottom = b[1] + b[3]
+
+        return x < right
+            && y < bottom
+            && (x - right) + (y - bottom) > -LGraphGroup.resizeLength
     }
 
     isPointInside = LGraphNode.prototype.isPointInside
