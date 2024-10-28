@@ -826,9 +826,6 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
                 const canvas = this.list_of_graphcanvas[i]
                 if (canvas.selected_nodes[node.id])
                     delete canvas.selected_nodes[node.id]
-
-                if (canvas.node_dragged == node)
-                    canvas.node_dragged = null
             }
         }
 

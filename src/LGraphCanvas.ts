@@ -314,8 +314,6 @@ export class LGraphCanvas {
     /** @deprecated See {@link LGraphCanvas.selectedItems} */
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
-    /** @deprecated Does not handle multi-node move, and can return the wrong node.  See {@link LGraphCanvas.selectedItems}. */
-    node_dragged?: LGraphNode
     node_over?: LGraphNode
     node_capturing_input?: LGraphNode
     highlighted_links: Dictionary<boolean> = {}
@@ -1313,7 +1311,6 @@ export class LGraphCanvas {
         this.selected_group = null
 
         this.visible_nodes = []
-        this.node_dragged = null
         this.node_over = null
         this.node_capturing_input = null
         this.connecting_links = null
@@ -1904,7 +1901,6 @@ export class LGraphCanvas {
                 graph.add(cloned, false)
                 if (this.allow_dragnodes) {
                     graph.beforeChange()
-                    this.node_dragged = cloned
                     this.isDragging = true
                 }
                 this.processSelect(cloned, e)
@@ -2069,18 +2065,14 @@ export class LGraphCanvas {
             }
 
             // Click was inside the node, but not on input/output, or the resize corner
-            let block_drag_node = node.pinned
             const pos: Point = [x - node.pos[0], y - node.pos[1]]
 
             // Widget
             const widget = this.processNodeWidgets(node, this.graph_mouse, e)
             if (widget) {
-                block_drag_node = true
                 this.node_widget = [node, widget]
-            }
-
-            // Double-click
-            if (is_double_click && this.selectedItems.has(node)) {
+            } else if (is_double_click && this.selectedItems.has(node)) {
+                // Double-click
                 // Check if it's a double click on the title bar
                 // Note: pos[1] is the y-coordinate of the node's body
                 // If clicking on node header (title), pos[1] is negative
@@ -2089,20 +2081,13 @@ export class LGraphCanvas {
                 }
                 node.onDblClick?.(e, pos, this)
                 this.processNodeDblClicked(node)
-                block_drag_node = true
-            }
-
-            // Mousedown callback - can block drag
-            if (node.onMouseDown?.(e, pos, this)) {
-                block_drag_node = true
-            }
-
-            if (!pointer.onDragStart && !block_drag_node && this.allow_dragnodes) {
+            } else if (node.onMouseDown?.(e, pos, this)) {
+                // Mousedown callback - can block drag
+            } else if (this.allow_dragnodes) {
                 pointer.onDragStart = () => {
                     graph.beforeChange()
                     this.processSelect(node, e, true)
                     this.isDragging = true
-                    this.node_dragged = node
                 }
                 pointer.finally = () => this.isDragging = false
             }
