@@ -8,7 +8,7 @@ import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { isInsideRectangle, distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, createBounds } from "./measure"
+import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -1918,7 +1918,7 @@ export class LGraphCanvas {
                         pointer.finally = () => this.isDragging = false
                         return
                     }
-                } else if (isInsideRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
+                } else if (isInRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
                     pointer.onClick = () => this.showLinkMenu(linkSegment, e)
                     pointer.onDragStart = () => this.dragging_canvas = true
                     pointer.finally = () => this.dragging_canvas = false
@@ -1942,7 +1942,7 @@ export class LGraphCanvas {
                 } else {
                     const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
                     const headerHeight = f * 1.4
-                    if (isInsideRectangle(x, y, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
+                    if (isInRectangle(x, y, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
                         pointer.onDragStart = () => {
                             group.recomputeInsideNodes()
                             this.processSelect(group, e, true)
@@ -2029,7 +2029,7 @@ export class LGraphCanvas {
                 for (let i = 0, l = node.outputs.length; i < l; ++i) {
                     const output = node.outputs[i]
                     const link_pos = node.getConnectionPos(false, i)
-                    if (isInsideRectangle(
+                    if (isInRectangle(
                         x,
                         y,
                         link_pos[0] - 15,
@@ -2097,7 +2097,7 @@ export class LGraphCanvas {
                 for (let i = 0, l = node.inputs.length; i < l; ++i) {
                     const input = node.inputs[i]
                     const link_pos = node.getConnectionPos(true, i)
-                    if (isInsideRectangle(
+                    if (isInRectangle(
                         x,
                         y,
                         link_pos[0] - 15,
@@ -2395,7 +2395,7 @@ export class LGraphCanvas {
                 for (let i = 0, l = node.outputs.length; i < l; ++i) {
                     const output = node.outputs[i]
                     const link_pos = node.getConnectionPos(false, i)
-                    if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
+                    if (isInRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
                         mClikSlot = output
                         mClikSlot_index = i
                         mClikSlot_isOut = true
@@ -2409,7 +2409,7 @@ export class LGraphCanvas {
                 for (let i = 0, l = node.inputs.length; i < l; ++i) {
                     const input = node.inputs[i]
                     const link_pos = node.getConnectionPos(true, i)
-                    if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
+                    if (isInRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
                         mClikSlot = input
                         mClikSlot_index = i
                         mClikSlot_isOut = false
@@ -2903,7 +2903,7 @@ export class LGraphCanvas {
                 const link_pos = node.getConnectionPos(true, i)
                 let is_inside = false
                 if (node.horizontal) {
-                    is_inside = isInsideRectangle(
+                    is_inside = isInRectangle(
                         canvasx,
                         canvasy,
                         link_pos[0] - 5,
@@ -2915,7 +2915,7 @@ export class LGraphCanvas {
                     // TODO: Find a cheap way to measure text, and do it on node label change instead of here
                     // Input icon width + text approximation
                     const width = 20 + (((input.label?.length ?? input.name?.length) || 3) * 7)
-                    is_inside = isInsideRectangle(
+                    is_inside = isInRectangle(
                         canvasx,
                         canvasy,
                         link_pos[0] - 10,
@@ -2944,7 +2944,7 @@ export class LGraphCanvas {
                 const link_pos = node.getConnectionPos(false, i)
                 let is_inside = false
                 if (node.horizontal) {
-                    is_inside = isInsideRectangle(
+                    is_inside = isInRectangle(
                         canvasx,
                         canvasy,
                         link_pos[0] - 5,
@@ -2953,7 +2953,7 @@ export class LGraphCanvas {
                         20
                     )
                 } else {
-                    is_inside = isInsideRectangle(
+                    is_inside = isInRectangle(
                         canvasx,
                         canvasy,
                         link_pos[0] - 10,
@@ -3990,7 +3990,7 @@ export class LGraphCanvas {
             const centre = linkSegment._pos
             if (!centre) continue
 
-            if (isInsideRectangle(e.canvasX, e.canvasY, centre[0] - 4, centre[1] - 4, 8, 8)) {
+            if (isInRectangle(e.canvasX, e.canvasY, centre[0] - 4, centre[1] - 4, 8, 8)) {
                 return linkSegment
             }
         }
