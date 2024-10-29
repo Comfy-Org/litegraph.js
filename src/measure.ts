@@ -109,7 +109,7 @@ export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const centreX = b[0] + (b[2] * 0.5)
     const centreY = b[1] + (b[3] * 0.5)
-    return isInsideRectangle(centreX, centreY, a[0], a[1], a[2], a[3])
+    return isXyInRectangle(centreX, centreY, a)
 }
 
 /**
