@@ -1760,6 +1760,7 @@ export class LGraphCanvas {
                 nodes[i].mouseOver = null
                 this._highlight_input = null
                 this._highlight_pos = null
+                this.link_over_widget = null
 
                 // Hover transitions
                 // TODO: Implement single lerp ease factor for current progress on hover in/out.  In drawNode, multiply by ease factor and differential value (e.g. bg alpha +0.5).
@@ -2326,8 +2327,6 @@ export class LGraphCanvas {
      * Called when a mouse move event has to be processed
      **/
     processMouseMove(e: CanvasMouseEvent): boolean {
-        this.link_over_widget = null
-
         if (this.autoresize) this.resize()
 
         if (this.set_canvas_dirty_on_mouse_event)
@@ -2438,6 +2437,7 @@ export class LGraphCanvas {
                         // Default: nothing highlighted
                         let highlightPos: Point = null
                         let highlightInput: INodeInputSlot = null
+                        let linkOverWidget: IWidget = null
 
                         if (firstLink.node === node) {
                             // Cannot connect link from a node to itself
@@ -2446,11 +2446,24 @@ export class LGraphCanvas {
                             // Connecting from an output to an input
 
                             if (inputId === -1 && outputId === -1) {
-                                const targetSlotId = firstLink.node.findConnectByTypeSlot(true, node, firstLink.output.type)
-                                if (targetSlotId !== null && targetSlotId >= 0) {
-                                    node.getConnectionPos(true, targetSlotId, pos)
-                                    highlightPos = pos
-                                    highlightInput = node.inputs[targetSlotId]
+                                // Allow support for linking to widgets, handled externally to LiteGraph
+                                if (this.getWidgetLinkType && overWidget) {
+                                    const widgetLinkType = this.getWidgetLinkType(overWidget, node)
+                                    if (widgetLinkType && LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)) {
+                                        if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
+                                            linkOverWidget = overWidget
+                                            this.link_over_widget_type = widgetLinkType
+                                        }
+                                    }
+                                }
+                                // Node background / title under the pointer
+                                if (!linkOverWidget) {
+                                    const targetSlotId = firstLink.node.findConnectByTypeSlot(true, node, firstLink.output.type)
+                                    if (targetSlotId !== null && targetSlotId >= 0) {
+                                        node.getConnectionPos(true, targetSlotId, pos)
+                                        highlightPos = pos
+                                        highlightInput = node.inputs[targetSlotId]
+                                    }
                                 }
                             } else if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
                                 //mouse on top of the corner box, don't know what to do
@@ -2459,20 +2472,6 @@ export class LGraphCanvas {
                                 if (inputId != -1 && node.inputs[inputId] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)) {
                                     highlightPos = pos
                                     highlightInput = node.inputs[inputId] // XXX CHECK THIS
-                                } else {
-                                    // Allow support for linking to widgets, handled externally to LiteGraph
-                                    if (this.getWidgetLinkType) {
-
-                                        if (overWidget) {
-                                            const widgetLinkType = this.getWidgetLinkType(overWidget, node)
-                                            if (widgetLinkType && LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)) {
-                                                if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
-                                                    this.link_over_widget = overWidget
-                                                    this.link_over_widget_type = widgetLinkType
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
                             }
 
@@ -2496,6 +2495,7 @@ export class LGraphCanvas {
                         }
                         this._highlight_pos = highlightPos
                         this._highlight_input = highlightInput
+                        this.link_over_widget = linkOverWidget
                     }
 
                     this.dirty_canvas = true
