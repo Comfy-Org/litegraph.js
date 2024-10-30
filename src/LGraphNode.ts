@@ -1748,8 +1748,10 @@ export class LGraphNode {
         }
         // connect to the first free input slot if not found a specific type and this output is general
         if (opts.wildcardToTyped && (slotType == 0 || slotType == "*" || slotType == "")) {
-            const find = findInputs ? node.findInputSlotFree : node.findOutputSlotFree
-            const nonEventSlot = find({ typesNotAccepted: [LiteGraph.EVENT] })
+            const opt = { typesNotAccepted: [LiteGraph.EVENT] }
+            const nonEventSlot = findInputs
+                ? node.findInputSlotFree(opt)
+                : node.findOutputSlotFree(opt)
             if (nonEventSlot >= 0) return nonEventSlot
         }
         return null
