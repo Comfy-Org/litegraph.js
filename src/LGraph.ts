@@ -55,6 +55,7 @@ export class LGraph {
     last_link_id: number
     /** The largest ID created by this graph */
     last_reroute_id: number
+    lastGroupId: number = -1
     _nodes: LGraphNode[]
     _nodes_by_id: Record<NodeId, LGraphNode>
     _nodes_in_order: LGraphNode[]
@@ -647,6 +648,10 @@ export class LGraph {
         // LEGACY: This was changed from constructor === LGraphGroup
         //groups
         if (node instanceof LGraphGroup) {
+            // Assign group ID
+            if (node.id == null || node.id === -1) node.id = ++this.lastGroupId
+            if (node.id > this.lastGroupId) this.lastGroupId = node.id
+
             this._groups.push(node)
             this.setDirtyCanvas(true)
             this.change()

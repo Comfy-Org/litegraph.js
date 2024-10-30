@@ -12,6 +12,7 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
 }
 
 export class LGraphGroup implements Positionable {
+    id: number
     color: string
     title: string
     font?: string
@@ -25,7 +26,9 @@ export class LGraphGroup implements Positionable {
     flags: IGraphGroupFlags = {}
     selected?: boolean
 
-    constructor(title?: string) {
+    constructor(title?: string, id?: number) {
+        // TODO: Object instantiation pattern requires too much boilerplate and null checking.  ID should be passed in via constructor.
+        this.id = id ?? -1
         this.title = title || "Group"
         this.color = LGraphCanvas.node_colors.pale_blue
             ? LGraphCanvas.node_colors.pale_blue.groupcolor
@@ -79,6 +82,7 @@ export class LGraphGroup implements Positionable {
     }
 
     configure(o: ISerialisedGroup): void {
+        this.id = o.id
         this.title = o.title
         this._bounding.set(o.bounding)
         this.color = o.color
@@ -89,6 +93,7 @@ export class LGraphGroup implements Positionable {
     serialize(): ISerialisedGroup {
         const b = this._bounding
         return {
+            id: this.id,
             title: this.title,
             bounding: [
                 Math.round(b[0]),

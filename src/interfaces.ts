@@ -1,5 +1,5 @@
 import type { ContextMenu } from "./ContextMenu"
-import type { LGraphNode } from "./LGraphNode"
+import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
 import type { LinkId } from "./LLink"
 
@@ -13,6 +13,7 @@ export type NullableProperties<T> = {
 export type CanvasColour = string | CanvasGradient | CanvasPattern
 
 export interface Positionable {
+    id: NodeId | number
     /** Position in graph coordinates.  Default: 0,0 */
     pos: Point
     /** true if this object is part of the selection, otherwise false. */
