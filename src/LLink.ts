@@ -1,5 +1,6 @@
-import type { CanvasColour, ISlotType } from "./interfaces"
+import type { CanvasColour, LinkNetwork, ISlotType, LinkSegment } from "./interfaces"
 import type { NodeId } from "./LGraphNode"
+import type { Reroute, RerouteId } from "./Reroute"
 import type { Serialisable, SerialisableLLink } from "./types/serialisation"
 
 export type LinkId = number
@@ -7,9 +8,10 @@ export type LinkId = number
 export type SerialisedLLinkArray = [id: LinkId, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, type: ISlotType] 
 
 //this is the class in charge of storing link information
-export class LLink implements Serialisable<SerialisableLLink> {
+export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
     /** Link ID */
     id: LinkId
+    parentId?: RerouteId
     type: ISlotType
     /** Output node ID */
     origin_id: NodeId
@@ -61,6 +63,27 @@ export class LLink implements Serialisable<SerialisableLLink> {
         return new LLink(data.id, data.type, data.origin_id, data.origin_slot, data.target_id, data.target_slot)
     }
 
+    /**
+     * Gets all reroutes from the output slot to this segment.  If this segment is a reroute, it will be the last element.
+     * @returns An ordered array of all reroutes from the node output to this reroute or the reroute before it.  Otherwise, an empty array.
+     */
+    static getReroutes(network: LinkNetwork, linkSegment: LinkSegment): Reroute[] {
+        return network.reroutes.get(linkSegment.parentId)
+            ?.getReroutes() ?? []
+    }
+
+    /**
+     * Finds the reroute in the chain after the provided reroute ID.
+     * @param network The network this link belongs to
+     * @param linkSegment The starting point of the search (input side).  Typically the LLink object itself, but can be any link segment.
+     * @param rerouteId The matching reroute will have this set as its {@link parentId}.
+     * @returns The reroute that was found, `undefined` if no reroute was found, or `null` if an infinite loop was detected.
+     */
+    static findNextReroute(network: LinkNetwork, linkSegment: LinkSegment, rerouteId: RerouteId): Reroute | null | undefined {
+        return network.reroutes.get(linkSegment.parentId)
+            ?.findNextReroute(rerouteId)
+    }
+
     configure(o: LLink | SerialisedLLinkArray) {
         if (Array.isArray(o)) {
             this.id = o[0]
@@ -103,6 +126,7 @@ export class LLink implements Serialisable<SerialisableLLink> {
             target_slot: this.target_slot,
             type: this.type
         }
+        if (this.parentId) copy.parentId = this.parentId
         return copy
     }
 }

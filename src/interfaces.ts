@@ -1,7 +1,8 @@
 import type { ContextMenu } from "./ContextMenu"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
-import type { LinkId } from "./LLink"
+import type { LinkId, LLink } from "./LLink"
+import type { Reroute, RerouteId } from "./Reroute"
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -18,7 +19,7 @@ export type CanvasColour = string | CanvasGradient | CanvasPattern
  * May contain other {@link Positionable} objects.
  */
 export interface Positionable {
-    id: NodeId | number
+    id: NodeId | RerouteId | number
     /** Position in graph coordinates.  Default: 0,0 */
     pos: Point
     /** true if this object is part of the selection, otherwise false. */
@@ -58,6 +59,28 @@ export interface IPinnable {
     pinned: boolean
     pin(value?: boolean): void
     unpin(): void
+}
+
+/**
+ * Contains a list of links, reroutes, and nodes.
+ */
+export interface LinkNetwork {
+    links: Map<LinkId, LLink>
+    reroutes: Map<RerouteId, Reroute>
+    getNodeById(id: NodeId): LGraphNode | null
+}
+
+/** Contains a cached 2D canvas path and a centre point, with an optional forward angle. */
+export interface LinkSegment {
+    /** Link / reroute ID */
+    readonly id: LinkId | RerouteId
+    /** The {@link id} of the reroute that this segment starts from (output side), otherwise `undefined`.  */
+    readonly parentId?: RerouteId
+
+    /** The last canvas 2D path that was used to render this segment */
+    path?: Path2D
+    /** Centre point of the {@link path}.  Calculated during render only - can be inaccurate */
+    readonly _pos: Float32Array
 }
 
 export interface IInputOrOutput {

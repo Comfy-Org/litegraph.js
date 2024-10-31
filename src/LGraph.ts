@@ -1,5 +1,6 @@
-import type { Dictionary, IContextMenuValue, ISlotType, MethodNames, Point } from "./interfaces"
-import type { ISerialisedGraph, Serialisable, SerialisableGraph } from "./types/serialisation"
+import type { Dictionary, IContextMenuValue, LinkNetwork, ISlotType, MethodNames, Point, LinkSegment } from "./interfaces"
+import type { ISerialisedGraph, Serialisable, SerialisableGraph, SerialisableReroute } from "./types/serialisation"
+import { Reroute, RerouteId } from "./Reroute"
 import { LGraphEventMode } from "./types/globalEnums"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
@@ -7,6 +8,7 @@ import { LGraphGroup } from "./LGraphGroup"
 import { type NodeId, LGraphNode } from "./LGraphNode"
 import { type LinkId, LLink, type SerialisedLLinkArray } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
+import { isSortaInsideOctagon } from "./measure"
 
 interface IGraphInput {
     name: string
@@ -30,7 +32,7 @@ type ParamsArray<T extends Record<any, any>, K extends MethodNames<T>> = Paramet
     + onNodeRemoved: when a node inside this graph is removed
     + onNodeConnectionChange: some connection has changed in the graph (connected or disconnected)
  */
-export class LGraph implements Serialisable<SerialisableGraph> {
+export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     static serialisedSchemaVersion = 1 as const
 
     //default supported types
@@ -87,6 +89,28 @@ export class LGraph implements Serialisable<SerialisableGraph> {
     extra: Record<any, any>
     inputs: Dictionary<IGraphInput>
     outputs: Dictionary<IGraphInput>
+
+    #reroutes = new Map<RerouteId, Reroute>()
+    /** All reroutes in this graph. */
+    public get reroutes(): Map<RerouteId, Reroute> {
+        return this.#reroutes
+    }
+    public set reroutes(value: Map<RerouteId, Reroute>) {
+        if (!value) throw new TypeError("Attempted to set LGraph.reroutes to a falsy value.")
+
+        const reroutes = this.#reroutes
+        if (value.size === 0) {
+            reroutes.clear()
+            return
+        }
+
+        for (const rerouteId of reroutes.keys()) {
+            if (!value.has(rerouteId)) reroutes.delete(rerouteId)
+        }
+        for (const [id, reroute] of value) {
+            reroutes.set(id, reroute)
+        }
+    }
 
     /** @deprecated See {@link state}.{@link LGraphState.lastNodeId lastNodeId} */
     get last_node_id() {
@@ -185,7 +209,9 @@ export class LGraph implements Serialisable<SerialisableGraph> {
         this._nodes_by_id = {}
         this._nodes_in_order = [] //nodes sorted in execution order
         this._nodes_executable = null //nodes that contain onExecute sorted in execution order
+
         this._links.clear()
+        this.reroutes.clear()
 
         //other scene stuff
         this._groups = []
@@ -914,6 +940,21 @@ export class LGraph implements Serialisable<SerialisableGraph> {
     }
 
     /**
+     * Finds a reroute a the given graph point
+     * @param x X co-ordinate in graph space
+     * @param y Y co-ordinate in graph space
+     * @returns The first reroute under the given co-ordinates, or undefined
+     */
+    getRerouteOnPos(x: number, y: number): Reroute | undefined {
+        for (const reroute of this.reroutes.values()) {
+            const pos = reroute.pos
+
+            if (isSortaInsideOctagon(x - pos[0], y - pos[1], 20))
+                return reroute
+        }
+    }
+
+    /**
      * Checks that the node type matches the node type registered, used when replacing a nodetype by a newer version during execution
      * this replaces the ones using the old version with the new version
      */
@@ -1205,6 +1246,72 @@ export class LGraph implements Serialisable<SerialisableGraph> {
     setDirtyCanvas(fg: boolean, bg?: boolean): void {
         this.canvasAction(c => c.setDirty(fg, bg))
     }
+
+    /**
+     * Configures a reroute on the graph where ID is already known (probably deserialisation).
+     * Creates the object if it does not exist.
+     * @param id Reroute ID
+     * @param pos Position in graph space
+     * @param linkIds IDs of links that pass through this reroute
+     */
+    setReroute({ id, parentId, pos, linkIds }: SerialisableReroute): Reroute {
+        if (id > this.state.lastRerouteId) this.state.lastRerouteId = id
+        const reroute = this.reroutes.get(id) ?? new Reroute(id, this)
+        reroute.update(parentId, pos, linkIds)
+        this.reroutes.set(id, reroute)
+        return reroute
+    }
+
+    /**
+     * Creates a new reroute and adds it to the graph.
+     * @param pos Position in graph space
+     * @param links The links that will use this reroute (e.g. if from an output with multiple outputs, and all will use it)
+     * @param afterRerouteId If set, this reroute will be shown after the specified ID.  Otherwise, the reroute will be added as the last on the link.
+     * @returns The newly created reroute - typically ignored.
+     */
+    createReroute(pos: Point, before: LinkSegment): Reroute {
+        const rerouteId = ++this.state.lastRerouteId
+        const linkIds = before instanceof Reroute
+            ? before.linkIds
+            : [before.id]
+        const reroute = new Reroute(rerouteId, this, pos, before.parentId, linkIds)
+        this.reroutes.set(rerouteId, reroute)
+        for (const linkId of linkIds) {
+            const link = this._links.get(linkId)
+            if (!link) continue
+            if (link.parentId === before.parentId) link.parentId = rerouteId
+            LLink.getReroutes(this, link)
+                ?.filter(x => x.parentId === before.parentId)
+                .forEach(x => x.parentId = rerouteId)
+        }
+
+        return reroute
+    }
+
+    /**
+     * Removes a reroute from the graph
+     * @param id ID of reroute to remove
+     */
+    removeReroute(id: RerouteId): void {
+        const { reroutes } = this
+        const reroute = reroutes.get(id)
+        if (!reroute) return
+
+        // Extract reroute from the reroute chain
+        const { parentId, linkIds } = reroute
+        for (const reroute of reroutes.values()) {
+            if (reroute.parentId === id) reroute.parentId = parentId
+        }
+
+        for (const linkId of linkIds) {
+            const link = this._links.get(linkId)
+            if (link && link.parentId === id) link.parentId = parentId
+        }
+
+        reroutes.delete(id)
+        this.setDirtyCanvas(false, true)
+    }
+
     /**
      * Destroys a link
      * @param {Number} link_id
@@ -1259,6 +1366,7 @@ export class LGraph implements Serialisable<SerialisableGraph> {
         const groups = this._groups.map(x => x.serialize())
 
         const links = [...this._links.values()].map(x => x.asSerialisable())
+        const reroutes = [...this.reroutes.values()].map(x => x.asSerialisable())
 
         const data: SerialisableGraph = {
             version: LGraph.serialisedSchemaVersion,
@@ -1267,6 +1375,7 @@ export class LGraph implements Serialisable<SerialisableGraph> {
             groups,
             nodes,
             links,
+            reroutes,
             extra
         }
 
@@ -1311,6 +1420,16 @@ export class LGraph implements Serialisable<SerialisableGraph> {
                     this._links.set(link.id, link)
                 }
             }
+
+            // Reroutes
+            if (Array.isArray(data.reroutes)) {
+                for (const rerouteData of data.reroutes) {
+                    const reroute = this.setReroute(rerouteData)
+
+                    // Drop broken links, and ignore reroutes with no valid links
+                    if (!reroute.validateLinks(this._links)) this.reroutes.delete(rerouteData.id)
+                }
+            }
         }
 
         const nodesData = data.nodes
@@ -1318,7 +1437,7 @@ export class LGraph implements Serialisable<SerialisableGraph> {
         //copy all stored fields
         for (const i in data) {
             //links must be accepted
-            if (i == "nodes" || i == "groups" || i == "links" || i === "state")
+            if (i == "nodes" || i == "groups" || i == "links" || i === "state" || i === "reroutes")
                 continue
             this[i] = data[i]
         }
