@@ -1319,7 +1319,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
         const node = this.getNodeById(link.target_id)
         node?.disconnectInput(link.target_slot)
-        
+
         link.disconnect(this)
     }
 

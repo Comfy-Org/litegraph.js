@@ -1,4 +1,4 @@
-import type { IContextMenuValue, IPinnable, Point, Positionable, ReadOnlyRect, Size } from "./interfaces"
+import type { IContextMenuValue, IPinnable, Point, Positionable, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
@@ -63,7 +63,6 @@ export class LGraphGroup implements Positionable, IPinnable {
         this._size[0] = Math.max(LGraphGroup.minWidth, v[0])
         this._size[1] = Math.max(LGraphGroup.minHeight, v[1])
     }
-
 
     get boundingRect() {
         return this._bounding
