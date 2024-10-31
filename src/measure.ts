@@ -89,6 +89,36 @@ export function overlapBounding(a: Rect, b: Rect): boolean {
 }
 
 /**
+ * Determines if rectangle {@link a} contains the centre point of rectangle {@link b}.
+ * @param a Container rectangle A as x, y, width, height
+ * @param b Sub-rectangle B as x, y, width, height
+ * @returns true if {@link a} contains most of {@link b}, otherwise false
+ */
+export function containsCentre(a: Rect, b: Rect): boolean {
+    const centreX = b[0] + (b[2] * 0.5)
+    const centreY = b[1] + (b[3] * 0.5)
+    return isInsideRectangle(centreX, centreY, a[0], a[1], a[2], a[3])
+}
+
+/**
+ * Determines if rectangle {@link a} wholly contains rectangle {@link b}.
+ * @param a Container rectangle A as x, y, width, height
+ * @param b Sub-rectangle B as x, y, width, height
+ * @returns true if {@link a} wholly contains {@link b}, otherwise false
+ */
+export function containsRect(a: Rect, b: Rect): boolean {
+    const aRight = a[0] + a[2]
+    const aBottom = a[1] + a[3]
+    const bRight = b[0] + b[2]
+    const bBottom = b[1] + b[3]
+
+    return a[0] < b[0]
+        && a[1] < b[1]
+        && aRight > bRight
+        && aBottom > bBottom
+}
+
+/**
  * Adds an offset in the specified direction to {@link out}
  * @param amount Amount of offset to add
  * @param direction Direction to add the offset to
