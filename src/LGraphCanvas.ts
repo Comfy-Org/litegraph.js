@@ -3317,12 +3317,25 @@ export class LGraphCanvas {
         selected.clear()
         if (wasSelected) selected.add(wasSelected)
 
+        this.setDirty(true)
+
+        // Legacy code
+        const oldNode = keepSelected?.id == null ? null : this.selected_nodes[keepSelected.id]
         this.selected_nodes = {}
         this.current_node = null
         this.highlighted_links = {}
 
+        if (keepSelected instanceof LGraphNode) {
+            // Handle old object lookup
+            if (oldNode) this.selected_nodes[oldNode.id] = oldNode
+
+            // Highlight links
+            keepSelected.inputs?.forEach(input => this.highlighted_links[input.link] = true)
+            keepSelected.outputs?.flatMap(x => x.links)
+                .forEach(id => this.highlighted_links[id] = true)
+        }
+
         this.onSelectionChange?.(this.selected_nodes)
-        this.setDirty(true)
     }
 
     /** @deprecated See {@link LGraphCanvas.deselectAll} */
