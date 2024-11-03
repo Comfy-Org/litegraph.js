@@ -7879,10 +7879,10 @@ export class LGraphCanvas {
             zoom = 0.75,
             easing = EaseFunction.EASE_IN_OUT_QUAD
         }: {
-            duration: number,
-            zoom: number,
-            easing: EaseFunction
-        }
+            duration?: number,
+            zoom?: number,
+            easing?: EaseFunction
+        } = {}
     ) {
         const easeFunctions = {
             linear: (t: number) => t,
