@@ -3337,21 +3337,18 @@ export class LGraphCanvas {
      * Deletes all selected items from the graph.
      */
     deleteSelected(): void {
-        this.graph.beforeChange()
+        const { graph } = this
+        graph.beforeChange()
 
         for (const item of this.selectedItems) {
             if (item instanceof LGraphNode) {
                 const node = item
                 if (node.block_delete) continue
                 node.connectInputToOutput()
-            }
-
-            if (item instanceof LGraphGroup || item instanceof LGraphNode) {
-                this.graph.remove(item)
-            }
-
-            if (item instanceof LGraphNode) {
-                this.onNodeDeselected?.(item)
+                graph.remove(node)
+                this.onNodeDeselected?.(node)
+            } else if (item instanceof LGraphGroup) {
+                graph.remove(item)
             }
         }
 
@@ -3360,7 +3357,7 @@ export class LGraphCanvas {
         this.current_node = null
         this.highlighted_links = {}
         this.setDirty(true)
-        this.graph.afterChange()
+        graph.afterChange()
     }
 
     /**
