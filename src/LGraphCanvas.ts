@@ -3344,11 +3344,14 @@ export class LGraphCanvas {
                 const node = item
                 if (node.block_delete) continue
                 node.connectInputToOutput()
-                this.onNodeDeselected?.(node)
             }
 
             if (item instanceof LGraphGroup || item instanceof LGraphNode) {
                 this.graph.remove(item)
+            }
+
+            if (item instanceof LGraphNode) {
+                this.onNodeDeselected?.(item)
             }
         }
 
