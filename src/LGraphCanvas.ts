@@ -2879,7 +2879,7 @@ export class LGraphCanvas {
 
             //select all Control A
             else if (e.keyCode == 65 && e.ctrlKey) {
-                this.selectNodes()
+                this.selectAll()
                 block_default = true
             }
 
@@ -3277,6 +3277,17 @@ export class LGraphCanvas {
             }
         }
 
+        this.onSelectionChange?.(this.selected_nodes)
+        this.setDirty(true)
+    }
+
+    /**
+     * Selects all items on the canvas.
+     */
+    selectAll(): void {
+        for (const item of [...this.graph._nodes, ...this.graph._groups]) {
+            this.select(item)
+        }
         this.onSelectionChange?.(this.selected_nodes)
         this.setDirty(true)
     }
