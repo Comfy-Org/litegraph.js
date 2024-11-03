@@ -3186,14 +3186,25 @@ export class LGraphCanvas {
      * @param item Canvas item to select/deselect
      * @param e The MouseEvent to handle
      * @param sticky Prevents deselecting individual nodes (as used by aux/right-click)
+     * @remarks
+     * Accessibility: anyone using {@link mutli_select} always deselects when clicking empty space.
      */
-    processSelect<TPositionable extends Positionable = LGraphNode>(item: TPositionable, e: CanvasMouseEvent, sticky: boolean = false): void {
-        const modifySelection = e != null && (e.shiftKey || e.metaKey || e.ctrlKey || this.multi_select)
-        if (!item.selected || !this.selectedItems.has(item)) {
+    processSelect<TPositionable extends Positionable = LGraphNode>(item: TPositionable | null, e: CanvasMouseEvent, sticky: boolean = false): void {
+        const addModifier = e?.shiftKey
+        const subtractModifier = e != null && (e.metaKey || e.ctrlKey)
+        const eitherModifier = addModifier || subtractModifier
+        const modifySelection = eitherModifier || this.multi_select
+
+        if (!item) {
+            if (!eitherModifier || this.multi_select) this.deselectAll()
+
+        } else if (!item.selected || !this.selectedItems.has(item)) {
             if (!modifySelection) this.deselectAll(item)
             this.select(item)
         } else if (modifySelection && !sticky) {
             this.deselect(item)
+        } else if (!sticky) {
+            this.deselectAll(item)
         } else {
             return
         }
