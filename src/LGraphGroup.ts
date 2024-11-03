@@ -100,12 +100,7 @@ export class LGraphGroup implements Positionable {
         return {
             id: this.id,
             title: this.title,
-            bounding: [
-                Math.round(b[0]),
-                Math.round(b[1]),
-                Math.round(b[2]),
-                Math.round(b[3])
-            ],
+            bounding: [...b],
             color: this.color,
             font_size: this.font_size,
             flags: this.flags,

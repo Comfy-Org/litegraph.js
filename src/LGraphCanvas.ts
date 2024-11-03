@@ -2503,17 +2503,6 @@ export class LGraphCanvas {
             this.node_widget = null
 
             if (this.selected_group) {
-                const diffx = this.selected_group.pos[0] -
-                    Math.round(this.selected_group.pos[0])
-                const diffy = this.selected_group.pos[1] -
-                    Math.round(this.selected_group.pos[1])
-                this.selected_group.move(diffx, diffy, e.ctrlKey)
-                this.selected_group.pos[0] = Math.round(
-                    this.selected_group.pos[0]
-                )
-                this.selected_group.pos[1] = Math.round(
-                    this.selected_group.pos[1]
-                )
                 this.dirty_canvas = true
                 this.selected_group = null
             }
