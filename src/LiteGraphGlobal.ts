@@ -47,6 +47,7 @@ export class LiteGraphGlobal {
     DEFAULT_SHADOW_COLOR = "rgba(0,0,0,0.5)"
     DEFAULT_GROUP_FONT = 24
     DEFAULT_GROUP_FONT_SIZE?: any
+    DEFAULT_GROUP_COLOR?: string
 
     WIDGET_BGCOLOR = "#222"
     WIDGET_OUTLINE_COLOR = "#666"

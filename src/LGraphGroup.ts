@@ -115,8 +115,8 @@ export class LGraphGroup implements Positionable {
     draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
         const padding = 4
 
-        ctx.fillStyle = this.color
-        ctx.strokeStyle = this.color
+        ctx.fillStyle = this.color ?? LiteGraph.DEFAULT_GROUP_COLOR
+        ctx.strokeStyle = this.color ?? LiteGraph.DEFAULT_GROUP_COLOR
         const [x, y] = this._pos
         const [width, height] = this._size
         ctx.globalAlpha = 0.25 * graphCanvas.editor_alpha
