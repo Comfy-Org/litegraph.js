@@ -3333,6 +3333,9 @@ export class LGraphCanvas {
         this.deselectAll()
     }
 
+    /**
+     * Deletes all selected items from the graph.
+     */
     deleteSelectedItems(): void {
         this.graph.beforeChange()
 
