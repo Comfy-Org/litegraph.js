@@ -3279,7 +3279,7 @@ export class LGraphCanvas {
      * @deprecated See {@link LGraphCanvas.selectItems}
      **/
     selectNodes(nodes?: LGraphNode[], add_to_current_selection?: boolean): void {
-        return this.selectItems(nodes, add_to_current_selection)
+        this.selectItems(nodes, add_to_current_selection)
     }
 
     /** @deprecated See {@link LGraphCanvas.deselect} */
