@@ -5113,6 +5113,7 @@ export class LGraphCanvas {
 
     /**
      * draws a link between two points
+     * @param ctx Canvas 2D rendering context
      * @param {vec2} a start pos
      * @param {vec2} b end pos
      * @param {Object} link the link object with all the link info
@@ -5122,17 +5123,33 @@ export class LGraphCanvas {
      * @param {LinkDirection} start_dir the direction enum
      * @param {LinkDirection} end_dir the direction enum
      * @param {number} num_sublines number of sublines (useful to represent vec3 or rgb)
-     **/
-    renderLink(ctx: CanvasRenderingContext2D,
-        a: Point,
-        b: Point,
+     */
+    renderLink(
+        ctx: CanvasRenderingContext2D,
+        a: ReadOnlyPoint,
+        b: ReadOnlyPoint,
         link: LLink,
         skip_border: boolean,
         flow: number,
         color: CanvasColour,
         start_dir: LinkDirection,
         end_dir: LinkDirection,
-        num_sublines?: number): void {
+        {
+            startControl,
+            endControl,
+            reroute,
+            num_sublines = 1
+        }: {
+            /** When defined, render data will be saved to this reroute instead of the {@link link}. */
+            reroute?: Reroute
+            /** Offset of the bezier curve control point from {@link a point a} (output side) */
+            startControl?: ReadOnlyPoint
+            /** Offset of the bezier curve control point from {@link b point b} (input side) */
+            endControl?: ReadOnlyPoint
+            /** Number of sublines (useful to represent vec3 or rgb) */
+            num_sublines?: number
+        } = {},
+    ): void {
 
         if (link) {
             this.visible_links.push(link)
@@ -5164,10 +5181,9 @@ export class LGraphCanvas {
 
         //begin line shape
         const path = new Path2D()
-        if (link) {
-            // Store the path on the link for hittests
-            link.path = path
-        }
+        if (reroute) reroute.path = path
+        else if (link) link.path = path
+
         for (let i = 0; i < num_sublines; i += 1) {
             const offsety = (i - (num_sublines - 1) * 0.5) * 5
 
