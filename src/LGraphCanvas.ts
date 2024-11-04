@@ -5151,22 +5151,13 @@ export class LGraphCanvas {
             num_sublines?: number
         } = {},
     ): void {
+        if (link) this.visible_links.push(link)
 
-        if (link) {
-            this.visible_links.push(link)
-        }
-
-        //choose color
-        if (!color && link) {
-            color = link.color || LGraphCanvas.link_type_colors[link.type]
-        }
-        color ||= this.default_link_color
-        if (link != null && this.highlighted_links[link.id]) {
-            color = "#FFF"
-        }
-
-        start_dir = start_dir || LinkDirection.RIGHT
-        end_dir = end_dir || LinkDirection.LEFT
+        const linkColour = link != null && this.highlighted_links[link.id]
+            ? "#FFF"
+            : color || link?.color || LGraphCanvas.link_type_colors[link.type] || this.default_link_color
+        const startDir = start_dir || LinkDirection.RIGHT
+        const endDir = end_dir || LinkDirection.LEFT
 
         const dist = this.links_render_mode == LinkRenderType.SPLINE_LINK && (!endControl || !startControl)
             ? distance(a, b)
@@ -5178,9 +5169,7 @@ export class LGraphCanvas {
         }
         ctx.lineJoin = "round"
         num_sublines ||= 1
-        if (num_sublines > 1) {
-            ctx.lineWidth = 0.5
-        }
+        if (num_sublines > 1) ctx.lineWidth = 0.5
 
         //begin line shape
         const path = new Path2D()
@@ -5201,19 +5190,19 @@ export class LGraphCanvas {
             innerB[1] = b[1]
 
             if (this.links_render_mode == LinkRenderType.SPLINE_LINK) {
-                path.moveTo(a[0], a[1] + offsety)
                 if (endControl) {
                     innerB[0] = b[0] + endControl[0]
                     innerB[1] = b[1] + endControl[1]
                 } else {
-                    this.#addSplineOffset(innerB, end_dir, dist)
+                    this.#addSplineOffset(innerB, endDir, dist)
                 }
                 if (startControl) {
                     innerA[0] = a[0] + startControl[0]
                     innerA[1] = a[1] + startControl[1]
                 } else {
-                    this.#addSplineOffset(innerA, start_dir, dist)
+                    this.#addSplineOffset(innerA, startDir, dist)
                 }
+                path.moveTo(a[0], a[1] + offsety)
                 path.bezierCurveTo(
                     innerA[0],
                     innerA[1] + offsety,
@@ -5223,11 +5212,11 @@ export class LGraphCanvas {
                     b[1] + offsety
                 )
 
+                // Calculate centre point
                 findPointOnCurve(pos, a, b, innerA, innerB, 0.5)
             } else if (this.links_render_mode == LinkRenderType.LINEAR_LINK) {
-                path.moveTo(a[0], a[1] + offsety)
                 const l = 15
-                switch (start_dir) {
+                switch (startDir) {
                     case LinkDirection.LEFT:
                         innerA[0] += -l
                         break
@@ -5241,7 +5230,7 @@ export class LGraphCanvas {
                         innerA[1] += l
                         break
                 }
-                switch (end_dir) {
+                switch (endDir) {
                     case LinkDirection.LEFT:
                         innerB[0] += -l
                         break
@@ -5255,6 +5244,7 @@ export class LGraphCanvas {
                         innerB[1] += l
                         break
                 }
+                path.moveTo(a[0], a[1] + offsety)
                 path.lineTo(innerA[0], innerA[1] + offsety)
                 path.lineTo(innerB[0], innerB[1] + offsety)
                 path.lineTo(b[0], b[1] + offsety)
@@ -5263,19 +5253,19 @@ export class LGraphCanvas {
                 pos[0] = (innerA[0] + innerB[0]) * 0.5
                 pos[1] = (innerA[1] + innerB[1]) * 0.5
             } else if (this.links_render_mode == LinkRenderType.STRAIGHT_LINK) {
-                path.moveTo(a[0], a[1])
-                if (start_dir == LinkDirection.RIGHT) {
+                if (startDir == LinkDirection.RIGHT) {
                     innerA[0] += 10
                 } else {
                     innerA[1] += 10
                 }
-                if (end_dir == LinkDirection.LEFT) {
+                if (endDir == LinkDirection.LEFT) {
                     innerB[0] -= 10
                 } else {
                     innerB[1] -= 10
                 }
                 const midX = (innerA[0] + innerB[0]) * 0.5
 
+                path.moveTo(a[0], a[1])
                 path.lineTo(innerA[0], innerA[1])
                 path.lineTo(midX, innerA[1])
                 path.lineTo(midX, innerB[1])
@@ -5299,13 +5289,13 @@ export class LGraphCanvas {
         }
 
         ctx.lineWidth = this.connections_width
-        ctx.fillStyle = ctx.strokeStyle = color
+        ctx.fillStyle = ctx.strokeStyle = linkColour
         ctx.stroke(path)
 
         //render arrow in the middle
         if (this.ds.scale >= 0.6 &&
             this.highquality_render &&
-            end_dir != LinkDirection.CENTER) {
+            endDir != LinkDirection.CENTER) {
             //render arrow
             if (this.render_connection_arrows) {
                 //compute two points in the connection
@@ -5313,29 +5303,29 @@ export class LGraphCanvas {
                     a,
                     b,
                     0.25,
-                    start_dir,
-                    end_dir
+                    startDir,
+                    endDir
                 )
                 const posB = this.computeConnectionPoint(
                     a,
                     b,
                     0.26,
-                    start_dir,
-                    end_dir
+                    startDir,
+                    endDir
                 )
                 const posC = this.computeConnectionPoint(
                     a,
                     b,
                     0.75,
-                    start_dir,
-                    end_dir
+                    startDir,
+                    endDir
                 )
                 const posD = this.computeConnectionPoint(
                     a,
                     b,
                     0.76,
-                    start_dir,
-                    end_dir
+                    startDir,
+                    endDir
                 )
 
                 //compute the angle between them so the arrow points in the right direction
@@ -5377,15 +5367,15 @@ export class LGraphCanvas {
 
         //render flowing points
         if (flow) {
-            ctx.fillStyle = color
+            ctx.fillStyle = linkColour
             for (let i = 0; i < 5; ++i) {
                 const f = (LiteGraph.getTime() * 0.001 + i * 0.2) % 1
                 const flowPos = this.computeConnectionPoint(
                     a,
                     b,
                     f,
-                    start_dir,
-                    end_dir
+                    startDir,
+                    endDir
                 )
                 ctx.beginPath()
                 ctx.arc(flowPos[0], flowPos[1], 5, 0, 2 * Math.PI)
