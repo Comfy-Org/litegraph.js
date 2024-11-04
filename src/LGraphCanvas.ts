@@ -2044,7 +2044,24 @@ export class LGraphCanvas {
                     if (reroute) {
                         this.processSelect(reroute, e)
 
-                        this.isDragging = true
+                        if (e.shiftKey) {
+                            // Connect new link from reroute
+                            const link = graph._links.get(reroute.linkIds.values().next().value)
+
+                            const outputNode = graph.getNodeById(link.origin_id)
+                            const slot = link.origin_slot
+                            this.connecting_links = [{
+                                node: outputNode,
+                                slot,
+                                input: null,
+                                output: outputNode.outputs[slot],
+                                pos: outputNode.getConnectionPos(false, slot),
+                                afterRerouteId: reroute.id,
+                            }]
+                        } else {
+                            this.isDragging = true
+                        }
+
                         skip_action = true
                     }
                 }
