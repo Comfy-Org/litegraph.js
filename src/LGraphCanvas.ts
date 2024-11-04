@@ -2741,21 +2741,7 @@ export class LGraphCanvas {
         e.preventDefault()
         return false
     }
-    /**
-     * returns true if a position (in graph space) is on top of a node little corner box
-     * @deprecated Unused
-     **/
-    isOverNodeBox(node: LGraphNode, canvasx: number, canvasy: number): boolean {
-        const title_height = LiteGraph.NODE_TITLE_HEIGHT
-        return Boolean(isInsideRectangle(
-            canvasx,
-            canvasy,
-            node.pos[0] + 2,
-            node.pos[1] + 2 - title_height,
-            title_height - 4,
-            title_height - 4
-        ))
-    }
+
     /**
      * returns the INDEX if a position (in graph space) is on top of a node input slot
      **/
