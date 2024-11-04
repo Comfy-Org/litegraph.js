@@ -2075,25 +2075,28 @@ export class LGraphCanvas {
                         // Set the width of the line for isPointInStroke checks
                         const lineWidth = this.ctx.lineWidth
                         this.ctx.lineWidth = this.connections_width + 7
-                        for (let i = 0; i < this.visible_links.length; ++i) {
-                            const link = this.visible_links[i]
-                            const center = link._pos
-                            let overLink: LLink = null
-                            if (!center ||
-                                e.canvasX < center[0] - 4 ||
-                                e.canvasX > center[0] + 4 ||
-                                e.canvasY < center[1] - 4 ||
-                                e.canvasY > center[1] + 4) {
-                                // If we shift click on a link then start a link from that input
-                                if (e.shiftKey && link.path && this.ctx.isPointInStroke(link.path, e.canvasX, e.canvasY)) {
-                                    overLink = link
-                                } else {
-                                    continue
-                                }
+
+                        for (const linkSegment of this.renderedPaths) {
+                            const centre = linkSegment._pos
+                            if (!centre) continue
+
+                            // FIXME: Clean up
+                            if (isInsideRectangle(e.canvasX, e.canvasY, centre[0] - 4, centre[1] - 4, 8, 8)) {
+                                this.showLinkMenu(linkSegment, e)
+                                //clear tooltip
+                                this.over_link_center = null
+                                break
                             }
-                            if (overLink) {
-                                const slot = overLink.origin_slot
-                                const originNode = graph._nodes_by_id[overLink.origin_id]
+
+                            // If we shift click on a link then start a link from that input
+                            if (e.shiftKey && linkSegment.path && this.ctx.isPointInStroke(linkSegment.path, e.canvasX, e.canvasY)) {
+                                const fromLink = linkSegment instanceof Reroute && linkSegment.linkIds.size
+                                    ? graph._links.get(linkSegment.linkIds.values().next().value)
+                                    : linkSegment instanceof LLink ? linkSegment : null
+                                if (!fromLink) break
+
+                                const slot = fromLink.origin_slot
+                                const originNode = graph._nodes_by_id[fromLink.origin_id]
 
                                 this.connecting_links ??= []
                                 this.connecting_links.push({
@@ -2102,13 +2105,10 @@ export class LGraphCanvas {
                                     output: originNode.outputs[slot],
                                     pos: originNode.getConnectionPos(false, slot),
                                 })
+                                if (fromLink.parentId) this.connecting_links[0].afterRerouteId = fromLink.parentId
                                 skip_action = true
-                            } else {
-                                //link clicked
-                                this.showLinkMenu(link, e)
-                                this.over_link_center = null //clear tooltip
+                                break
                             }
-                            break
                         }
 
                         // Restore line width
