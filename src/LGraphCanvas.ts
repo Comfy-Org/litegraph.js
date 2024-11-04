@@ -2029,6 +2029,17 @@ export class LGraphCanvas {
                 }
             } //clicked outside of nodes
             else {
+                if (!skip_action && !this.read_only) {
+                    // Check for reroutes
+                    const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
+                    if (reroute) {
+                        this.processSelect(reroute, e)
+
+                        this.isDragging = true
+                        skip_action = true
+                    }
+                }
+
                 if (!skip_action) {
                     //search for link connector
                     if (!this.read_only) {
