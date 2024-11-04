@@ -14,6 +14,7 @@ import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrEmpty, stringOrNull } from "./strings"
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
+import { Reroute, type RerouteId } from "./Reroute"
 
 interface IShowSearchOptions {
     node_to?: LGraphNode
@@ -31,7 +32,7 @@ interface IShowSearchOptions {
     show_all_on_open?: boolean
 }
 
-interface INodeFromTo {
+interface ICreateNodeOptions {
     /** input */
     nodeFrom?: LGraphNode
     /** input */
@@ -41,12 +42,12 @@ interface INodeFromTo {
     /** output */
     slotTo?: number | INodeOutputSlot | INodeInputSlot
     /** pass the event coords */
-}
 
-interface ICreateNodeOptions extends INodeFromTo {
     // FIXME: Should not be optional
     /** Position of new node */
     position?: Point
+    /** Create the connection from a reroute */
+    afterRerouteId?: RerouteId
 
     // FIXME: Should not be optional
     /** choose a nodetype to add, AUTO to set at first good */
@@ -57,7 +58,8 @@ interface ICreateNodeOptions extends INodeFromTo {
     posSizeFix?: Point //-alphaPosY*2*/
     e?: CanvasMouseEvent
     allow_searchbox?: boolean
-    showSearchBox?: LGraphCanvas["showSearchBox"]
+    /** See {@link LGraphCanvas.showSearchBox} */
+    showSearchBox?: ((event: CanvasMouseEvent, options?: IShowSearchOptions) => HTMLDivElement | void)
 }
 
 interface ICloseableDiv extends HTMLDivElement {
@@ -2608,7 +2610,7 @@ export class LGraphCanvas {
                                 e.canvasY
                             )
                             if (slot != -1) {
-                                link.node.connect(link.slot, node, slot)
+                                link.node.connect(link.slot, node, slot, link.afterRerouteId)
                             } else if (this.link_over_widget) {
                                 this.emitEvent({
                                     subType: "connectingWidgetLink",
@@ -2620,7 +2622,7 @@ export class LGraphCanvas {
                             } else {
                                 //not on top of an input
                                 // look for a good slot
-                                link.node.connectByType(link.slot, node, link.output.type)
+                                link.node.connectByType(link.slot, node, link.output.type, { afterRerouteId: link.afterRerouteId })
                             }
                         } else if (link.input) {
                             const slot = this.isOverNodeOutput(
@@ -2630,11 +2632,11 @@ export class LGraphCanvas {
                             )
 
                             if (slot != -1) {
-                                node.connect(slot, link.node, link.slot) // this is inverted has output-input nature like
+                                node.connect(slot, link.node, link.slot, link.afterRerouteId) // this is inverted has output-input nature like
                             } else {
                                 //not on top of an input
                                 // look for a good slot
-                                link.node.connectByTypeOutput(link.slot, node, link.input.type)
+                                link.node.connectByTypeOutput(link.slot, node, link.input.type, { afterRerouteId: link.afterRerouteId })
                             }
                         }
                     }
@@ -2658,6 +2660,7 @@ export class LGraphCanvas {
                         originalEvent: e,
                         linkReleaseContext: linkReleaseContextExtended,
                     })
+                    // No longer in use
                     // add menu when releasing link in empty space
                     if (LiteGraph.release_link_on_empty_shows_menu) {
                         if (e.shiftKey) {
@@ -6071,6 +6074,7 @@ export class LGraphCanvas {
             posAdd: [0, 0],
             posSizeFix: [0, 0]
         }, optPass || {})
+        const { afterRerouteId } = opts
 
         const isFrom = opts.nodeFrom && opts.slotFrom !== null
         const isTo = !isFrom && opts.nodeTo && opts.slotTo !== null
@@ -6177,9 +6181,9 @@ export class LGraphCanvas {
 
                     // connect the two!
                     if (isFrom) {
-                        opts.nodeFrom.connectByType(iSlotConn, newNode, fromSlotType)
+                        opts.nodeFrom.connectByType(iSlotConn, newNode, fromSlotType, { afterRerouteId })
                     } else {
-                        opts.nodeTo.connectByTypeOutput(iSlotConn, newNode, fromSlotType)
+                        opts.nodeTo.connectByTypeOutput(iSlotConn, newNode, fromSlotType, { afterRerouteId })
                     }
 
                     // if connecting in between
@@ -6205,6 +6209,7 @@ export class LGraphCanvas {
             showSearchBox: this.showSearchBox,
         }, optPass || {})
         const that = this
+        const { afterRerouteId } = opts
 
         const isFrom = opts.nodeFrom && opts.slotFrom
         const isTo = !isFrom && opts.nodeTo && opts.slotTo
@@ -6270,9 +6275,9 @@ export class LGraphCanvas {
                 case "Add Node":
                     LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
                         if (isFrom) {
-                            opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType)
+                            opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
                         } else {
-                            opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType)
+                            opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
                         }
                     })
                     break
@@ -6288,7 +6293,8 @@ export class LGraphCanvas {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const nodeCreated = that.createDefaultNodeForSlot(Object.assign<ICreateNodeOptions, ICreateNodeOptions>(opts, {
                         position: [opts.e.canvasX, opts.e.canvasY],
-                        nodeType: v
+                        nodeType: v,
+                        afterRerouteId,
                     }))
                     break
                 }

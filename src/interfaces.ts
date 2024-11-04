@@ -190,6 +190,7 @@ export interface ConnectingLink extends IInputOrOutput {
     slot: number
     pos: Point
     direction?: LinkDirection
+    afterRerouteId?: RerouteId
 }
 
 interface IContextMenuBase {
