@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable } from "./interfaces"
+import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable, ReadOnlyPoint } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import { LGraphNode, type NodeId } from "./LGraphNode"
 import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
@@ -5314,59 +5314,67 @@ export class LGraphCanvas {
             }
         }
     }
-    //returns the link center point based on curvature
-    computeConnectionPoint(a: Point,
-        b: Point,
+
+    /**
+     * Finds a point along a spline represented by a to b, with spline endpoint directions dictacted by start_dir and end_dir.
+     * @param a Start point
+     * @param b End point
+     * @param t Time: distance between points (e.g 0.25 is 25% along the line)
+     * @param start_dir Spline start direction
+     * @param end_dir Spline end direction
+     * @returns The point at {@link t} distance along the spline a-b.
+     */
+    computeConnectionPoint(
+        a: ReadOnlyPoint,
+        b: ReadOnlyPoint,
         t: number,
-        start_dir: number,
-        end_dir: number): number[] {
+        start_dir: LinkDirection,
+        end_dir: LinkDirection
+    ): Point {
         start_dir ||= LinkDirection.RIGHT
         end_dir ||= LinkDirection.LEFT
 
         const dist = distance(a, b)
-        const p0 = a
-        const p1 = [a[0], a[1]]
-        const p2 = [b[0], b[1]]
-        const p3 = b
+        const pa: Point = [a[0], a[1]]
+        const pb: Point = [b[0], b[1]]
 
-        switch (start_dir) {
-            case LinkDirection.LEFT:
-                p1[0] += dist * -0.25
-                break
-            case LinkDirection.RIGHT:
-                p1[0] += dist * 0.25
-                break
-            case LinkDirection.UP:
-                p1[1] += dist * -0.25
-                break
-            case LinkDirection.DOWN:
-                p1[1] += dist * 0.25
-                break
-        }
-        switch (end_dir) {
-            case LinkDirection.LEFT:
-                p2[0] += dist * -0.25
-                break
-            case LinkDirection.RIGHT:
-                p2[0] += dist * 0.25
-                break
-            case LinkDirection.UP:
-                p2[1] += dist * -0.25
-                break
-            case LinkDirection.DOWN:
-                p2[1] += dist * 0.25
-                break
-        }
+        this.#addSplineOffset(pa, start_dir, dist)
+        this.#addSplineOffset(pb, end_dir, dist)
 
         const c1 = (1 - t) * (1 - t) * (1 - t)
         const c2 = 3 * ((1 - t) * (1 - t)) * t
         const c3 = 3 * (1 - t) * (t * t)
         const c4 = t * t * t
 
-        const x = c1 * p0[0] + c2 * p1[0] + c3 * p2[0] + c4 * p3[0]
-        const y = c1 * p0[1] + c2 * p1[1] + c3 * p2[1] + c4 * p3[1]
+        const x = c1 * a[0] + c2 * pa[0] + c3 * pb[0] + c4 * b[0]
+        const y = c1 * a[1] + c2 * pa[1] + c3 * pb[1] + c4 * b[1]
         return [x, y]
     }
+
+    /**
+     * Modifies an existing point, adding a single-axis offset.
+     * @param point The point to add the offset to
+     * @param direction The direction to add the offset in
+     * @param dist Distance to offset
+     * @param factor Distance is mulitplied by this value.  Default: 0.25
+     */
+    #addSplineOffset(point: Point, direction: LinkDirection, dist: number, factor = 0.25): void {
+        switch (direction) {
+            case LinkDirection.LEFT:
+                point[0] += dist * -factor
+                break
+            case LinkDirection.RIGHT:
+                point[0] += dist * factor
+                break
+            case LinkDirection.UP:
+                point[1] += dist * -factor
+                break
+            case LinkDirection.DOWN:
+                point[1] += dist * factor
+                break
+        }
+    }
+
     drawExecutionOrder(ctx: CanvasRenderingContext2D): void {
         ctx.shadowColor = "transparent"
         ctx.globalAlpha = 0.25
