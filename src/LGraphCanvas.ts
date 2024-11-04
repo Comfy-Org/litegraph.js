@@ -1643,7 +1643,7 @@ export class LGraphCanvas {
         const y = graphPos[1] - node.pos[1]
 
         for (const widget of node.widgets) {
-            if(widget.hidden || (widget.advanced && !node.showAdvanced)) continue;
+            if (widget.hidden || (widget.advanced && !node.showAdvanced)) continue
 
             let widgetWidth, widgetHeight
             if (widget.computeSize) {
@@ -5425,7 +5425,7 @@ export class LGraphCanvas {
 
         for (let i = 0; i < widgets.length; ++i) {
             const w = widgets[i]
-            if(w.hidden || (w.advanced && !node.showAdvanced)) continue;
+            if (w.hidden || (w.advanced && !node.showAdvanced)) continue
             const y = w.y || posY
 
             if (w === this.link_over_widget) {
