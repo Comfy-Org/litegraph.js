@@ -2693,8 +2693,6 @@ export class LGraphCanvas {
                         }
                     }
                 }
-
-                this.connecting_links = null
             } //not dragging connection
             else if (this.resizing_node) {
                 this.#dirty()
@@ -2732,6 +2730,8 @@ export class LGraphCanvas {
                     e.canvasY - this.node_capturing_input.pos[1]
                 ])
             }
+
+            this.connecting_links = null
         } else if (e.which == 2) {
             //middle button
             this.dirty_canvas = true
@@ -3671,11 +3671,12 @@ export class LGraphCanvas {
                             link_color = LiteGraph.CONNECTING_LINK_COLOR
                     }
 
-                    const highlightPos: Point = this.#getHighlightPosition()
+                    const pos = this.graph.reroutes.get(link.afterRerouteId)?.pos ?? link.pos
+                    const highlightPos = this.#getHighlightPosition()
                     //the connection being dragged by the mouse
                     this.renderLink(
                         ctx,
-                        link.pos,
+                        pos,
                         highlightPos,
                         null,
                         false,
@@ -3689,8 +3690,8 @@ export class LGraphCanvas {
                     if (connType === LiteGraph.EVENT ||
                         connShape === RenderShape.BOX) {
                         ctx.rect(
-                            link.pos[0] - 6 + 0.5,
-                            link.pos[1] - 5 + 0.5,
+                            pos[0] - 6 + 0.5,
+                            pos[1] - 5 + 0.5,
                             14,
                             10
                         )
@@ -3703,15 +3704,15 @@ export class LGraphCanvas {
                             10
                         )
                     } else if (connShape === RenderShape.ARROW) {
-                        ctx.moveTo(link.pos[0] + 8, link.pos[1] + 0.5)
-                        ctx.lineTo(link.pos[0] - 4, link.pos[1] + 6 + 0.5)
-                        ctx.lineTo(link.pos[0] - 4, link.pos[1] - 6 + 0.5)
+                        ctx.moveTo(pos[0] + 8, pos[1] + 0.5)
+                        ctx.lineTo(pos[0] - 4, pos[1] + 6 + 0.5)
+                        ctx.lineTo(pos[0] - 4, pos[1] - 6 + 0.5)
                         ctx.closePath()
                     }
                     else {
                         ctx.arc(
-                            link.pos[0],
-                            link.pos[1],
+                            pos[0],
+                            pos[1],
                             4,
                             0,
                             Math.PI * 2
