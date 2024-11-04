@@ -1752,11 +1752,12 @@ export class LGraphCanvas {
         //left button mouse / single finger
         if (e.which == 1 && !this.pointer_is_double) {
             if ((e.metaKey || e.ctrlKey) && !e.altKey) {
-                this.dragging_rectangle = new Float32Array(4)
-                this.dragging_rectangle[0] = e.canvasX
-                this.dragging_rectangle[1] = e.canvasY
-                this.dragging_rectangle[2] = 1
-                this.dragging_rectangle[3] = 1
+                const dragRect = new Float32Array(4)
+                dragRect[0] = e.canvasX
+                dragRect[1] = e.canvasY
+                dragRect[2] = 1
+                dragRect[3] = 1
+                this.dragging_rectangle = dragRect
                 skip_action = true
             }
 
