@@ -2361,8 +2361,6 @@ export class LGraphCanvas {
                                         highlightInput = node.inputs[targetSlotId]
                                     }
                                 }
-                            } else if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-                                //mouse on top of the corner box, don't know what to do
                             } else {
                                 //check if I have a slot below de mouse
                                 if (inputId != -1 && node.inputs[inputId] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)) {
@@ -2380,8 +2378,6 @@ export class LGraphCanvas {
                                     node.getConnectionPos(false, targetSlotId, pos)
                                     highlightPos = pos
                                 }
-                            } else if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-                                //mouse on top of the corner box, don't know what to do
                             } else {
                                 //check if I have a slot below de mouse
                                 if (outputId != -1 && node.outputs[outputId] && LiteGraph.isValidConnection(firstLink.input.type, node.outputs[outputId].type)) {
@@ -2754,6 +2750,7 @@ export class LGraphCanvas {
     }
     /**
      * returns true if a position (in graph space) is on top of a node little corner box
+     * @deprecated Unused
      **/
     isOverNodeBox(node: LGraphNode, canvasx: number, canvasy: number): boolean {
         const title_height = LiteGraph.NODE_TITLE_HEIGHT
