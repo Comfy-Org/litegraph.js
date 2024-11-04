@@ -1,9 +1,9 @@
-import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable, ReadOnlyPoint, ReadOnlyRect } from "./interfaces"
+import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable, LinkSegment, ReadOnlyPoint, ReadOnlyRect } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import { LGraphNode, type NodeId } from "./LGraphNode"
 import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
 import type { IClipboardContents } from "./types/serialisation"
-import type { LLink } from "./LLink"
+import { LLink } from "./LLink"
 import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { EaseFunction, LGraphEventMode, LinkDirection, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
@@ -253,6 +253,8 @@ export class LGraphCanvas {
     over_link_center: LLink | null
     last_mouse_position: Point
     visible_area?: Rect32
+    /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
+    renderedPaths: Set<LinkSegment> = new Set()
     visible_links?: LLink[]
     connecting_links: ConnectingLink[] | null
     viewport?: Rect
@@ -4913,6 +4915,8 @@ export class LGraphCanvas {
     }
 
     drawConnections(ctx: CanvasRenderingContext2D): void {
+        const rendered = this.renderedPaths
+        rendered.clear()
         const now = LiteGraph.getTime()
         const visible_area = this.visible_area
         LGraphCanvas.#margin_area[0] = visible_area[0] - 20
@@ -4945,41 +4949,30 @@ export class LGraphCanvas {
                 const start_node = this.graph.getNodeById(link.origin_id)
                 if (start_node == null) continue
 
-                const start_node_slot = link.origin_slot
-                let start_node_slotpos: Point = null
-                if (start_node_slot == -1) {
-                    start_node_slotpos = [
-                        start_node.pos[0] + 10,
-                        start_node.pos[1] + 10
-                    ]
-                } else {
-                    start_node_slotpos = start_node.getConnectionPos(
-                        false,
-                        start_node_slot,
-                        LGraphCanvas.#tempA
-                    )
-                }
+                const outputId = link.origin_slot
+                const start_node_slotpos: Point = outputId == -1
+                    ? [start_node.pos[0] + 10, start_node.pos[1] + 10]
+                    : start_node.getConnectionPos(false, outputId, LGraphCanvas.#tempA)
+
                 const end_node_slotpos = node.getConnectionPos(true, i, LGraphCanvas.#tempB)
 
-                //compute link bounding
-                LGraphCanvas.#link_bounding[0] = start_node_slotpos[0]
-                LGraphCanvas.#link_bounding[1] = start_node_slotpos[1]
-                LGraphCanvas.#link_bounding[2] = end_node_slotpos[0] - start_node_slotpos[0]
-                LGraphCanvas.#link_bounding[3] = end_node_slotpos[1] - start_node_slotpos[1]
-                if (LGraphCanvas.#link_bounding[2] < 0) {
-                    LGraphCanvas.#link_bounding[0] += LGraphCanvas.#link_bounding[2]
-                    LGraphCanvas.#link_bounding[2] = Math.abs(LGraphCanvas.#link_bounding[2])
-                }
-                if (LGraphCanvas.#link_bounding[3] < 0) {
-                    LGraphCanvas.#link_bounding[1] += LGraphCanvas.#link_bounding[3]
-                    LGraphCanvas.#link_bounding[3] = Math.abs(LGraphCanvas.#link_bounding[3])
-                }
+                // Get all points this link passes through
+                const reroutes = LLink.getReroutes(this.graph, link)
+                const points = [start_node_slotpos, ...reroutes.map(x => x.pos), end_node_slotpos]
+
+                // Bounding box of all points (bezier overshoot on long links will be cut)
+                const pointsX = points.map(x => x[0])
+                const pointsY = points.map(x => x[1])
+                LGraphCanvas.#link_bounding[0] = Math.min(...pointsX)
+                LGraphCanvas.#link_bounding[1] = Math.min(...pointsY)
+                LGraphCanvas.#link_bounding[2] = Math.max(...pointsX) - LGraphCanvas.#link_bounding[0]
+                LGraphCanvas.#link_bounding[3] = Math.max(...pointsY) - LGraphCanvas.#link_bounding[1]
 
                 //skip links outside of the visible area of the canvas
                 if (!overlapBounding(LGraphCanvas.#link_bounding, LGraphCanvas.#margin_area))
                     continue
 
-                const start_slot = start_node.outputs[start_node_slot]
+                const start_slot = start_node.outputs[outputId]
                 const end_slot = node.inputs[i]
                 if (!start_slot || !end_slot)
                     continue
@@ -4988,17 +4981,64 @@ export class LGraphCanvas {
                 const end_dir = end_slot.dir ||
                     (node.horizontal ? LinkDirection.UP : LinkDirection.LEFT)
 
-                this.renderLink(
-                    ctx,
-                    start_node_slotpos,
-                    end_node_slotpos,
-                    link,
-                    false,
-                    0,
-                    null,
-                    start_dir,
-                    end_dir
-                )
+                // Has reroutes
+                if (reroutes.length) {
+                    const l = reroutes.length
+                    for (let j = 0; j < l; j++) {
+                        const reroute = reroutes[j]
+
+                        if (!rendered.has(reroute)) {
+                            rendered.add(reroute)
+
+                            const prevReroute = this.graph.reroutes.get(reroute.parentId)
+                            const startPos = prevReroute?.pos ?? start_node_slotpos
+
+                            this.renderLink(
+                                ctx,
+                                startPos,
+                                reroute.pos,
+                                link,
+                                false,
+                                0,
+                                null,
+                                start_dir,
+                                end_dir,
+                            )
+                        }
+                    }
+
+                    // Render final link segment
+                    this.renderLink(
+                        ctx,
+                        points.at(-2),
+                        points.at(-1),
+                        link,
+                        false,
+                        0,
+                        null,
+                        start_dir,
+                        end_dir,
+                    )
+
+                    // Render the reroute circles
+                    const defaultColor = LGraphCanvas.link_type_colors[link.type] || this.default_link_color
+                    for (const reroute of reroutes) {
+                        reroute.draw(ctx, link.color || defaultColor)
+                    }
+                } else {
+                    this.renderLink(
+                        ctx,
+                        start_node_slotpos,
+                        end_node_slotpos,
+                        link,
+                        false,
+                        0,
+                        null,
+                        start_dir,
+                        end_dir
+                    )
+                }
+                rendered.add(link)
 
                 //event triggered rendered on top
                 if (link && link._last_time && now - link._last_time < 1000) {
