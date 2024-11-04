@@ -1707,7 +1707,8 @@ export class LGraphCanvas {
         if (this.set_canvas_dirty_on_mouse_event)
             this.dirty_canvas = true
 
-        if (!this.graph) return
+        const { graph } = this
+        if (!graph) return
 
         this.adjustMouseEvent(e)
 
@@ -1729,7 +1730,7 @@ export class LGraphCanvas {
 
         if (!is_inside) return
 
-        let node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+        let node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
         let skip_action = false
         const now = LiteGraph.getTime()
         const is_double_click = (now - this.last_mouseclick < 300)
@@ -1768,11 +1769,11 @@ export class LGraphCanvas {
                     cloned.pos[0] += 5
                     cloned.pos[1] += 5
 
-                    this.graph.add(cloned, false)
+                    graph.add(cloned, false)
                     node = cloned
                     skip_action = true
                     if (this.allow_dragnodes) {
-                        this.graph.beforeChange()
+                        graph.beforeChange()
                         this.node_dragged = node
                         this.isDragging = true
                     }
@@ -1795,7 +1796,7 @@ export class LGraphCanvas {
                     //Search for corner for resize
                     if (!skip_action &&
                         node.resizable !== false && node.inResizeCorner(e.canvasX, e.canvasY)) {
-                        this.graph.beforeChange()
+                        graph.beforeChange()
                         this.resizing_node = node
                         this.canvas.style.cursor = "se-resize"
                         skip_action = true
@@ -1819,9 +1820,9 @@ export class LGraphCanvas {
 
                                             this.connecting_links = []
                                             for (const linkId of output.links) {
-                                                const link = this.graph._links.get(linkId)
+                                                const link = graph._links.get(linkId)
                                                 const slot = link.target_slot
-                                                const linked_node = this.graph._nodes_by_id[link.target_id]
+                                                const linked_node = graph._nodes_by_id[link.target_id]
                                                 const input = linked_node.inputs[slot]
                                                 const pos = linked_node.getConnectionPos(true, slot)
 
@@ -1894,9 +1895,9 @@ export class LGraphCanvas {
 
                                     if (input.link !== null) {
                                         //before disconnecting
-                                        const link_info = this.graph._links.get(input.link)
+                                        const link_info = graph._links.get(input.link)
                                         const slot = link_info.origin_slot
-                                        const linked_node = this.graph._nodes_by_id[link_info.origin_id]
+                                        const linked_node = graph._nodes_by_id[link_info.origin_id]
                                         if (LiteGraph.click_do_break_link_to || (LiteGraph.ctrl_alt_click_do_break_link && e.ctrlKey && e.altKey && !e.shiftKey)) {
                                             node.disconnectInput(i)
                                         } else if (e.shiftKey) {
@@ -2004,7 +2005,7 @@ export class LGraphCanvas {
 
                     if (!block_drag_node) {
                         if (this.allow_dragnodes) {
-                            this.graph.beforeChange()
+                            graph.beforeChange()
                             this.node_dragged = node
                             this.isDragging = true
                         }
@@ -2044,7 +2045,7 @@ export class LGraphCanvas {
                             }
                             if (overLink) {
                                 const slot = overLink.origin_slot
-                                const originNode = this.graph._nodes_by_id[overLink.origin_id]
+                                const originNode = graph._nodes_by_id[overLink.origin_id]
 
                                 this.connecting_links ??= []
                                 this.connecting_links.push({
@@ -2066,7 +2067,7 @@ export class LGraphCanvas {
                         this.ctx.lineWidth = lineWidth
                     }
 
-                    const group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
+                    const group = graph.getGroupOnPos(e.canvasX, e.canvasY)
                     this.selected_group = group
                     if (group && !this.read_only) {
                         if (e.ctrlKey) {
@@ -2208,7 +2209,7 @@ export class LGraphCanvas {
         this.last_mouseclick = LiteGraph.getTime()
         this.last_mouse_dragging = true
 
-        this.graph.change()
+        graph.change()
 
         //this is to ensure to defocus(blur) if a text input element is on focus
         if (!ref_window.document.activeElement ||
