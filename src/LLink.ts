@@ -4,7 +4,7 @@ import type { Serialisable, SerialisableLLink } from "./types/serialisation"
 
 export type LinkId = number | string
 
-export type SerialisedLLinkArray = [LinkId, NodeId, number, NodeId, number, ISlotType]
+export type SerialisedLLinkArray = [id: LinkId, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, type: ISlotType] 
 
 //this is the class in charge of storing link information
 export class LLink implements Serialisable<SerialisableLLink> {
