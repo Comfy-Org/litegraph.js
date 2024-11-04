@@ -15,6 +15,7 @@ import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrEmpty, stringOrNull } from "./strings"
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 import { Reroute, type RerouteId } from "./Reroute"
+import { getAllNestedItems } from "./utils/collections"
 
 interface IShowSearchOptions {
     node_to?: LGraphNode
@@ -2477,22 +2478,15 @@ export class LGraphCanvas {
             // Items being dragged
             if (this.isDragging && !this.live_mode) {
                 const selected = this.selectedItems
-                const allItems = e.ctrlKey ? selected : new Set<Positionable>()
-
-                if (!e.ctrlKey)
-                    selected?.forEach(x => addToSetRecursively(x, allItems))
+                const allItems = e.ctrlKey ? selected : getAllNestedItems(selected)
 
                 const deltaX = delta[0] / this.ds.scale
                 const deltaY = delta[1] / this.ds.scale
-                allItems.forEach(x => x.move(deltaX, deltaY, true))
+                for (const item of allItems) {
+                    if (!item.pinned) item.move(deltaX, deltaY, true)
+                }
 
                 this.#dirty()
-
-                function addToSetRecursively(item: Positionable, items: Set<Positionable>): void {
-                    if (items.has(item) || item.pinned) return
-                    items.add(item)
-                    item.children?.forEach(x => addToSetRecursively(x, items))
-                }
             }
 
             if (this.resizing_node && !this.live_mode) {

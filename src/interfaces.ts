@@ -13,12 +13,18 @@ export type NullableProperties<T> = {
 
 export type CanvasColour = string | CanvasGradient | CanvasPattern
 
+/** An object containing a set of child objects */
+export interface Parent<TChild> {
+    /** All objects owned by the parent object. */
+    readonly children?: ReadonlySet<TChild>
+}
+
 /**
  * An object that can be positioned, selected, and moved.
  *
  * May contain other {@link Positionable} objects.
  */
-export interface Positionable {
+export interface Positionable extends Parent<Positionable> {
     id: NodeId | RerouteId | number
     /** Position in graph coordinates.  Default: 0,0 */
     pos: Point
@@ -27,8 +33,6 @@ export interface Positionable {
 
     /** See {@link IPinnable.pinned} */
     readonly pinned?: boolean
-
-    readonly children?: ReadonlySet<Positionable>
 
     /**
      * Adds a delta to the current position.
