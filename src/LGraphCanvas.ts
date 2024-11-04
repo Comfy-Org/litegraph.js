@@ -255,7 +255,7 @@ export class LGraphCanvas {
     current_node: LGraphNode | null
     /** used for widgets */
     node_widget?: [LGraphNode, IWidget] | null
-    over_link_center: LLink | null
+    over_link_center: LinkSegment | null
     last_mouse_position: Point
     visible_area?: Rect32
     /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
@@ -2449,25 +2449,12 @@ export class LGraphCanvas {
                         ? "se-resize"
                         : "crosshair"
                 }
-            } else { //not over a node
-                //search for link connector
-                let over_link: LLink = null
-                for (let i = 0; i < this.visible_links.length; ++i) {
-                    const link = this.visible_links[i]
-                    const center = link._pos
-                    if (!center ||
-                        e.canvasX < center[0] - 4 ||
-                        e.canvasX > center[0] + 4 ||
-                        e.canvasY < center[1] - 4 ||
-                        e.canvasY > center[1] + 4) {
-                        continue
-                    }
-                    over_link = link
-                    break
-                }
-                if (over_link != this.over_link_center) {
-                    this.over_link_center = over_link
-                    this.dirty_canvas = true
+            } else {
+                // Not over a node
+                const segment = this.#getLinkCentreOnPos(e)
+                if (this.over_link_center !== segment) {
+                    this.over_link_center = segment
+                    this.dirty_bgcanvas = true
                 }
 
                 if (this.canvas) {
@@ -3775,6 +3762,18 @@ export class LGraphCanvas {
         if (ctx.finish2D) ctx.finish2D()
     }
 
+    /** @returns If the pointer is over a link centre marker, the link segment it belongs to.  Otherwise, `undefined`.  */
+    #getLinkCentreOnPos(e: CanvasMouseEvent): LinkSegment | undefined {
+        for (const linkSegment of this.renderedPaths) {
+            const centre = linkSegment._pos
+            if (!centre) continue
+
+            if (isInsideRectangle(e.canvasX, e.canvasY, centre[0] - 4, centre[1] - 4, 8, 8)) {
+                return linkSegment
+            }
+        }
+    }
+
     /** Get the target snap / highlight point in graph space */
     #getHighlightPosition(): Point {
         return LiteGraph.snaps_for_comfy
@@ -4560,22 +4559,30 @@ export class LGraphCanvas {
 
         ctx.globalAlpha = 1.0
     }
-    //used by this.over_link_center
-    drawLinkTooltip(ctx: CanvasRenderingContext2D, link: LLink): void {
+
+    /**
+     * Draws the link mouseover effect and tooltip.
+     * @param ctx Canvas 2D context to draw on
+     * @param link The link to render the mouseover effect for
+     * @remarks
+     * Called against {@link LGraphCanvas.over_link_center}.
+     * @todo Split tooltip from hover, so it can be drawn / eased separately
+     */
+    drawLinkTooltip(ctx: CanvasRenderingContext2D, link: LinkSegment): void {
         const pos = link._pos
         ctx.fillStyle = "black"
         ctx.beginPath()
         ctx.arc(pos[0], pos[1], 3, 0, Math.PI * 2)
         ctx.fill()
 
-        if (link.data == null)
-            return
+        // @ts-expect-error TODO: Better value typing
+        const data = link.data
+        if (data == null) return
 
+        // @ts-expect-error TODO: Better value typing
         if (this.onDrawLinkTooltip?.(ctx, link, this) == true)
             return
 
-        // TODO: Better value typing
-        const data = link.data
         let text: string = null
 
         if (typeof data === "number")
