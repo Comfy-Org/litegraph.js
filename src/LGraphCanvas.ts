@@ -7800,6 +7800,16 @@ export class LGraphCanvas {
             menu_info = this.getNodeMenuOptions(node)
         } else {
             menu_info = this.getCanvasMenuOptions()
+
+            // Check for reroutes
+            const reroute = this.graph.getRerouteOnPos(event.canvasX, event.canvasY)
+            if (reroute) {
+                menu_info.unshift({
+                    content: "Delete Reroute",
+                    callback: () => this.graph.removeReroute(reroute.id)
+                }, null)
+            }
+
             const group = this.graph.getGroupOnPos(
                 event.canvasX,
                 event.canvasY
