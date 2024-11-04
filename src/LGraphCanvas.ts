@@ -2517,24 +2517,25 @@ export class LGraphCanvas {
                 this.visible_nodes
             )
 
-            if (this.dragging_rectangle) {
+            const dragRect = this.dragging_rectangle
+            if (dragRect) {
                 if (this.graph) {
                     const nodes = this.graph._nodes
                     const node_bounding = new Float32Array(4)
 
                     //compute bounding and flip if left to right
-                    const w = Math.abs(this.dragging_rectangle[2])
-                    const h = Math.abs(this.dragging_rectangle[3])
-                    const startx = this.dragging_rectangle[2] < 0
-                        ? this.dragging_rectangle[0] - w
-                        : this.dragging_rectangle[0]
-                    const starty = this.dragging_rectangle[3] < 0
-                        ? this.dragging_rectangle[1] - h
-                        : this.dragging_rectangle[1]
-                    this.dragging_rectangle[0] = startx
-                    this.dragging_rectangle[1] = starty
-                    this.dragging_rectangle[2] = w
-                    this.dragging_rectangle[3] = h
+                    const w = Math.abs(dragRect[2])
+                    const h = Math.abs(dragRect[3])
+                    const startx = dragRect[2] < 0
+                        ? dragRect[0] - w
+                        : dragRect[0]
+                    const starty = dragRect[3] < 0
+                        ? dragRect[1] - h
+                        : dragRect[1]
+                    dragRect[0] = startx
+                    dragRect[1] = starty
+                    dragRect[2] = w
+                    dragRect[3] = h
 
                     // test dragging rect size, if minimun simulate a click
                     if (!node || (w > 10 && h > 10)) {
@@ -2542,7 +2543,7 @@ export class LGraphCanvas {
                         const to_select = []
                         for (const nodeX of nodes) {
                             nodeX.getBounding(node_bounding)
-                            if (!overlapBounding(this.dragging_rectangle, node_bounding)) continue
+                            if (!overlapBounding(dragRect, node_bounding)) continue
 
                             to_select.push(nodeX)
                         }
@@ -2552,8 +2553,7 @@ export class LGraphCanvas {
                         // Select groups
                         const groups = this.graph.groups
                         for (const group of groups) {
-                            const r = this.dragging_rectangle
-                            if (!containsRect(r, group._bounding)) continue
+                            if (!containsRect(dragRect, group._bounding)) continue
                             this.selectedItems.add(group)
                             group.recomputeInsideNodes()
                             group.selected = true
