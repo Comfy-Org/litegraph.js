@@ -1,4 +1,4 @@
-import type { ISlotType, Dictionary, INodeFlags, INodeInputSlot, INodeOutputSlot, Point, Rect, Size } from "../interfaces"
+import type { ISlotType, Dictionary, INodeFlags, INodeInputSlot, INodeOutputSlot, Point, Size } from "../interfaces"
 import type { LGraph, LGraphState } from "../LGraph"
 import type { IGraphGroupFlags, LGraphGroup } from "../LGraphGroup"
 import type { LGraphNode, NodeId } from "../LGraphNode"
