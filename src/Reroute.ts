@@ -53,15 +53,20 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     /** The ID ({@link LLink.id}) of every link using this reroute */
     linkIds: Set<LinkId>
 
+    /** @inheritdoc */
     path?: Path2D
+    /** @inheritdoc */
     _pos: Float32Array = new Float32Array(2)
 
+    /** @inheritdoc */
     get origin_id(): NodeId | undefined {
         // if (!this.linkIds.size) return this.#network.deref()?.reroutes.get(this.parentId)
         return this.#network.deref()
             ?.links.get(this.linkIds.values().next().value)
             ?.origin_id
     }
+
+    /** @inheritdoc */
     get origin_slot(): number | undefined {
         return this.#network.deref()
             ?.links.get(this.linkIds.values().next().value)
