@@ -5052,6 +5052,8 @@ export class LGraphCanvas {
 
                 // Has reroutes
                 if (reroutes.length) {
+                    let startControl: Point
+
                     const l = reroutes.length
                     for (let j = 0; j < l; j++) {
                         const reroute = reroutes[j]
@@ -5061,6 +5063,7 @@ export class LGraphCanvas {
 
                             const prevReroute = this.graph.reroutes.get(reroute.parentId)
                             const startPos = prevReroute?.pos ?? start_node_slotpos
+                            reroute.calculateAngle(this.last_draw_time, this.graph, startPos)
 
                             this.renderLink(
                                 ctx,
@@ -5072,8 +5075,18 @@ export class LGraphCanvas {
                                 null,
                                 start_dir,
                                 end_dir,
+                                {
+                                    startControl,
+                                    endControl: reroute.controlPoint,
+                                    reroute,
+                                },
                             )
                         }
+
+                        // Calculate start control for the next iter control point
+                        const nextPos = reroutes[j + 1]?.pos ?? end_node_slotpos
+                        const dist = Math.min(80, distance(reroute.pos, nextPos) * 0.25)
+                        startControl = [dist * reroute.cos, dist * reroute.sin]
                     }
 
                     // Render final link segment
@@ -5087,6 +5100,7 @@ export class LGraphCanvas {
                         null,
                         start_dir,
                         end_dir,
+                        { startControl },
                     )
 
                     // Render the reroute circles

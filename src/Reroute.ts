@@ -1,6 +1,7 @@
 import type { CanvasColour, LinkSegment, LinkNetwork, Point, Positionable, ReadOnlyRect } from "./interfaces"
 import { LLink, type LinkId } from "./LLink"
 import type { SerialisableReroute, Serialisable } from "./types/serialisation"
+import { distance } from "./measure"
 import type { NodeId } from "./LGraphNode"
 
 export type RerouteId = number
@@ -13,6 +14,8 @@ export type RerouteId = number
  */
 export class Reroute implements Positionable, LinkSegment, Serialisable<SerialisableReroute> {
     static radius: number = 10
+
+    #malloc = new Float32Array(8)
 
     /** The network this reroute belongs to.  Contains all valid links and reroutes. */
     #network: WeakRef<LinkNetwork>
@@ -29,7 +32,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
         this.#parentId = value
     }
 
-    #pos = new Float32Array(2)
+    #pos = this.#malloc.subarray(0, 2)
     /** @inheritdoc */
     get pos(): Point {
         return this.#pos
@@ -53,12 +56,29 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     /** The ID ({@link LLink.id}) of every link using this reroute */
     linkIds: Set<LinkId>
 
+    /** The averaged angle of every link through this reroute. */
+    otherAngle: number = 0
+
+    /** Cached cos */
+    cos: number = 0
+    sin: number = 0
+
+    /** Bezier curve control point for the "target" (input) side of the link */
+    controlPoint: Point = this.#malloc.subarray(4, 6)
+
     /** @inheritdoc */
     path?: Path2D
     /** @inheritdoc */
     _centreAngle?: number
     /** @inheritdoc */
-    _pos: Float32Array = new Float32Array(2)
+    _pos: Float32Array = this.#malloc.subarray(6, 8)
+
+    /**
+     * Used to ensure reroute angles are only executed once per frame. 
+     * @todo Calculate on change instead.
+     */
+    #lastRenderTime: number = -Infinity
+    #buffer: Point = this.#malloc.subarray(2, 4)
 
     /** @inheritdoc */
     get origin_id(): NodeId | undefined {
@@ -166,6 +186,52 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     move(deltaX: number, deltaY: number) {
         this.#pos[0] += deltaX
         this.#pos[1] += deltaY
+    }
+
+    calculateAngle(lastRenderTime: number, network: LinkNetwork, linkStart: Point): void {
+        // Ensure we run once per render
+        if (!(lastRenderTime > this.#lastRenderTime)) return
+        this.#lastRenderTime = lastRenderTime
+
+        const { links } = network
+        const { linkIds, id } = this
+        const angles: number[] = []
+        let sum = 0
+        for (const linkId of linkIds) {
+            const link = links.get(linkId)
+            // Remove the linkId or just ignore?
+            if (!link) continue
+
+            const pos = LLink.findNextReroute(network, link, id)?.pos ??
+                network.getNodeById(link.target_id)
+                    ?.getConnectionPos(true, link.target_slot, this.#buffer)
+            if (!pos) continue
+
+            // TODO: Store points/angles, check if changed, skip calcs.
+            const angle = Math.atan2(pos[1] - this.#pos[1], pos[0] - this.#pos[0])
+            angles.push(angle)
+            sum += angle
+        }
+        if (!angles.length) return
+
+        sum /= angles.length
+
+        const originToReroute = Math.atan2(this.#pos[1] - linkStart[1], this.#pos[0] - linkStart[0])
+        let diff = (originToReroute - sum) * 0.5
+        if (Math.abs(diff) > Math.PI * 0.5) diff += Math.PI
+        const dist = Math.min(80, distance(linkStart, this.#pos) * 0.25)
+
+        // Store results
+        const originDiff = originToReroute - diff
+        const cos = Math.cos(originDiff)
+        const sin = Math.sin(originDiff)
+
+        this.otherAngle = originDiff
+        this.cos = cos
+        this.sin = sin
+        this.controlPoint[0] = dist * -cos
+        this.controlPoint[1] = dist * -sin
+        return
     }
 
     /**
