@@ -30,6 +30,8 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
     _last_time?: number
     /** The last canvas 2D path that was used to render this link */
     path?: Path2D
+    /** @inheritdoc */
+    _centreAngle?: number
 
     #color?: CanvasColour
     /** Custom colour for this link only */

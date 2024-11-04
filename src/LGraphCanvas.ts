@@ -6,7 +6,7 @@ import type { IClipboardContents } from "./types/serialisation"
 import { LLink } from "./LLink"
 import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
-import { EaseFunction, LGraphEventMode, LinkDirection, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
+import { EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
 import { isInsideRectangle, distance, overlapBounding, isPointInRectangle, findPointOnCurve, containsRect, createBounds } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
@@ -234,6 +234,8 @@ export class LGraphCanvas {
     render_execution_order: boolean
     render_title_colored: boolean
     render_link_tooltip: boolean
+    /** Shape of the markers shown at the midpoint of links.  Default: Circle */
+    linkMarkerShape: LinkMarkerShape = LinkMarkerShape.Circle
     links_render_mode: number
     /** mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle */
     mouse: Point
@@ -4572,7 +4574,17 @@ export class LGraphCanvas {
         const pos = link._pos
         ctx.fillStyle = "black"
         ctx.beginPath()
-        ctx.arc(pos[0], pos[1], 3, 0, Math.PI * 2)
+        if (this.linkMarkerShape === LinkMarkerShape.Arrow) {
+            const transform = ctx.getTransform()
+            ctx.translate(pos[0], pos[1])
+            if (Number.isFinite(link._centreAngle)) ctx.rotate(link._centreAngle)
+            ctx.moveTo(-2, -3)
+            ctx.lineTo(+4, 0)
+            ctx.lineTo(-2, +3)
+            ctx.setTransform(transform)
+        } else if (this.linkMarkerShape == null || this.linkMarkerShape === LinkMarkerShape.Circle) {
+            ctx.arc(pos[0], pos[1], 3, 0, Math.PI * 2)
+        }
         ctx.fill()
 
         // @ts-expect-error TODO: Better value typing
@@ -5368,9 +5380,24 @@ export class LGraphCanvas {
                 ctx.setTransform(transform)
             }
 
-            //circle
+            // Draw link centre marker
             ctx.beginPath()
-            ctx.arc(pos[0], pos[1], 5, 0, Math.PI * 2)
+            if (this.linkMarkerShape === LinkMarkerShape.Arrow) {
+                findPointOnCurve(innerB, a, b, innerA, innerB, 0.51)
+                const angle = Math.atan2(innerB[1] - pos[1], innerB[0] - pos[0])
+                if (linkSegment) linkSegment._centreAngle = angle
+
+                const transform = ctx.getTransform()
+                ctx.translate(pos[0], pos[1])
+                ctx.rotate(angle)
+                ctx.moveTo(-3.2, -5)
+                ctx.lineTo(+7, 0)
+                ctx.lineTo(-3.2, +5)
+                ctx.fill()
+                ctx.setTransform(transform)
+            } else if (this.linkMarkerShape == null || this.linkMarkerShape === LinkMarkerShape.Circle) {
+                ctx.arc(pos[0], pos[1], 5, 0, Math.PI * 2)
+            }
             ctx.fill()
         }
 

@@ -56,6 +56,8 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     /** @inheritdoc */
     path?: Path2D
     /** @inheritdoc */
+    _centreAngle?: number
+    /** @inheritdoc */
     _pos: Float32Array = new Float32Array(2)
 
     /** @inheritdoc */
