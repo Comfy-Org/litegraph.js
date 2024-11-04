@@ -2300,7 +2300,7 @@ export class LGraphNode implements Positionable, IPinnable {
     }
 
     /**
-     * Collapse the node to make it smaller on the canvas
+     * Toggle node collapse (makes it smaller on the canvas)
      **/
     collapse(force?: boolean): void {
         if (!this.collapsible && !force) return
