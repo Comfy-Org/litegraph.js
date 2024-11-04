@@ -2717,8 +2717,8 @@ export class LGraphCanvas {
                 this.node_dragged = null
             } //no node being dragged
             else {
-                if (!node && e.click_time < 300 && !this.graph.groups.some(x => x.isPointInTitlebar(e.canvasX, e.canvasY))) {
-                    this.deselectAll()
+                if (!node && e.click_time < 300 && !this.graph.getGroupTitlebarOnPos(e.canvasX, e.canvasY) && !this.graph.getRerouteOnPos(e.canvasX, e.canvasY)) {
+                    this.processSelect(null, e)
                 }
 
                 this.dirty_canvas = true

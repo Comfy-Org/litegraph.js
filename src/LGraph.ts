@@ -940,6 +940,16 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     }
 
     /**
+     * Returns the top-most group with a titlebar in the provided position.
+     * @param x The x coordinate in canvas space
+     * @param y The y coordinate in canvas space
+     * @return The group or null
+     */
+    getGroupTitlebarOnPos(x: number, y: number): LGraphGroup | undefined {
+        return this._groups.toReversed().find(g => g.isPointInTitlebar(x, y))
+    }
+
+    /**
      * Finds a reroute a the given graph point
      * @param x X co-ordinate in graph space
      * @param y Y co-ordinate in graph space
