@@ -81,6 +81,11 @@ export interface LinkSegment {
     path?: Path2D
     /** Centre point of the {@link path}.  Calculated during render only - can be inaccurate */
     readonly _pos: Float32Array
+
+    /** Output node ID */
+    readonly origin_id: NodeId
+    /** Output slot index */
+    readonly origin_slot: number
 }
 
 export interface IInputOrOutput {

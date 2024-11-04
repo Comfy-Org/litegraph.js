@@ -1,6 +1,7 @@
 import type { CanvasColour, LinkSegment, LinkNetwork, Point, Positionable, ReadOnlyRect } from "./interfaces"
 import { LLink, type LinkId } from "./LLink"
 import type { SerialisableReroute, Serialisable } from "./types/serialisation"
+import type { NodeId } from "./LGraphNode"
 
 export type RerouteId = number
 
@@ -54,6 +55,18 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
 
     path?: Path2D
     _pos: Float32Array = new Float32Array(2)
+
+    get origin_id(): NodeId | undefined {
+        // if (!this.linkIds.size) return this.#network.deref()?.reroutes.get(this.parentId)
+        return this.#network.deref()
+            ?.links.get(this.linkIds.values().next().value)
+            ?.origin_id
+    }
+    get origin_slot(): number | undefined {
+        return this.#network.deref()
+            ?.links.get(this.linkIds.values().next().value)
+            ?.origin_slot
+    }
 
     /**
      * Initialises a new link reroute object.

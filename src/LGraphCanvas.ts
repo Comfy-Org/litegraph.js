@@ -6018,44 +6018,45 @@ export class LGraphCanvas {
     boundaryNodesForSelection(): NullableProperties<IBoundaryNodes> {
         return LGraphCanvas.getBoundaryNodes(this.selected_nodes)
     }
-    showLinkMenu(link: LLink, e: CanvasMouseEvent): boolean {
-        const graph = this.graph
-        const node_left = graph.getNodeById(link.origin_id)
-        const node_right = graph.getNodeById(link.target_id)
-        // TODO: Replace ternary with ?? ""
-        const fromType = node_left?.outputs?.[link.origin_slot]
-            ? node_left.outputs[link.origin_slot].type
-            : false
-        const destType = node_right?.outputs?.[link.target_slot]
-            ? node_right.inputs[link.target_slot].type
-            : false
 
-        const options = ["Add Node", null, "Delete", null]
+    showLinkMenu(segment: LinkSegment, e: CanvasMouseEvent): boolean {
+        const { graph } = this
+        const node_left = graph.getNodeById(segment.origin_id)
+        const fromType = node_left?.outputs?.[segment.origin_slot]?.type ?? "*"
 
+        const options = ["Add Node", "Add Reroute", null, "Delete", null]
+
+        const title = "data" in segment && segment.data != null
+            ? segment.data.constructor.name
+            : null
         const menu = new LiteGraph.ContextMenu(options, {
             event: e,
-            title: link.data != null ? link.data.constructor.name : null,
-            callback: inner_clicked
+            title,
+            callback: inner_clicked.bind(this)
         })
 
-        function inner_clicked(v: string, options: unknown, e: MouseEvent) {
+        function inner_clicked(this: LGraphCanvas, v: string, options: unknown, e: MouseEvent) {
             switch (v) {
                 case "Add Node":
                     LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
                         if (!node.inputs?.length || !node.outputs?.length) return
 
                         // leave the connection type checking inside connectByType
-                        // @ts-expect-error Assigning from check to false results in the type being treated as "*".  This should fail.
-                        if (node_left.connectByType(link.origin_slot, node, fromType)) {
-                            // @ts-expect-error Assigning from check to false results in the type being treated as "*".  This should fail.
-                            node.connectByType(link.target_slot, node_right, destType)
+                        if (node_left.connectByType(segment.origin_slot, node, fromType, { afterRerouteId: segment.parentId })) {
                             node.pos[0] -= node.size[0] * 0.5
                         }
                     })
                     break
 
+                case "Add Reroute": {
+                    this.adjustMouseEvent(e)
+                    graph.createReroute([e.canvasX, e.canvasY], segment)
+                    this.setDirty(false, true)
+                    break
+                }
+
                 case "Delete":
-                    graph.removeLink(link.id)
+                    graph.removeLink(segment.id)
                     break
                 default:
             }
@@ -6063,6 +6064,7 @@ export class LGraphCanvas {
 
         return false
     }
+
     createDefaultNodeForSlot(optPass: ICreateNodeOptions): boolean {
         const opts = Object.assign<ICreateNodeOptions, ICreateNodeOptions>({
             nodeFrom: null,
