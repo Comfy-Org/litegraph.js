@@ -5,7 +5,7 @@ import type { Serialisable, SerialisableLLink } from "./types/serialisation"
 
 export type LinkId = number
 
-export type SerialisedLLinkArray = [id: LinkId, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, type: ISlotType] 
+export type SerialisedLLinkArray = [id: LinkId, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, type: ISlotType]
 
 //this is the class in charge of storing link information
 export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
@@ -21,6 +21,7 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
     target_id: NodeId
     /** Input slot index */
     target_slot: number
+
     data?: number | string | boolean | { toToolTip?(): string }
     _data?: unknown
     /** Centre point of the link, calculated during render only - can be inaccurate */
@@ -37,13 +38,14 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
         this.#color = value === "" ? null : value
     }
 
-    constructor(id: LinkId, type: ISlotType, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number) {
+    constructor(id: LinkId, type: ISlotType, origin_id: NodeId, origin_slot: number, target_id: NodeId, target_slot: number, parentId?: RerouteId) {
         this.id = id
         this.type = type
         this.origin_id = origin_id
         this.origin_slot = origin_slot
         this.target_id = target_id
         this.target_slot = target_slot
+        this.parentId = parentId
 
         this._data = null
         this._pos = new Float32Array(2) //center
@@ -60,7 +62,7 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
      * @returns A new LLink
      */
     static create(data: SerialisableLLink): LLink {
-        return new LLink(data.id, data.type, data.origin_id, data.origin_slot, data.target_id, data.target_slot)
+        return new LLink(data.id, data.type, data.origin_id, data.origin_slot, data.target_id, data.target_slot, data.parentId)
     }
 
     /**
@@ -99,6 +101,7 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
             this.origin_slot = o.origin_slot
             this.target_id = o.target_id
             this.target_slot = o.target_slot
+            this.parentId = o.parentId
         }
     }
 
