@@ -2570,6 +2570,12 @@ export class LGraphCanvas {
                             group.recomputeInsideNodes()
                             group.selected = true
                         }
+
+                        for (const reroute of this.graph.reroutes.values()) {
+                            if (!isPointInRectangle(reroute.pos, dragRect)) continue
+                            this.selectedItems.add(reroute)
+                            reroute.selected = true
+                        }
                     } else {
                         // will select of update selection
                         this.selectNodes([node], e.shiftKey || e.ctrlKey || e.metaKey) // add to selection add to selection with ctrlKey or shiftKey
