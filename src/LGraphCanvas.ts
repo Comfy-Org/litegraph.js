@@ -2507,7 +2507,7 @@ export class LGraphCanvas {
             this.selected_group = null
             this.isDragging = false
 
-            let node = this.graph.getNodeOnPos(
+            const node = this.graph.getNodeOnPos(
                 e.canvasX,
                 e.canvasY,
                 this.visible_nodes
@@ -2653,21 +2653,19 @@ export class LGraphCanvas {
                 this.resizing_node = null
             } else if (this.node_dragged) {
                 //node being dragged?
-                node = this.node_dragged
-                if (node &&
-                    e.click_time < 300 &&
-                    isInsideRectangle(e.canvasX, e.canvasY, node.pos[0], node.pos[1] - LiteGraph.NODE_TITLE_HEIGHT, LiteGraph.NODE_TITLE_HEIGHT, LiteGraph.NODE_TITLE_HEIGHT)) {
-                    node.collapse()
+                const { node_dragged } = this
+                if (e.click_time < 300 && node_dragged?.isPointInCollapse(e.canvasX, e.canvasY)) {
+                    node_dragged.collapse()
                 }
 
                 this.#dirty()
-                this.node_dragged.pos[0] = Math.round(this.node_dragged.pos[0])
-                this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1])
+                node_dragged.pos[0] = Math.round(node_dragged.pos[0])
+                node_dragged.pos[1] = Math.round(node_dragged.pos[1])
                 if (this.graph.config.align_to_grid || this.align_to_grid) {
-                    this.node_dragged.alignToGrid()
+                    node_dragged.alignToGrid()
                 }
-                this.onNodeMoved?.(this.node_dragged)
-                this.graph.afterChange(this.node_dragged)
+                this.onNodeMoved?.(node_dragged)
+                this.graph.afterChange(node_dragged)
                 this.node_dragged = null
             } //no node being dragged
             else {
