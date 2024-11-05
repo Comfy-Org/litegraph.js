@@ -1,14 +1,14 @@
-import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties } from "./interfaces"
+import type { CanvasColour, Dictionary, Direction, IBoundaryNodes, IContextMenuOptions, INodeSlot, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, Point, Rect, Rect32, Size, IContextMenuValue, ISlotType, ConnectingLink, NullableProperties, Positionable, ReadOnlyPoint } from "./interfaces"
 import type { IWidget, TWidgetValue } from "./types/widgets"
-import type { LGraphNode, NodeId } from "./LGraphNode"
+import { LGraphNode, type NodeId } from "./LGraphNode"
 import type { CanvasDragEvent, CanvasMouseEvent, CanvasWheelEvent, CanvasEventDetail, CanvasPointerEvent } from "./types/events"
 import type { IClipboardContents } from "./types/serialisation"
 import type { LLink } from "./LLink"
 import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
-import { LGraphEventMode, LinkDirection, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
+import { EaseFunction, LGraphEventMode, LinkDirection, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { isInsideRectangle, distance, overlapBounding, isPointInRectangle } from "./measure"
+import { isInsideRectangle, distance, overlapBounding, isPointInRectangle, containsRect } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -239,6 +239,7 @@ export class LGraphCanvas {
     onDrawForeground?: (arg0: CanvasRenderingContext2D, arg1: any) => void
     connections_width: number
     round_radius: number
+    /** The current node being drawn by {@link drawNode}.  This should NOT be used to determine the currently selected node.  See {@link selectedItems} */
     current_node: LGraphNode | null
     /** used for widgets */
     node_widget?: [LGraphNode, IWidget] | null
@@ -255,9 +256,13 @@ export class LGraphCanvas {
     last_draw_time = 0
     render_time = 0
     fps = 0
+    /** @deprecated See {@link LGraphCanvas.selectedItems} */
     selected_nodes: Dictionary<LGraphNode> = {}
-    /** @deprecated Temporary implementation only - will be replaced with `selectedItems: Set<Positionable>`. */
-    selectedGroups: Set<LGraphGroup> = new Set()
+    /** All selected nodes, groups, and reroutes */
+    selectedItems: Set<Positionable> = new Set()
+    /** The group currently being resized. */
+    resizingGroup: LGraphGroup | null = null
+    /** @deprecated See {@link LGraphCanvas.selectedItems} */
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
     node_dragged?: LGraphNode
@@ -297,6 +302,7 @@ export class LGraphCanvas {
     block_click?: boolean
     last_click_position?: Point
     resizing_node?: LGraphNode
+    /** @deprecated See {@link LGraphCanvas.resizingGroup} */
     selected_group_resizing?: boolean
     last_mouse_dragging: boolean
     onMouseDown: (arg0: CanvasMouseEvent) => void
@@ -1009,6 +1015,22 @@ export class LGraphCanvas {
 
         node.graph.afterChange( /*?*/)
     }
+    static onMenuToggleAdvanced(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
+        node.graph.beforeChange( /*?*/)
+        const fApplyMultiNode = function (node: LGraphNode) {
+            node.toggleAdvanced()
+        }
+
+        const graphcanvas = LGraphCanvas.active_canvas
+        if (!graphcanvas.selected_nodes || Object.keys(graphcanvas.selected_nodes).length <= 1) {
+            fApplyMultiNode(node)
+        } else {
+            for (const i in graphcanvas.selected_nodes) {
+                fApplyMultiNode(graphcanvas.selected_nodes[i])
+            }
+        }
+        node.graph.afterChange( /*?*/)
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     static onMenuNodePin(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
     }
@@ -1182,7 +1204,7 @@ export class LGraphCanvas {
         // @ts-expect-error Doesn't exist anywhere...
         subgraph_node.buildFromNodes(nodes_list)
 
-        canvas.deselectAllNodes()
+        canvas.deselectAll()
         canvas.setDirty(true, true)
     }
     static onMenuNodeClone(value: IContextMenuValue, options: IContextMenuOptions, e: MouseEvent, menu: ContextMenu, node: LGraphNode): void {
@@ -1190,9 +1212,9 @@ export class LGraphCanvas {
         const graph = node.graph
         graph.beforeChange()
 
-        const newSelected: Dictionary<LGraphNode> = {}
+        const newSelected = new Set<LGraphNode>()
 
-        const fApplyMultiNode = function (node) {
+        const fApplyMultiNode = function (node: LGraphNode, newNodes: Set<LGraphNode>): void {
             if (node.clonable === false) return
 
             const newnode = node.clone()
@@ -1200,20 +1222,20 @@ export class LGraphCanvas {
 
             newnode.pos = [node.pos[0] + 5, node.pos[1] + 5]
             node.graph.add(newnode)
-            newSelected[newnode.id] = newnode
+            newNodes.add(newnode)
         }
 
         const canvas = LGraphCanvas.active_canvas
         if (!canvas.selected_nodes || Object.keys(canvas.selected_nodes).length <= 1) {
-            fApplyMultiNode(node)
+            fApplyMultiNode(node, newSelected)
         } else {
             for (const i in canvas.selected_nodes) {
-                fApplyMultiNode(canvas.selected_nodes[i])
+                fApplyMultiNode(canvas.selected_nodes[i], newSelected)
             }
         }
 
-        if (Object.keys(newSelected).length) {
-            canvas.selectNodes(newSelected)
+        if (newSelected.size) {
+            canvas.selectNodes([...newSelected])
         }
 
         graph.afterChange()
@@ -1235,9 +1257,6 @@ export class LGraphCanvas {
         this.dragging_rectangle = null
 
         this.selected_nodes = {}
-        /** All selected groups */
-        this.selectedGroups = null
-        /** The group currently being resized */
         this.selected_group = null
 
         this.visible_nodes = []
@@ -1249,8 +1268,7 @@ export class LGraphCanvas {
 
         this.dragging_canvas = false
 
-        this.dirty_canvas = true
-        this.dirty_bgcanvas = true
+        this.#dirty()
         this.dirty_area = null
 
         this.node_in_panel = null
@@ -1412,13 +1430,14 @@ export class LGraphCanvas {
 
         if (!skip_events) this.bindEvents()
     }
-    //used in some events to capture them
-    _doNothing(e: Event) {
+    /** Captures an event and prevents default - returns false. */
+    _doNothing(e: Event): boolean {
         //console.log("pointerevents: _doNothing "+e.type);
         e.preventDefault()
         return false
     }
-    _doReturnTrue(e: Event) {
+    /** Captures an event and prevents default - returns true. */
+    _doReturnTrue(e: Event): boolean {
         e.preventDefault()
         return true
     }
@@ -1553,6 +1572,13 @@ export class LGraphCanvas {
         if (fgcanvas) this.dirty_canvas = true
         if (bgcanvas) this.dirty_bgcanvas = true
     }
+
+    /** Marks the entire canvas as dirty. */
+    #dirty(): void {
+        this.dirty_canvas = true
+        this.dirty_bgcanvas = true
+    }
+
     /**
      * Used to attach the canvas in a popup
      *
@@ -1623,6 +1649,8 @@ export class LGraphCanvas {
         const y = graphPos[1] - node.pos[1]
 
         for (const widget of node.widgets) {
+            if (widget.hidden || (widget.advanced && !node.showAdvanced)) continue
+
             let widgetWidth, widgetHeight
             if (widget.computeSize) {
                 ([widgetWidth, widgetHeight] = widget.computeSize(node.size[0]))
@@ -1679,7 +1707,8 @@ export class LGraphCanvas {
         if (this.set_canvas_dirty_on_mouse_event)
             this.dirty_canvas = true
 
-        if (!this.graph) return
+        const { graph } = this
+        if (!graph) return
 
         this.adjustMouseEvent(e)
 
@@ -1701,10 +1730,10 @@ export class LGraphCanvas {
 
         if (!is_inside) return
 
-        let node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+        let node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+
         let skip_action = false
         const now = LiteGraph.getTime()
-        const is_primary = (e.isPrimary === undefined || !e.isPrimary)
         const is_double_click = (now - this.last_mouseclick < 300)
         this.mouse[0] = e.clientX
         this.mouse[1] = e.clientY
@@ -1712,7 +1741,7 @@ export class LGraphCanvas {
         this.graph_mouse[1] = e.canvasY
         this.last_click_position = [this.mouse[0], this.mouse[1]]
 
-        this.pointer_is_double = this.pointer_is_down && is_primary
+        this.pointer_is_double = this.pointer_is_down && e.isPrimary
         this.pointer_is_down = true
 
         this.canvas.focus()
@@ -1724,11 +1753,12 @@ export class LGraphCanvas {
         //left button mouse / single finger
         if (e.which == 1 && !this.pointer_is_double) {
             if ((e.metaKey || e.ctrlKey) && !e.altKey) {
-                this.dragging_rectangle = new Float32Array(4)
-                this.dragging_rectangle[0] = e.canvasX
-                this.dragging_rectangle[1] = e.canvasY
-                this.dragging_rectangle[2] = 1
-                this.dragging_rectangle[3] = 1
+                const dragRect = new Float32Array(4)
+                dragRect[0] = e.canvasX
+                dragRect[1] = e.canvasY
+                dragRect[2] = 1
+                dragRect[3] = 1
+                this.dragging_rectangle = dragRect
                 skip_action = true
             }
 
@@ -1741,17 +1771,15 @@ export class LGraphCanvas {
                     cloned.pos[0] += 5
                     cloned.pos[1] += 5
 
-                    this.graph.add(cloned, false)
+                    graph.add(cloned, false)
                     node = cloned
                     skip_action = true
                     if (this.allow_dragnodes) {
-                        this.graph.beforeChange()
+                        graph.beforeChange()
                         this.node_dragged = node
                         this.isDragging = true
                     }
-                    if (!this.selected_nodes[node.id]) {
-                        this.processNodeSelected(node, e)
-                    }
+                    this.processSelect(node, e)
                 }
             }
 
@@ -1770,7 +1798,7 @@ export class LGraphCanvas {
                     //Search for corner for resize
                     if (!skip_action &&
                         node.resizable !== false && node.inResizeCorner(e.canvasX, e.canvasY)) {
-                        this.graph.beforeChange()
+                        graph.beforeChange()
                         this.resizing_node = node
                         this.canvas.style.cursor = "se-resize"
                         skip_action = true
@@ -1794,9 +1822,9 @@ export class LGraphCanvas {
 
                                             this.connecting_links = []
                                             for (const linkId of output.links) {
-                                                const link = this.graph.links[linkId]
+                                                const link = graph._links.get(linkId)
                                                 const slot = link.target_slot
-                                                const linked_node = this.graph._nodes_by_id[link.target_id]
+                                                const linked_node = graph._nodes_by_id[link.target_id]
                                                 const input = linked_node.inputs[slot]
                                                 const pos = linked_node.getConnectionPos(true, slot)
 
@@ -1869,9 +1897,9 @@ export class LGraphCanvas {
 
                                     if (input.link !== null) {
                                         //before disconnecting
-                                        const link_info = this.graph.links[input.link]
+                                        const link_info = graph._links.get(input.link)
                                         const slot = link_info.origin_slot
-                                        const linked_node = this.graph._nodes_by_id[link_info.origin_id]
+                                        const linked_node = graph._nodes_by_id[link_info.origin_id]
                                         if (LiteGraph.click_do_break_link_to || (LiteGraph.ctrl_alt_click_do_break_link && e.ctrlKey && e.altKey && !e.shiftKey)) {
                                             node.disconnectInput(i)
                                         } else if (e.shiftKey) {
@@ -1944,7 +1972,7 @@ export class LGraphCanvas {
                     }
 
                     //double clicking
-                    if (this.allow_interaction && is_double_click && this.selected_nodes[node.id]) {
+                    if (this.allow_interaction && is_double_click && this.selectedItems.has(node)) {
                         // Check if it's a double click on the title bar
                         // Note: pos[1] is the y-coordinate of the node's body
                         // If clicking on node header (title), pos[1] is negative
@@ -1979,20 +2007,16 @@ export class LGraphCanvas {
 
                     if (!block_drag_node) {
                         if (this.allow_dragnodes) {
-                            this.graph.beforeChange()
+                            graph.beforeChange()
                             this.node_dragged = node
                             this.isDragging = true
                         }
                         // Account for shift + click + drag
-                        if (!(e.shiftKey && !e.ctrlKey && !e.altKey) || !node.is_selected) {
-                            this.processNodeSelected(node, e)
+                        if (!(e.shiftKey && !e.ctrlKey && !e.altKey) || !node.selected) {
+                            this.processSelect(node, e)
                         }
-                    } else { // double-click
-                        /**
-                         * Don't call the function if the block is already selected.
-                         * Otherwise, it could cause the block to be unselected while its panel is open.
-                         */
-                        if (!node.is_selected) this.processNodeSelected(node, e)
+                    } else if (!node.selected) {
+                        this.processSelect(node, e)
                     }
 
                     this.dirty_canvas = true
@@ -2023,7 +2047,7 @@ export class LGraphCanvas {
                             }
                             if (overLink) {
                                 const slot = overLink.origin_slot
-                                const originNode = this.graph._nodes_by_id[overLink.origin_id]
+                                const originNode = graph._nodes_by_id[overLink.origin_id]
 
                                 this.connecting_links ??= []
                                 this.connecting_links.push({
@@ -2045,27 +2069,22 @@ export class LGraphCanvas {
                         this.ctx.lineWidth = lineWidth
                     }
 
-                    this.selected_group = this.graph.getGroupOnPos(e.canvasX, e.canvasY)
-                    this.selected_group_resizing = false
-
-                    const group = this.selected_group
-                    if (this.selected_group && !this.read_only) {
+                    const group = graph.getGroupOnPos(e.canvasX, e.canvasY)
+                    this.selected_group = group
+                    if (group && !this.read_only) {
                         if (e.ctrlKey) {
                             this.dragging_rectangle = null
                         }
 
-                        const dist = distance([e.canvasX, e.canvasY], [this.selected_group.pos[0] + this.selected_group.size[0], this.selected_group.pos[1] + this.selected_group.size[1]])
+                        const dist = distance([e.canvasX, e.canvasY], [group.pos[0] + group.size[0], group.pos[1] + group.size[1]])
                         if (dist * this.ds.scale < 10) {
-                            this.selected_group_resizing = true
+                            this.resizingGroup = group
                         } else {
                             const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
                             const headerHeight = f * 1.4
                             if (isInsideRectangle(e.canvasX, e.canvasY, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
-                                this.selected_group.recomputeInsideNodes()
-                                if (!e.shiftKey && !e.ctrlKey && !e.metaKey) this.deselectAllNodes()
-                                this.selectedGroups ??= new Set()
-                                this.selectedGroups.add(group)
-                                group.selected = true
+                                group.recomputeInsideNodes()
+                                this.processSelect(group, e, true)
 
                                 this.isDragging = true
                                 skip_action = true
@@ -2076,7 +2095,7 @@ export class LGraphCanvas {
                             this.emitEvent({
                                 subType: "group-double-click",
                                 originalEvent: e,
-                                group: this.selected_group,
+                                group,
                             })
                         }
                     } else if (is_double_click && !this.read_only) {
@@ -2177,14 +2196,8 @@ export class LGraphCanvas {
 
                 // is it hover a node ?
                 if (node) {
-                    if (Object.keys(this.selected_nodes).length
-                        && (this.selected_nodes[node.id] || e.shiftKey || e.ctrlKey || e.metaKey)) {
-                        // is multiselected or using shift to include the now node
-                        if (!this.selected_nodes[node.id]) this.selectNodes([node], true) // add this if not present
-                    } else {
-                        // update selection
-                        this.selectNodes([node])
-                    }
+                    // add this if not present
+                    this.processSelect(node, e, true)
                 }
 
                 // Show context menu for the node or group under the pointer
@@ -2193,12 +2206,11 @@ export class LGraphCanvas {
 
         }
 
-        this.last_mouse[0] = e.clientX
-        this.last_mouse[1] = e.clientY
+        this.last_mouse = [e.clientX, e.clientY]
         this.last_mouseclick = LiteGraph.getTime()
         this.last_mouse_dragging = true
 
-        this.graph.change()
+        graph.change()
 
         //this is to ensure to defocus(blur) if a text input element is on focus
         if (!ref_window.document.activeElement ||
@@ -2255,24 +2267,24 @@ export class LGraphCanvas {
 
         //get node over
         const node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+        const { resizingGroup } = this
 
         if (this.dragging_rectangle) {
             this.dragging_rectangle[2] = e.canvasX - this.dragging_rectangle[0]
             this.dragging_rectangle[3] = e.canvasY - this.dragging_rectangle[1]
             this.dirty_canvas = true
         }
-        else if (this.selected_group_resizing && !this.read_only) {
-            //moving/resizing a group
-            this.selected_group.resize(
-                e.canvasX - this.selected_group.pos[0],
-                e.canvasY - this.selected_group.pos[1]
+        else if (resizingGroup && !this.read_only) {
+            // Resizing a group
+            const resized = resizingGroup.resize(
+                e.canvasX - resizingGroup.pos[0],
+                e.canvasY - resizingGroup.pos[1]
             )
-            this.dirty_bgcanvas = true
+            if (resized) this.dirty_bgcanvas = true
         } else if (this.dragging_canvas) {
             this.ds.offset[0] += delta[0] / this.ds.scale
             this.ds.offset[1] += delta[1] / this.ds.scale
-            this.dirty_canvas = true
-            this.dirty_bgcanvas = true
+            this.#dirty()
         } else if ((this.allow_interaction || (node && node.flags.allow_interaction)) && !this.read_only) {
             if (this.connecting_links) this.dirty_canvas = true
 
@@ -2349,8 +2361,6 @@ export class LGraphCanvas {
                                         highlightInput = node.inputs[targetSlotId]
                                     }
                                 }
-                            } else if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-                                //mouse on top of the corner box, don't know what to do
                             } else {
                                 //check if I have a slot below de mouse
                                 if (inputId != -1 && node.inputs[inputId] && LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)) {
@@ -2368,8 +2378,6 @@ export class LGraphCanvas {
                                     node.getConnectionPos(false, targetSlotId, pos)
                                     highlightPos = pos
                                 }
-                            } else if (this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-                                //mouse on top of the corner box, don't know what to do
                             } else {
                                 //check if I have a slot below de mouse
                                 if (outputId != -1 && node.outputs[outputId] && LiteGraph.isValidConnection(firstLink.input.type, node.outputs[outputId].type)) {
@@ -2422,41 +2430,25 @@ export class LGraphCanvas {
                 this.node_capturing_input.onMouseMove?.(e, [e.canvasX - this.node_capturing_input.pos[0], e.canvasY - this.node_capturing_input.pos[1]], this)
             }
 
-            //node being dragged
+            // Items being dragged
             if (this.isDragging && !this.live_mode) {
-                //console.log("draggin!",this.selected_nodes);
-                const nodes = new Set<LGraphNode>()
-                const deltax = delta[0] / this.ds.scale
-                const deltay = delta[1] / this.ds.scale
-                for (const i in this.selected_nodes) {
-                    const n = this.selected_nodes[i]
-                    nodes.add(n)
-                    n.pos[0] += delta[0] / this.ds.scale
-                    n.pos[1] += delta[1] / this.ds.scale
-                    /*
-                     * Don't call the function if the block is already selected.
-                     * Otherwise, it could cause the block to be unselected while dragging.
-                     */
-                    if (!n.is_selected) this.processNodeSelected(n, e)
+                const selected = this.selectedItems
+                const allItems = e.ctrlKey ? selected : new Set<Positionable>()
 
+                if (!e.ctrlKey)
+                    selected?.forEach(x => addToSetRecursively(x, allItems))
+
+                const deltaX = delta[0] / this.ds.scale
+                const deltaY = delta[1] / this.ds.scale
+                allItems.forEach(x => x.move(deltaX, deltaY, true))
+
+                this.#dirty()
+
+                function addToSetRecursively(item: Positionable, items: Set<Positionable>): void {
+                    if (items.has(item)) return
+                    items.add(item)
+                    item.children?.forEach(x => addToSetRecursively(x, items))
                 }
-
-                if (this.selectedGroups) {
-                    for (const group of this.selectedGroups) {
-                        group.move(deltax, deltay, true)
-                        if (!e.ctrlKey) {
-                            for (const node of group._nodes) {
-                                if (!nodes.has(node)) {
-                                    node.pos[0] += deltax
-                                    node.pos[1] += deltay
-                                }
-                            }
-                        }
-                    }
-                }
-
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
             }
 
             if (this.resizing_node && !this.live_mode) {
@@ -2468,8 +2460,7 @@ export class LGraphCanvas {
                 this.resizing_node.setSize(desired_size)
 
                 this.canvas.style.cursor = "se-resize"
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
             }
         }
 
@@ -2505,6 +2496,7 @@ export class LGraphCanvas {
         this.block_click &&= false
 
         if (e.which == 1) {
+            this.resizingGroup = null
 
             if (this.node_widget) {
                 this.processNodeWidgets(this.node_widget[0], this.graph_mouse, e)
@@ -2512,82 +2504,53 @@ export class LGraphCanvas {
 
             //left button
             this.node_widget = null
-
-            if (this.selected_group) {
-                const diffx = this.selected_group.pos[0] -
-                    Math.round(this.selected_group.pos[0])
-                const diffy = this.selected_group.pos[1] -
-                    Math.round(this.selected_group.pos[1])
-                this.selected_group.move(diffx, diffy, e.ctrlKey)
-                this.selected_group.pos[0] = Math.round(
-                    this.selected_group.pos[0]
-                )
-                this.selected_group.pos[1] = Math.round(
-                    this.selected_group.pos[1]
-                )
-                if (this.selected_group._nodes.length) {
-                    this.dirty_canvas = true
-                }
-                this.selected_group = null
-            }
-            this.selected_group_resizing = false
+            this.selected_group = null
             this.isDragging = false
 
-            let node = this.graph.getNodeOnPos(
+            const node = this.graph.getNodeOnPos(
                 e.canvasX,
                 e.canvasY,
                 this.visible_nodes
             )
 
-            if (this.dragging_rectangle) {
+            const dragRect = this.dragging_rectangle
+            if (dragRect) {
                 if (this.graph) {
                     const nodes = this.graph._nodes
                     const node_bounding = new Float32Array(4)
 
                     //compute bounding and flip if left to right
-                    const w = Math.abs(this.dragging_rectangle[2])
-                    const h = Math.abs(this.dragging_rectangle[3])
-                    const startx = this.dragging_rectangle[2] < 0
-                        ? this.dragging_rectangle[0] - w
-                        : this.dragging_rectangle[0]
-                    const starty = this.dragging_rectangle[3] < 0
-                        ? this.dragging_rectangle[1] - h
-                        : this.dragging_rectangle[1]
-                    this.dragging_rectangle[0] = startx
-                    this.dragging_rectangle[1] = starty
-                    this.dragging_rectangle[2] = w
-                    this.dragging_rectangle[3] = h
+                    const w = Math.abs(dragRect[2])
+                    const h = Math.abs(dragRect[3])
+                    const startx = dragRect[2] < 0
+                        ? dragRect[0] - w
+                        : dragRect[0]
+                    const starty = dragRect[3] < 0
+                        ? dragRect[1] - h
+                        : dragRect[1]
+                    dragRect[0] = startx
+                    dragRect[1] = starty
+                    dragRect[2] = w
+                    dragRect[3] = h
 
                     // test dragging rect size, if minimun simulate a click
                     if (!node || (w > 10 && h > 10)) {
                         //test against all nodes (not visible because the rectangle maybe start outside
                         const to_select = []
-                        for (let i = 0; i < nodes.length; ++i) {
-                            const nodeX = nodes[i]
+                        for (const nodeX of nodes) {
                             nodeX.getBounding(node_bounding)
-                            if (!overlapBounding(
-                                this.dragging_rectangle,
-                                node_bounding
-                            )) {
-                                continue
-                            } //out of the visible area
+                            if (!overlapBounding(dragRect, node_bounding)) continue
+
                             to_select.push(nodeX)
                         }
-                        if (to_select.length) {
-                            this.selectNodes(to_select, e.shiftKey) // add to selection with shift
-                        }
+                        // add to selection with shift
+                        if (to_select.length) this.selectNodes(to_select, e.shiftKey)
 
                         // Select groups
-                        if (!e.shiftKey) this.deselectGroups()
-                        this.selectedGroups ??= new Set()
-
                         const groups = this.graph.groups
                         for (const group of groups) {
-                            const r = this.dragging_rectangle
-                            const pos = group.pos
-                            const size = group.size
-                            if (!isInsideRectangle(pos[0], pos[1], r[0], r[1], r[2], r[3]) || !isInsideRectangle(pos[0] + size[0], pos[1] + size[1], r[0], r[1], r[2], r[3])) continue
-                            this.selectedGroups.add(group)
+                            if (!containsRect(dragRect, group._bounding)) continue
+                            this.selectedItems.add(group)
                             group.recomputeInsideNodes()
                             group.selected = true
                         }
@@ -2605,8 +2568,7 @@ export class LGraphCanvas {
                     for (const link of this.connecting_links) {
 
                         //dragging a connection
-                        this.dirty_canvas = true
-                        this.dirty_bgcanvas = true
+                        this.#dirty()
 
                         //slot below mouse? connect
                         if (link.output) {
@@ -2686,40 +2648,29 @@ export class LGraphCanvas {
                 this.connecting_links = null
             } //not dragging connection
             else if (this.resizing_node) {
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
+                this.#dirty()
                 this.graph.afterChange(this.resizing_node)
                 this.resizing_node = null
             } else if (this.node_dragged) {
                 //node being dragged?
-                node = this.node_dragged
-                if (node &&
-                    e.click_time < 300 &&
-                    isInsideRectangle(e.canvasX, e.canvasY, node.pos[0], node.pos[1] - LiteGraph.NODE_TITLE_HEIGHT, LiteGraph.NODE_TITLE_HEIGHT, LiteGraph.NODE_TITLE_HEIGHT)) {
-                    node.collapse()
+                const { node_dragged } = this
+                if (e.click_time < 300 && node_dragged?.isPointInCollapse(e.canvasX, e.canvasY)) {
+                    node_dragged.collapse()
                 }
 
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
-                this.node_dragged.pos[0] = Math.round(this.node_dragged.pos[0])
-                this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1])
+                this.#dirty()
+                node_dragged.pos[0] = Math.round(node_dragged.pos[0])
+                node_dragged.pos[1] = Math.round(node_dragged.pos[1])
                 if (this.graph.config.align_to_grid || this.align_to_grid) {
-                    this.node_dragged.alignToGrid()
+                    node_dragged.alignToGrid()
                 }
-                this.onNodeMoved?.(this.node_dragged)
-                this.graph.afterChange(this.node_dragged)
+                this.onNodeMoved?.(node_dragged)
+                this.graph.afterChange(node_dragged)
                 this.node_dragged = null
             } //no node being dragged
             else {
-                //get node over
-                node = this.graph.getNodeOnPos(
-                    e.canvasX,
-                    e.canvasY,
-                    this.visible_nodes
-                )
-
                 if (!node && e.click_time < 300 && !this.graph.groups.some(x => x.isPointInTitlebar(e.canvasX, e.canvasY))) {
-                    this.deselectAllNodes()
+                    this.deselectAll()
                 }
 
                 this.dirty_canvas = true
@@ -2788,20 +2739,7 @@ export class LGraphCanvas {
         e.preventDefault()
         return false
     }
-    /**
-     * returns true if a position (in graph space) is on top of a node little corner box
-     **/
-    isOverNodeBox(node: LGraphNode, canvasx: number, canvasy: number): boolean {
-        const title_height = LiteGraph.NODE_TITLE_HEIGHT
-        return Boolean(isInsideRectangle(
-            canvasx,
-            canvasy,
-            node.pos[0] + 2,
-            node.pos[1] + 2 - title_height,
-            title_height - 4,
-            title_height - 4
-        ))
-    }
+
     /**
      * returns the INDEX if a position (in graph space) is on top of a node input slot
      **/
@@ -2914,7 +2852,7 @@ export class LGraphCanvas {
 
             //select all Control A
             else if (e.keyCode == 65 && e.ctrlKey) {
-                this.selectNodes()
+                this.selectItems()
                 block_default = true
             }
 
@@ -2935,7 +2873,7 @@ export class LGraphCanvas {
             else if (e.keyCode == 46 || e.keyCode == 8) {
                 // @ts-expect-error
                 if (e.target.localName != "input" && e.target.localName != "textarea") {
-                    this.deleteSelectedNodes()
+                    this.deleteSelected()
                     block_default = true
                 }
             }
@@ -3002,7 +2940,7 @@ export class LGraphCanvas {
                     const input = node.inputs[j]
                     if (!input || input.link == null) continue
 
-                    const link_info = this.graph.links[input.link]
+                    const link_info = this.graph._links.get(input.link)
                     if (!link_info) continue
 
                     const target_node = this.graph.getNodeById(link_info.origin_id)
@@ -3204,154 +3142,205 @@ export class LGraphCanvas {
 
         this.setDirty(true)
     }
-    processNodeSelected(node: LGraphNode, e: CanvasMouseEvent): void {
-        this.selectNode(node, e && (e.shiftKey || e.metaKey || e.ctrlKey || this.multi_select))
-        this.onNodeSelected?.(node)
-    }
+
     /**
-     * selects a given node (or adds it to the current selection)
-     **/
+     * Determines whether to select or deselect an item that has received a pointer event.  Will deselect other nodes if 
+     * @param item Canvas item to select/deselect
+     * @param e The MouseEvent to handle
+     * @param sticky Prevents deselecting individual nodes (as used by aux/right-click)
+     * @remarks
+     * Accessibility: anyone using {@link mutli_select} always deselects when clicking empty space.
+     */
+    processSelect<TPositionable extends Positionable = LGraphNode>(item: TPositionable | null, e: CanvasMouseEvent, sticky: boolean = false): void {
+        const addModifier = e?.shiftKey
+        const subtractModifier = e != null && (e.metaKey || e.ctrlKey)
+        const eitherModifier = addModifier || subtractModifier
+        const modifySelection = eitherModifier || this.multi_select
+
+        if (!item) {
+            if (!eitherModifier || this.multi_select) this.deselectAll()
+
+        } else if (!item.selected || !this.selectedItems.has(item)) {
+            if (!modifySelection) this.deselectAll(item)
+            this.select(item)
+        } else if (modifySelection && !sticky) {
+            this.deselect(item)
+        } else if (!sticky) {
+            this.deselectAll(item)
+        } else {
+            return
+        }
+        this.onSelectionChange?.(this.selected_nodes)
+        this.setDirty(true)
+    }
+
+    /**
+     * Selects a {@link Positionable} item.
+     * @param item The canvas item to add to the selection.
+     */
+    select<TPositionable extends Positionable = LGraphNode>(item: TPositionable): void {
+        if (item.selected && this.selectedItems.has(item)) return
+
+        item.selected = true
+        this.selectedItems.add(item)
+        if (!(item instanceof LGraphNode)) return
+
+        // Node-specific handling
+        item.onSelected?.()
+        this.selected_nodes[item.id] = item
+
+        this.onNodeSelected?.(item)
+
+        // Highlight links
+        item.inputs?.forEach(input => this.highlighted_links[input.link] = true)
+        item.outputs?.flatMap(x => x.links)
+            .forEach(id => this.highlighted_links[id] = true)
+    }
+
+    /**
+     * Deselects a {@link Positionable} item.
+     * @param item The canvas item to remove from the selection.
+     */
+    deselect<TPositionable extends Positionable = LGraphNode>(item: TPositionable): void {
+        if (!item.selected && !this.selectedItems.has(item)) return
+
+        item.selected = false
+        this.selectedItems.delete(item)
+        if (!(item instanceof LGraphNode)) return
+
+        // Node-specific handling
+        item.onDeselected?.()
+        delete this.selected_nodes[item.id]
+
+        this.onNodeDeselected?.(item)
+
+        // Clear link highlight
+        item.inputs?.forEach(input => delete this.highlighted_links[input.link])
+        item.outputs?.flatMap(x => x.links)
+            .forEach(id => delete this.highlighted_links[id])
+    }
+
+    /** @deprecated See {@link LGraphCanvas.processSelect} */
+    processNodeSelected(item: LGraphNode, e: CanvasMouseEvent): void {
+        this.processSelect(item, e, e && (e.shiftKey || e.metaKey || e.ctrlKey || this.multi_select))
+    }
+
+    /** @deprecated See {@link LGraphCanvas.select} */
     selectNode(node: LGraphNode, add_to_current_selection?: boolean): void {
         if (node == null) {
-            this.deselectAllNodes()
+            this.deselectAll()
         } else {
             this.selectNodes([node], add_to_current_selection)
         }
     }
+
     /**
-     * selects several nodes (or adds them to the current selection)
-     **/
-    selectNodes(nodes?: LGraphNode[] | Dictionary<LGraphNode>, add_to_current_selection?: boolean): void {
-        if (!add_to_current_selection) {
-            this.deselectAllNodes()
-        }
-
-        nodes = nodes || this.graph._nodes
-        if (typeof nodes == "string") nodes = [nodes]
-        for (const i in nodes) {
-            const node: LGraphNode = nodes[i]
-            if (node.is_selected) {
-                this.deselectNode(node)
-                continue
-            }
-
-            if (!node.is_selected) {
-                node.onSelected?.()
-            }
-            node.is_selected = true
-            this.selected_nodes[node.id] = node
-
-            if (node.inputs) {
-                for (let j = 0; j < node.inputs.length; ++j) {
-                    this.highlighted_links[node.inputs[j].link] = true
-                }
-            }
-            if (node.outputs) {
-                for (let j = 0; j < node.outputs.length; ++j) {
-                    const out = node.outputs[j]
-                    if (out.links) {
-                        for (let k = 0; k < out.links.length; ++k) {
-                            this.highlighted_links[out.links[k]] = true
-                        }
-                    }
-                }
-            }
-        }
-
+     * Selects several items.
+     * @param items Items to select - if falsy, all items on the canvas will be selected
+     * @param add_to_current_selection If set, the items will be added to the current selection instead of replacing it
+     */
+    selectItems(items?: Positionable[], add_to_current_selection?: boolean): void {
+        const itemsToSelect = items ?? [...this.graph._nodes, ...this.graph._groups]
+        if (!add_to_current_selection) this.deselectAll()
+        for (const item of itemsToSelect) this.select(item)
         this.onSelectionChange?.(this.selected_nodes)
-
         this.setDirty(true)
     }
+
     /**
-     * removes a node from the current selection
+     * selects several nodes (or adds them to the current selection)
+     * @deprecated See {@link LGraphCanvas.selectItems}
      **/
-    deselectNode(node: LGraphNode): void {
-        if (!node.is_selected) return
-        node.onDeselected?.()
-        node.is_selected = false
-        delete this.selected_nodes[node.id]
-
-        this.onNodeDeselected?.(node)
-
-        //remove highlighted
-        if (node.inputs) {
-            for (let i = 0; i < node.inputs.length; ++i) {
-                delete this.highlighted_links[node.inputs[i].link]
-            }
-        }
-        if (node.outputs) {
-            for (let i = 0; i < node.outputs.length; ++i) {
-                const out = node.outputs[i]
-                if (out.links) {
-                    for (let j = 0; j < out.links.length; ++j) {
-                        delete this.highlighted_links[out.links[j]]
-                    }
-                }
-            }
-        }
+    selectNodes(nodes?: LGraphNode[], add_to_current_selection?: boolean): void {
+        this.selectItems(nodes, add_to_current_selection)
     }
+
+    /** @deprecated See {@link LGraphCanvas.deselect} */
+    deselectNode(node: LGraphNode): void {
+        this.deselect(node)
+    }
+
     /**
-     * removes all nodes from the current selection
-     **/
-    deselectAllNodes(): void {
+     * Deselects all items on the canvas.
+     * @param keepSelected If set, this item will not be removed from the selection.
+     */
+    deselectAll(keepSelected?: Positionable): void {
         if (!this.graph) return
-        const nodes = this.graph._nodes
-        for (let i = 0, l = nodes.length; i < l; ++i) {
-            const node = nodes[i]
-            if (!node.is_selected) {
+
+        const selected = this.selectedItems
+        let wasSelected: Positionable
+        for (const sel of selected) {
+            if (sel === keepSelected) {
+                wasSelected = sel
                 continue
             }
-            node.onDeselected?.()
-            node.is_selected = false
-            this.onNodeDeselected?.(node)
+            sel.onDeselected?.()
+            sel.selected = false
         }
+        selected.clear()
+        if (wasSelected) selected.add(wasSelected)
+
+        this.setDirty(true)
+
+        // Legacy code
+        const oldNode = keepSelected?.id == null ? null : this.selected_nodes[keepSelected.id]
         this.selected_nodes = {}
         this.current_node = null
         this.highlighted_links = {}
-        this.deselectGroups()
+
+        if (keepSelected instanceof LGraphNode) {
+            // Handle old object lookup
+            if (oldNode) this.selected_nodes[oldNode.id] = oldNode
+
+            // Highlight links
+            keepSelected.inputs?.forEach(input => this.highlighted_links[input.link] = true)
+            keepSelected.outputs?.flatMap(x => x.links)
+                .forEach(id => this.highlighted_links[id] = true)
+        }
 
         this.onSelectionChange?.(this.selected_nodes)
-        this.setDirty(true)
     }
 
-    deselectGroups() {
-        if (!this.selectedGroups) return
-        for (const group of this.selectedGroups) {
-            delete group.selected
+    /** @deprecated See {@link LGraphCanvas.deselectAll} */
+    deselectAllNodes(): void {
+        this.deselectAll()
+    }
+
+    /**
+     * Deletes all selected items from the graph.
+     */
+    deleteSelected(): void {
+        const { graph } = this
+        graph.beforeChange()
+
+        for (const item of this.selectedItems) {
+            if (item instanceof LGraphNode) {
+                const node = item
+                if (node.block_delete) continue
+                node.connectInputToOutput()
+                graph.remove(node)
+                this.onNodeDeselected?.(node)
+            } else if (item instanceof LGraphGroup) {
+                graph.remove(item)
+            }
         }
-        this.selectedGroups = null
+
+        this.selected_nodes = {}
+        this.selectedItems.clear()
+        this.current_node = null
+        this.highlighted_links = {}
+        this.setDirty(true)
+        graph.afterChange()
     }
 
     /**
      * deletes all nodes in the current selection from the graph
+     * @deprecated See {@link LGraphCanvas.deleteSelected}
      **/
     deleteSelectedNodes(): void {
-
-        this.graph.beforeChange()
-
-        for (const i in this.selected_nodes) {
-            const node = this.selected_nodes[i]
-
-            if (node.block_delete) continue
-
-            //autoconnect when possible (very basic, only takes into account first input-output)
-            if (node.inputs?.length && node.outputs && node.outputs.length && LiteGraph.isValidConnection(node.inputs[0].type, node.outputs[0].type) && node.inputs[0].link && node.outputs[0].links && node.outputs[0].links.length) {
-                const input_link = node.graph.links[node.inputs[0].link]
-                const output_link = node.graph.links[node.outputs[0].links[0]]
-                const input_node = node.getInputNode(0)
-                const output_node = node.getOutputNodes(0)[0]
-                if (input_node && output_node)
-                    input_node.connect(input_link.origin_slot, output_node, output_link.target_slot)
-            }
-            this.graph.remove(node)
-            this.onNodeDeselected?.(node)
-        }
-        this.selected_nodes = {}
-        this.current_node = null
-        this.highlighted_links = {}
-        this.setDirty(true)
-        this.graph.afterChange()
+        this.deleteSelected()
     }
+
     /**
      * centers the camera on a given node
      **/
@@ -3401,8 +3390,7 @@ export class LGraphCanvas {
      **/
     setZoom(value: number, zooming_center: Point) {
         this.ds.changeScale(value, zooming_center)
-        this.dirty_canvas = true
-        this.dirty_bgcanvas = true
+        this.#dirty()
     }
     /**
      * converts a coordinate from graph coordinates to canvas2D coordinates
@@ -3456,16 +3444,17 @@ export class LGraphCanvas {
     computeVisibleNodes(nodes?: LGraphNode[], out?: LGraphNode[]): LGraphNode[] {
         const visible_nodes = out || []
         visible_nodes.length = 0
-        nodes ||= this.graph._nodes
-        for (let i = 0, l = nodes.length; i < l; ++i) {
-            const n = nodes[i]
 
+        const _nodes = nodes || this.graph._nodes
+        for (const node of _nodes) {
             //skip rendering nodes in live mode
-            if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) continue
-            // Not in visible area
-            if (!overlapBounding(this.visible_area, n.getBounding(LGraphCanvas.#temp, true))) continue
+            if (this.live_mode && !node.onDrawBackground && !node.onDrawForeground) continue
 
-            visible_nodes.push(n)
+            node.updateArea()
+            // Not in visible area
+            if (!overlapBounding(this.visible_area, node.renderArea)) continue
+
+            visible_nodes.push(node)
         }
         return visible_nodes
     }
@@ -3481,25 +3470,24 @@ export class LGraphCanvas {
         this.render_time = (now - this.last_draw_time) * 0.001
         this.last_draw_time = now
 
-        if (this.graph) {
-            this.ds.computeVisibleArea(this.viewport)
-        }
+        if (this.graph) this.ds.computeVisibleArea(this.viewport)
+
+        // Compute node size before drawing links.
+        if (this.dirty_canvas || force_canvas)
+            this.computeVisibleNodes(null, this.visible_nodes)
 
         if (this.dirty_bgcanvas ||
             force_bgcanvas ||
             this.always_render_background ||
-            (this.graph &&
-                this.graph._last_trigger_time &&
+            (this.graph?._last_trigger_time &&
                 now - this.graph._last_trigger_time < 1000)) {
             this.drawBackCanvas()
         }
 
-        if (this.dirty_canvas || force_canvas) {
-            this.drawFrontCanvas()
-        }
+        if (this.dirty_canvas || force_canvas) this.drawFrontCanvas()
 
         this.fps = this.render_time ? 1.0 / this.render_time : 0
-        this.frame += 1
+        this.frame++
     }
     /**
      * draws the front canvas (the one containing all the nodes)
@@ -3563,10 +3551,7 @@ export class LGraphCanvas {
             this.ds.toCanvasContext(ctx)
 
             //draw nodes
-            const visible_nodes = this.computeVisibleNodes(
-                null,
-                this.visible_nodes
-            )
+            const visible_nodes = this.visible_nodes
 
             for (let i = 0; i < visible_nodes.length; ++i) {
                 const node = visible_nodes[i]
@@ -3766,9 +3751,7 @@ export class LGraphCanvas {
 
         const { strokeStyle, lineWidth } = ctx
 
-        const area = LGraphCanvas.#tmp_area
-        node.measure(area)
-        node.onBounding?.(area)
+        const area = node.boundingRect
         const gap = 3
         const radius = this.round_radius + gap
 
@@ -4205,8 +4188,7 @@ export class LGraphCanvas {
         ctx.finish?.()
 
         this.dirty_bgcanvas = false
-        //to force to repaint the front canvas with the bgcanvas
-        // But why would you actually want to do this?
+        // Forces repaint of the front canvas.
         this.dirty_canvas = true
     }
     /**
@@ -4295,7 +4277,7 @@ export class LGraphCanvas {
             size,
             color,
             bgcolor,
-            node.is_selected
+            node.selected
         )
 
         if (!low_quality) {
@@ -4572,7 +4554,7 @@ export class LGraphCanvas {
      * @param size Size of the background to draw, in graph units.  Differs from node size if collapsed, etc.
      * @param fgcolor Foreground colour - used for text
      * @param bgcolor Background colour of the node
-     * @param selected Whether to render the node as selected.  Likely to be removed in future, as current usage is simply the is_selected property of the node.
+     * @param selected Whether to render the node as selected.  Likely to be removed in future, as current usage is simply the selected property of the node.
      * @param mouse_over Deprecated
      */
     drawNodeShape(
@@ -4940,7 +4922,7 @@ export class LGraphCanvas {
                 if (!input || input.link == null) continue
 
                 const link_id = input.link
-                const link = this.graph.links[link_id]
+                const link = this.graph._links.get(link_id)
                 if (!link) continue
 
                 //find link info
@@ -5262,7 +5244,7 @@ export class LGraphCanvas {
                 }
 
                 //render arrow
-                ctx.save()
+                const transform = ctx.getTransform()
                 ctx.translate(posA[0], posA[1])
                 ctx.rotate(angleA)
                 ctx.beginPath()
@@ -5270,8 +5252,8 @@ export class LGraphCanvas {
                 ctx.lineTo(0, +7)
                 ctx.lineTo(+5, -3)
                 ctx.fill()
-                ctx.restore()
-                ctx.save()
+                ctx.setTransform(transform)
+
                 ctx.translate(posC[0], posC[1])
                 ctx.rotate(angleB)
                 ctx.beginPath()
@@ -5279,7 +5261,7 @@ export class LGraphCanvas {
                 ctx.lineTo(0, +7)
                 ctx.lineTo(+5, -3)
                 ctx.fill()
-                ctx.restore()
+                ctx.setTransform(transform)
             }
 
             //circle
@@ -5306,59 +5288,67 @@ export class LGraphCanvas {
             }
         }
     }
-    //returns the link center point based on curvature
-    computeConnectionPoint(a: Point,
-        b: Point,
+
+    /**
+     * Finds a point along a spline represented by a to b, with spline endpoint directions dictacted by start_dir and end_dir.
+     * @param a Start point
+     * @param b End point
+     * @param t Time: distance between points (e.g 0.25 is 25% along the line)
+     * @param start_dir Spline start direction
+     * @param end_dir Spline end direction
+     * @returns The point at {@link t} distance along the spline a-b.
+     */
+    computeConnectionPoint(
+        a: ReadOnlyPoint,
+        b: ReadOnlyPoint,
         t: number,
-        start_dir: number,
-        end_dir: number): number[] {
+        start_dir: LinkDirection,
+        end_dir: LinkDirection
+    ): Point {
         start_dir ||= LinkDirection.RIGHT
         end_dir ||= LinkDirection.LEFT
 
         const dist = distance(a, b)
-        const p0 = a
-        const p1 = [a[0], a[1]]
-        const p2 = [b[0], b[1]]
-        const p3 = b
+        const pa: Point = [a[0], a[1]]
+        const pb: Point = [b[0], b[1]]
 
-        switch (start_dir) {
-            case LinkDirection.LEFT:
-                p1[0] += dist * -0.25
-                break
-            case LinkDirection.RIGHT:
-                p1[0] += dist * 0.25
-                break
-            case LinkDirection.UP:
-                p1[1] += dist * -0.25
-                break
-            case LinkDirection.DOWN:
-                p1[1] += dist * 0.25
-                break
-        }
-        switch (end_dir) {
-            case LinkDirection.LEFT:
-                p2[0] += dist * -0.25
-                break
-            case LinkDirection.RIGHT:
-                p2[0] += dist * 0.25
-                break
-            case LinkDirection.UP:
-                p2[1] += dist * -0.25
-                break
-            case LinkDirection.DOWN:
-                p2[1] += dist * 0.25
-                break
-        }
+        this.#addSplineOffset(pa, start_dir, dist)
+        this.#addSplineOffset(pb, end_dir, dist)
 
         const c1 = (1 - t) * (1 - t) * (1 - t)
         const c2 = 3 * ((1 - t) * (1 - t)) * t
         const c3 = 3 * (1 - t) * (t * t)
         const c4 = t * t * t
 
-        const x = c1 * p0[0] + c2 * p1[0] + c3 * p2[0] + c4 * p3[0]
-        const y = c1 * p0[1] + c2 * p1[1] + c3 * p2[1] + c4 * p3[1]
+        const x = c1 * a[0] + c2 * pa[0] + c3 * pb[0] + c4 * b[0]
+        const y = c1 * a[1] + c2 * pa[1] + c3 * pb[1] + c4 * b[1]
         return [x, y]
     }
+
+    /**
+     * Modifies an existing point, adding a single-axis offset.
+     * @param point The point to add the offset to
+     * @param direction The direction to add the offset in
+     * @param dist Distance to offset
+     * @param factor Distance is mulitplied by this value.  Default: 0.25
+     */
+    #addSplineOffset(point: Point, direction: LinkDirection, dist: number, factor = 0.25): void {
+        switch (direction) {
+            case LinkDirection.LEFT:
+                point[0] += dist * -factor
+                break
+            case LinkDirection.RIGHT:
+                point[0] += dist * factor
+                break
+            case LinkDirection.UP:
+                point[1] += dist * -factor
+                break
+            case LinkDirection.DOWN:
+                point[1] += dist * factor
+                break
+        }
+    }
+
     drawExecutionOrder(ctx: CanvasRenderingContext2D): void {
         ctx.shadowColor = "transparent"
         ctx.globalAlpha = 0.25
@@ -5417,6 +5407,7 @@ export class LGraphCanvas {
 
         for (let i = 0; i < widgets.length; ++i) {
             const w = widgets[i]
+            if (w.hidden || (w.advanced && !node.showAdvanced)) continue
             const y = w.y || posY
 
             if (w === this.link_over_widget) {
@@ -5670,7 +5661,7 @@ export class LGraphCanvas {
         let values_list
         for (let i = 0; i < node.widgets.length; ++i) {
             const w = node.widgets[i]
-            if (!w || w.disabled)
+            if (!w || w.disabled || w.hidden || (w.advanced && !node.showAdvanced))
                 continue
             const widget_height = w.computeSize ? w.computeSize(width)[1] : LiteGraph.NODE_WIDGET_HEIGHT
             const widget_width = w.width || width
@@ -5905,8 +5896,7 @@ export class LGraphCanvas {
     switchLiveMode(transition: boolean): void {
         if (!transition) {
             this.live_mode = !this.live_mode
-            this.dirty_canvas = true
-            this.dirty_bgcanvas = true
+            this.#dirty()
             return
         }
 
@@ -7612,6 +7602,12 @@ export class LGraphCanvas {
                     callback: LGraphCanvas.onMenuNodeCollapse
                 })
             }
+            if (node.widgets?.some(w => w.advanced)) {
+                options.push({
+                    content: node.showAdvanced ? "Hide Advanced" : "Show Advanced",
+                    callback: LGraphCanvas.onMenuToggleAdvanced
+                })
+            }
             options.push(
                 {
                     content: node.pinned ? "Unpin" : "Pin",
@@ -7840,5 +7836,75 @@ export class LGraphCanvas {
             //if(v.callback)
             //	return v.callback.call(that, node, options, e, menu, that, event );
         }
+    }
+
+    /**
+     * Centers the camera on a given node (animated version)
+     * @method animateToNode
+     **/
+    animateToNode(
+        node: LGraphNode,
+        {
+            duration = 350,
+            zoom = 0.75,
+            easing = EaseFunction.EASE_IN_OUT_QUAD
+        }: {
+            duration?: number,
+            zoom?: number,
+            easing?: EaseFunction
+        } = {}
+    ) {
+        const easeFunctions = {
+            linear: (t: number) => t,
+            easeInQuad: (t: number) => t * t,
+            easeOutQuad: (t: number) => t * (2 - t),
+            easeInOutQuad: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
+        }
+        const easeFunction = easeFunctions[easing] ?? easeFunctions.linear
+
+        let animationId = null
+        const startTimestamp = performance.now()
+        const startX = this.ds.offset[0]
+        const startY = this.ds.offset[1]
+        const startScale = this.ds.scale
+        const cw = this.canvas.width / window.devicePixelRatio
+        const ch = this.canvas.height / window.devicePixelRatio
+        let targetScale = startScale
+        let targetX = startX
+        let targetY = startY
+        if (zoom > 0) {
+            const targetScaleX = (zoom * cw) / Math.max(node.size[0], 300)
+            const targetScaleY = (zoom * ch) / Math.max(node.size[1], 300)
+
+            // Choose the smaller scale to ensure the node fits into the viewport
+            // Ensure we don't go over the max scale
+            targetScale = Math.min(targetScaleX, targetScaleY, this.ds.max_scale)
+            targetX = -node.pos[0] - node.size[0] * 0.5 + (cw * 0.5) / targetScale
+            targetY = -node.pos[1] - node.size[1] * 0.5 + (ch * 0.5) / targetScale
+        } else {
+            targetX = -node.pos[0] - node.size[0] * 0.5 + (cw * 0.5) / targetScale
+            targetY = -node.pos[1] - node.size[1] * 0.5 + (ch * 0.5) / targetScale
+        }
+        const animate = (timestamp: number) => {
+            const elapsed = timestamp - startTimestamp
+            const progress = Math.min(elapsed / duration, 1)
+            const easedProgress = easeFunction(progress)
+
+            this.ds.offset[0] = startX + (targetX - startX) * easedProgress
+            this.ds.offset[1] = startY + (targetY - startY) * easedProgress
+
+            if (zoom > 0) {
+                this.ds.scale = startScale + (targetScale - startScale) * easedProgress
+            }
+
+            this.setDirty(true, true)
+
+            if (progress < 1) {
+                animationId = requestAnimationFrame(animate)
+            } else {
+                cancelAnimationFrame(animationId)
+            }
+        }
+        animationId = requestAnimationFrame(animate)
     }
 }

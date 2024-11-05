@@ -1,4 +1,4 @@
-import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, ISlotType, Point, Rect, Size } from "./interfaces"
+import type { Dictionary, IContextMenuValue, IFoundSlot, INodeFlags, INodeInputSlot, INodeOutputSlot, IOptionalSlotData, IPinnable, ISlotType, Point, Positionable, ReadOnlyRect, Rect, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
@@ -8,7 +8,7 @@ import type { DragAndScale } from "./DragAndScale"
 import { LGraphEventMode, NodeSlotType, TitleMode, RenderShape } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
-import { isInsideRectangle } from "./measure"
+import { isInsideRectangle, isXyInRectangle } from "./measure"
 import { LLink } from "./LLink"
 
 export type NodeId = number | string
@@ -111,7 +111,7 @@ export interface LGraphNode {
  * Base Class for all the node type classes
  * @param {String} name a name for the node
  */
-export class LGraphNode {
+export class LGraphNode implements Positionable, IPinnable {
     // Static properties used by dynamic child classes
     static title?: string
     static MAX_CONSOLE?: number
@@ -121,20 +121,18 @@ export class LGraphNode {
     static filter?: string
     static skip_list?: boolean
 
-    title?: string
-    graph: LGraph
-    id?: NodeId
-    type?: string
-    inputs: INodeInputSlot[]
-    outputs: INodeOutputSlot[]
+    title: string
+    graph: LGraph | null = null
+    id: NodeId
+    type: string | null = null
+    inputs: INodeInputSlot[] = []
+    outputs: INodeOutputSlot[] = []
     // Not used
-    connections: unknown[]
-    properties: INodeProperties
-    properties_info: INodePropertyInfo[]
-    flags: INodeFlags
+    connections: unknown[] = []
+    properties: INodeProperties = {}
+    properties_info: INodePropertyInfo[] = []
+    flags: INodeFlags = {}
     widgets?: IWidget[]
-
-    size: Size
     locked?: boolean
 
     // Execution order, automatically computed during run
@@ -153,11 +151,12 @@ export class LGraphNode {
     widgets_start_y?: number
     lostFocusAt?: number
     gotFocusAt?: number
-    badges: (LGraphBadge | (() => LGraphBadge))[]
-    badgePosition: BadgePosition
+    badges: (LGraphBadge | (() => LGraphBadge))[] = []
+    badgePosition: BadgePosition = BadgePosition.TopLeft
     onOutputRemoved?(this: LGraphNode, slot: number): void
     onInputRemoved?(this: LGraphNode, slot: number, input: INodeInputSlot): void
     _collapsed_width: number
+    /** Called once at the start of every frame.  Caller may change the values in {@link out}, which will be reflected in {@link boundingRect}. */
     onBounding?(this: LGraphNode, out: Rect): void
     horizontal?: boolean
     console?: string[]
@@ -166,7 +165,6 @@ export class LGraphNode {
     subgraph?: LGraph
     skip_subgraph_button?: boolean
     mouseOver?: IMouseOverData
-    is_selected?: boolean
     redraw_on_mouse?: boolean
     // Appears unused
     optional_inputs?
@@ -180,8 +178,36 @@ export class LGraphNode {
     has_errors?: boolean
     removable?: boolean
     block_delete?: boolean
+    selected?: boolean
+    showAdvanced?: boolean
 
-    _pos: Point
+    /** @inheritdoc {@link renderArea} */
+    #renderArea: Float32Array = new Float32Array(4)
+    /**
+     * Rect describing the node area, including shadows and any protrusions.
+     * Determines if the node is visible.  Calculated once at the start of every frame.
+    */
+    get renderArea(): ReadOnlyRect {
+        return this.#renderArea
+    }
+
+
+    /** @inheritdoc {@link boundingRect} */
+    #boundingRect: Float32Array = new Float32Array(4)
+    /**
+     * Cached node position & area as `x, y, width, height`.  Includes changes made by {@link onBounding}, if present.
+     * 
+     * Determines the node hitbox and other rendering effects.  Calculated once at the start of every frame.
+     */
+    get boundingRect(): ReadOnlyRect {
+        return this.#boundingRect
+    }
+
+    /** {@link pos} and {@link size} values are backed by this {@link Rect}. */
+    _posSize: Float32Array = new Float32Array(4)
+    _pos: Point = this._posSize.subarray(0, 2)
+    _size: Size = this._posSize.subarray(2, 4)
+
     public get pos() {
         return this._pos
     }
@@ -190,6 +216,16 @@ export class LGraphNode {
 
         this._pos[0] = value[0]
         this._pos[1] = value[1]
+    }
+
+    public get size() {
+        return this._size
+    }
+    public set size(value) {
+        if (!value || value.length < 2) return
+
+        this._size[0] = value[0]
+        this._size[1] = value[1]
     }
 
     get shape(): RenderShape {
@@ -215,6 +251,13 @@ export class LGraphNode {
             default:
                 this._shape = v
         }
+    }
+
+    public get is_selected(): boolean {
+        return this.selected
+    }
+    public set is_selected(value: boolean) {
+        this.selected = value
     }
 
     // Used in group node
@@ -287,31 +330,10 @@ export class LGraphNode {
     isValidWidgetLink?(slot_index: number, node: LGraphNode, overWidget: IWidget): boolean | undefined
 
     constructor(title: string) {
-        this._ctor(title)
-    }
-
-    _ctor(title: string): void {
+        this.id = LiteGraph.use_uuids ? LiteGraph.uuidv4() : -1
         this.title = title || "Unnamed"
         this.size = [LiteGraph.NODE_WIDTH, 60]
-        this.graph = null
-        // Initialize _pos with a Float32Array of length 2, default value [10, 10]
-        this._pos = new Float32Array([10, 10])
-
-        this.id = LiteGraph.use_uuids ? LiteGraph.uuidv4() : -1
-        this.type = null
-
-        //inputs available: array of inputs
-        this.inputs = []
-        this.outputs = []
-        this.connections = []
-        this.badges = []
-        this.badgePosition = BadgePosition.TopLeft
-
-        //local data
-        this.properties = {} //for the values
-        this.properties_info = [] //for the info
-
-        this.flags = {}
+        this.pos = [10, 10]
     }
 
     /**
@@ -353,7 +375,7 @@ export class LGraphNode {
         if (this.inputs) {
             for (let i = 0; i < this.inputs.length; ++i) {
                 const input = this.inputs[i]
-                const link = this.graph ? this.graph.links[input.link] : null
+                const link = this.graph ? this.graph._links.get(input.link) : null
                 this.onConnectionsChange?.(NodeSlotType.INPUT, i, true, link, input)
                 this.onInputAdded?.(input)
             }
@@ -366,7 +388,7 @@ export class LGraphNode {
                     continue
                 }
                 for (let j = 0; j < output.links.length; ++j) {
-                    const link = this.graph ? this.graph.links[output.links[j]] : null
+                    const link = this.graph ? this.graph._links.get(output.links[j]) : null
                     this.onConnectionsChange?.(NodeSlotType.OUTPUT, i, true, link, output)
                 }
                 this.onOutputAdded?.(output)
@@ -404,11 +426,12 @@ export class LGraphNode {
         const o: ISerialisedNode = {
             id: this.id,
             type: this.type,
-            pos: this.pos,
-            size: this.size,
+            pos: [this.pos[0], this.pos[1]],
+            size: [this.size[0], this.size[1]],
             flags: LiteGraph.cloneObject(this.flags),
             order: this.order,
-            mode: this.mode
+            mode: this.mode,
+            showAdvanced: this.showAdvanced
         }
 
         //special case for when there were errors
@@ -549,7 +572,7 @@ export class LGraphNode {
         if (this.outputs[slot].links) {
             for (let i = 0; i < this.outputs[slot].links.length; i++) {
                 const link_id = this.outputs[slot].links[i]
-                const link = this.graph.links[link_id]
+                const link = this.graph._links.get(link_id)
                 if (link)
                     link.data = data
             }
@@ -573,7 +596,7 @@ export class LGraphNode {
         if (this.outputs[slot].links) {
             for (let i = 0; i < this.outputs[slot].links.length; i++) {
                 const link_id = this.outputs[slot].links[i]
-                this.graph.links[link_id].type = type
+                this.graph._links.get(link_id).type = type
             }
         }
     }
@@ -590,7 +613,7 @@ export class LGraphNode {
         if (slot >= this.inputs.length || this.inputs[slot].link == null) return
 
         const link_id = this.inputs[slot].link
-        const link: LLink = this.graph.links[link_id]
+        const link = this.graph._links.get(link_id)
         //bug: weird case but it happens sometimes
         if (!link) return null
 
@@ -619,7 +642,7 @@ export class LGraphNode {
 
         if (slot >= this.inputs.length || this.inputs[slot].link == null) return null
         const link_id = this.inputs[slot].link
-        const link = this.graph.links[link_id]
+        const link = this.graph._links.get(link_id)
         //bug: weird case but it happens sometimes
         if (!link) return null
 
@@ -675,7 +698,7 @@ export class LGraphNode {
         if (!this.inputs) return null
         if (slot < this.inputs.length) {
             const slot_info = this.inputs[slot]
-            return this.graph.links[slot_info.link]
+            return this.graph._links.get(slot_info.link)
         }
         return null
     }
@@ -692,7 +715,7 @@ export class LGraphNode {
         const input = this.inputs[slot]
         if (!input || input.link === null) return null
 
-        const link_info = this.graph.links[input.link]
+        const link_info = this.graph._links.get(input.link)
         if (!link_info) return null
 
         return this.graph.getNodeById(link_info.origin_id)
@@ -711,7 +734,7 @@ export class LGraphNode {
         for (let i = 0, l = this.inputs.length; i < l; ++i) {
             const input_info = this.inputs[i]
             if (name == input_info.name && input_info.link != null) {
-                const link = this.graph.links[input_info.link]
+                const link = this.graph._links.get(input_info.link)
                 if (link) return link.data
             }
         }
@@ -783,7 +806,7 @@ export class LGraphNode {
         const r: LGraphNode[] = []
         for (let i = 0; i < output.links.length; i++) {
             const link_id = output.links[i]
-            const link = this.graph.links[link_id]
+            const link = this.graph._links.get(link_id)
             if (link) {
                 const target_node = this.graph.getNodeById(link.target_id)
                 if (target_node) {
@@ -960,7 +983,7 @@ export class LGraphNode {
             //to skip links
             if (link_id != null && link_id != id) continue
 
-            const link_info = this.graph.links[links[k]]
+            const link_info = this.graph._links.get(id)
             //not connected
             if (!link_info) continue
 
@@ -1006,7 +1029,7 @@ export class LGraphNode {
             //to skip links
             if (link_id != null && link_id != id) continue
 
-            const link_info = this.graph.links[links[k]]
+            const link_info = this.graph._links.get(id)
             //not connected
             if (!link_info) continue
 
@@ -1110,7 +1133,7 @@ export class LGraphNode {
                 continue
             const links = this.outputs[i].links
             for (let j = 0; j < links.length; ++j) {
-                const link = this.graph.links[links[j]]
+                const link = this.graph._links.get(links[j])
                 if (!link) continue
 
                 link.origin_slot -= 1
@@ -1184,7 +1207,7 @@ export class LGraphNode {
         for (let i = slot; i < this.inputs.length; ++i) {
             if (!this.inputs[i]) continue
 
-            const link = this.graph.links[this.inputs[i].link]
+            const link = this.graph._links.get(this.inputs[i].link)
             if (!link) continue
 
             link.target_slot -= 1
@@ -1265,6 +1288,7 @@ export class LGraphNode {
         if (this.widgets?.length) {
             for (let i = 0, l = this.widgets.length; i < l; ++i) {
                 const widget = this.widgets[i]
+                if (widget.hidden || (widget.advanced && !this.showAdvanced)) continue;
 
                 widgets_height += widget.computeSize
                     ? widget.computeSize(size[0])[1] + 4
@@ -1412,9 +1436,17 @@ export class LGraphNode {
         return custom_widget
     }
 
+    move(deltaX: number, deltaY: number): void {
+        this.pos[0] += deltaX
+        this.pos[1] += deltaY
+    }
+
     /**
-     * Measures the node for rendering, populating {@link out} with the results in graph space.
-     * @param out Results (x, y, width, height) are inserted into this array.
+     * Internal method to measure the node for rendering.  Prefer {@link boundingRect} where possible.
+     * 
+     * Populates {@link out} with the results in graph space.
+     * Adjusts for title and collapsed status, but does not call {@link onBounding}.
+     * @param out `x, y, width, height` are written to this array.
      * @param pad Expands the area by this amount on each side.  Default: 0
      */
     measure(out: Rect, pad = 0): void {
@@ -1436,23 +1468,39 @@ export class LGraphNode {
     /**
      * returns the bounding of the object, used for rendering purposes
      * @param out {Float32Array[4]?} [optional] a place to store the output, to free garbage
-     * @param compute_outer {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
+     * @param includeExternal {boolean?} [optional] set to true to include the shadow and connection points in the bounding calculation
      * @return {Float32Array[4]} the bounding box in format of [topleft_cornerx, topleft_cornery, width, height]
      */
-    getBounding(out?: Float32Array, compute_outer?: boolean): Float32Array {
-        out = out || new Float32Array(4)
-        this.measure(out)
-        if (compute_outer) {
-            // 4 offset for collapsed node connection points
-            out[0] -= 4
-            out[1] -= 4
-            // Add shadow & left offset
-            out[2] += 6 + 4
-            // Add shadow & top offsets
-            out[3] += 5 + 4
-        }
-        this.onBounding?.(out)
+    getBounding(out?: Rect, includeExternal?: boolean): Rect {
+        out ||= new Float32Array(4)
+
+        const rect = includeExternal ? this.renderArea : this.boundingRect
+        out[0] = rect[0]
+        out[1] = rect[1]
+        out[2] = rect[2]
+        out[3] = rect[3]
+
         return out
+    }
+
+    /**
+     * Calculates the render area of this node, populating both {@link boundingRect} and {@link renderArea}.
+     * Called automatically at the start of every frame.
+     */
+    updateArea(): void {
+        const bounds = this.#boundingRect
+        this.measure(bounds)
+        this.onBounding?.(bounds)
+
+        const renderArea = this.#renderArea
+        renderArea.set(bounds)
+        // 4 offset for collapsed node connection points
+        renderArea[0] -= 4
+        renderArea[1] -= 4
+        // Add shadow & left offset
+        renderArea[2] += 6 + 4
+        // Add shadow & top offsets
+        renderArea[3] += 5 + 4
     }
 
     /**
@@ -1461,33 +1509,19 @@ export class LGraphNode {
      * @param {number} y
      * @return {boolean}
      */
-    isPointInside(x: number, y: number, margin?: number, skip_title?: boolean): boolean {
-        margin ||= 0
+    isPointInside(x: number, y: number): boolean {
+        return isXyInRectangle(x, y, this.boundingRect)
+    }
 
-        const margin_top = skip_title || this.graph?.isLive()
-            ? 0
-            : LiteGraph.NODE_TITLE_HEIGHT
-
-        if (this.flags.collapsed) {
-            //if ( distance([x,y], [this.pos[0] + this.size[0]*0.5, this.pos[1] + this.size[1]*0.5]) < LiteGraph.NODE_COLLAPSED_RADIUS)
-            if (isInsideRectangle(
-                x,
-                y,
-                this.pos[0] - margin,
-                this.pos[1] - LiteGraph.NODE_TITLE_HEIGHT - margin,
-                (this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH) +
-                2 * margin,
-                LiteGraph.NODE_TITLE_HEIGHT + 2 * margin
-            )) {
-                return true
-            }
-        } else if (this.pos[0] - 4 - margin < x &&
-            this.pos[0] + this.size[0] + 4 + margin > x &&
-            this.pos[1] - margin_top - margin < y &&
-            this.pos[1] + this.size[1] + margin > y) {
-            return true
-        }
-        return false
+    /**
+     * Checks if the provided point is inside this node's collapse button area.
+     * @param x X co-ordinate to check
+     * @param y Y co-ordinate to check
+     * @returns true if the x,y point is in the collapse button area, otherwise false
+     */
+    isPointInCollapse(x: number, y: number): boolean {
+        const squareLength = LiteGraph.NODE_TITLE_HEIGHT
+        return isInsideRectangle(x, y, this.pos[0], this.pos[1] - squareLength, squareLength, squareLength)
     }
 
     /**
@@ -1794,7 +1828,8 @@ export class LGraphNode {
         // Allow legacy API support for searching target_slot by string, without mutating the input variables
         let targetIndex: number
 
-        if (!this.graph) {
+        const graph = this.graph
+        if (!graph) {
             //could be connected before adding it to a graph
             //due to link ids being associated with graphs
             console.log("Connect: Error, node doesn't belong to any graph. Nodes must be added first to a graph before connecting them.")
@@ -1814,7 +1849,7 @@ export class LGraphNode {
         }
 
         if (target_node && typeof target_node === "number") {
-            target_node = this.graph.getNodeById(target_node)
+            target_node = graph.getNodeById(target_node)
         }
         if (!target_node) throw "target node is null"
 
@@ -1866,7 +1901,7 @@ export class LGraphNode {
         if (!LiteGraph.isValidConnection(output.type, input.type)) {
             this.setDirtyCanvas(false, true)
             // @ts-expect-error Unused param
-            if (changed) this.graph.connectionChange(this, link_info)
+            if (changed) graph.connectionChange(this, link_info)
             return null
         }
 
@@ -1878,22 +1913,22 @@ export class LGraphNode {
 
         //if there is something already plugged there, disconnect
         if (target_node.inputs[targetIndex]?.link != null) {
-            this.graph.beforeChange()
+            graph.beforeChange()
             target_node.disconnectInput(targetIndex)
             changed = true
         }
         if (output.links?.length) {
             if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
-                this.graph.beforeChange()
+                graph.beforeChange()
                 // @ts-expect-error Unused param
                 this.disconnectOutput(slot, false, { doProcessChange: false })
                 changed = true
             }
         }
 
-        const nextId = LiteGraph.use_uuids
-            ? LiteGraph.uuidv4()
-            : ++this.graph.last_link_id
+        // UUID: LinkIds
+        // const nextId = LiteGraph.use_uuids ? LiteGraph.uuidv4() : ++graph.last_link_id
+        const nextId = ++graph.last_link_id
 
         //create link class
         link_info = new LLink(
@@ -1906,14 +1941,14 @@ export class LGraphNode {
         )
 
         //add to graph links list
-        this.graph.links[link_info.id] = link_info
+        graph._links.set(link_info.id, link_info)
 
         //connect in output
         output.links ??= []
         output.links.push(link_info.id)
         //connect in input
         target_node.inputs[targetIndex].link = link_info.id
-        if (this.graph) this.graph._version++
+        graph._version++
 
         //link_info has been created now, so its updated
         this.onConnectionsChange?.(
@@ -1931,14 +1966,14 @@ export class LGraphNode {
             link_info,
             input
         )
-        this.graph?.onNodeConnectionChange?.(
+        graph.onNodeConnectionChange?.(
             NodeSlotType.INPUT,
             target_node,
             targetIndex,
             this,
             slot
         )
-        this.graph?.onNodeConnectionChange?.(
+        graph.onNodeConnectionChange?.(
             NodeSlotType.OUTPUT,
             this,
             slot,
@@ -1947,8 +1982,8 @@ export class LGraphNode {
         )
 
         this.setDirtyCanvas(false, true)
-        this.graph.afterChange()
-        this.graph.connectionChange(this)
+        graph.afterChange()
+        graph.connectionChange(this)
 
         return link_info
     }
@@ -1986,7 +2021,7 @@ export class LGraphNode {
 
             for (let i = 0, l = output.links.length; i < l; i++) {
                 const link_id = output.links[i]
-                const link_info = graph.links[link_id]
+                const link_info = graph._links.get(link_id)
 
                 //is the link we are searching for...
                 if (link_info.target_id == target_node.id) {
@@ -1994,8 +2029,9 @@ export class LGraphNode {
                     const input = target_node.inputs[link_info.target_slot]
                     input.link = null //remove there
 
-                    delete graph.links[link_id] //remove the link from the links pool //remove the link from the links pool
-                    if (graph) graph._version++
+                    //remove the link from the links pool
+                    graph._links.delete(link_id)
+                    graph._version++
 
                     //link_info hasn't been modified so its ok
                     target_node.onConnectionsChange?.(
@@ -2013,10 +2049,8 @@ export class LGraphNode {
                         output
                     )
 
-                    // FIXME: Called twice.
-                    graph?.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
-                    graph?.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
-                    graph?.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
+                    graph.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
+                    graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
                     break
                 }
             }
@@ -2024,12 +2058,12 @@ export class LGraphNode {
         else {
             for (let i = 0, l = output.links.length; i < l; i++) {
                 const link_id = output.links[i]
-                const link_info = graph.links[link_id]
+                const link_info = graph._links.get(link_id)
                 //bug: it happens sometimes
                 if (!link_info) continue
 
                 target_node = graph.getNodeById(link_info.target_id)
-                if (graph) graph._version++
+                graph._version++
 
                 if (target_node) {
                     const input = target_node.inputs[link_info.target_slot]
@@ -2044,11 +2078,9 @@ export class LGraphNode {
                         link_info,
                         input
                     )
-                    // FIXME: Called twice.
-                    graph?.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
                 }
                 //remove the link from the links pool
-                delete graph.links[link_id]
+                graph._links.delete(link_id)
 
                 this.onConnectionsChange?.(
                     NodeSlotType.OUTPUT,
@@ -2057,8 +2089,8 @@ export class LGraphNode {
                     link_info,
                     output
                 )
-                graph?.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
-                graph?.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
+                graph.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
+                graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
             }
             output.links = null
         }
@@ -2089,26 +2121,20 @@ export class LGraphNode {
         }
 
         const input = this.inputs[slot]
-        if (!input) {
-            return false
-        }
+        if (!input) return false
 
         const link_id = this.inputs[slot].link
         if (link_id != null) {
             this.inputs[slot].link = null
 
             //remove other side
-            const link_info = this.graph.links[link_id]
+            const link_info = this.graph._links.get(link_id)
             if (link_info) {
                 const target_node = this.graph.getNodeById(link_info.origin_id)
-                if (!target_node) {
-                    return false
-                }
+                if (!target_node) return false
 
                 const output = target_node.outputs[link_info.origin_slot]
-                if (!(output?.links?.length > 0)) {
-                    return false
-                }
+                if (!(output?.links?.length > 0)) return false
 
                 //search in the inputs list for this link
                 let i = 0
@@ -2119,7 +2145,7 @@ export class LGraphNode {
                     }
                 }
 
-                delete this.graph.links[link_id] //remove from the pool
+                this.graph._links.delete(link_id)
                 if (this.graph) this.graph._version++
 
                 this.onConnectionsChange?.(
@@ -2240,10 +2266,7 @@ export class LGraphNode {
 
     /* Forces to redraw or the main canvas (LGraphNode) or the bg canvas (links) */
     setDirtyCanvas(dirty_foreground: boolean, dirty_background?: boolean): void {
-        this.graph?.sendActionToCanvas("setDirty", [
-            dirty_foreground,
-            dirty_background
-        ])
+        this.graph?.canvasAction(c => c.setDirty(dirty_foreground, dirty_background))
     }
 
     loadImage(url: string): HTMLImageElement {
@@ -2288,12 +2311,26 @@ export class LGraphNode {
     }
 
     /**
-     * Collapse the node to make it smaller on the canvas
+     * Toggle node collapse (makes it smaller on the canvas)
      **/
     collapse(force?: boolean): void {
         if (!this.collapsible && !force) return
         this.graph._version++
         this.flags.collapsed = !this.flags.collapsed
+        this.setDirtyCanvas(true, true)
+    }
+
+    /**
+     * Toggles advanced mode of the node, showing advanced widgets
+     */
+    toggleAdvanced() {
+        if (!this.widgets?.some(w => w.advanced)) return
+        this.graph._version++
+        this.showAdvanced = !this.showAdvanced
+        const prefSize = this.computeSize()
+        if (this.size[0] < prefSize[0] || this.size[1] < prefSize[1]) {
+            this.setSize([Math.max(this.size[0], prefSize[0]), Math.max(this.size[1], prefSize[1])])
+        }
         this.setDirtyCanvas(true, true)
     }
 
@@ -2303,6 +2340,7 @@ export class LGraphNode {
 
     /**
      * Prevents the node being accidentally moved or resized by mouse interaction.
+     * Toggles pinned state if no value is provided.
      **/
     pin(v?: boolean): void {
         this.graph._version++
@@ -2314,6 +2352,10 @@ export class LGraphNode {
         // flags.pinned = false in serialized object.
         if (!this.pinned)
             delete this.flags.pinned
+    }
+
+    unpin(): void {
+        this.pin(false)
     }
 
     localToScreen(x: number, y: number, dragAndScale: DragAndScale): Point {
@@ -2343,5 +2385,33 @@ export class LGraphNode {
             badge.draw(ctx, currentX, y - badge.height)
             currentX += badge.getWidth(ctx) + gap
         }
+    }
+
+    /**
+     * Try auto-connect input to output without this node when possible
+     * (very basic, only takes into account first input-output)
+     *
+     * @returns true if connected, false otherwise
+     */
+    connectInputToOutput(): boolean {
+        if (
+            this.inputs?.length &&
+            this.outputs &&
+            this.outputs.length &&
+            LiteGraph.isValidConnection(this.inputs[0].type, this.outputs[0].type) &&
+            this.inputs[0].link &&
+            this.outputs[0].links &&
+            this.outputs[0].links.length
+        ) {
+            const input_link = this.graph._links.get(this.inputs[0].link)
+            const output_link = this.graph._links.get(this.outputs[0].links[0])
+            const input_node = this.getInputNode(0)
+            const output_node = this.getOutputNodes(0)[0]
+            if (input_node && output_node) {
+                input_node.connect(input_link.origin_slot, output_node, output_link.target_slot)
+                return true
+            }
+        }
+        return false
     }
 }

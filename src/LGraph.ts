@@ -1,11 +1,12 @@
 import type { Dictionary, IContextMenuValue, ISlotType, MethodNames, Point } from "./interfaces"
-import type { ISerialisedGraph } from "@/types/serialisation"
+import type { ISerialisedGraph } from "./types/serialisation"
 import { LGraphEventMode, TitleMode } from "./types/globalEnums"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { type NodeId, LGraphNode } from "./LGraphNode"
 import { type LinkId, LLink, type SerialisedLLinkArray } from "./LLink"
+import { MapProxyHandler } from "./MapProxyHandler"
 
 interface IGraphInput {
     name: string
@@ -21,10 +22,6 @@ type ParamsArray<T extends Record<any, any>, K extends MethodNames<T>> = Paramet
     + onNodeAdded: when a new node is added to the graph
     + onNodeRemoved: when a node inside this graph is removed
     + onNodeConnectionChange: some connection has changed in the graph (connected or disconnected)
- *
- * @class LGraph
- * @constructor
- * @param {Object} o data from previous serialization [optional]
  */
 
 export class LGraph {
@@ -34,17 +31,31 @@ export class LGraph {
     static STATUS_RUNNING = 2
 
     _version: number
-    links: Record<LinkId, LLink>
-    list_of_graphcanvas?: LGraphCanvas[]
+    /** The backing store for links.  Keys are wrapped in String() */
+    _links: Map<LinkId, LLink> = new Map()
+    /**
+     * Indexed property access is deprecated.
+     * Backwards compatibility with a Proxy has been added, but will eventually be removed.
+     * 
+     * Use {@link Map} methods:
+     * ```
+     * const linkId = 123
+     * const link = graph.links.get(linkId)
+     * // Deprecated: const link = graph.links[linkId]
+     * ```
+     */
+    links: Map<LinkId, LLink> & Record<LinkId, LLink>
+    list_of_graphcanvas: LGraphCanvas[] | null
     status: number
     last_node_id: number
     last_link_id: number
     /** The largest ID created by this graph */
     last_reroute_id: number
+    lastGroupId: number = -1
     _nodes: LGraphNode[]
     _nodes_by_id: Record<NodeId, LGraphNode>
     _nodes_in_order: LGraphNode[]
-    _nodes_executable: LGraphNode[]
+    _nodes_executable: LGraphNode[] | null
     _groups: LGraphGroup[]
     iteration: number
     globaltime: number
@@ -55,7 +66,7 @@ export class LGraph {
     last_update_time: number
     starttime: number
     catch_errors: boolean
-    execution_timer_id: number
+    execution_timer_id: number | null
     errors_in_execution: boolean
     execution_time: number
     _last_trigger_time?: number
@@ -87,8 +98,8 @@ export class LGraph {
     onOutputRenamed?(old_name: string, name: string): void
     onOutputTypeChanged?(name: string, type: string): void
     onOutputRemoved?(name: string): void
-    onBeforeChange?(graph: LGraph, info: LGraphNode): void
-    onAfterChange?(graph: LGraph, info: LGraphNode): void
+    onBeforeChange?(graph: LGraph, info?: LGraphNode): void
+    onAfterChange?(graph: LGraph, info?: LGraphNode): void
     onConnectionChange?(node: LGraphNode): void
     on_change?(graph: LGraph): void
     onSerialize?(data: ISerialisedGraph): void
@@ -98,14 +109,25 @@ export class LGraph {
 
     private _input_nodes?: LGraphNode[]
 
+    /**
+     * See {@link LGraph}
+     * @param o data from previous serialization [optional]
+     */
     constructor(o?: ISerialisedGraph) {
         if (LiteGraph.debug) console.log("Graph created")
+
+        /** @see MapProxyHandler */
+        const links = this._links
+        MapProxyHandler.bindAllMethods(links)
+        const handler = new MapProxyHandler<LLink>()
+        this.links = new Proxy(links, handler) as Map<LinkId, LLink> & Record<LinkId, LLink>
 
         this.list_of_graphcanvas = null
         this.clear()
 
         if (o) this.configure(o)
     }
+
     // TODO: Remove
     //used to know which types of connections support this graph (some graphs do not allow certain types)
     getSupportedTypes(): string[] {
@@ -140,9 +162,6 @@ export class LGraph {
         //other scene stuff
         this._groups = []
 
-        //links
-        this.links = {} //container with all the links
-
         //iterations
         this.iteration = 0
 
@@ -173,7 +192,7 @@ export class LGraph {
         //notify canvas to redraw
         this.change()
 
-        this.sendActionToCanvas("clear")
+        this.canvasAction(c => c.clear())
     }
 
     get nodes() {
@@ -360,11 +379,11 @@ export class LGraph {
     }
     //This is more internal, it computes the executable nodes in order and returns it
     computeExecutionOrder(only_onExecute: boolean, set_level?: boolean): LGraphNode[] {
-        let L: LGraphNode[] = []
+        const L: LGraphNode[] = []
         const S: LGraphNode[] = []
         const M: Dictionary<LGraphNode> = {}
-        const visited_links: Record<number, boolean> = {} //to avoid repeating links
-        const remaining_links: Record<number, number> = {} //to a
+        const visited_links: Record<NodeId, boolean> = {} //to avoid repeating links
+        const remaining_links: Record<NodeId, number> = {} //to a
 
         //search for the nodes without inputs (starting nodes)
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
@@ -396,10 +415,10 @@ export class LGraph {
         }
 
         while (true) {
-            if (S.length == 0) break
-
             //get an starting node
             const node = S.shift()
+            if (node === undefined) break
+
             L.push(node) //add to ordered list
             delete M[node.id] //remove from the pending nodes
 
@@ -416,7 +435,7 @@ export class LGraph {
                 //for every connection
                 for (let j = 0; j < output.links.length; j++) {
                     const link_id = output.links[j]
-                    const link = this.links[link_id]
+                    const link = this._links.get(link_id)
                     if (!link) continue
 
                     //already visited link (ignore it)
@@ -453,13 +472,22 @@ export class LGraph {
 
         const l = L.length
 
-        //save order number in the node
-        for (let i = 0; i < l; ++i) {
-            L[i].order = i
+        /** Ensure type is set */
+        type OrderedLGraphNode = LGraphNode & { order: number }
+
+        /** Sets the order property of each provided node to its index in {@link nodes}. */
+        function setOrder(nodes: LGraphNode[]): asserts nodes is OrderedLGraphNode[] {
+            const l = nodes.length
+            for (let i = 0; i < l; ++i) {
+                nodes[i].order = i
+            }
         }
 
+        //save order number in the node
+        setOrder(L)
+
         //sort now by priority
-        L = L.sort(function (A, B) {
+        L.sort(function (A, B) {
             // @ts-expect-error ctor props
             const Ap = A.constructor.priority || A.priority || 0
             // @ts-expect-error ctor props
@@ -472,9 +500,7 @@ export class LGraph {
         })
 
         //save order number in the node, again...
-        for (let i = 0; i < l; ++i) {
-            L[i].order = i
-        }
+        setOrder(L)
 
         return L
     }
@@ -490,7 +516,7 @@ export class LGraph {
 
         while (pending.length) {
             const current = pending.shift()
-            if (!current.inputs) continue
+            if (!current?.inputs) continue
 
             if (!visited[current.id] && current != node) {
                 visited[current.id] = true
@@ -517,7 +543,7 @@ export class LGraph {
         margin = margin || 100
 
         const nodes = this.computeExecutionOrder(false, true)
-        const columns = []
+        const columns: LGraphNode[][] = []
         for (let i = 0; i < nodes.length; ++i) {
             const node = nodes[i]
             const col = node._level || 1
@@ -604,6 +630,16 @@ export class LGraph {
             }
         }
     }
+
+    /**
+     * Runs an action on every canvas registered to this graph.
+     * @param action Action to run for every canvas
+     */
+    canvasAction(action: (canvas: LGraphCanvas) => void): void {
+        this.list_of_graphcanvas?.forEach(action)
+    }
+
+    /** @deprecated See {@link LGraph.canvasAction} */
     sendActionToCanvas<T extends MethodNames<LGraphCanvas>>(action: T, params?: ParamsArray<LGraphCanvas, T>): void {
         if (!this.list_of_graphcanvas) return
 
@@ -616,12 +652,16 @@ export class LGraph {
      * Adds a new node instance to this graph
      * @param {LGraphNode} node the instance of the node
      */
-    add(node: LGraphNode | LGraphGroup, skip_compute_order?: boolean): LGraphNode | null {
+    add(node: LGraphNode | LGraphGroup, skip_compute_order?: boolean): LGraphNode | null | undefined {
         if (!node) return
 
         // LEGACY: This was changed from constructor === LGraphGroup
         //groups
         if (node instanceof LGraphGroup) {
+            // Assign group ID
+            if (node.id == null || node.id === -1) node.id = ++this.lastGroupId
+            if (node.id > this.lastGroupId) this.lastGroupId = node.id
+
             this._groups.push(node)
             this.setDirtyCanvas(true)
             this.change()
@@ -746,7 +786,7 @@ export class LGraph {
         this.onNodeRemoved?.(node)
 
         //close panels
-        this.sendActionToCanvas("checkPanels")
+        this.canvasAction(c => c.checkPanels())
 
         this.setDirtyCanvas(true, true)
         this.afterChange() //sure? - almost sure is wrong
@@ -769,7 +809,7 @@ export class LGraph {
      * @return {Array} a list with all the nodes of this type
      */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    findNodesByClass(classObject: Function, result: LGraphNode[]): LGraphNode[] {
+    findNodesByClass(classObject: Function, result?: LGraphNode[]): LGraphNode[] {
         result = result || []
         result.length = 0
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
@@ -788,7 +828,7 @@ export class LGraph {
         result = result || []
         result.length = 0
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
-            if (this._nodes[i].type.toLowerCase() == matchType)
+            if (this._nodes[i].type?.toLowerCase() == matchType)
                 result.push(this._nodes[i])
         }
         return result
@@ -798,7 +838,7 @@ export class LGraph {
      * @param {String} name the name of the node to search
      * @return {Node} the node or null
      */
-    findNodeByTitle(title: string): LGraphNode {
+    findNodeByTitle(title: string): LGraphNode | null {
         for (let i = 0, l = this._nodes.length; i < l; ++i) {
             if (this._nodes[i].title == title)
                 return this._nodes[i]
@@ -822,25 +862,17 @@ export class LGraph {
      * Returns the top-most node in this position of the canvas
      * @param {number} x the x coordinate in canvas space
      * @param {number} y the y coordinate in canvas space
-     * @param {Array} nodes_list a list with all the nodes to search from, by default is all the nodes in the graph
+     * @param {Array} nodeList a list with all the nodes to search from, by default is all the nodes in the graph
      * @return {LGraphNode} the node at this position or null
      */
-    getNodeOnPos(x: number, y: number, nodes_list?: LGraphNode[], margin?: number): LGraphNode {
-        nodes_list = nodes_list || this._nodes
-        const nRet = null
-        for (let i = nodes_list.length - 1; i >= 0; i--) {
-            const n = nodes_list[i]
-            const skip_title = n.constructor.title_mode == TitleMode.NO_TITLE
-            if (n.isPointInside(x, y, margin, skip_title)) {
-                // check for lesser interest nodes (TODO check for overlapping, use the top)
-                /*if (typeof n == "LGraphGroup"){
-                    nRet = n;
-                }else{*/
-                return n
-                /*}*/
-            }
+    getNodeOnPos(x: number, y: number, nodeList?: LGraphNode[]): LGraphNode | null {
+        const nodes = nodeList || this._nodes
+        let i = nodes.length
+        while (--i >= 0) {
+            const node = nodes[i]
+            if (node.isPointInside(x, y)) return node
         }
-        return nRet
+        return null
     }
     /**
      * Returns the top-most group in that position
@@ -848,8 +880,8 @@ export class LGraph {
      * @param y The y coordinate in canvas space
      * @return The group or null
      */
-    getGroupOnPos(x: number, y: number, { margin = 2 } = {}): LGraphGroup | undefined {
-        return this._groups.toReversed().find(g => g.isPointInside(x, y, margin, true))
+    getGroupOnPos(x: number, y: number): LGraphGroup | undefined {
+        return this._groups.toReversed().find(g => g.isPointInside(x, y))
     }
 
     /**
@@ -938,7 +970,7 @@ export class LGraph {
      * @param {String} old_name
      * @param {String} new_name
      */
-    renameInput(old_name: string, name: string): boolean {
+    renameInput(old_name: string, name: string): boolean | undefined {
         if (name == old_name) return
 
         if (!this.inputs[old_name]) return false
@@ -960,7 +992,7 @@ export class LGraph {
      * @param {String} name
      * @param {String} type
      */
-    changeInputType(name: string, type: string): boolean {
+    changeInputType(name: string, type: string): boolean | undefined {
         if (!this.inputs[name]) return false
 
         if (this.inputs[name].type &&
@@ -1027,7 +1059,7 @@ export class LGraph {
      * @param {String} old_name
      * @param {String} new_name
      */
-    renameOutput(old_name: string, name: string): boolean {
+    renameOutput(old_name: string, name: string): boolean | undefined {
         if (!this.outputs[old_name]) return false
 
         if (this.outputs[name]) {
@@ -1048,7 +1080,7 @@ export class LGraph {
      * @param {String} name
      * @param {String} type
      */
-    changeOutputType(name: string, type: string): boolean {
+    changeOutputType(name: string, type: string): boolean | undefined {
         if (!this.outputs[name]) return false
 
         if (this.outputs[name].type &&
@@ -1095,12 +1127,12 @@ export class LGraph {
     //used for undo, called before any change is made to the graph
     beforeChange(info?: LGraphNode): void {
         this.onBeforeChange?.(this, info)
-        this.sendActionToCanvas("onBeforeChange", this)
+        this.canvasAction(c => c.onBeforeChange?.(this))
     }
     //used to resend actions, called after any change is made to the graph
     afterChange(info?: LGraphNode): void {
         this.onAfterChange?.(this, info)
-        this.sendActionToCanvas("onAfterChange", this)
+        this.canvasAction(c => c.onAfterChange?.(this))
     }
     connectionChange(node: LGraphNode): void {
         this.updateExecutionOrder()
@@ -1108,7 +1140,7 @@ export class LGraph {
         this._version++
         // TODO: Interface never implemented - any consumers?
         // @ts-expect-error
-        this.sendActionToCanvas("onConnectionChange")
+        this.canvasAction(c => c.onConnectionChange?.())
     }
     /**
      * returns if the graph is in live mode
@@ -1126,8 +1158,7 @@ export class LGraph {
      * clears the triggered slot animation in all links (stop visual animation)
      */
     clearTriggeredSlots(): void {
-        for (const i in this.links) {
-            const link_info = this.links[i]
+        for (const link_info of this._links.values()) {
             if (!link_info) continue
 
             if (link_info._last_time)
@@ -1139,18 +1170,18 @@ export class LGraph {
         if (LiteGraph.debug) {
             console.log("Graph changed")
         }
-        this.sendActionToCanvas("setDirty", [true, true])
+        this.canvasAction(c => c.setDirty(true, true))
         this.on_change?.(this)
     }
     setDirtyCanvas(fg: boolean, bg?: boolean): void {
-        this.sendActionToCanvas("setDirty", [fg, bg])
+        this.canvasAction(c => c.setDirty(fg, bg))
     }
     /**
      * Destroys a link
      * @param {Number} link_id
      */
     removeLink(link_id: LinkId): void {
-        const link = this.links[link_id]
+        const link = this._links.get(link_id)
         if (!link) return
 
         const node = this.getNodeById(link.target_id)
@@ -1170,22 +1201,7 @@ export class LGraph {
 
         //pack link info into a non-verbose format
         const links: SerialisedLLinkArray[] = []
-        for (const linkId in this.links) {
-            let link = this.links[linkId]
-            if (!link.serialize) {
-                //weird bug I havent solved yet
-                console.warn(
-                    "weird LLink bug, link info is not a LLink but a regular object"
-                )
-                // @ts-expect-error Refactor this shallow copy or add static factory
-                const link2 = new LLink()
-                for (const j in link) {
-                    link2[j] = link[j]
-                }
-                this.links[linkId] = link2
-                link = link2
-            }
-
+        for (const link of this._links.values()) {
             links.push(link.serialize())
         }
 
@@ -1213,7 +1229,7 @@ export class LGraph {
      * @param {String} str configure a graph from a JSON string
      * @param {Boolean} returns if there was any error parsing
      */
-    configure(data: ISerialisedGraph, keep_old?: boolean): boolean {
+    configure(data: ISerialisedGraph, keep_old?: boolean): boolean | undefined {
         // TODO: Finish typing configure()
         if (!data) return
 
@@ -1224,25 +1240,17 @@ export class LGraph {
         // LEGACY: This was changed from constructor === Array
         //decode links info (they are very verbose)
         if (Array.isArray(data.links)) {
-            const links: LLink[] = []
+            this._links.clear()
             for (const link_data of data.links) {
-                //weird bug
-                if (!link_data) {
-                    console.warn("serialized graph link data contains errors, skipping.")
-                    continue
-                }
-                // @ts-expect-error Refactor this shallow copy or add static factory
-                const link = new LLink()
-                link.configure(link_data)
-                links[link.id] = link
+                const link = LLink.createFromArray(link_data)
+                this._links.set(link.id, link)
             }
-            data.links = links
         }
 
         //copy all stored fields
         for (const i in data) {
             //links must be accepted
-            if (i == "nodes" || i == "groups")
+            if (i == "nodes" || i == "groups" || i == "links")
                 continue
             this[i] = data[i]
         }

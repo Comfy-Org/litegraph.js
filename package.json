@@ -1,6 +1,6 @@
 {
   "name": "@comfyorg/litegraph",
-  "version": "0.8.13",
+  "version": "0.8.19",
   "type": "module",
   "description": "A graph node editor similar to PD or UDK Blueprints. It works in an HTML5 Canvas and allows to export graphs to be included in applications.",
   "main": "./dist/litegraph.umd.js",
@@ -23,6 +23,8 @@
     "build": "tsc && vite build",
     "dev": "vite",
     "preview": "vite preview",
+    "watch": "vite build --watch",
+    "release": "node scripts/release.js",
     "test": "jest",
     "deprecated-test:allVersions": "./utils/test.sh",
     "deprecated-prettier": "npx prettier --write src/**/*.* css/**/*.*",

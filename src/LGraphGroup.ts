@@ -1,9 +1,9 @@
-import type { IContextMenuValue, Point, Size } from "./interfaces"
+import type { IContextMenuValue, IPinnable, Point, Positionable, Size } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { isInsideRectangle, overlapBounding } from "./measure"
+import { isInsideRectangle, containsCentre, containsRect } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { RenderShape, TitleMode } from "./types/globalEnums"
 
@@ -11,35 +11,35 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
     pinned?: true
 }
 
-export class LGraphGroup {
+export class LGraphGroup implements Positionable, IPinnable {
+    static minWidth = 140
+    static minHeight = 80
+    static resizeLength = 10
+    static padding = 4
+    static defaultColour = '#335'
+
+    id: number
     color: string
     title: string
     font?: string
-    font_size: number
-    _bounding: Float32Array
-    _pos: Point
-    _size: Size
-    _nodes: LGraphNode[]
-    graph?: LGraph
-    flags: IGraphGroupFlags
+    font_size: number = LiteGraph.DEFAULT_GROUP_FONT || 24
+    _bounding: Float32Array = new Float32Array([10, 10, LGraphGroup.minWidth, LGraphGroup.minHeight])
+    _pos: Point = this._bounding.subarray(0, 2)
+    _size: Size = this._bounding.subarray(2, 4)
+    /** @deprecated See {@link _children} */
+    _nodes: LGraphNode[] = []
+    _children: Set<Positionable> = new Set()
+    graph: LGraph | null = null
+    flags: IGraphGroupFlags = {}
     selected?: boolean
 
-    constructor(title?: string) {
-        this._ctor(title)
-    }
-
-    _ctor(title?: string): void {
+    constructor(title?: string, id?: number) {
+        // TODO: Object instantiation pattern requires too much boilerplate and null checking.  ID should be passed in via constructor.
+        this.id = id ?? -1
         this.title = title || "Group"
-        this.font_size = LiteGraph.DEFAULT_GROUP_FONT || 24
         this.color = LGraphCanvas.node_colors.pale_blue
             ? LGraphCanvas.node_colors.pale_blue.groupcolor
             : "#AAA"
-        this._bounding = new Float32Array([10, 10, 140, 80])
-        this._pos = this._bounding.subarray(0, 2)
-        this._size = this._bounding.subarray(2, 4)
-        this._nodes = []
-        this.graph = null
-        this.flags = {}
     }
 
     /** Position of the group, as x,y co-ordinates in graph space */
@@ -60,8 +60,13 @@ export class LGraphGroup {
     set size(v) {
         if (!v || v.length < 2) return
 
-        this._size[0] = Math.max(140, v[0])
-        this._size[1] = Math.max(80, v[1])
+        this._size[0] = Math.max(LGraphGroup.minWidth, v[0])
+        this._size[1] = Math.max(LGraphGroup.minHeight, v[1])
+    }
+
+
+    get boundingRect() {
+        return this._bounding
     }
 
     get nodes() {
@@ -72,19 +77,31 @@ export class LGraphGroup {
         return this.font_size * 1.4
     }
 
+    get children(): ReadonlySet<Positionable> {
+        return this._children
+    }
+
     get pinned() {
         return !!this.flags.pinned
     }
 
-    pin(): void {
-        this.flags.pinned = true
+    /**
+     * Prevents the group being accidentally moved or resized by mouse interaction.
+     * Toggles pinned state if no value is provided.
+     **/
+    pin(value?: boolean): void {
+        const newState = value === undefined ? !this.pinned : value
+
+        if (newState) this.flags.pinned = true
+        else delete this.flags.pinned
     }
 
     unpin(): void {
-        delete this.flags.pinned
+        this.pin(false)
     }
 
     configure(o: ISerialisedGroup): void {
+        this.id = o.id
         this.title = o.title
         this._bounding.set(o.bounding)
         this.color = o.color
@@ -95,13 +112,9 @@ export class LGraphGroup {
     serialize(): ISerialisedGroup {
         const b = this._bounding
         return {
+            id: this.id,
             title: this.title,
-            bounding: [
-                Math.round(b[0]),
-                Math.round(b[1]),
-                Math.round(b[2]),
-                Math.round(b[3])
-            ],
+            bounding: [...b],
             color: this.color,
             font_size: this.font_size,
             flags: this.flags,
@@ -114,26 +127,37 @@ export class LGraphGroup {
      * @param {CanvasRenderingContext2D} ctx
      */
     draw(graphCanvas: LGraphCanvas, ctx: CanvasRenderingContext2D): void {
-        const padding = 4
+        const { padding, resizeLength, defaultColour } = LGraphGroup
+        const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
 
-        ctx.fillStyle = this.color
-        ctx.strokeStyle = this.color
         const [x, y] = this._pos
         const [width, height] = this._size
+
+        // Titlebar
         ctx.globalAlpha = 0.25 * graphCanvas.editor_alpha
+        ctx.fillStyle = this.color || defaultColour
+        ctx.strokeStyle = this.color || defaultColour
+        ctx.beginPath()
+        ctx.rect(x + 0.5, y + 0.5, width, font_size * 1.4)
+        ctx.fill()
+
+        // Group background, border
+        ctx.fillStyle = this.color
+        ctx.strokeStyle = this.color
         ctx.beginPath()
         ctx.rect(x + 0.5, y + 0.5, width, height)
         ctx.fill()
         ctx.globalAlpha = graphCanvas.editor_alpha
         ctx.stroke()
 
+        // Resize marker
         ctx.beginPath()
         ctx.moveTo(x + width, y + height)
-        ctx.lineTo(x + width - 10, y + height)
-        ctx.lineTo(x + width, y + height - 10)
+        ctx.lineTo(x + width - resizeLength, y + height)
+        ctx.lineTo(x + width, y + height - resizeLength)
         ctx.fill()
 
-        const font_size = this.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
+        // Title
         ctx.font = font_size + "px Arial"
         ctx.textAlign = "left"
         ctx.fillText(this.title + (this.pinned ? "📌" : ""), x + padding, y + font_size)
@@ -149,41 +173,77 @@ export class LGraphGroup {
         }
     }
 
-    resize(width: number, height: number): void {
-        if (this.pinned) return
+    resize(width: number, height: number): boolean {
+        if (this.pinned) return false
 
-        this._size[0] = width
-        this._size[1] = height
+        this._size[0] = Math.max(LGraphGroup.minWidth, width)
+        this._size[1] = Math.max(LGraphGroup.minHeight, height)
+        return true
     }
 
-    move(deltax: number, deltay: number, ignore_nodes = false): void {
+    move(deltaX: number, deltaY: number, skipChildren: boolean = false): void {
         if (this.pinned) return
 
-        this._pos[0] += deltax
-        this._pos[1] += deltay
-        if (ignore_nodes) return
+        this._pos[0] += deltaX
+        this._pos[1] += deltaY
+        if (skipChildren === true) return
 
-        for (let i = 0; i < this._nodes.length; ++i) {
-            const node = this._nodes[i]
-            node.pos[0] += deltax
-            node.pos[1] += deltay
+        for (const item of this._children) {
+            item.move(deltaX, deltaY)
         }
     }
 
     recomputeInsideNodes(): void {
-        this._nodes.length = 0
-        const nodes = this.graph._nodes
+        const { nodes, groups } = this.graph
+        const children = this._children
         const node_bounding = new Float32Array(4)
+        this._nodes.length = 0
+        children.clear()
 
-        for (let i = 0; i < nodes.length; ++i) {
-            const node = nodes[i]
+        // move any nodes we partially overlap
+        for (const node of nodes) {
             node.getBounding(node_bounding)
-            //out of the visible area
-            if (!overlapBounding(this._bounding, node_bounding))
-                continue
-
-            this._nodes.push(node)
+            if (containsCentre(this._bounding, node_bounding)) {
+                this._nodes.push(node)
+                children.add(node)
+            }
         }
+
+        for (const group of groups) {
+            if (containsRect(this._bounding, group._bounding))
+                children.add(group)
+        }
+
+        groups.sort((a, b) => {
+            if (a === this) {
+                return children.has(b) ? -1 : 0
+            } else if (b === this) {
+                return children.has(a) ? 1 : 0
+            }
+        })
+    }
+
+    /**
+     * Resizes and moves the group to neatly fit all given {@link objects}.
+     * @param objects All objects that should be inside the group
+     * @param padding Value in graph units to add to all sides of the group.  Default: 10
+     */
+    resizeTo(objects: Iterable<Positionable>, padding: number = 10): void {
+        const bounds = new Float32Array([Infinity, Infinity, -Infinity, -Infinity])
+
+        for (const obj of objects) {
+            const rect = obj.boundingRect
+            bounds[0] = Math.min(bounds[0], rect[0])
+            bounds[1] = Math.min(bounds[1], rect[1])
+            bounds[2] = Math.max(bounds[2], rect[0] + rect[2])
+            bounds[3] = Math.max(bounds[3], rect[1] + rect[3])
+        }
+        if (!bounds.every(x => isFinite(x))) return
+
+        this.pos[0] = bounds[0] - padding
+        this.pos[1] = bounds[1] - padding - this.titleHeight
+        this.size[0] = bounds[2] - bounds[0] + (2 * padding)
+        this.size[1] = bounds[3] - bounds[1] + (2 * padding) + this.titleHeight
     }
 
     /**
@@ -194,36 +254,7 @@ export class LGraphGroup {
      */
     addNodes(nodes: LGraphNode[], padding: number = 10): void {
         if (!this._nodes && nodes.length === 0) return
-
-        const allNodes = [...(this._nodes || []), ...nodes]
-
-        const bounds = allNodes.reduce((acc, node) => {
-            const [x, y] = node.pos
-            const [width, height] = node.size
-            const isReroute = node.type === "Reroute"
-            const isCollapsed = node.flags?.collapsed
-
-            const top = y - (isReroute ? 0 : LiteGraph.NODE_TITLE_HEIGHT)
-            const bottom = isCollapsed ? top + LiteGraph.NODE_TITLE_HEIGHT : y + height
-            const right = isCollapsed && node._collapsed_width ? x + Math.round(node._collapsed_width) : x + width
-
-            return {
-                left: Math.min(acc.left, x),
-                top: Math.min(acc.top, top),
-                right: Math.max(acc.right, right),
-                bottom: Math.max(acc.bottom, bottom)
-            }
-        }, { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity })
-
-        this.pos = [
-            bounds.left - padding,
-            bounds.top - padding - this.titleHeight
-        ]
-
-        this.size = [
-            bounds.right - bounds.left + padding * 2,
-            bounds.bottom - bounds.top + padding * 2 + this.titleHeight
-        ]
+        this.resizeTo([...this.children, ...this._nodes, ...nodes], padding)
     }
 
     getMenuOptions(): IContextMenuValue[] {
@@ -257,6 +288,16 @@ export class LGraphGroup {
     isPointInTitlebar(x: number, y: number): boolean {
         const b = this._bounding
         return isInsideRectangle(x, y, b[0], b[1], b[2], this.titleHeight)
+    }
+
+    isInResize(x: number, y: number): boolean {
+        const b = this._bounding
+        const right = b[0] + b[2]
+        const bottom = b[1] + b[3]
+
+        return x < right
+            && y < bottom
+            && (x - right) + (y - bottom) > -LGraphGroup.resizeLength
     }
 
     isPointInside = LGraphNode.prototype.isPointInside
