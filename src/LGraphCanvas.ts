@@ -2668,7 +2668,7 @@ export class LGraphCanvas {
                 this.node_dragged = null
             } //no node being dragged
             else {
-                if (e.click_time < 300 && !this.graph.groups.some(x => x.isPointInTitlebar(e.canvasX, e.canvasY))) {
+                if (!node && e.click_time < 300 && !this.graph.groups.some(x => x.isPointInTitlebar(e.canvasX, e.canvasY))) {
                     this.deselectAll()
                 }
 
