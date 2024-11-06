@@ -301,6 +301,7 @@ export class LGraphCanvas {
     /** @deprecated See {@link LGraphCanvas.selectedItems} */
     selected_group: LGraphGroup | null = null
     visible_nodes: LGraphNode[] = []
+    /** @deprecated Does not handle multi-node move, and can return the wrong node.  See {@link LGraphCanvas.selectedItems}. */
     node_dragged?: LGraphNode
     node_over?: LGraphNode
     node_capturing_input?: LGraphNode
@@ -371,7 +372,7 @@ export class LGraphCanvas {
     /** called after modifying the graph */
     onAfterChange?(graph: LGraph): void
     onClear?: () => void
-    /** called after moving a node */
+    /** called after moving a node @deprecated Does not handle multi-node move, and can return the wrong node. */
     onNodeMoved?: (node_dragged: LGraphNode) => void
     /** called if the selection changes */
     onSelectionChange?: (selected_nodes: Dictionary<LGraphNode>) => void
@@ -2557,6 +2558,18 @@ export class LGraphCanvas {
             //left button
             this.node_widget = null
             this.selected_group = null
+
+            if (this.isDragging && LiteGraph.always_round_positions) {
+                const selected = this.selectedItems
+                const allItems = getAllNestedItems(selected)
+
+                allItems.forEach(x => {
+                    x.pos[0] = Math.round(x.pos[0])
+                    x.pos[1] = Math.round(x.pos[1])
+                })
+                this.dirty_canvas = true
+                this.dirty_bgcanvas = true
+            }
             this.isDragging = false
 
             const node = this.graph.getNodeOnPos(
