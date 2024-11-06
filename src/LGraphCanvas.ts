@@ -208,7 +208,7 @@ export class LGraphCanvas {
 
     options: { skip_events?: any; viewport?: any; skip_render?: any; autoresize?: any }
     background_image: string
-    ds: DragAndScale
+    readonly ds: DragAndScale
     zoom_modify_alpha: boolean
     zoom_speed: number
     node_title_color: string
@@ -258,9 +258,9 @@ export class LGraphCanvas {
     linkMarkerShape: LinkMarkerShape = LinkMarkerShape.Circle
     links_render_mode: number
     /** mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle */
-    mouse: Point
+    readonly mouse: Point
     /** mouse in graph coordinates, where 0,0 is the top-left corner of the blue rectangle */
-    graph_mouse: Point
+    readonly graph_mouse: Point
     /** @deprecated LEGACY: REMOVE THIS, USE {@link graph_mouse} INSTEAD */
     canvas_mouse: Point
     /** to personalize the search box */
@@ -277,14 +277,17 @@ export class LGraphCanvas {
     current_node: LGraphNode | null
     /** used for widgets */
     node_widget?: [LGraphNode, IWidget] | null
+    /** The link to draw a tooltip for. */
     over_link_center: LinkSegment | null
     last_mouse_position: Point
+    /** The visible area of this canvas.  Tightly coupled with {@link ds}. */
     visible_area?: Rect32
     /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
     renderedPaths: Set<LinkSegment> = new Set()
     visible_links?: LLink[]
     connecting_links: ConnectingLink[] | null
-    viewport?: Rect
+    /** The viewport of this canvas.  Tightly coupled with {@link ds}. */
+    readonly viewport?: Rect
     autoresize: boolean
     static active_canvas: LGraphCanvas
     static onMenuNodeOutputs?(entries: IOptionalSlotData<INodeOutputSlot>[]): IOptionalSlotData<INodeOutputSlot>[]
@@ -316,7 +319,7 @@ export class LGraphCanvas {
     dirty_area?: Rect
     /** @deprecated Unused */
     node_in_panel?: LGraphNode
-    last_mouse: Point = [0, 0]
+    last_mouse: ReadOnlyPoint = [0, 0]
     last_mouseclick: number = 0
     pointer_is_down: boolean = false
     pointer_is_double: boolean = false
@@ -1603,11 +1606,12 @@ export class LGraphCanvas {
     */
     }
     /**
-     * marks as dirty the canvas, this way it will be rendered again
+     * Ensures the canvas will be redrawn on the next frame by setting the dirty flag(s).
+     * Without parameters, this function does nothing.
+     * @todo Impl. `setDirty()` or similar as shorthand to redraw everything.
      *
-     * @class LGraphCanvas
-     * @param {bool} fgcanvas if the foreground canvas is dirty (the one containing the nodes)
-     * @param {bool} bgcanvas if the background canvas is dirty (the one containing the wires)
+     * @param fgcanvas If true, marks the foreground canvas as dirty (nodes and anything drawn on top of them).  Default: false
+     * @param bgcanvas If true, mark the background canvas as dirty (background, groups, links).  Default: false
      */
     setDirty(fgcanvas: boolean, bgcanvas?: boolean): void {
         if (fgcanvas) this.dirty_canvas = true
@@ -2310,7 +2314,7 @@ export class LGraphCanvas {
 
         LGraphCanvas.active_canvas = this
         this.adjustMouseEvent(e)
-        const mouse: Point = [e.clientX, e.clientY]
+        const mouse: ReadOnlyPoint = [e.clientX, e.clientY]
         this.mouse[0] = mouse[0]
         this.mouse[1] = mouse[1]
         const delta = [
@@ -3875,7 +3879,7 @@ export class LGraphCanvas {
     }
 
     /** Get the target snap / highlight point in graph space */
-    #getHighlightPosition(): Point {
+    #getHighlightPosition(): ReadOnlyPoint {
         return LiteGraph.snaps_for_comfy
             ? this._highlight_pos ?? this.graph_mouse
             : this.graph_mouse
@@ -3886,7 +3890,7 @@ export class LGraphCanvas {
      * Partial border over target node and a highlight over the slot itself.
      * @param ctx Canvas 2D context
      */
-    #renderSnapHighlight(ctx: CanvasRenderingContext2D, highlightPos: Point): void {
+    #renderSnapHighlight(ctx: CanvasRenderingContext2D, highlightPos: ReadOnlyPoint): void {
         if (!this._highlight_pos) return
 
         ctx.fillStyle = "#ffcc00"
