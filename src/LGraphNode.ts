@@ -2404,29 +2404,47 @@ export class LGraphNode implements Positionable, IPinnable {
         const { _links } = graph
         let madeAnyConnections = false
 
-        // First pass: match 1-to-1
+        // First pass: only match exactly index-to-index
         for (const [index, input] of inputs.entries()) {
             const output = outputs[index]
             if (!output || !LiteGraph.isValidConnection(input.type, output.type)) continue
 
             const inLink = _links.get(input.link)
+            const inNode = graph.getNodeById(inLink?.origin_id)
+            if (!inNode) continue
+
+            bypassAllLinks(output, inNode, inLink)
+        }
+
+        // Second pass: match any remaining links
+        for (const input of inputs) {
+            const inLink = _links.get(input.link)
+            const inNode = graph.getNodeById(inLink?.origin_id)
+            if (!inNode) continue
+
+            for (const output of outputs) {
+                if (!LiteGraph.isValidConnection(input.type, output.type)) continue
+
+                bypassAllLinks(output, inNode, inLink)
+                break
+            }
+        }
+        return madeAnyConnections
+
+        function bypassAllLinks(output: INodeOutputSlot, inNode: LGraphNode, inLink: LLink) {
             const outLinks = output.links
                 ?.map(x => _links.get(x))
                 .filter(x => !!x)
-            if (!inLink || !outLinks.length) continue
-
-            const inNode = graph.getNodeById(inLink.origin_id)
-            if (!inNode) continue
+            if (!outLinks?.length) return
 
             for (const outLink of outLinks) {
                 const outNode = graph.getNodeById(outLink.target_id)
-                if (!outNode) continue
+                if (!outNode) return
 
                 // TODO: Add 4th param (afterRerouteId: inLink.parentId) when reroutes are merged.
                 const result = inNode.connect(inLink.origin_slot, outNode, outLink.target_slot)
                 madeAnyConnections ||= !!result
             }
         }
-        return madeAnyConnections
     }
 }
