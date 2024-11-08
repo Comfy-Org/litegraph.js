@@ -121,6 +121,9 @@ export class LGraphNode implements Positionable, IPinnable {
     static filter?: string
     static skip_list?: boolean
 
+    /** Default setting for {@link LGraphNode.connectInputToOutput}. @see {@link INodeFlags.keepAllLinksOnBypass} */
+    static keepAllLinksOnBypass: boolean = false
+
     title: string
     graph: LGraph | null = null
     id: NodeId
@@ -2392,7 +2395,14 @@ export class LGraphNode implements Positionable, IPinnable {
     /**
      * Attempts to gracefully bypass this node in all of its connections by reconnecting all links.
      * 
-     * Each input is checked against each output.  This is done on a matching index basis only, i.e. input 3 -> output 3.
+     * Each input is checked against each output.  This is done on a matching index basis, i.e. input 3 -> output 3.
+     * If there are any input links remaining, and {@link flags}.{@link INodeFlags.keepAllLinksOnBypass keepAllLinksOnBypass} is `true`,
+     * each input will check for outputs that match, and take the first one that matches
+     * `true`: Try the index matching first, then every input to every output.
+     * `false`: Only matches indexes, e.g. input 3 to output 3.
+     * 
+     * If {@link flags}.{@link INodeFlags.keepAllLinksOnBypass keepAllLinksOnBypass} is `undefined`, it will fall back to
+     * the static {@link keepAllLinksOnBypass}.
      *
      * @returns `true` if any new links were established, otherwise `false`.
      * @todo Decision: Change API to return array of new links instead?
@@ -2415,6 +2425,8 @@ export class LGraphNode implements Positionable, IPinnable {
 
             bypassAllLinks(output, inNode, inLink)
         }
+        // Configured to only use index-to-index matching
+        if (!(this.flags.keepAllLinksOnBypass ?? LGraphNode.keepAllLinksOnBypass)) return madeAnyConnections
 
         // Second pass: match any remaining links
         for (const input of inputs) {
