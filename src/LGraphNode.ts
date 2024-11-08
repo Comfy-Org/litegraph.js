@@ -2390,30 +2390,43 @@ export class LGraphNode implements Positionable, IPinnable {
     }
 
     /**
-     * Try auto-connect input to output without this node when possible
-     * (very basic, only takes into account first input-output)
+     * Attempts to gracefully bypass this node in all of its connections by reconnecting all links.
+     * 
+     * Each input is checked against each output.  This is done on a matching index basis only, i.e. input 3 -> output 3.
      *
-     * @returns true if connected, false otherwise
+     * @returns `true` if any new links were established, otherwise `false`.
+     * @todo Decision: Change API to return array of new links instead?
      */
     connectInputToOutput(): boolean {
-        if (
-            this.inputs?.length &&
-            this.outputs &&
-            this.outputs.length &&
-            LiteGraph.isValidConnection(this.inputs[0].type, this.outputs[0].type) &&
-            this.inputs[0].link &&
-            this.outputs[0].links &&
-            this.outputs[0].links.length
-        ) {
-            const input_link = this.graph._links.get(this.inputs[0].link)
-            const output_link = this.graph._links.get(this.outputs[0].links[0])
-            const input_node = this.getInputNode(0)
-            const output_node = this.getOutputNodes(0)[0]
-            if (input_node && output_node) {
-                input_node.connect(input_link.origin_slot, output_node, output_link.target_slot)
-                return true
+        const { inputs, outputs, graph } = this
+        if (!inputs || !outputs) return
+
+        const { _links } = graph
+        let madeAnyConnections = false
+
+        // First pass: match 1-to-1
+        for (const [index, input] of inputs.entries()) {
+            const output = outputs[index]
+            if (!output || !LiteGraph.isValidConnection(input.type, output.type)) continue
+
+            const inLink = _links.get(input.link)
+            const outLinks = output.links
+                ?.map(x => _links.get(x))
+                .filter(x => !!x)
+            if (!inLink || !outLinks.length) continue
+
+            const inNode = graph.getNodeById(inLink.origin_id)
+            if (!inNode) continue
+
+            for (const outLink of outLinks) {
+                const outNode = graph.getNodeById(outLink.target_id)
+                if (!outNode) continue
+
+                // TODO: Add 4th param (afterRerouteId: inLink.parentId) when reroutes are merged.
+                const result = inNode.connect(inLink.origin_slot, outNode, outLink.target_slot)
+                madeAnyConnections ||= !!result
             }
         }
-        return false
+        return madeAnyConnections
     }
 }
