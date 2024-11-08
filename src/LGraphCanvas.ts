@@ -171,19 +171,12 @@ export class LGraphCanvas {
         readOnly: false,
     }
 
-    /** @inheritdoc {@link LGraphCanvasState.draggingCanvas} */
-    get dragging_canvas(): boolean {
-        return this.state.draggingCanvas
-    }
-    set dragging_canvas(value: boolean) {
-        this.state.draggingCanvas = value
-    }
-
     // Whether the canvas was previously being dragged prior to pressing space key.
     // null if space key is not pressed.
     private _previously_dragging_canvas: boolean | null = null
 
-    /** @inheritdoc {@link LGraphCanvasState.readOnly} */
+    //#region Legacy accessors
+    /** @deprecated @inheritdoc {@link LGraphCanvasState.readOnly} */
     get read_only(): boolean {
         return this.state.readOnly
     }
@@ -197,6 +190,16 @@ export class LGraphCanvas {
     set isDragging(value: boolean) {
         this.state.draggingItems = value
     }
+
+    /** @deprecated @inheritdoc {@link LGraphCanvasState.draggingCanvas} */
+    get dragging_canvas(): boolean {
+        return this.state.draggingCanvas
+    }
+    set dragging_canvas(value: boolean) {
+        this.state.draggingCanvas = value
+    }
+    //#endregion Legacy accessors
+
 
     get title_text_font(): string {
         return `${LiteGraph.NODE_TEXT_SIZE}px Arial`
