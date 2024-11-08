@@ -1894,7 +1894,6 @@ export class LGraphNode implements Positionable, IPinnable {
             return null
         }
 
-        let changed = false
 
         const input = target_node.inputs[targetIndex]
         let link_info: LLink = null
@@ -1905,8 +1904,6 @@ export class LGraphNode implements Positionable, IPinnable {
         //check targetSlot and check connection types
         if (!LiteGraph.isValidConnection(output.type, input.type)) {
             this.setDirtyCanvas(false, true)
-            // @ts-expect-error Unused param
-            if (changed) graph.connectionChange(this, link_info)
             return null
         }
 
@@ -1917,17 +1914,19 @@ export class LGraphNode implements Positionable, IPinnable {
             return null
 
         //if there is something already plugged there, disconnect
+        let startedChange = false
         if (target_node.inputs[targetIndex]?.link != null) {
+            // TODO: Move control of this out of canvas.
+            graph.canvasAction(c => c.emitBeforeChange())
             graph.beforeChange()
             target_node.disconnectInput(targetIndex)
-            changed = true
+            startedChange = true
         }
         if (output.links?.length) {
             if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
                 graph.beforeChange()
                 // @ts-expect-error Unused param
                 this.disconnectOutput(slot, false, { doProcessChange: false })
-                changed = true
             }
         }
 
@@ -1989,6 +1988,7 @@ export class LGraphNode implements Positionable, IPinnable {
         this.setDirtyCanvas(false, true)
         graph.afterChange()
         graph.connectionChange(this)
+        if (startedChange) graph.canvasAction(c => c.emitAfterChange())
 
         return link_info
     }
