@@ -2462,8 +2462,7 @@ export class LGraphNode implements Positionable, IPinnable {
                 const outNode = graph.getNodeById(outLink.target_id)
                 if (!outNode) return
 
-                // TODO: Add 4th param (afterRerouteId: inLink.parentId) when reroutes are merged.
-                const result = inNode.connect(inLink.origin_slot, outNode, outLink.target_slot)
+                const result = inNode.connect(inLink.origin_slot, outNode, outLink.target_slot, inLink.parentId)
                 madeAnyConnections ||= !!result
             }
         }
