@@ -108,13 +108,14 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
     /**
      * Disconnects a link and removes it from the graph, cleaning up any reroutes that are no longer used
      * @param network The container (LGraph) where reroutes should be updated
+     * @param keepReroutes If `true`, reroutes will not be garbage collected.
      */
-    disconnect(network: LinkNetwork): void {
+    disconnect(network: LinkNetwork, keepReroutes?: boolean): void {
         const reroutes = LLink.getReroutes(network, this)
 
         for (const reroute of reroutes) {
             reroute.linkIds.delete(this.id)
-            if (!reroute.linkIds.size) network.reroutes.delete(reroute.id)
+            if (!keepReroutes && !reroute.linkIds.size) network.reroutes.delete(reroute.id)
         }
         network.links.delete(this.id)
     }

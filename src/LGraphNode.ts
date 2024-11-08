@@ -1922,7 +1922,7 @@ export class LGraphNode implements Positionable, IPinnable {
         //if there is something already plugged there, disconnect
         if (target_node.inputs[targetIndex]?.link != null) {
             graph.beforeChange()
-            target_node.disconnectInput(targetIndex)
+            target_node.disconnectInput(targetIndex, true)
             changed = true
         }
         if (output.links?.length) {
@@ -2116,9 +2116,10 @@ export class LGraphNode implements Positionable, IPinnable {
     /**
      * Disconnect one input
      * @param slot Input slot index, or the name of the slot
+     * @param keepReroutes If `true`, reroutes will not be garbage collected.
      * @return true if disconnected successfully or already disconnected, otherwise false
      */
-    disconnectInput(slot: number | string): boolean {
+    disconnectInput(slot: number | string, keepReroutes?: boolean): boolean {
         // Allow search by string
         if (typeof slot === "string") {
             slot = this.findInputSlot(slot)
@@ -2158,7 +2159,7 @@ export class LGraphNode implements Positionable, IPinnable {
                     }
                 }
 
-                link_info.disconnect(this.graph)
+                link_info.disconnect(this.graph, keepReroutes)
                 if (this.graph) this.graph._version++
 
                 this.onConnectionsChange?.(
