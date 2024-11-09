@@ -6,7 +6,7 @@ import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { type NodeId, LGraphNode } from "./LGraphNode"
-import { type LinkId, LLink, type SerialisedLLinkArray } from "./LLink"
+import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { isSortaInsideOctagon } from "./measure"
 
@@ -1331,9 +1331,18 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
      * @return {Object} value of the node
      */
     serialize(option?: { sortNodes: boolean }): ISerialisedGraph {
-        const { config, state, groups, nodes, extra } = this.asSerialisable(option)
-        const links = [...this._links.values()].map(x => x.serialize())
+        const { config, state, groups, nodes, reroutes, extra } = this.asSerialisable(option)
+        const linkArray = [...this._links.values()]
+        const links = linkArray.map(x => x.serialize())
 
+        if (reroutes.length) {
+            extra.reroutes = reroutes
+
+            // Link parent IDs cannot go in 0.4 schema arrays
+            extra.linkExtensions = linkArray
+                .filter(x => x.parentId !== undefined)
+                .map(x => ({ id: x.id, parentId: x.parentId }))
+        }
         return {
             last_node_id: state.lastNodeId,
             last_link_id: state.lastLinkId,
@@ -1393,6 +1402,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         if (!data) return
         if (!keep_old) this.clear()
 
+        const { extra } = data
+        let reroutes: SerialisableReroute[] | undefined
+
+        // TODO: Determine whether this should this fall back to 0.4.
         if (data.version === 0.4) {
             // Deprecated - old schema version, links are arrays
             if (Array.isArray(data.links)) {
@@ -1401,6 +1414,20 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
                     this._links.set(link.id, link)
                 }
             }
+            //#region `extra` embeds for v0.4
+
+            // LLink parentIds
+            if (Array.isArray(extra?.linkExtensions)) {
+                for (const linkEx of extra.linkExtensions) {
+                    const link = this._links.get(linkEx.id)
+                    if (link) link.parentId = linkEx.parentId
+                }
+            }
+
+            // Reroutes
+            reroutes = extra?.reroutes
+
+            //#endregion `extra` embeds for v0.4
         } else {
             // New schema - one version so far, no check required.
 
@@ -1421,14 +1448,17 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
                 }
             }
 
-            // Reroutes
-            if (Array.isArray(data.reroutes)) {
-                for (const rerouteData of data.reroutes) {
-                    const reroute = this.setReroute(rerouteData)
+            reroutes = data.reroutes
+        }
 
-                    // Drop broken links, and ignore reroutes with no valid links
-                    if (!reroute.validateLinks(this._links)) this.reroutes.delete(rerouteData.id)
-                }
+        // Reroutes
+        if (Array.isArray(reroutes)) {
+            for (const rerouteData of reroutes) {
+                const reroute = this.setReroute(rerouteData)
+
+                // Drop broken links, and ignore reroutes with no valid links
+                if (!reroute.validateLinks(this._links))
+                    this.reroutes.delete(rerouteData.id)
             }
         }
 
