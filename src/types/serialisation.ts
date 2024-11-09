@@ -69,7 +69,7 @@ export type ISerialisedGraph<
     groups: TGroup[]
     config: LGraph["config"]
     version: typeof LiteGraph.VERSION
-    extra?: unknown
+    extra?: Record<any, any>
 }
 
 /** Serialised LGraphGroup */
