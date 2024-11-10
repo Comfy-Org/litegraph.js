@@ -327,7 +327,7 @@ export class LGraphCanvas {
     onBeforeChange?(graph: LGraph): void
     /** called after modifying the graph */
     onAfterChange?(graph: LGraph): void
-    onPositionChanged?: (position: { x: number, y: number }) => void
+    onPositionChanged?: (offset: Point) => void
     onZoomChanged?: (scale: number) => void
     onClear?: () => void
     /** called after moving a node */
@@ -2289,10 +2289,7 @@ export class LGraphCanvas {
             this.#dirty()
 
             if (this.onPositionChanged) {
-                this.onPositionChanged({
-                    x: this.ds.offset[0],
-                    y: this.ds.offset[1]
-                })
+                this.onPositionChanged(this.ds.offset)
             }
         } else if ((this.allow_interaction || (node && node.flags.allow_interaction)) && !this.read_only) {
             if (this.connecting_links) this.dirty_canvas = true
@@ -2748,10 +2745,7 @@ export class LGraphCanvas {
         }
     
         if (this.onPositionChanged) {
-            this.onPositionChanged({
-                x: this.ds.offset[0],
-                y: this.ds.offset[1]
-            })
+            this.onPositionChanged(this.ds.offset)
         }
         
         this.graph.change()
@@ -3384,10 +3378,7 @@ export class LGraphCanvas {
         this.setDirty(true, true)
 
         if (this.onPositionChanged) {
-            this.onPositionChanged({
-                x: this.ds.offset[0],
-                y: this.ds.offset[1]
-            })
+            this.onPositionChanged(this.ds.offset)
         }
     }
     /**
@@ -7930,10 +7921,7 @@ export class LGraphCanvas {
             this.setDirty(true, true)
 
             if (this.onPositionChanged) {
-                this.onPositionChanged({
-                    x: this.ds.offset[0],
-                    y: this.ds.offset[1]
-                })
+                this.onPositionChanged(this.ds.offset)
             }
 
             if (progress < 1) {
