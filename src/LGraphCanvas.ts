@@ -344,6 +344,7 @@ export class LGraphCanvas {
     onNodeSelected?: (node: LGraphNode) => void
     onNodeDeselected?: (node: LGraphNode) => void
     onNodeUpdated?: (node: LGraphNode) => void
+    onNodeWidgetChanged?: (node: LGraphNode, name: string, value: unknown, widget: IWidget) => void
     onRender?: (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => void
     /** Implement this function to allow conversion of widget types to input types, e.g. number -> INT or FLOAT for widget link validation checks */
     getWidgetLinkType?: (widget: IWidget, node: LGraphNode) => string | null | undefined
@@ -5705,7 +5706,9 @@ export class LGraphCanvas {
                     if (event.type === LiteGraph.pointerevents_method + "down") {
                         if (w.callback) {
                             setTimeout(function () {
-                                w.callback(w, that, node, pos, event)
+                              that.onNodeWidgetChanged?.(node, w.name, w.value, w)
+                              node.onWidgetChanged?.(w.name, w.value, old_value, w)
+                              w.callback(w, that, node, pos, event)
                             }, 20)
                         }
                         w.clicked = true
@@ -5845,6 +5848,7 @@ export class LGraphCanvas {
 
             //value changed
             if (old_value != w.value) {
+                that.onNodeWidgetChanged?.(node, w.name, w.value, w)
                 node.onWidgetChanged?.(w.name, w.value, old_value, w)
                 node.graph._version++
             }
@@ -5855,6 +5859,9 @@ export class LGraphCanvas {
         function inner_value_change(widget: IWidget, value: TWidgetValue) {
             const v = widget.type === "number" ? Number(value) : value
             widget.value = v
+
+            that.onNodeWidgetChanged?.(node, widget.name, widget.value, widget)
+        
             if (widget.options?.property && node.properties[widget.options.property] !== undefined) {
                 node.setProperty(widget.options.property, v)
             }
