@@ -120,6 +120,7 @@ export class LGraphCanvas {
     static #tempB = new Float32Array(2)
     static #lTempA: Point = new Float32Array(2)
     static #lTempB: Point = new Float32Array(2)
+    static #lTempC: Point = new Float32Array(2)
 
     static DEFAULT_BACKGROUND_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAQBJREFUeNrs1rEKwjAUhlETUkj3vP9rdmr1Ysammk2w5wdxuLgcMHyptfawuZX4pJSWZTnfnu/lnIe/jNNxHHGNn//HNbbv+4dr6V+11uF527arU7+u63qfa/bnmh8sWLBgwYJlqRf8MEptXPBXJXa37BSl3ixYsGDBMliwFLyCV/DeLIMFCxYsWLBMwSt4Be/NggXLYMGCBUvBK3iNruC9WbBgwYJlsGApeAWv4L1ZBgsWLFiwYJmCV/AK3psFC5bBggULloJX8BpdwXuzYMGCBctgwVLwCl7Be7MMFixYsGDBsu8FH1FaSmExVfAxBa/gvVmwYMGCZbBg/W4vAQYA5tRF9QYlv/QAAAAASUVORK5CYII="
 
@@ -5166,7 +5167,7 @@ export class LGraphCanvas {
             startControl?: ReadOnlyPoint
             /** Offset of the bezier curve control point from {@link b point b} (input side) */
             endControl?: ReadOnlyPoint
-            /** Number of sublines (useful to represent vec3 or rgb) */
+            /** Number of sublines (useful to represent vec3 or rgb) @todo If implemented, refactor calculations out of the loop */
             num_sublines?: number
         } = {},
     ): void {
@@ -5235,6 +5236,13 @@ export class LGraphCanvas {
 
                 // Calculate centre point
                 findPointOnCurve(pos, a, b, innerA, innerB, 0.5)
+
+                if (linkSegment && this.linkMarkerShape === LinkMarkerShape.Arrow) {
+                    const justPastCentre = LGraphCanvas.#lTempC
+                    findPointOnCurve(justPastCentre, a, b, innerA, innerB, 0.51)
+
+                    linkSegment._centreAngle = Math.atan2(justPastCentre[1] - pos[1], justPastCentre[0] - pos[0])
+                }
             } else if (this.links_render_mode == LinkRenderType.LINEAR_LINK) {
                 const l = 15
                 switch (startDir) {
@@ -5273,6 +5281,10 @@ export class LGraphCanvas {
                 // Calculate centre point
                 pos[0] = (innerA[0] + innerB[0]) * 0.5
                 pos[1] = (innerA[1] + innerB[1]) * 0.5
+
+                if (linkSegment && this.linkMarkerShape === LinkMarkerShape.Arrow) {
+                    linkSegment._centreAngle = Math.atan2(innerB[1] - innerA[1], innerB[0] - innerA[0])
+                }
             } else if (this.links_render_mode == LinkRenderType.STRAIGHT_LINK) {
                 if (startDir == LinkDirection.RIGHT) {
                     innerA[0] += 10
@@ -5296,6 +5308,13 @@ export class LGraphCanvas {
                 // Calculate centre point
                 pos[0] = midX
                 pos[1] = (innerA[1] + innerB[1]) * 0.5
+
+                if (linkSegment && this.linkMarkerShape === LinkMarkerShape.Arrow) {
+                    const diff = innerB[1] - innerA[1]
+                    if (Math.abs(diff) < 4) linkSegment._centreAngle = 0
+                    else if (diff > 0) linkSegment._centreAngle = Math.PI * 0.5
+                    else linkSegment._centreAngle = -(Math.PI * 0.5)
+                }
             } else {
                 return
             } //unknown
@@ -5316,6 +5335,8 @@ export class LGraphCanvas {
         //render arrow in the middle
         if (this.ds.scale >= 0.6 &&
             this.highquality_render &&
+            linkSegment &&
+            // TODO: Re-assess this usage - likely a workaround that linkSegment truthy check resolves
             endDir != LinkDirection.CENTER) {
             //render arrow
             if (this.render_connection_arrows) {
@@ -5383,13 +5404,10 @@ export class LGraphCanvas {
             // Draw link centre marker
             ctx.beginPath()
             if (this.linkMarkerShape === LinkMarkerShape.Arrow) {
-                findPointOnCurve(innerB, a, b, innerA, innerB, 0.51)
-                const angle = Math.atan2(innerB[1] - pos[1], innerB[0] - pos[0])
-                if (linkSegment) linkSegment._centreAngle = angle
-
                 const transform = ctx.getTransform()
                 ctx.translate(pos[0], pos[1])
-                ctx.rotate(angle)
+                ctx.rotate(linkSegment._centreAngle)
+                // The math is off, but it currently looks better in chromium
                 ctx.moveTo(-3.2, -5)
                 ctx.lineTo(+7, 0)
                 ctx.lineTo(-3.2, +5)
