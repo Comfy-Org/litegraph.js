@@ -3139,8 +3139,8 @@ export class LGraphCanvas {
 
         // Remap linkIds
         for (const reroute of reroutes.values()) {
-            const linkIds = [...reroute.linkIds].map(x => linkIds.get(x) ?? x)
-            reroute.update(reroute.parentId, undefined, linkIds)
+            const ids = [...reroute.linkIds].map(x => linkIds.get(x) ?? x)
+            reroute.update(reroute.parentId, undefined, ids)
 
             // Remove any invalid items
             if (!reroute.validateLinks(graph.links)) graph.removeReroute(reroute.id)
