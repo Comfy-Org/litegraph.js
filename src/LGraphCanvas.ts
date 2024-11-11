@@ -235,6 +235,10 @@ export class LGraphCanvas {
     render_execution_order: boolean
     render_title_colored: boolean
     render_link_tooltip: boolean
+
+    /** Controls whether reroutes are rendered at all. */
+    reroutesEnabled: boolean = false
+
     /** Shape of the markers shown at the midpoint of links.  Default: Circle */
     linkMarkerShape: LinkMarkerShape = LinkMarkerShape.Circle
     links_render_mode: number
@@ -2044,7 +2048,7 @@ export class LGraphCanvas {
                 }
             } //clicked outside of nodes
             else {
-                if (!skip_action && !this.read_only) {
+                if (this.reroutesEnabled && !skip_action && !this.read_only) {
                     // Check for reroutes
                     const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
                     if (reroute) {
@@ -2104,11 +2108,11 @@ export class LGraphCanvas {
                                         pos: originNode.getConnectionPos(false, slot),
                                     }
                                     this.connecting_links = [connecting]
-                                    if (linkSegment.parentId) connecting.afterRerouteId = linkSegment.parentId
+                                    if (this.reroutesEnabled && linkSegment.parentId) connecting.afterRerouteId = linkSegment.parentId
 
                                     skip_action = true
                                     break
-                                } else if (e.altKey && !e.shiftKey) {
+                                } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
                                     const newReroute = graph.createReroute([e.canvasX, e.canvasY], linkSegment)
                                     this.processSelect(newReroute, e)
                                     this.isDragging = true
@@ -2588,10 +2592,12 @@ export class LGraphCanvas {
                             group.selected = true
                         }
 
-                        for (const reroute of this.graph.reroutes.values()) {
-                            if (!isPointInRectangle(reroute.pos, dragRect)) continue
-                            this.selectedItems.add(reroute)
-                            reroute.selected = true
+                        if (this.reroutesEnabled) {
+                            for (const reroute of this.graph.reroutes.values()) {
+                                if (!isPointInRectangle(reroute.pos, dragRect)) continue
+                                this.selectedItems.add(reroute)
+                                reroute.selected = true
+                            }
                         }
                     } else {
                         // will select of update selection
@@ -2707,7 +2713,12 @@ export class LGraphCanvas {
                 this.node_dragged = null
             } //no node being dragged
             else {
-                if (!node && e.click_time < 300 && !this.graph.getGroupTitlebarOnPos(e.canvasX, e.canvasY) && !this.graph.getRerouteOnPos(e.canvasX, e.canvasY)) {
+                if (
+                    !node &&
+                    e.click_time < 300 &&
+                    !this.graph.getGroupTitlebarOnPos(e.canvasX, e.canvasY) &&
+                    (this.reroutesEnabled && !this.graph.getRerouteOnPos(e.canvasX, e.canvasY))
+                ) {
                     this.processSelect(null, e)
                 }
 
@@ -3662,6 +3673,7 @@ export class LGraphCanvas {
                             link_color = LiteGraph.CONNECTING_LINK_COLOR
                     }
 
+                    // If not using reroutes, link.afterRerouteId should be undefined.
                     const pos = this.graph.reroutes.get(link.afterRerouteId)?.pos ?? link.pos
                     const highlightPos = this.#getHighlightPosition()
                     //the connection being dragged by the mouse
@@ -5026,7 +5038,7 @@ export class LGraphCanvas {
                 const end_node_slotpos = node.getConnectionPos(true, i, LGraphCanvas.#tempB)
 
                 // Get all points this link passes through
-                const reroutes = LLink.getReroutes(this.graph, link)
+                const reroutes = this.reroutesEnabled ? LLink.getReroutes(this.graph, link) : []
                 const points = [start_node_slotpos, ...reroutes.map(x => x.pos), end_node_slotpos]
 
                 // Bounding box of all points (bezier overshoot on long links will be cut)
@@ -6101,7 +6113,8 @@ export class LGraphCanvas {
         const node_left = graph.getNodeById(segment.origin_id)
         const fromType = node_left?.outputs?.[segment.origin_slot]?.type ?? "*"
 
-        const options = ["Add Node", "Add Reroute", null, "Delete", null]
+        const options = ["Add Node", null, "Delete", null]
+        if (this.reroutesEnabled) options.splice(1, 0, "Add Reroute")
 
         const title = "data" in segment && segment.data != null
             ? segment.data.constructor.name
@@ -6119,7 +6132,10 @@ export class LGraphCanvas {
                         if (!node.inputs?.length || !node.outputs?.length) return
 
                         // leave the connection type checking inside connectByType
-                        if (node_left.connectByType(segment.origin_slot, node, fromType, { afterRerouteId: segment.parentId })) {
+                        const options = this.reroutesEnabled
+                            ? { afterRerouteId: segment.parentId }
+                            : undefined
+                        if (node_left.connectByType(segment.origin_slot, node, fromType, options)) {
                             node.pos[0] -= node.size[0] * 0.5
                         }
                     })
@@ -7914,12 +7930,14 @@ export class LGraphCanvas {
             menu_info = this.getCanvasMenuOptions()
 
             // Check for reroutes
-            const reroute = this.graph.getRerouteOnPos(event.canvasX, event.canvasY)
-            if (reroute) {
-                menu_info.unshift({
-                    content: "Delete Reroute",
-                    callback: () => this.graph.removeReroute(reroute.id)
-                }, null)
+            if (this.reroutesEnabled) {
+                const reroute = this.graph.getRerouteOnPos(event.canvasX, event.canvasY)
+                if (reroute) {
+                    menu_info.unshift({
+                        content: "Delete Reroute",
+                        callback: () => this.graph.removeReroute(reroute.id)
+                    }, null)
+                }
             }
 
             const group = this.graph.getGroupOnPos(
