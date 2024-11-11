@@ -5173,14 +5173,16 @@ export class LGraphCanvas {
 
         //begin line shape
         const path = new Path2D()
-        if (reroute) reroute.path = path
-        else if (link) link.path = path
+
+        /** The link or reroute we're currently rendering */
+        const linkSegment = reroute ?? link
+        if (linkSegment) linkSegment.path = path
 
         const innerA = LGraphCanvas.#lTempA
         const innerB = LGraphCanvas.#lTempB
 
         /** Reference to {@link reroute._pos} if present, or {@link link._pos} if present.  Caches the centre point of the link. */
-        const pos: Point = reroute?._pos ?? link?._pos ?? [0, 0]
+        const pos: Point = linkSegment?._pos ?? [0, 0]
 
         for (let i = 0; i < num_sublines; i += 1) {
             const offsety = (i - (num_sublines - 1) * 0.5) * 5
