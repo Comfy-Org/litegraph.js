@@ -2962,7 +2962,12 @@ export class LGraphCanvas {
         }
     }
 
-    copyToClipboard(nodes?: Dictionary<LGraphNode>): void {
+    /**
+     * Copies canvas items to an internal, app-specific clipboard backed by local storage.
+     * When called without parameters, it copies {@link selectedItems}.
+     * @param items The items to copy.  If nullish, all selected items are copied.
+     */
+    copyToClipboard(items?: Iterable<Positionable>): void {
         const serialisable: ClipboardItems = {
             nodes: [],
             groups: [],
@@ -2971,7 +2976,7 @@ export class LGraphCanvas {
         }
 
         // Create serialisable objects
-        for (const item of this.selectedItems) {
+        for (const item of items ?? this.selectedItems) {
             if (item instanceof LGraphNode) {
                 // Nodes
                 if (item.clonable === false) continue
