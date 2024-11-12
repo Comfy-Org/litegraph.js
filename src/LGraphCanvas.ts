@@ -2717,7 +2717,7 @@ export class LGraphCanvas {
                     !node &&
                     e.click_time < 300 &&
                     !this.graph.getGroupTitlebarOnPos(e.canvasX, e.canvasY) &&
-                    (this.reroutesEnabled && !this.graph.getRerouteOnPos(e.canvasX, e.canvasY))
+                    (!this.reroutesEnabled || !this.graph.getRerouteOnPos(e.canvasX, e.canvasY))
                 ) {
                     this.processSelect(null, e)
                 }
