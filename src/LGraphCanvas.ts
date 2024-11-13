@@ -101,6 +101,21 @@ export interface LGraphCanvasState {
 }
 
 /**
+ * The items created by a clipboard paste operation.
+ * Includes maps of original copied IDs to newly created items.
+ */
+interface ClipboardPasteResult {
+    /** All successfully created items */
+    created: Positionable[]
+    /** Map: original node IDs to newly created nodes */
+    nodes: Map<NodeId, LGraphNode>
+    /** Map: original link IDs to new link IDs */
+    links: Map<LinkId, LLink>
+    /** Map: original reroute IDs to newly created reroutes */
+    reroutes: Map<RerouteId, Reroute>
+}
+
+/**
  * This class is in charge of rendering one graph inside a canvas. And provides all the interaction required.
  * Valid callbacks are: onNodeSelected, onNodeDeselected, onShowNodePanel, onNodeDblClicked
  *
@@ -3037,7 +3052,7 @@ export class LGraphCanvas {
      * Pastes the items from the canvas "clipbaord" - a local storage variable.
      * @param connectInputs If `true`, always attempt to connect inputs of pasted nodes - including to nodes that were not pasted.
      */
-    _pasteFromClipboard(connectInputs = false): void {
+    _pasteFromClipboard(connectInputs = false): ClipboardPasteResult {
         // if ctrl + shift + v is off, return when isConnectUnselected is true (shift is pressed) to maintain old behavior
         if (!LiteGraph.ctrl_shift_v_paste_connect_unselected_outputs && connectInputs) return
 
@@ -3070,14 +3085,14 @@ export class LGraphCanvas {
             }
         }
 
-        /** All successfully created items */
-        const created: Positionable[] = []
-        /** Map: original node IDs to newly created nodes */
-        const nodes = new Map<NodeId, LGraphNode>()
-        /** Map: original link IDs to new link IDs */
-        const linkIds = new Map<LinkId, LinkId>()
-        /** Map: original reroute IDs to newly created reroutes */
-        const reroutes = new Map<RerouteId, Reroute>()
+        const results: ClipboardPasteResult = {
+            created: [],
+            nodes: new Map<NodeId, LGraphNode>(),
+            links: new Map<LinkId, LLink>(),
+            reroutes: new Map<RerouteId, Reroute>(),
+        }
+        const { created, nodes, links, reroutes } = results
+
         // const failedNodes: ISerialisedNode[] = []
 
         // Groups
@@ -3138,13 +3153,13 @@ export class LGraphCanvas {
             const inNode = nodes.get(info.target_id)
             if (inNode) {
                 const link = outNode?.connect(info.origin_slot, inNode, info.target_slot, afterRerouteId)
-                if (link) linkIds.set(info.id, link.id)
+                if (link) links.set(info.id, link)
             }
         }
 
         // Remap linkIds
         for (const reroute of reroutes.values()) {
-            const ids = [...reroute.linkIds].map(x => linkIds.get(x) ?? x)
+            const ids = [...reroute.linkIds].map(x => links.get(x)?.id ?? x)
             reroute.update(reroute.parentId, undefined, ids)
 
             // Remove any invalid items
@@ -3162,6 +3177,8 @@ export class LGraphCanvas {
         this.selectItems(created)
 
         graph.afterChange()
+
+        return results
     }
 
     pasteFromClipboard(isConnectUnselected = false): void {
