@@ -122,8 +122,6 @@ export class CanvasPointer {
    * @param e The `pointerdown` event
    */
   down(e: CanvasPointerEvent): void {
-    if (e.button !== 0) return
-
     this.reset()
     this.eDown = e
     this.pointerId = e.pointerId
@@ -145,7 +143,7 @@ export class CanvasPointer {
     }
 
     // Primary button released - treat as pointerup.
-    if (!(e.buttons & 1)) {
+    if (!(e.buttons & eDown.buttons)) {
       this.#completeClick(e)
       this.reset()
       return
@@ -167,7 +165,7 @@ export class CanvasPointer {
    * @param e The `pointerup` event
    */
   up(e: CanvasPointerEvent): boolean {
-    if (e.button !== 0) return false
+    if (e.button !== this.eDown?.button) return false
 
     this.#completeClick(e)
     const { dragStarted } = this

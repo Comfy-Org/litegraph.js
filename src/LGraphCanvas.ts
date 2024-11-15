@@ -2377,6 +2377,8 @@ export class LGraphCanvas {
      * @param node The node to process a click event for
      */
     #processMiddleButton(e: CanvasPointerEvent, node: LGraphNode) {
+        const { pointer } = this
+
         if (LiteGraph.middle_click_slot_add_default_node &&
             node &&
             this.allow_interaction &&
@@ -2426,7 +2428,7 @@ export class LGraphCanvas {
                     e.canvasY - 80
                 ]
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const nodeCreated = this.createDefaultNodeForSlot({
+                pointer.onClick = () => this.createDefaultNodeForSlot({
                     nodeFrom: !mClikSlot_isOut ? null : node,
                     slotFrom: !mClikSlot_isOut ? null : mClikSlot_index,
                     nodeTo: !mClikSlot_isOut ? node : null,
@@ -2436,13 +2438,13 @@ export class LGraphCanvas {
                     posAdd: [!mClikSlot_isOut ? -30 : 30, -alphaPosY * 130],
                     posSizeFix: [!mClikSlot_isOut ? -1 : 0, 0]
                 })
-                return
             }
         }
 
         // Drag canvas using middle mouse button
         if (this.allow_dragcanvas) {
-            this.dragging_canvas = true
+            pointer.onDragStart = () => this.dragging_canvas = true
+            pointer.finally = () => this.dragging_canvas = false
         }
     }
 
