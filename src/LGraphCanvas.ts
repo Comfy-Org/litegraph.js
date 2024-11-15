@@ -1919,7 +1919,10 @@ export class LGraphCanvas {
                         return
                     }
                 } else if (isInsideRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
-                    this.showLinkMenu(linkSegment, e)
+                    pointer.onClick = () => this.showLinkMenu(linkSegment, e)
+                    pointer.onDragStart = () => this.dragging_canvas = true
+                    pointer.finally = () => this.dragging_canvas = false
+
                     //clear tooltip
                     this.over_link_center = null
                     return
