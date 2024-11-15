@@ -20,7 +20,7 @@ import { dist2 } from "./measure"
  */
 export class CanvasPointer {
   /** Maximum time in milliseconds to ignore click drift */
-  static bufferTime = 300
+  static bufferTime = 150
 
   /** Maximum gap between pointerup and pointerdown events to be considered as a double click */
   static doubleClickTime = 300
