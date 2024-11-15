@@ -6,7 +6,12 @@ import { dist2 } from "./measure"
  * Allows click and drag actions to be declared ahead of time during a pointerdown event.
  *
  * Depending on whether the user clicks or drags the pointer, only the appropriate callbacks are called:
- * {@link onClick}, {@link onDragStart}, {@link onDrag}, {@link onDragEnd}, and {@link finally}.
+ * * {@link onClick}
+ * * {@link onDoubleClick}
+ * * {@link onDragStart}
+ * * {@link onDrag}
+ * * {@link onDragEnd}
+ * * {@link finally}
  *
  * @seealso
  * - {@link LGraphCanvas.processMouseDown}
@@ -16,6 +21,9 @@ import { dist2 } from "./measure"
 export class CanvasPointer {
   /** Maximum time in milliseconds to ignore click drift */
   static bufferTime = 300
+
+  /** Maximum gap between pointerup and pointerdown events to be considered as a double click */
+  static doubleClickTime = 300
 
   /** Maximum offset from click location */
   static get maxClickDrift() {
@@ -37,6 +45,9 @@ export class CanvasPointer {
   /** Set to true when if the pointer moves far enough after a down event, before the corresponding up event is fired. */
   dragStarted: boolean = false
 
+  /** The {@link eUp} from the last successful click */
+  eLastUp?: CanvasPointerEvent
+
   /** Used downstream for touch event support. */
   isDouble: boolean = false
   /** Used downstream for touch event support. */
@@ -56,9 +67,6 @@ export class CanvasPointer {
   eMove: CanvasPointerEvent | null = null
   /** The last pointerup event for the primary button */
   eUp: CanvasPointerEvent | null = null
-
-  /** Offset from original mouse down event. */
-  offset: Float32Array = new Float32Array(2)
 
   /** If set, as soon as the mouse moves outside the click drift threshold, this action is run once. */
   onDragStart?(): unknown
@@ -82,12 +90,16 @@ export class CanvasPointer {
   onClick?(upEvent: CanvasPointerEvent): unknown
 
   /**
+   * Callback that will be run once, the next time a pointerup event appears to be a normal click.
+   * @param upEvent The pointerup or pointermove event that triggered this callback
+   */
+  onDoubleClick?(upEvent: CanvasPointerEvent): unknown
+
+  /**
    * Run-once callback, called at the end of any click or drag, whether or not it was successful in any way.
    *
    * The setter of this callback will call the existing value before replacing it.
-   * Another way: setting this value twice will execute the first value.
-   *
-   * Always assume that once set, the finally() callback will be called exactly once.
+   * Therefore, simply setting this value twice will execute the first callback.
    */
   get finally() {
     return this.#finally
@@ -137,7 +149,7 @@ export class CanvasPointer {
     if (this.dragStarted) return
 
     const longerThanBufferTime = e.timeStamp - eDown.timeStamp > CanvasPointer.bufferTime
-    if (longerThanBufferTime || this.#isPastThreshold(e)) {
+    if (longerThanBufferTime || !this.#hasSamePosition(e, eDown)) {
       this.#setDragStarted()
     }
   }
@@ -152,35 +164,53 @@ export class CanvasPointer {
   }
 
   #completeClick(e: CanvasPointerEvent): void {
-    if (!this.eDown) return
+    const { eDown } = this
+    if (!eDown) return
 
     this.eUp = e
 
     if (this.dragStarted) {
       // A move event already started drag
       this.onDragEnd?.(e)
-    } else if (this.#isPastThreshold(e)) {
+    } else if (!this.#hasSamePosition(e, eDown)) {
       // Teleport without a move event (e.g. tab out, move, tab back)
       this.#setDragStarted()
       this.onDragEnd?.(e)
+    } else if (this.onDoubleClick && this.#isDoubleClick()) {
+      // Double-click event
+      this.onDoubleClick(e)
+      this.eLastUp = undefined
     } else {
       // Normal click event
       this.onClick?.(e)
+      this.eLastUp = e
     }
   }
 
   /**
-   * Checks whether the pointer is currently past the max click drift threshold.
-   * @param e The most recent pointer event
-   * @returns `true` if the most recent pointer event is past the the click drift threshold, otherwise `false`
+   * Checks if two events occurred near each other - not further apart than the maximum click drift.
+   * @param a The first event to compare
+   * @param b The second event to compare
+   * @returns `true` if the two events were no more than {@link maxClickDrift} apart, otherwise `false`
    */
-  #isPastThreshold(e: PointerEvent): boolean {
-    const { eDown, offset } = this
-    offset[0] = e.clientX - eDown.clientX
-    offset[1] = e.clientY - eDown.clientY
+  #hasSamePosition(a: PointerEvent, b: PointerEvent): boolean {
+    const drift = dist2(a.clientX, a.clientY, b.clientX, b.clientY)
+    return drift <= CanvasPointer.#maxClickDrift2
+  }
 
-    const drift = dist2(eDown.clientX, eDown.clientY, e.clientX, e.clientY)
-    return drift > CanvasPointer.#maxClickDrift2
+  /**
+   * Checks whether the pointer is currently past the max click drift threshold.
+   * @param e The latest pointer event
+   * @returns `true` if the latest pointer event is past the the click drift threshold
+   */
+  #isDoubleClick(): boolean {
+    const { eUp, eLastUp } = this
+    if (!eUp || !eLastUp) return false
+
+    const diff = eUp.timeStamp - eLastUp.timeStamp
+    return diff > 0 &&
+      diff < CanvasPointer.doubleClickTime &&
+      this.#hasSamePosition(eUp, eLastUp)
   }
 
   #setDragStarted(): void {
@@ -193,6 +223,7 @@ export class CanvasPointer {
     // The setter executes the callback before clearing it
     this.finally = undefined
     delete this.onClick
+    delete this.onDoubleClick
     delete this.onDragStart
     delete this.onDrag
     delete this.onDragEnd
@@ -200,7 +231,6 @@ export class CanvasPointer {
     this.isDown = false
     this.isDouble = false
     this.dragStarted = false
-    this.offset.fill(0)
 
     if (this.clearEventsOnReset) {
       this.eDown = null
