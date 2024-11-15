@@ -46,7 +46,7 @@ export class CanvasPointer {
   dragStarted: boolean = false
 
   /** The {@link eUp} from the last successful click */
-  eLastUp?: CanvasPointerEvent
+  eLastDown?: CanvasPointerEvent
 
   /** Used downstream for touch event support. */
   isDouble: boolean = false
@@ -191,11 +191,11 @@ export class CanvasPointer {
     } else if (this.onDoubleClick && this.#isDoubleClick()) {
       // Double-click event
       this.onDoubleClick(e)
-      this.eLastUp = undefined
+      this.eLastDown = undefined
     } else {
       // Normal click event
       this.onClick?.(e)
-      this.eLastUp = e
+      this.eLastDown = eDown
     }
   }
 
@@ -221,15 +221,15 @@ export class CanvasPointer {
    * @returns `true` if the latest pointer event is past the the click drift threshold
    */
   #isDoubleClick(): boolean {
-    const { eUp, eLastUp } = this
-    if (!eUp || !eLastUp) return false
+    const { eDown, eLastDown } = this
+    if (!eDown || !eLastDown) return false
 
     // Use thrice the drift distance for double-click gap
     const tolerance2 = (3 * CanvasPointer.#maxClickDrift) ** 2
-    const diff = eUp.timeStamp - eLastUp.timeStamp
+    const diff = eDown.timeStamp - eLastDown.timeStamp
     return diff > 0 &&
       diff < CanvasPointer.doubleClickTime &&
-      this.#hasSamePosition(eUp, eLastUp, tolerance2)
+      this.#hasSamePosition(eDown, eLastDown, tolerance2)
   }
 
   #setDragStarted(): void {
