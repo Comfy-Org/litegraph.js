@@ -6,12 +6,12 @@ import { dist2 } from "./measure"
  * Allows click and drag actions to be declared ahead of time during a pointerdown event.
  *
  * Depending on whether the user clicks or drags the pointer, only the appropriate callbacks are called:
- * * {@link onClick}
- * * {@link onDoubleClick}
- * * {@link onDragStart}
- * * {@link onDrag}
- * * {@link onDragEnd}
- * * {@link finally}
+ * - {@link onClick}
+ * - {@link onDoubleClick}
+ * - {@link onDragStart}
+ * - {@link onDrag}
+ * - {@link onDragEnd}
+ * - {@link finally}
  *
  * @seealso
  * - {@link LGraphCanvas.processMouseDown}
@@ -117,6 +117,10 @@ export class CanvasPointer {
     this.element = element
   }
 
+  /**
+   * Callback for `pointerdown` events.  To be used as the event handler (or called by it).
+   * @param e The `pointerdown` event
+   */
   down(e: CanvasPointerEvent): void {
     if (e.button !== 0) return
 
@@ -126,6 +130,10 @@ export class CanvasPointer {
     this.element.setPointerCapture(e.pointerId)
   }
 
+  /**
+   * Callback for `pointermove` events.  To be used as the event handler (or called by it).
+   * @param e The `pointermove` event
+   */
   move(e: CanvasPointerEvent): void {
     const { eDown } = this
     if (!eDown) return
@@ -154,6 +162,10 @@ export class CanvasPointer {
     }
   }
 
+  /**
+   * Callback for `pointerup` events.  To be used as the event handler (or called by it).
+   * @param e The `pointerup` event
+   */
   up(e: CanvasPointerEvent): boolean {
     if (e.button !== 0) return false
 
@@ -219,6 +231,12 @@ export class CanvasPointer {
     delete this.onDragStart
   }
 
+  /**
+   * Resets the state of this {@link CanvasPointer} instance.
+   *
+   * The {@link finally} callback is first executed, then all callbacks and intra-click
+   * state is cleared.
+   */
   reset(): void {
     // The setter executes the callback before clearing it
     this.finally = undefined
