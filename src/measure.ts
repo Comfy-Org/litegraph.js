@@ -16,12 +16,14 @@ export function distance(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
 /**
  * Calculates the distance2 (squared) between two points (2D vector).
  * Much faster when only comparing distances (closest/furthest point).
- * @param a Point a as `x, y`
- * @param b Point b as `x, y`
- * @returns Distance2 (squared) between point {@link a} & {@link b}
+ * @param x1 Origin point X
+ * @param y1 Origin point Y
+ * @param x2 Destination point X
+ * @param y2 Destination point Y
+ * @returns Distance2 (squared) between point [{@link x1}, {@link y1}] & [{@link x2}, {@link y2}]
  */
-export function dist2(a: ReadOnlyPoint, b: ReadOnlyPoint): number {
-    return ((b[0] - a[0]) * (b[0] - a[0])) + ((b[1] - a[1]) * (b[1] - a[1]))
+export function dist2(x1: number, y1: number, x2: number, y2: number): number {
+    return ((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1))
 }
 
 /**
