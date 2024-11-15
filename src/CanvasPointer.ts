@@ -203,11 +203,16 @@ export class CanvasPointer {
    * Checks if two events occurred near each other - not further apart than the maximum click drift.
    * @param a The first event to compare
    * @param b The second event to compare
+   * @param tolerance2 The maximum distance (squared) before the positions are considered different
    * @returns `true` if the two events were no more than {@link maxClickDrift} apart, otherwise `false`
    */
-  #hasSamePosition(a: PointerEvent, b: PointerEvent): boolean {
+  #hasSamePosition(
+    a: PointerEvent,
+    b: PointerEvent,
+    tolerance2 = CanvasPointer.#maxClickDrift2,
+  ): boolean {
     const drift = dist2(a.clientX, a.clientY, b.clientX, b.clientY)
-    return drift <= CanvasPointer.#maxClickDrift2
+    return drift <= tolerance2
   }
 
   /**
@@ -219,10 +224,12 @@ export class CanvasPointer {
     const { eUp, eLastUp } = this
     if (!eUp || !eLastUp) return false
 
+    // Use thrice the drift distance for double-click gap
+    const tolerance2 = (3 * CanvasPointer.#maxClickDrift) ** 2
     const diff = eUp.timeStamp - eLastUp.timeStamp
     return diff > 0 &&
       diff < CanvasPointer.doubleClickTime &&
-      this.#hasSamePosition(eUp, eLastUp)
+      this.#hasSamePosition(eUp, eLastUp, tolerance2)
   }
 
   #setDragStarted(): void {
