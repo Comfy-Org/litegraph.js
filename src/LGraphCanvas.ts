@@ -1757,76 +1757,7 @@ export class LGraphCanvas {
         if (e.button === 0 && !pointer.isDouble) {
             this.#processPrimaryButton(e, node, is_double_click)
         } else if (e.button === 1) {
-            // Middle button
-            let skip_action = false
-
-            if (LiteGraph.middle_click_slot_add_default_node &&
-                node &&
-                this.allow_interaction &&
-                !this.read_only &&
-                !this.connecting_links &&
-                !node.flags.collapsed
-            ) {
-                //not dragging mouse to connect two slots
-                let mClikSlot: INodeSlot | false = false
-                let mClikSlot_index: number | false = false
-                let mClikSlot_isOut: boolean = false
-                //search for outputs
-                if (node.outputs) {
-                    for (let i = 0, l = node.outputs.length; i < l; ++i) {
-                        const output = node.outputs[i]
-                        const link_pos = node.getConnectionPos(false, i)
-                        if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
-                            mClikSlot = output
-                            mClikSlot_index = i
-                            mClikSlot_isOut = true
-                            break
-                        }
-                    }
-                }
-
-                //search for inputs
-                if (node.inputs) {
-                    for (let i = 0, l = node.inputs.length; i < l; ++i) {
-                        const input = node.inputs[i]
-                        const link_pos = node.getConnectionPos(true, i)
-                        if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
-                            mClikSlot = input
-                            mClikSlot_index = i
-                            mClikSlot_isOut = false
-                            break
-                        }
-                    }
-                }
-                // Middle clicked a slot
-                if (mClikSlot && mClikSlot_index !== false) {
-
-                    const alphaPosY = 0.5 - ((mClikSlot_index + 1) / ((mClikSlot_isOut ? node.outputs.length : node.inputs.length)))
-                    const node_bounding = node.getBounding()
-                    // estimate a position: this is a bad semi-bad-working mess .. REFACTOR with a correct autoplacement that knows about the others slots and nodes
-                    const posRef: Point = [
-                        (!mClikSlot_isOut ? node_bounding[0] : node_bounding[0] + node_bounding[2]),
-                        e.canvasY - 80
-                    ]
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const nodeCreated = this.createDefaultNodeForSlot({
-                        nodeFrom: !mClikSlot_isOut ? null : node,
-                        slotFrom: !mClikSlot_isOut ? null : mClikSlot_index,
-                        nodeTo: !mClikSlot_isOut ? node : null,
-                        slotTo: !mClikSlot_isOut ? mClikSlot_index : null,
-                        position: posRef,
-                        nodeType: "AUTO",
-                        posAdd: [!mClikSlot_isOut ? -30 : 30, -alphaPosY * 130],
-                        posSizeFix: [!mClikSlot_isOut ? -1 : 0, 0]
-                    })
-                    skip_action = true
-                }
-            }
-
-            // Drag canvas using middle mouse button
-            if (!skip_action && this.allow_dragcanvas) {
-                this.dragging_canvas = true
-            }
+            this.#processMiddleButton(e, node)
         } else if ((e.button === 2 || pointer.isDouble) && this.allow_interaction && !this.read_only) {
             // Right / aux button
 
@@ -2436,6 +2367,81 @@ export class LGraphCanvas {
                 node.setProperty(widget.options.property, v)
             }
             widget.callback?.(widget.value, canvas, node, pos, e)
+        }
+    }
+
+    /**
+     * Pointer middle button click processing.  Part of {@link processMouseDown}.
+     * @param e The pointerdown event
+     * @param node The node to process a click event for
+     */
+    #processMiddleButton(e: CanvasPointerEvent, node: LGraphNode) {
+        if (LiteGraph.middle_click_slot_add_default_node &&
+            node &&
+            this.allow_interaction &&
+            !this.read_only &&
+            !this.connecting_links &&
+            !node.flags.collapsed
+        ) {
+            //not dragging mouse to connect two slots
+            let mClikSlot: INodeSlot | false = false
+            let mClikSlot_index: number | false = false
+            let mClikSlot_isOut: boolean = false
+            //search for outputs
+            if (node.outputs) {
+                for (let i = 0, l = node.outputs.length; i < l; ++i) {
+                    const output = node.outputs[i]
+                    const link_pos = node.getConnectionPos(false, i)
+                    if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
+                        mClikSlot = output
+                        mClikSlot_index = i
+                        mClikSlot_isOut = true
+                        break
+                    }
+                }
+            }
+
+            //search for inputs
+            if (node.inputs) {
+                for (let i = 0, l = node.inputs.length; i < l; ++i) {
+                    const input = node.inputs[i]
+                    const link_pos = node.getConnectionPos(true, i)
+                    if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
+                        mClikSlot = input
+                        mClikSlot_index = i
+                        mClikSlot_isOut = false
+                        break
+                    }
+                }
+            }
+            // Middle clicked a slot
+            if (mClikSlot && mClikSlot_index !== false) {
+
+                const alphaPosY = 0.5 - ((mClikSlot_index + 1) / ((mClikSlot_isOut ? node.outputs.length : node.inputs.length)))
+                const node_bounding = node.getBounding()
+                // estimate a position: this is a bad semi-bad-working mess .. REFACTOR with a correct autoplacement that knows about the others slots and nodes
+                const posRef: Point = [
+                    (!mClikSlot_isOut ? node_bounding[0] : node_bounding[0] + node_bounding[2]),
+                    e.canvasY - 80
+                ]
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const nodeCreated = this.createDefaultNodeForSlot({
+                    nodeFrom: !mClikSlot_isOut ? null : node,
+                    slotFrom: !mClikSlot_isOut ? null : mClikSlot_index,
+                    nodeTo: !mClikSlot_isOut ? node : null,
+                    slotTo: !mClikSlot_isOut ? mClikSlot_index : null,
+                    position: posRef,
+                    nodeType: "AUTO",
+                    posAdd: [!mClikSlot_isOut ? -30 : 30, -alphaPosY * 130],
+                    posSizeFix: [!mClikSlot_isOut ? -1 : 0, 0]
+                })
+                return
+            }
+        }
+
+        // Drag canvas using middle mouse button
+        if (this.allow_dragcanvas) {
+            this.dragging_canvas = true
         }
     }
 
