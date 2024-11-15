@@ -8,7 +8,7 @@ import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { isInsideRectangle, distance, overlapBounding, isPointInRectangle, findPointOnCurve, containsRect, createBounds } from "./measure"
+import { isInsideRectangle, distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, createBounds } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -2678,7 +2678,7 @@ export class LGraphCanvas {
         this.adjustMouseEvent(e)
 
         const pos: Point = [e.clientX, e.clientY]
-        if (this.viewport && !isPointInRectangle(pos, this.viewport)) return
+        if (this.viewport && !isPointInRect(pos, this.viewport)) return
 
         let scale = this.ds.scale
 
@@ -3190,7 +3190,7 @@ export class LGraphCanvas {
 
         // Select reroutes - the centre point is inside the select area
         for (const reroute of graph.reroutes.values()) {
-            if (!isPointInRectangle(reroute.pos, dragRect)) continue
+            if (!isPointInRect(reroute.pos, dragRect)) continue
 
             selectedItems.add(reroute)
             reroute.selected = true

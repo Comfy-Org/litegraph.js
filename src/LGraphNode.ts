@@ -9,7 +9,7 @@ import type { Reroute, RerouteId } from "./Reroute"
 import { LGraphEventMode, NodeSlotType, TitleMode, RenderShape } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
-import { isInRectangle, isXyInRect } from "./measure"
+import { isInRectangle, isInRect } from "./measure"
 import { LLink } from "./LLink"
 
 export type NodeId = number | string
@@ -1521,7 +1521,7 @@ export class LGraphNode implements Positionable, IPinnable {
      * @return {boolean}
      */
     isPointInside(x: number, y: number): boolean {
-        return isXyInRect(x, y, this.boundingRect)
+        return isInRect(x, y, this.boundingRect)
     }
 
     /**

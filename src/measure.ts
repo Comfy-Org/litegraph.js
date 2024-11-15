@@ -1,4 +1,4 @@
-import type { Point, Positionable, ReadOnlyPoint, ReadOnlyRect } from "./interfaces"
+import type { Point, Positionable, ReadOnlyPoint, ReadOnlyRect, Rect } from "./interfaces"
 import { LinkDirection } from "./types/globalEnums"
 
 /**
@@ -46,12 +46,12 @@ export function isInRectangle(x: number, y: number, left: number, top: number, w
 }
 
 /**
- * Determines whether a point is inside a rectangle.
+ * Determines whether a {@link Point} is inside a {@link Rect}.
  * @param point The point to check, as `x, y`
  * @param rect The rectangle, as `x, y, width, height`
  * @returns `true` if the point is inside the rect, otherwise `false`
  */
-export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
+export function isPointInRect(point: ReadOnlyPoint, rect: ReadOnlyRect): boolean {
     return point[0] >= rect[0]
         && point[0] < rect[0] + rect[2]
         && point[1] >= rect[1]
@@ -59,13 +59,13 @@ export function isPointInRectangle(point: ReadOnlyPoint, rect: ReadOnlyRect): bo
 }
 
 /**
- * Determines whether a point is inside a rectangle.
+ * Determines whether the point represented by {@link x}, {@link y} is inside a {@link Rect}.
  * @param x X co-ordinate of the point to check
  * @param y Y co-ordinate of the point to check
  * @param rect The rectangle, as `x, y, width, height`
  * @returns `true` if the point is inside the rect, otherwise `false`
  */
-export function isXyInRect(x: number, y: number, rect: ReadOnlyRect): boolean {
+export function isInRect(x: number, y: number, rect: ReadOnlyRect): boolean {
     return x >= rect[0]
         && x < rect[0] + rect[2]
         && y >= rect[1]
@@ -136,7 +136,7 @@ export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 export function containsCentre(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
     const centreX = b[0] + (b[2] * 0.5)
     const centreY = b[1] + (b[3] * 0.5)
-    return isXyInRect(centreX, centreY, a)
+    return isInRect(centreX, centreY, a)
 }
 
 /**

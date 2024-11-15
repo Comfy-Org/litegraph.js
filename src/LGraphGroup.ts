@@ -3,7 +3,7 @@ import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { containsCentre, containsRect, isInRectangle, isPointInRectangle, createBounds } from "./measure"
+import { containsCentre, containsRect, isInRectangle, isPointInRect, createBounds } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { RenderShape, TitleMode } from "./types/globalEnums"
 
@@ -209,7 +209,7 @@ export class LGraphGroup implements Positionable, IPinnable {
 
         // Move reroutes we overlap the centre point of
         for (const reroute of reroutes.values()) {
-            if (isPointInRectangle(reroute.pos, this._bounding))
+            if (isPointInRect(reroute.pos, this._bounding))
                 children.add(reroute)
         }
 
