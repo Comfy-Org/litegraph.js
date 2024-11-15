@@ -8,7 +8,7 @@ import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { CanvasItem, EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds } from "./measure"
+import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds, isInRect } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -1737,7 +1737,7 @@ export class LGraphCanvas {
         const x = e.clientX
         const y = e.clientY
         this.ds.viewport = this.viewport
-        const is_inside = !this.viewport || (this.viewport && x >= this.viewport[0] && x < (this.viewport[0] + this.viewport[2]) && y >= this.viewport[1] && y < (this.viewport[1] + this.viewport[3]))
+        const is_inside = !this.viewport || isInRect(x, y, this.viewport)
 
         if (!is_inside) return
 
@@ -3303,7 +3303,7 @@ export class LGraphCanvas {
         this.adjustMouseEvent(e)
         const x = e.clientX
         const y = e.clientY
-        const is_inside = !this.viewport || (this.viewport && x >= this.viewport[0] && x < (this.viewport[0] + this.viewport[2]) && y >= this.viewport[1] && y < (this.viewport[1] + this.viewport[3]))
+        const is_inside = !this.viewport || isInRect(x, y, this.viewport)
         if (!is_inside) return
 
         const pos = [e.canvasX, e.canvasY]
