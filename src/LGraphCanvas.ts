@@ -1743,8 +1743,6 @@ export class LGraphCanvas {
 
         const node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
 
-        const now = LiteGraph.getTime()
-        const is_double_click = (now - this.last_mouseclick < 300)
         this.mouse[0] = x
         this.mouse[1] = y
         this.graph_mouse[0] = e.canvasX
@@ -1762,7 +1760,7 @@ export class LGraphCanvas {
 
         //left button mouse / single finger
         if (e.button === 0 && !pointer.isDouble) {
-            this.#processPrimaryButton(e, node, is_double_click)
+            this.#processPrimaryButton(e, node)
         } else if (e.button === 1) {
             this.#processMiddleButton(e, node)
         } else if ((e.button === 2 || pointer.isDouble) && this.allow_interaction && !this.read_only) {
@@ -1792,16 +1790,13 @@ export class LGraphCanvas {
         this.onMouseDown?.(e)
     }
 
-    #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode, is_double_click: boolean) {
+    #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode) {
         const { pointer, graph } = this
         const x = e.canvasX
         const y = e.canvasY
 
         // Modifiers
         const ctrlOrMeta = e.ctrlKey || e.metaKey
-        const ctrl = ctrlOrMeta && !e.shiftKey && !e.altKey
-        const ctrlShift = ctrlOrMeta && e.shiftKey && !e.altKey
-        const ctrlAlt = ctrlOrMeta && !e.shiftKey && e.altKey
 
         // Multi-select drag rectangle
         if (ctrlOrMeta && !e.altKey) {
@@ -1851,7 +1846,7 @@ export class LGraphCanvas {
 
         // Node clicked
         if (node && (this.allow_interaction || node.flags.allow_interaction)) {
-            this.#processNodeClick(ctrlOrMeta, e, node, is_double_click)
+            this.#processNodeClick(e, ctrlOrMeta, node)
         } else {
             // Reroutes
             if (this.reroutesEnabled) {
@@ -1950,35 +1945,35 @@ export class LGraphCanvas {
                     const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
                     const headerHeight = f * 1.4
                     if (isInRectangle(x, y, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
+                        // In title bar
                         pointer.onDragStart = () => {
                             group.recomputeInsideNodes()
                             this.processSelect(group, e, true)
                             this.isDragging = true
                         }
                         pointer.finally = () => this.isDragging = false
-                        return
                     }
                 }
 
-                if (is_double_click) {
+                pointer.onDoubleClick = () => {
                     this.emitEvent({
                         subType: "group-double-click",
                         originalEvent: e,
                         group,
                     })
-                    return
                 }
-            } else if (is_double_click) {
-                // Double click within group should not trigger the searchbox.
-                if (this.allow_searchbox) {
-                    this.showSearchBox(e)
-                    e.preventDefault()
+            } else {
+                pointer.onDoubleClick = () => {
+                    // Double click within group should not trigger the searchbox.
+                    if (this.allow_searchbox) {
+                        this.showSearchBox(e)
+                        e.preventDefault()
+                    }
+                    this.emitEvent({
+                        subType: "empty-double-click",
+                        originalEvent: e,
+                    })
                 }
-                this.emitEvent({
-                    subType: "empty-double-click",
-                    originalEvent: e,
-                })
-                return
             }
         }
 
@@ -1995,9 +1990,8 @@ export class LGraphCanvas {
      * @param ctrlOrMeta Ctrl or meta key is pressed
      * @param e The pointerdown event
      * @param node The node to process a click event for
-     * @param is_double_click Whether this should be processed as a double-click event
      */
-    #processNodeClick(ctrlOrMeta: boolean, e: CanvasPointerEvent, node: LGraphNode, is_double_click: boolean): void {
+    #processNodeClick(e: CanvasPointerEvent, ctrlOrMeta: boolean, node: LGraphNode): void {
         const { pointer, graph } = this
         const x = e.canvasX
         const y = e.canvasY
@@ -2010,7 +2004,8 @@ export class LGraphCanvas {
         }
 
         // Collapse toggle
-        if (node.isPointInCollapse(x, y)) {
+        const inCollapse = node.isPointInCollapse(x, y)
+        if (inCollapse) {
             pointer.onClick = () => {
                 node.collapse()
                 this.setDirty(true, true)
@@ -2088,11 +2083,8 @@ export class LGraphCanvas {
                         }
 
                         // TODO: Move callbacks to the start of this closure (onInputClick is already correct).
-                        if (is_double_click) {
-                            node.onOutputDblClick?.(i, e)
-                        } else {
-                            node.onOutputClick?.(i, e)
-                        }
+                        pointer.onDoubleClick = () => node.onOutputDblClick?.(i, e)
+                        pointer.onClick = () => node.onOutputClick?.(i, e)
 
                         return
                     }
@@ -2112,11 +2104,8 @@ export class LGraphCanvas {
                         30,
                         20
                     )) {
-                        if (is_double_click) {
-                            node.onInputDblClick?.(i, e)
-                        } else {
-                            node.onInputClick?.(i, e)
-                        }
+                        pointer.onDoubleClick = () => node.onInputDblClick?.(i, e)
+                        pointer.onClick = () => node.onInputClick?.(i, e)
 
                         if (input.link !== null) {
                             //before disconnecting
@@ -2168,21 +2157,25 @@ export class LGraphCanvas {
         // Widget
         const widget = node.getWidgetOnPos(x, y)
         if (widget) {
-            this.#processWidgetClick(node, widget, e)
+            this.#processWidgetClick(e, node, widget)
             this.node_widget = [node, widget]
-        } else if (is_double_click && this.selectedItems.has(node)) {
-            // Double-click
-            // Check if it's a double click on the title bar
-            // Note: pos[1] is the y-coordinate of the node's body
-            // If clicking on node header (title), pos[1] is negative
-            if (pos[1] < 0) {
-                node.onNodeTitleDblClick?.(e, pos, this)
+        } else {
+            pointer.onDoubleClick = () => {
+                // Double-click
+                // Check if it's a double click on the title bar
+                // Note: pos[1] is the y-coordinate of the node's body
+                // If clicking on node header (title), pos[1] is negative
+                if (pos[1] < 0 && !inCollapse) {
+                    node.onNodeTitleDblClick?.(e, pos, this)
+                }
+                node.onDblClick?.(e, pos, this)
+                this.processNodeDblClicked(node)
             }
-            node.onDblClick?.(e, pos, this)
-            this.processNodeDblClicked(node)
-        } else if (node.onMouseDown?.(e, pos, this)) {
+
             // Mousedown callback - can block drag
-        } else if (this.allow_dragnodes) {
+            if (node.onMouseDown?.(e, pos, this) || !this.allow_dragnodes)
+                return
+
             // Drag node
             pointer.onDragStart = () => {
                 graph.beforeChange()
@@ -2195,7 +2188,7 @@ export class LGraphCanvas {
         this.dirty_canvas = true
     }
 
-    #processWidgetClick(node: LGraphNode, widget: IWidget, e: CanvasPointerEvent) {
+    #processWidgetClick(e: CanvasPointerEvent, node: LGraphNode, widget: IWidget) {
         const { pointer } = this
         const width = widget.width || node.width
 
@@ -2367,8 +2360,6 @@ export class LGraphCanvas {
         }
 
         pointer.finally = () => this.node_widget = null
-
-        return widget
 
         function setWidgetValue(canvas: LGraphCanvas, node: LGraphNode, widget: IWidget, value: TWidgetValue) {
             const v = widget.type === "number" ? Number(value) : value
