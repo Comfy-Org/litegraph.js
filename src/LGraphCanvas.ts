@@ -1977,7 +1977,6 @@ export class LGraphCanvas {
             }
         }
 
-        console.log("pointer.onDragStart:", !!pointer.onDragStart)
         if (!pointer.onDragStart && !pointer.onClick && !pointer.onDrag && this.allow_dragcanvas) {
             pointer.onClick = () => this.processSelect(null, e)
             pointer.finally = () => this.dragging_canvas = false
@@ -2697,16 +2696,13 @@ export class LGraphCanvas {
 
         /** The mouseup event occurred near the mousedown event. */
         /** Normal-looking click event - mouseUp occurred near mouseDown, without dragging. */
-        // FIXME: Bang bang
-        const isClick = !!pointer.up(e)
-        console.debug("processMouseUp.pointerState", isClick)
+        const isClick = pointer.up(e)
         if (isClick === true) {
             pointer.isDown = false
             pointer.isDouble = false
-            // this.connecting_links = null
-            // this.dragging_canvas = false
-            // this.dragging_rectangle = null
-            // this.resizing_node = null
+            // Required until all link behaviour is added to Pointer API
+            this.connecting_links = null
+            this.dragging_canvas = false
 
             graph.change()
 
