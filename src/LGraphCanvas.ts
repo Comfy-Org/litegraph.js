@@ -2354,8 +2354,7 @@ export class LGraphCanvas {
             )
             if (resized) this.dirty_bgcanvas = true
         } else if (this.dragging_canvas) {
-            this.ds.offset[0] += delta[0] / this.ds.scale
-            this.ds.offset[1] += delta[1] / this.ds.scale
+            this.ds.mouseDrag(delta[0], delta[1])
             this.#dirty()
         } else if ((this.allow_interaction || (node && node.flags.allow_interaction)) && !this.read_only) {
             if (this.connecting_links) this.dirty_canvas = true
@@ -3485,14 +3484,14 @@ export class LGraphCanvas {
      **/
     centerOnNode(node: LGraphNode): void {
         const dpi = window?.devicePixelRatio || 1
-        this.ds.offset[0] =
-            -node.pos[0] -
+        const x = -node.pos[0] -
             node.size[0] * 0.5 +
             (this.canvas.width * 0.5) / (this.ds.scale * dpi)
-        this.ds.offset[1] =
-            -node.pos[1] -
+        const y = -node.pos[1] -
             node.size[1] * 0.5 +
             (this.canvas.height * 0.5) / (this.ds.scale * dpi)
+
+        this.ds.setOffset(x, y)
         this.setDirty(true, true)
     }
     /**
@@ -8154,12 +8153,12 @@ export class LGraphCanvas {
             const progress = Math.min(elapsed / duration, 1)
             const easedProgress = easeFunction(progress)
 
-            this.ds.offset[0] = startX + (targetX - startX) * easedProgress
-            this.ds.offset[1] = startY + (targetY - startY) * easedProgress
+            if (zoom > 0) this.ds.scale = startScale + (targetScale - startScale) * easedProgress
 
-            if (zoom > 0) {
-                this.ds.scale = startScale + (targetScale - startScale) * easedProgress
-            }
+            this.ds.setOffset(
+                startX + (targetX - startX) * easedProgress,
+                startY + (targetY - startY) * easedProgress
+            )
 
             this.setDirty(true, true)
 

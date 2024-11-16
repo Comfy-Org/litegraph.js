@@ -17,6 +17,18 @@ export class DragAndScale {
     dragging?: boolean
     viewport?: Rect
 
+    /**
+     * Callback executed whenever the drag & scale {@link DragAndScale.offset} (position) is changed.
+     * @param offset The top-left offset of the viewport after the position change
+     * @remarks Only fires when the offset is changed via {@link moveTo}
+     */
+    onPositionChanged?(offset: Point): void
+    /**
+     * Callback executed whenever the scale is set by the user changing scale.
+     * @param scale The newly set view scale (or zoom level).  Typical values `0.1` - `10`.  Default: `1`
+     */
+    onZoomChanged?(scale: number): void
+
     onredraw?(das: DragAndScale): void
     /** @deprecated */
     onmouse?(e: unknown): boolean
@@ -175,12 +187,30 @@ export class DragAndScale {
         return out
     }
 
-    /** @deprecated Has not been kept up to date */
+    /**
+     * Adds a delta position value to the current {@link offset}.
+     * @param x The delta value to add to {@link offset} X
+     * @param y The delta value to add to {@link offset} Y
+     */
     mouseDrag(x: number, y: number): void {
-        this.offset[0] += x / this.scale
-        this.offset[1] += y / this.scale
+        const { offset, scale } = this
+        offset[0] += x / scale
+        offset[1] += y / scale
 
         this.onredraw?.(this)
+        this.onPositionChanged(offset)
+    }
+
+    /**
+     * Sets {@link offset} to the provided co-ordinates.
+     * @param x The delta value to add to {@link offset} X
+     * @param y The delta value to add to {@link offset} Y
+     */
+    setOffset(x: number, y: number): void {
+        const { offset } = this
+        offset[0] = x
+        offset[1] = y
+        this.onPositionChanged(offset)
     }
 
     changeScale(value: number, zooming_center?: Point): void {
@@ -214,6 +244,7 @@ export class DragAndScale {
         this.offset[1] += delta_offset[1]
 
         this.onredraw?.(this)
+        this.onZoomChanged?.(this.scale)
     }
 
     changeDeltaScale(value: number, zooming_center?: Point): void {
