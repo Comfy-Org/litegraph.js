@@ -1912,12 +1912,17 @@ export class LGraphCanvas {
 
                         return
                     } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
+                        pointer.finally = () => {
+                            this.emitAfterChange()
+                            this.isDragging = false
+                        }
+
+                        this.emitBeforeChange()
                         const newReroute = graph.createReroute([x, y], linkSegment)
                         pointer.onDragStart = () => {
                             this.processSelect(newReroute, e)
                             this.isDragging = true
                         }
-                        pointer.finally = () => this.isDragging = false
                         return
                     }
                 } else if (isInRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
