@@ -2748,7 +2748,7 @@ export class LGraphCanvas {
             const y = e.canvasY
             const node = graph.getNodeOnPos(x, y, this.visible_nodes)
 
-            if (this.connecting_links?.length && !isClick) {
+            if (this.connecting_links?.length) {
                 //node below mouse
                 const firstLink = this.connecting_links[0]
                 if (node) {
@@ -2824,10 +2824,6 @@ export class LGraphCanvas {
                     }
                 }
             } else {
-                if (isClick && !node && !graph.getGroupTitlebarOnPos(x, y) && (!this.reroutesEnabled || !graph.getRerouteOnPos(x, y))) {
-                    this.processSelect(null, e)
-                }
-
                 this.dirty_canvas = true
 
                 // @ts-expect-error Unused param
