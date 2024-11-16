@@ -2119,9 +2119,6 @@ export class LGraphCanvas {
                             if (LiteGraph.click_do_break_link_to || (LiteGraph.ctrl_alt_click_do_break_link && ctrlOrMeta && e.altKey && !e.shiftKey)) {
                                 node.disconnectInput(i)
                             } else if (e.shiftKey || this.allow_reconnect_links) {
-                                if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
-                                    node.disconnectInput(i)
-
                                 const connecting: ConnectingLink = {
                                     node: linked_node,
                                     slot,
@@ -2129,7 +2126,12 @@ export class LGraphCanvas {
                                     pos: linked_node.getConnectionPos(false, slot),
                                 }
                                 this.connecting_links = [connecting]
-                                pointer.onDragStart = () => connecting.output = linked_node.outputs[slot]
+
+                                pointer.onDragStart = () => {
+                                    if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
+                                        node.disconnectInput(i)
+                                    connecting.output = linked_node.outputs[slot]
+                                }
 
                                 this.dirty_bgcanvas = true
                             }
