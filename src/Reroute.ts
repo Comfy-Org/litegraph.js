@@ -73,6 +73,9 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     /** @inheritdoc */
     _pos: Float32Array = this.#malloc.subarray(6, 8)
 
+    /** Colour of the first link that rendered this reroute */
+    _colour?: CanvasColour
+
     /**
      * Used to ensure reroute angles are only executed once per frame. 
      * @todo Calculate on change instead.
@@ -251,9 +254,9 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
      * 
      * @remarks Leaves {@link ctx}.fillStyle, strokeStyle, and lineWidth dirty (perf.).
      */
-    draw(ctx: CanvasRenderingContext2D, colour: CanvasColour): void {
+    draw(ctx: CanvasRenderingContext2D): void {
         const { pos } = this
-        ctx.fillStyle = colour
+        ctx.fillStyle = this._colour
         ctx.beginPath()
         ctx.arc(pos[0], pos[1], Reroute.radius, 0, 2 * Math.PI)
         ctx.fill()

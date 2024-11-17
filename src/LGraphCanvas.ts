@@ -5058,6 +5058,7 @@ export class LGraphCanvas {
         snapGuide[1] -= offsetY
 
         const { globalAlpha } = ctx
+        ctx.globalAlpha = 1
         ctx.beginPath()
         const [x, y, w, h] = snapGuide
         if (shape === RenderShape.CIRCLE) {
@@ -5080,6 +5081,8 @@ export class LGraphCanvas {
     drawConnections(ctx: CanvasRenderingContext2D): void {
         const rendered = this.renderedPaths
         rendered.clear()
+        const visibleReroutes: Reroute[] = []
+
         const now = LiteGraph.getTime()
         const visible_area = this.visible_area
         LGraphCanvas.#margin_area[0] = visible_area[0] - 20
@@ -5152,8 +5155,13 @@ export class LGraphCanvas {
                     for (let j = 0; j < l; j++) {
                         const reroute = reroutes[j]
 
+                        // Only render once
                         if (!rendered.has(reroute)) {
                             rendered.add(reroute)
+                            visibleReroutes.push(reroute)
+                            reroute._colour = link.color ||
+                                LGraphCanvas.link_type_colors[link.type] ||
+                                this.default_link_color
 
                             const prevReroute = this.graph.reroutes.get(reroute.parentId)
                             const startPos = prevReroute?.pos ?? start_node_slotpos
@@ -5196,14 +5204,6 @@ export class LGraphCanvas {
                         end_dir,
                         { startControl },
                     )
-
-                    // Render the reroute circles
-                    const defaultColor = LGraphCanvas.link_type_colors[link.type] || this.default_link_color
-                    for (const reroute of reroutes) {
-                        if (this.#snapToGrid && this.isDragging && this.selectedItems.has(reroute))
-                            this.drawSnapGuide(ctx, reroute, RenderShape.CIRCLE)
-                        reroute.draw(ctx, link.color || defaultColor)
-                    }
                 } else {
                     this.renderLink(
                         ctx,
@@ -5238,6 +5238,13 @@ export class LGraphCanvas {
                     ctx.globalAlpha = tmp
                 }
             }
+        }
+
+        // Render the reroute circles
+        for (const reroute of visibleReroutes) {
+            if (this.#snapToGrid && this.isDragging && this.selectedItems.has(reroute))
+                this.drawSnapGuide(ctx, reroute, RenderShape.CIRCLE)
+            reroute.draw(ctx)
         }
         ctx.globalAlpha = 1
     }
