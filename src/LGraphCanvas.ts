@@ -15,7 +15,7 @@ import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrEmpty, stringOrNull } from "./strings"
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 import { Reroute, type RerouteId } from "./Reroute"
-import { getAllNestedItems } from "./utils/collections"
+import { getAllNestedItems, findFirstNode } from "./utils/collections"
 import { CanvasPointer } from "./CanvasPointer"
 
 interface IShowSearchOptions {
@@ -1834,12 +1834,20 @@ export class LGraphCanvas {
                 cloned.pos[0] += 5
                 cloned.pos[1] += 5
 
-                graph.add(cloned, false)
                 if (this.allow_dragnodes) {
+                    pointer.onDragStart = () => {
+                        graph.add(cloned, false)
+                        this.#startDraggingItems(cloned, e)
+                    }
+                    pointer.onDragEnd = (e) => this.#processDraggedItems(e)
+                    pointer.finally = () => this.#resetDragState()
+                } else {
+                    // TODO: Check if before/after change are necessary here.
                     graph.beforeChange()
-                    this.isDragging = true
+                    graph.add(cloned, false)
+                    graph.afterChange()
                 }
-                this.processSelect(cloned, e)
+
                 return
             }
         }
@@ -1874,11 +1882,9 @@ export class LGraphCanvas {
 
                     pointer.onClick = () => this.processSelect(reroute, e)
                     if (!pointer.onDragStart) {
-                        pointer.onDragStart = () => {
-                            this.processSelect(reroute, e, true)
-                            this.isDragging = true
-                        }
-                        pointer.finally = () => this.isDragging = false
+                        pointer.onDragStart = () => this.#startDraggingItems(reroute, e, true)
+                        pointer.onDragEnd = (e) => this.#processDraggedItems(e)
+                        pointer.finally = () => this.#resetDragState()
                     }
                     return
                 }
@@ -1912,17 +1918,10 @@ export class LGraphCanvas {
 
                         return
                     } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
-                        pointer.finally = () => {
-                            this.emitAfterChange()
-                            this.isDragging = false
-                        }
-
-                        this.emitBeforeChange()
                         const newReroute = graph.createReroute([x, y], linkSegment)
-                        pointer.onDragStart = () => {
-                            this.processSelect(newReroute, e)
-                            this.isDragging = true
-                        }
+                        pointer.onDragStart = () => this.#startDraggingItems(newReroute, e)
+                        pointer.onDragEnd = (e) => this.#processDraggedItems(e)
+                        pointer.finally = () => this.#resetDragState()
                         return
                     }
                 } else if (isInRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
@@ -1953,10 +1952,10 @@ export class LGraphCanvas {
                         // In title bar
                         pointer.onDragStart = () => {
                             group.recomputeInsideNodes()
-                            this.processSelect(group, e, true)
-                            this.isDragging = true
+                            this.#startDraggingItems(group, e, true)
                         }
-                        pointer.finally = () => this.isDragging = false
+                        pointer.onDragEnd = (e) => this.#processDraggedItems(e)
+                        pointer.finally = () => this.#resetDragState()
                     }
                 }
 
@@ -2183,12 +2182,9 @@ export class LGraphCanvas {
                 return
 
             // Drag node
-            pointer.onDragStart = () => {
-                graph.beforeChange()
-                this.processSelect(node, e, true)
-                this.isDragging = true
-            }
-            pointer.finally = () => this.isDragging = false
+            pointer.onDragStart = () => this.#startDraggingItems(node, e, true)
+            pointer.onDragEnd = (e) => this.#processDraggedItems(e)
+            pointer.finally = () => this.#resetDragState()
         }
 
         this.dirty_canvas = true
@@ -2687,6 +2683,45 @@ export class LGraphCanvas {
         e.preventDefault()
         return
     }
+
+    /**
+     * Start dragging an item, optionally including all other selected items.
+     * @param item The item that the drag event started on
+     * @param e The pointer event that initiated the drag, e.g. pointerdown
+     * @param sticky If `true`, the item is added to the selection - see {@link processSelect}
+     */
+    #startDraggingItems(item: Positionable, e: CanvasPointerEvent, sticky = false) {
+        this.emitBeforeChange()
+        this.graph.beforeChange()
+        this.processSelect(item, e, sticky)
+        this.isDragging = true
+    }
+
+    /**
+     * Handles shared clean up and placement after items have been dragged.
+     * @param e The event that completed the drag, e.g. pointerup, pointermove
+     */
+    #processDraggedItems(e: CanvasPointerEvent): void {
+        const { graph } = this
+        if (e.shiftKey || graph.config.alwaysSnapToGrid)
+            graph.snapToGrid(this.selectedItems)
+
+        this.dirty_canvas = true
+        this.dirty_bgcanvas = true
+
+        // TODO: Replace legacy behaviour: callbacks were never extended for multiple items
+        this.onNodeMoved?.(findFirstNode(this.selectedItems))
+    }
+
+    /**
+     * Ensure that dragging is properly cleaned up, on success or failure.
+     */
+    #resetDragState(): void {
+        this.isDragging = false
+        this.graph.afterChange()
+        this.emitAfterChange()
+    }
+
     /**
      * Called when a mouse up event has to be processed
      **/
@@ -2730,25 +2765,6 @@ export class LGraphCanvas {
             //left button
             this.selected_group = null
 
-            // Deprecated - old API for backwards compat
-            if (this.isDragging && this.selectedItems.size === 1) {
-                const val = this.selectedItems.values().next().value
-                if (val instanceof LGraphNode) {
-                    this.onNodeMoved?.(val)
-                    graph.afterChange(val)
-                }
-            }
-            if (this.isDragging && LiteGraph.always_round_positions) {
-                const selected = this.selectedItems
-                const allItems = getAllNestedItems(selected)
-
-                allItems.forEach(x => {
-                    x.pos[0] = Math.round(x.pos[0])
-                    x.pos[1] = Math.round(x.pos[1])
-                })
-                this.dirty_canvas = true
-                this.dirty_bgcanvas = true
-            }
             this.isDragging = false
 
             const x = e.canvasX
