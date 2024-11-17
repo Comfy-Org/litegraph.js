@@ -2701,6 +2701,16 @@ export class LGraphCanvas {
 
         this.adjustMouseEvent(e)
 
+        // TODO: Temporary placement to fix regression.
+        if (this.isDragging) {
+            for (const item of this.selectedItems) {
+                if (item instanceof LGraphNode) {
+                    this.onNodeMoved?.(item)
+                    graph.afterChange(item)
+                }
+            }
+        }
+
         /** The mouseup event occurred near the mousedown event. */
         /** Normal-looking click event - mouseUp occurred near mouseDown, without dragging. */
         const isClick = pointer.up(e)
@@ -2730,14 +2740,6 @@ export class LGraphCanvas {
             //left button
             this.selected_group = null
 
-            // Deprecated - old API for backwards compat
-            if (this.isDragging && this.selectedItems.size === 1) {
-                const val = this.selectedItems.values().next().value
-                if (val instanceof LGraphNode) {
-                    this.onNodeMoved?.(val)
-                    graph.afterChange(val)
-                }
-            }
             if (this.isDragging && LiteGraph.always_round_positions) {
                 const selected = this.selectedItems
                 const allItems = getAllNestedItems(selected)
