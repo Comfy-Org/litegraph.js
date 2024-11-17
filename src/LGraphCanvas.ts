@@ -382,6 +382,10 @@ export class LGraphCanvas {
     SELECTED_NODE: LGraphNode
     /** @deprecated Panels */
     NODEPANEL_IS_OPEN: boolean
+
+    /** Set on keydown, keyup. @todo */
+    #shiftDown: boolean = false
+
     getMenuOptions?(): IContextMenuValue[]
     getExtraMenuOptions?(canvas: LGraphCanvas, options: IContextMenuValue[]): IContextMenuValue[]
     static active_node: LGraphNode
@@ -2999,6 +3003,7 @@ export class LGraphCanvas {
      * process a key event
      **/
     processKey(e: KeyboardEvent): boolean | null {
+        this.#shiftDown = e.shiftKey
         if (!this.graph) return
 
         let block_default = false
