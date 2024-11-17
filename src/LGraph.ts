@@ -732,8 +732,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         const { state } = this
 
         // Ensure created items are snapped
-        const snapTo = this.#getSnapToGridSize()
-        if (snapTo) node.snapToGrid(snapTo)
+        if (this.config.alwaysSnapToGrid) {
+            const snapTo = this.#getSnapToGridSize()
+            if (snapTo) node.snapToGrid(snapTo)
+        }
 
         // LEGACY: This was changed from constructor === LGraphGroup
         //groups
