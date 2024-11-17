@@ -8,7 +8,7 @@ import type { LGraph } from "./LGraph"
 import type { ContextMenu } from "./ContextMenu"
 import { CanvasItem, EaseFunction, LGraphEventMode, LinkDirection, LinkMarkerShape, LinkRenderType, RenderShape, TitleMode } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
-import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds, isInRect } from "./measure"
+import { distance, overlapBounding, isPointInRect, findPointOnCurve, containsRect, isInRectangle, createBounds, isInRect, snapPoint } from "./measure"
 import { drawSlot, LabelPosition } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
@@ -383,6 +383,8 @@ export class LGraphCanvas {
     /** @deprecated Panels */
     NODEPANEL_IS_OPEN: boolean
 
+    /** Once per frame check of snap to grid value.  @todo Update on change. */
+    #snapToGrid?: number
     /** Set on keydown, keyup. @todo */
     #shiftDown: boolean = false
 
@@ -3828,6 +3830,11 @@ export class LGraphCanvas {
             ctx.clip()
         }
 
+        // TODO: Set snapping value when changed instead of once per frame
+        this.#snapToGrid = this.#shiftDown || this.graph.config.alwaysSnapToGrid
+            ? this.graph.getSnapToGridSize()
+            : undefined
+
         //clear
         //canvas.width = canvas.width;
         if (this.clear_background) {
@@ -3860,11 +3867,17 @@ export class LGraphCanvas {
 
             //draw nodes
             const visible_nodes = this.visible_nodes
+            const drawSnapGuides = this.#snapToGrid && this.isDragging
 
             for (let i = 0; i < visible_nodes.length; ++i) {
                 const node = visible_nodes[i]
 
                 ctx.save()
+
+                // Draw snap shadow
+                if (drawSnapGuides && this.selectedItems.has(node))
+                    this.drawSnapGuide(ctx, node)
+
                 // Localise co-ordinates to node position
                 ctx.translate(node.pos[0], node.pos[1])
 
@@ -5017,6 +5030,53 @@ export class LGraphCanvas {
         ctx.globalAlpha = 1
     }
 
+    /**
+     * Draws a snap guide for a {@link Positionable} item.
+     * 
+     * Initial design was a simple white rectangle representing the location the
+     * item would land if dropped.
+     * @param ctx The 2D canvas context to draw on
+     * @param item The item to draw a snap guide for
+     * @param snapTo The grid size to snap to
+     * @todo Update to align snapping with boundingRect
+     * @todo Shapes
+     */
+    drawSnapGuide(ctx: CanvasRenderingContext2D, item: Positionable, shape = RenderShape.ROUND) {
+        const snapGuide = LGraphCanvas.#temp
+        snapGuide.set(item.boundingRect)
+
+        // Not all items have pos equal to top-left of bounds
+        const { pos } = item
+        const offsetX = pos[0] - snapGuide[0]
+        const offsetY = pos[1] - snapGuide[1]
+
+        // Normalise boundingRect to pos to snap
+        snapGuide[0] += offsetX
+        snapGuide[1] += offsetY
+        snapPoint(snapGuide, this.#snapToGrid)
+        snapGuide[0] -= offsetX
+        snapGuide[1] -= offsetY
+
+        const { globalAlpha } = ctx
+        ctx.beginPath()
+        const [x, y, w, h] = snapGuide
+        if (shape === RenderShape.CIRCLE) {
+            const midX = x + (w * 0.5)
+            const midY = y + (h * 0.5)
+            const radius = Math.min(w * 0.5, h * 0.5)
+            ctx.arc(midX, midY, radius, 0, Math.PI * 2)
+        } else {
+            ctx.rect(x, y, w, h)
+        }
+
+        ctx.lineWidth = 0.5
+        ctx.strokeStyle = "#FFFFFF66"
+        ctx.fillStyle = "#FFFFFF22"
+        ctx.fill()
+        ctx.stroke()
+        ctx.globalAlpha = globalAlpha
+    }
+
     drawConnections(ctx: CanvasRenderingContext2D): void {
         const rendered = this.renderedPaths
         rendered.clear()
@@ -5140,6 +5200,8 @@ export class LGraphCanvas {
                     // Render the reroute circles
                     const defaultColor = LGraphCanvas.link_type_colors[link.type] || this.default_link_color
                     for (const reroute of reroutes) {
+                        if (this.#snapToGrid && this.isDragging && this.selectedItems.has(reroute))
+                            this.drawSnapGuide(ctx, reroute, RenderShape.CIRCLE)
                         reroute.draw(ctx, link.color || defaultColor)
                     }
                 } else {

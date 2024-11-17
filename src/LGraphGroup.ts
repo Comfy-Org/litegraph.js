@@ -3,7 +3,7 @@ import type { LGraph } from "./LGraph"
 import type { ISerialisedGroup } from "./types/serialisation"
 import { LiteGraph } from "./litegraph"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { containsCentre, containsRect, isInRectangle, isPointInRect, createBounds } from "./measure"
+import { containsCentre, containsRect, isInRectangle, isPointInRect, createBounds, snapPoint } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { RenderShape, TitleMode } from "./types/globalEnums"
 
@@ -194,12 +194,7 @@ export class LGraphGroup implements Positionable, IPinnable {
 
     /** @inheritdoc */
     snapToGrid(snapTo: number): boolean {
-        if (this.pinned || !snapTo) return false
-        
-        const { pos } = this
-        pos[0] = snapTo * Math.round(pos[0] / snapTo)
-        pos[1] = snapTo * Math.round(pos[1] / snapTo)
-        return true
+        return this.pinned ? false : snapPoint(this.pos, snapTo)
     }
 
     recomputeInsideNodes(): void {

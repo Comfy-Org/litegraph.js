@@ -9,7 +9,7 @@ import type { Reroute, RerouteId } from "./Reroute"
 import { LGraphEventMode, NodeSlotType, TitleMode, RenderShape } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
-import { isInRectangle, isInRect } from "./measure"
+import { isInRectangle, isInRect, snapPoint } from "./measure"
 import { LLink } from "./LLink"
 
 export type NodeId = number | string
@@ -2297,12 +2297,7 @@ export class LGraphNode implements Positionable, IPinnable {
 
     /** @inheritdoc */
     snapToGrid(snapTo: number): boolean {
-        if (this.pinned || !snapTo) return false
-        
-        const { pos } = this
-        pos[0] = snapTo * Math.round(pos[0] / snapTo)
-        pos[1] = snapTo * Math.round(pos[1] / snapTo)
-        return true
+        return this.pinned ? false : snapPoint(this.pos, snapTo)
     }
 
     /** @see {@link snapToGrid} */
