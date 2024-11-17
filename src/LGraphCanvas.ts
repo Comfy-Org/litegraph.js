@@ -5916,6 +5916,7 @@ export class LGraphCanvas {
 
         ctx.save()
         ctx.globalAlpha = 0.5 * this.editor_alpha
+        const drawSnapGuides = this.#snapToGrid && this.isDragging
 
         for (let i = 0; i < groups.length; ++i) {
             const group = groups[i]
@@ -5923,6 +5924,10 @@ export class LGraphCanvas {
             if (!overlapBounding(this.visible_area, group._bounding)) {
                 continue
             } //out of the visible area
+
+            // Draw snap shadow
+            if (drawSnapGuides && this.selectedItems.has(group))
+                this.drawSnapGuide(ctx, group)
 
             group.draw(this, ctx)
         }
