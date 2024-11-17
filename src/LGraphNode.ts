@@ -2295,10 +2295,19 @@ export class LGraphNode implements Positionable, IPinnable {
         return out
     }
 
-    /* Force align to grid */
+    /** @inheritdoc */
+    snapToGrid(snapTo: number): boolean {
+        if (this.pinned || !snapTo) return false
+        
+        const { pos } = this
+        pos[0] = snapTo * Math.round(pos[0] / snapTo)
+        pos[1] = snapTo * Math.round(pos[1] / snapTo)
+        return true
+    }
+
+    /** @see {@link snapToGrid} */
     alignToGrid(): void {
-        this.pos[0] = LiteGraph.CANVAS_GRID_SIZE * Math.round(this.pos[0] / LiteGraph.CANVAS_GRID_SIZE)
-        this.pos[1] = LiteGraph.CANVAS_GRID_SIZE * Math.round(this.pos[1] / LiteGraph.CANVAS_GRID_SIZE)
+        this.snapToGrid(LiteGraph.CANVAS_GRID_SIZE)
     }
 
     /* Console output */

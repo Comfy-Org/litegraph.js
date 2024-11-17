@@ -192,6 +192,16 @@ export class LGraphGroup implements Positionable, IPinnable {
         }
     }
 
+    /** @inheritdoc */
+    snapToGrid(snapTo: number): boolean {
+        if (this.pinned || !snapTo) return false
+        
+        const { pos } = this
+        pos[0] = snapTo * Math.round(pos[0] / snapTo)
+        pos[1] = snapTo * Math.round(pos[1] / snapTo)
+        return true
+    }
+
     recomputeInsideNodes(): void {
         const { nodes, reroutes, groups } = this.graph
         const children = this._children

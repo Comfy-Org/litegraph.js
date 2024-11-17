@@ -188,6 +188,16 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
         this.#pos[1] += deltaY
     }
 
+    /** @inheritdoc */
+    snapToGrid(snapTo: number): boolean {
+        if (!snapTo) return false
+
+        const { pos } = this
+        pos[0] = snapTo * Math.round(pos[0] / snapTo)
+        pos[1] = snapTo * Math.round(pos[1] / snapTo)
+        return true
+    }
+
     calculateAngle(lastRenderTime: number, network: LinkNetwork, linkStart: Point): void {
         // Ensure we run once per render
         if (!(lastRenderTime > this.#lastRenderTime)) return

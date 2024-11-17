@@ -9,6 +9,7 @@ import { type NodeId, LGraphNode } from "./LGraphNode"
 import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { isSortaInsideOctagon } from "./measure"
+import { getAllNestedItems } from "./utils/collections"
 
 interface IGraphInput {
     name: string
@@ -999,8 +1000,8 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
             : LiteGraph.CANVAS_GRID_SIZE
         if (!snapTo) return
 
-        items.forEach(item => {
-            if (item instanceof LGraphNode && !item.pinned) item.alignToGrid()
+        getAllNestedItems(items).forEach(item => {
+            if (!item.pinned) item.snapToGrid(snapTo)
         })
     }
 
