@@ -1835,12 +1835,11 @@ export class LGraphCanvas {
                 cloned.pos[1] += 5
 
                 if (this.allow_dragnodes) {
-                    pointer.onDragStart = () => {
+                    pointer.onDragStart = (pointer) => {
                         graph.add(cloned, false)
-                        this.#startDraggingItems(cloned, e)
+                        this.#startDraggingItems(cloned, pointer)
                     }
                     pointer.onDragEnd = (e) => this.#processDraggedItems(e)
-                    pointer.finally = () => this.#resetDragState()
                 } else {
                     // TODO: Check if before/after change are necessary here.
                     graph.beforeChange()
@@ -1882,9 +1881,8 @@ export class LGraphCanvas {
 
                     pointer.onClick = () => this.processSelect(reroute, e)
                     if (!pointer.onDragStart) {
-                        pointer.onDragStart = () => this.#startDraggingItems(reroute, e, true)
+                        pointer.onDragStart = (pointer) => this.#startDraggingItems(reroute, pointer, true)
                         pointer.onDragEnd = (e) => this.#processDraggedItems(e)
-                        pointer.finally = () => this.#resetDragState()
                     }
                     return
                 }
@@ -1919,9 +1917,8 @@ export class LGraphCanvas {
                         return
                     } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
                         const newReroute = graph.createReroute([x, y], linkSegment)
-                        pointer.onDragStart = () => this.#startDraggingItems(newReroute, e)
+                        pointer.onDragStart = (pointer) => this.#startDraggingItems(newReroute, pointer)
                         pointer.onDragEnd = (e) => this.#processDraggedItems(e)
-                        pointer.finally = () => this.#resetDragState()
                         return
                     }
                 } else if (isInRectangle(x, y, centre[0] - 4, centre[1] - 4, 8, 8)) {
@@ -1950,12 +1947,11 @@ export class LGraphCanvas {
                     const headerHeight = f * 1.4
                     if (isInRectangle(x, y, group.pos[0], group.pos[1], group.size[0], headerHeight)) {
                         // In title bar
-                        pointer.onDragStart = () => {
+                        pointer.onDragStart = (pointer) => {
                             group.recomputeInsideNodes()
-                            this.#startDraggingItems(group, e, true)
+                            this.#startDraggingItems(group, pointer, true)
                         }
                         pointer.onDragEnd = (e) => this.#processDraggedItems(e)
-                        pointer.finally = () => this.#resetDragState()
                     }
                 }
 
@@ -2182,9 +2178,8 @@ export class LGraphCanvas {
                 return
 
             // Drag node
-            pointer.onDragStart = () => this.#startDraggingItems(node, e, true)
+            pointer.onDragStart = (pointer) => this.#startDraggingItems(node, pointer, true)
             pointer.onDragEnd = (e) => this.#processDraggedItems(e)
-            pointer.finally = () => this.#resetDragState()
         }
 
         this.dirty_canvas = true
@@ -2686,14 +2681,18 @@ export class LGraphCanvas {
 
     /**
      * Start dragging an item, optionally including all other selected items.
+     * 
+     * ** This function sets the {@link CanvasPointer.finally}() callback. **
      * @param item The item that the drag event started on
-     * @param e The pointer event that initiated the drag, e.g. pointerdown
+     * @param pointer The pointer event that initiated the drag, e.g. pointerdown
      * @param sticky If `true`, the item is added to the selection - see {@link processSelect}
      */
-    #startDraggingItems(item: Positionable, e: CanvasPointerEvent, sticky = false) {
+    #startDraggingItems(item: Positionable, pointer: CanvasPointer, sticky = false) {
         this.emitBeforeChange()
         this.graph.beforeChange()
-        this.processSelect(item, e, sticky)
+        pointer.finally = () => this.#resetDragState()
+
+        this.processSelect(item, pointer.eDown, sticky)
         this.isDragging = true
     }
 

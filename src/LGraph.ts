@@ -731,6 +731,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         if (!node) return
         const { state } = this
 
+        // Ensure created items are snapped
+        const snapTo = this.#getSnapToGridSize()
+        if (snapTo) node.snapToGrid(snapTo)
+
         // LEGACY: This was changed from constructor === LGraphGroup
         //groups
         if (node instanceof LGraphGroup) {
@@ -993,16 +997,23 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
      * @todo Currently only snaps nodes.
      */
     snapToGrid(items: Set<Positionable>): void {
-        // Default to 1 when always snapping
-        const { alwaysSnapToGrid } = this.config
-        const snapTo = alwaysSnapToGrid
-            ? LiteGraph.CANVAS_GRID_SIZE || 1
-            : LiteGraph.CANVAS_GRID_SIZE
+        const snapTo = this.#getSnapToGridSize()
         if (!snapTo) return
 
         getAllNestedItems(items).forEach(item => {
             if (!item.pinned) item.snapToGrid(snapTo)
         })
+    }
+
+    /**
+     * Finds the size of the grid that items should be snapped to when moved.
+     * @returns The size of the grid that items should be snapped to
+     */
+    #getSnapToGridSize(): number {
+        // Default to 1 when always snapping
+        return this.config.alwaysSnapToGrid
+            ? LiteGraph.CANVAS_GRID_SIZE || 1
+            : LiteGraph.CANVAS_GRID_SIZE
     }
 
     /**
