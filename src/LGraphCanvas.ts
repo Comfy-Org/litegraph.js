@@ -3859,14 +3859,13 @@ export class LGraphCanvas {
             for (let i = 0; i < visible_nodes.length; ++i) {
                 const node = visible_nodes[i]
 
-                //transform coords system
                 ctx.save()
+                // Localise co-ordinates to node position
                 ctx.translate(node.pos[0], node.pos[1])
 
-                //Draw
+                // Draw
                 this.drawNode(node, ctx)
 
-                //Restore
                 ctx.restore()
             }
 
@@ -4684,14 +4683,13 @@ export class LGraphCanvas {
         bgcolor: CanvasColour,
         selected: boolean
     ): void {
-        //bg rect
+        // Rendering options
         ctx.strokeStyle = fgcolor
         ctx.fillStyle = bgcolor
 
         const title_height = LiteGraph.NODE_TITLE_HEIGHT
         const low_quality = this.ds.scale < 0.5
 
-        //render node area depending on shape
         const shape = node._shape || node.constructor.shape || RenderShape.ROUND
         const title_mode = node.constructor.title_mode
 
@@ -4707,8 +4705,7 @@ export class LGraphCanvas {
 
         const old_alpha = ctx.globalAlpha
 
-        //full node shape
-        //if(node.flags.collapsed)
+        // Draw node background (shape)
         {
             ctx.beginPath()
             if (shape == RenderShape.BOX || low_quality) {

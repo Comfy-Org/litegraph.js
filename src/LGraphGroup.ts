@@ -243,8 +243,8 @@ export class LGraphGroup implements Positionable, IPinnable {
      * @param padding Value in graph units to add to all sides of the group.  Default: 10
      */
     resizeTo(objects: Iterable<Positionable>, padding: number = 10): void {
-        const boundingBox = createBounds(objects, padding);
-        if(boundingBox === null) return
+        const boundingBox = createBounds(objects, padding)
+        if (boundingBox === null) return
 
         this.pos[0] = boundingBox[0]
         this.pos[1] = boundingBox[1] - this.titleHeight

@@ -991,9 +991,9 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     /**
      * Snaps the provided items to a grid.
      * 
-     * Items are snapped to the nearest multiple of {@link LiteGraph.CANVAS_GRID_SIZE}.
+     * Item positions are reounded to the nearest multiple of {@link LiteGraph.CANVAS_GRID_SIZE}.
      * 
-     * When {@link config}.{@link LGraphConfig.alwaysSnapToGrid alwaysSnapToGrid} is enabled,
+     * When {@link config}.{@link LGraphConfig.alwaysSnapToGrid alwaysSnapToGrid} is enabled
      * and the grid size is falsy, a default of 1 is used.
      * @param items The items to snap to the grid
      * @todo Currently only snaps nodes.
