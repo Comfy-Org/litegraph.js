@@ -2687,10 +2687,15 @@ export class LGraphCanvas {
      * @param pointer The pointer event that initiated the drag, e.g. pointerdown
      * @param sticky If `true`, the item is added to the selection - see {@link processSelect}
      */
-    #startDraggingItems(item: Positionable, pointer: CanvasPointer, sticky = false) {
+    #startDraggingItems(item: Positionable, pointer: CanvasPointer, sticky = false): void {
         this.emitBeforeChange()
         this.graph.beforeChange()
-        pointer.finally = () => this.#resetDragState()
+        // Ensure that dragging is properly cleaned up, on success or failure.
+        pointer.finally = () => {
+            this.isDragging = false
+            this.graph.afterChange()
+            this.emitAfterChange()
+        }
 
         this.processSelect(item, pointer.eDown, sticky)
         this.isDragging = true
@@ -2710,15 +2715,6 @@ export class LGraphCanvas {
 
         // TODO: Replace legacy behaviour: callbacks were never extended for multiple items
         this.onNodeMoved?.(findFirstNode(this.selectedItems))
-    }
-
-    /**
-     * Ensure that dragging is properly cleaned up, on success or failure.
-     */
-    #resetDragState(): void {
-        this.isDragging = false
-        this.graph.afterChange()
-        this.emitAfterChange()
     }
 
     /**
