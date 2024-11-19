@@ -16,7 +16,13 @@ export default tseslint.config(
     languageOptions: {
       globals: { ...globals.browser },
       parserOptions: {
-        projectService: { allowDefaultProject: ["eslint.config.js", "vite.config.mts"] },
+        projectService: {
+          allowDefaultProject: [
+            "eslint.config.js",
+            "lint-staged.config.js",
+            "vite.config.mts",
+          ],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -59,17 +65,29 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
       // "@typescript-eslint/no-unsafe-function-type": "off",
 
-      "@stylistic/max-len": ["warn", { code: 100, comments: 130, ignoreStrings: true }],
+      "@stylistic/max-len": [
+        "warn",
+        { code: 100, comments: 130, ignoreStrings: true },
+      ],
 
       // "@stylistic/multiline-comment-style": ["warn", "starred-block"],
-      "@stylistic/curly-newline": ["warn", { consistent: true, multiline: true }],
-      "@stylistic/object-curly-newline": ["warn", { consistent: true, multiline: true }],
+      "@stylistic/curly-newline": [
+        "warn",
+        { consistent: true, multiline: true },
+      ],
+      "@stylistic/object-curly-newline": [
+        "warn",
+        { consistent: true, multiline: true },
+      ],
       // "@stylistic/object-property-newline": ["warn", { allowAllPropertiesOnSameLine: true }],
       // "@stylistic/object-property-newline": "warn",
       "@stylistic/one-var-declaration-per-line": "warn",
 
       "@stylistic/array-bracket-newline": ["warn", { multiline: true }],
-      "@stylistic/array-element-newline": ["warn", { consistent: true, multiline: true }],
+      "@stylistic/array-element-newline": [
+        "warn",
+        { consistent: true, multiline: true },
+      ],
 
       "@stylistic/function-paren-newline": ["warn", "multiline-arguments"],
       "@stylistic/newline-per-chained-call": "warn",
