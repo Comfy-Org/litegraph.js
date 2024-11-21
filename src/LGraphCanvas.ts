@@ -2305,10 +2305,34 @@ export class LGraphCanvas {
     } else if (!node.flags.collapsed) {
       // Resize node
       if (node.resizable !== false && node.inResizeCorner(x, y)) {
+        const b = node.boundingRect
+        const offsetX = x - (b[0] + b[2])
+        const offsetY = y - (b[1] + b[3])
+
         pointer.onDragStart = () => {
           graph.beforeChange()
           this.resizing_node = node
         }
+
+        pointer.onDrag = (eMove) => {
+          if (this.read_only) return
+
+          // Resize only by the exact pointer movement
+          const pos: Point = [
+            eMove.canvasX - node.pos[0] - offsetX,
+            eMove.canvasY - node.pos[1] - offsetY,
+          ]
+          // Unless snapping.
+          snapPoint(pos, this.#snapToGrid)
+
+          const min = node.computeSize()
+          pos[0] = Math.max(min[0], pos[0])
+          pos[1] = Math.max(min[1], pos[1])
+          node.setSize(pos)
+
+          this.#dirty()
+        }
+
         pointer.onDragEnd = (upEvent) => {
           this.#dirty()
           graph.afterChange(this.resizing_node)
@@ -2974,20 +2998,7 @@ export class LGraphCanvas {
         this.#dirty()
       }
 
-      if (this.resizing_node) {
-        // convert mouse to node space
-        const desired_size: Size = [
-          e.canvasX - this.resizing_node.pos[0],
-          e.canvasY - this.resizing_node.pos[1],
-        ]
-        const min_size = this.resizing_node.computeSize()
-        desired_size[0] = Math.max(min_size[0], desired_size[0])
-        desired_size[1] = Math.max(min_size[1], desired_size[1])
-        this.resizing_node.setSize(desired_size)
-
-        underPointer |= CanvasItem.ResizeSe
-        this.#dirty()
-      }
+      if (this.resizing_node) underPointer |= CanvasItem.ResizeSe
     }
 
     this.state.hoveringOver = underPointer
