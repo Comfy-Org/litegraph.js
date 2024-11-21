@@ -2205,10 +2205,14 @@ export class LGraphCanvas {
             if (this.read_only) return
 
             // Resize only by the exact pointer movement
-            const resized = group.resize(
+            const pos: Point = [
               eMove.canvasX - group.pos[0] - offsetX,
               eMove.canvasY - group.pos[1] - offsetY,
-            )
+            ]
+            // Unless snapping.
+            snapPoint(pos, this.#snapToGrid)
+
+            const resized = group.resize(pos[0], pos[1])
             if (resized) this.dirty_bgcanvas = true
           }
           pointer.finally = () => this.resizingGroup = null
