@@ -2226,6 +2226,7 @@ export class LGraphCanvas {
             )
           ) {
             // In title bar
+            pointer.onClick = () => this.processSelect(group, e)
             pointer.onDragStart = (pointer) => {
               group.recomputeInsideNodes()
               this.#startDraggingItems(group, pointer, true)
