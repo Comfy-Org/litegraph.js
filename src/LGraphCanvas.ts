@@ -2195,7 +2195,22 @@ export class LGraphCanvas {
       this.selected_group = group
       if (group) {
         if (group.isInResize(x, y)) {
+          // Resize group
+          const b = group.boundingRect
+          const offsetX = x - (b[0] + b[2])
+          const offsetY = y - (b[1] + b[3])
+
           pointer.onDragStart = () => this.resizingGroup = group
+          pointer.onDrag = (eMove) => {
+            if (this.read_only) return
+
+            // Resize only by the exact pointer movement
+            const resized = group.resize(
+              eMove.canvasX - group.pos[0] - offsetX,
+              eMove.canvasY - group.pos[1] - offsetY,
+            )
+            if (resized) this.dirty_bgcanvas = true
+          }
           pointer.finally = () => this.resizingGroup = null
         } else {
           const f = group.font_size || LiteGraph.DEFAULT_GROUP_FONT_SIZE
@@ -2768,14 +2783,9 @@ export class LGraphCanvas {
       dragRect[2] = e.canvasX - dragRect[0]
       dragRect[3] = e.canvasY - dragRect[1]
       this.dirty_canvas = true
-    } else if (resizingGroup && !this.read_only) {
+    } else if (resizingGroup) {
       // Resizing a group
-      const resized = resizingGroup.resize(
-        e.canvasX - resizingGroup.pos[0],
-        e.canvasY - resizingGroup.pos[1],
-      )
       underPointer |= CanvasItem.ResizeSe | CanvasItem.Group
-      if (resized) this.dirty_bgcanvas = true
     } else if (this.dragging_canvas) {
       this.ds.offset[0] += delta[0] / this.ds.scale
       this.ds.offset[1] += delta[1] / this.ds.scale
