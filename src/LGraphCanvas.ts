@@ -3354,10 +3354,8 @@ export class LGraphCanvas {
         this.node_panel?.close()
         this.options_panel?.close()
         block_default = true
-      }
-
-      // select all Control A
-      else if (e.keyCode == 65 && e.ctrlKey) {
+      } else if (e.keyCode == 65 && e.ctrlKey) {
+        // select all Control A
         this.selectItems()
         block_default = true
       } else if (e.keyCode === 67 && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
@@ -3369,10 +3367,8 @@ export class LGraphCanvas {
       } else if (e.keyCode === 86 && (e.metaKey || e.ctrlKey)) {
         // paste
         this.pasteFromClipboard(e.shiftKey)
-      }
-
-      // delete or backspace
-      else if (e.keyCode == 46 || e.keyCode == 8) {
+      } else if (e.keyCode == 46 || e.keyCode == 8) {
+        // delete or backspace
         // @ts-expect-error
         if (e.target.localName != "input" && e.target.localName != "textarea") {
           this.deleteSelected()
@@ -7519,8 +7515,8 @@ export class LGraphCanvas {
     } else if (options.event) {
       offsetx += options.event.clientX
       offsety += options.event.clientY
-    } // centered
-    else {
+    } else {
+      // centered
       offsetx += this.canvas.width * 0.5
       offsety += this.canvas.height * 0.5
     }
