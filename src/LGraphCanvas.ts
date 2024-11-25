@@ -2656,7 +2656,11 @@ export class LGraphCanvas {
       )
       break
     default:
-      if (widget.mouse) this.dirty_canvas = widget.mouse(e, [x, y], node)
+      // Legacy custom widget callback
+      if (widget.mouse) {
+        pointer.onClick = eUp => widget.mouse(eUp, [eUp.canvasX - node[0], eUp.canvasY - node[1]], node)
+        this.dirty_canvas = widget.mouse(e, [x, y], node)
+      }
       break
     }
 
