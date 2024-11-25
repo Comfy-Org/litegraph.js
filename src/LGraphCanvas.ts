@@ -2963,7 +2963,8 @@ export class LGraphCanvas {
           if (widget?.mouse) {
             const x = e.canvasX - node.pos[0]
             const y = e.canvasY - node.pos[1]
-            this.dirty_canvas = widget.mouse(e, [x, y], node)
+            const result = widget.mouse(e, [x, y], node)
+            if (result != null) this.dirty_canvas = result
           }
         }
       } else {
