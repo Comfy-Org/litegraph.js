@@ -3102,6 +3102,9 @@ export class LGraphCanvas {
 
     this.adjustMouseEvent(e)
 
+    const now = LiteGraph.getTime()
+    e.click_time = now - this.last_mouseclick
+
     /** The mouseup event occurred near the mousedown event. */
     /** Normal-looking click event - mouseUp occurred near mouseDown, without dragging. */
     const isClick = pointer.up(e)
@@ -3119,8 +3122,6 @@ export class LGraphCanvas {
       return
     }
 
-    const now = LiteGraph.getTime()
-    e.click_time = now - this.last_mouseclick
     this.last_mouse_dragging = false
     this.last_click_position = null
 
