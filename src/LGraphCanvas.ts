@@ -137,8 +137,10 @@ interface IDrawSelectionBoundingOptions {
   shape?: RenderShape
   title_height?: number
   title_mode?: TitleMode
+  colour?: CanvasColour
   padding?: number
   collapsed?: boolean
+  thickness?: number
 }
 
 /** @inheritdoc {@link LGraphCanvas.state} */
@@ -4807,7 +4809,10 @@ export class LGraphCanvas {
 
     ctx.shadowColor = "transparent"
 
-    // draw foreground
+    // TODO: Legacy behaviour: onDrawForeground received ctx in this state
+    ctx.strokeStyle = LiteGraph.NODE_BOX_OUTLINE_COLOR
+
+    // Draw Foreground
     node.onDrawForeground?.(ctx, this, this.canvas)
 
     // connection slots
@@ -5376,8 +5381,10 @@ export class LGraphCanvas {
       shape = RenderShape.BOX,
       title_height = LiteGraph.NODE_TITLE_HEIGHT,
       title_mode = TitleMode.NORMAL_TITLE,
+      colour = LiteGraph.NODE_BOX_OUTLINE_COLOR,
       padding = 6,
       collapsed = false,
+      thickness = 1,
     }: IDrawSelectionBoundingOptions = {},
   ) {
     // Adjust area if title is transparent
@@ -5387,8 +5394,10 @@ export class LGraphCanvas {
     }
 
     // Set up context
-    ctx.lineWidth = 1
+    const { lineWidth, strokeStyle } = ctx
+    ctx.lineWidth = thickness
     ctx.globalAlpha = 0.8
+    ctx.strokeStyle = colour
     ctx.beginPath()
 
     // Draw shape based on type
@@ -5430,10 +5439,13 @@ export class LGraphCanvas {
     }
 
     // Stroke the shape
-    ctx.strokeStyle = LiteGraph.NODE_BOX_OUTLINE_COLOR
     ctx.stroke()
 
     // Reset context
+    ctx.lineWidth = lineWidth
+    ctx.strokeStyle = strokeStyle
+
+    // TODO: Store and reset value properly.  Callers currently expect this behaviour (e.g. muted nodes).
     ctx.globalAlpha = 1
   }
 
