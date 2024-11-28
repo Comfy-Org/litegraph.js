@@ -5201,12 +5201,10 @@ export class LGraphCanvas {
         ctx.shadowColor = "transparent"
       }
 
-      let colState: string | boolean = false
-      if (LiteGraph.node_box_coloured_by_mode) {
-        if (LiteGraph.NODE_MODES_COLORS[node.mode]) {
-          colState = LiteGraph.NODE_MODES_COLORS[node.mode]
-        }
-      }
+      let colState = LiteGraph.node_box_coloured_by_mode && LiteGraph.NODE_MODES_COLORS[node.mode]
+        ? LiteGraph.NODE_MODES_COLORS[node.mode]
+        : false
+
       if (LiteGraph.node_box_coloured_when_on) {
         colState = node.action_triggered
           ? "#FFF"
