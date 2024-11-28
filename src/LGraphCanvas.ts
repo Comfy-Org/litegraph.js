@@ -137,7 +137,6 @@ interface IDrawSelectionBoundingOptions {
   shape?: RenderShape
   title_height?: number
   title_mode?: TitleMode
-  fgcolor?: CanvasColour
   padding?: number
   collapsed?: boolean
 }
@@ -5358,7 +5357,6 @@ export class LGraphCanvas {
         shape,
         title_height,
         title_mode,
-        fgcolor,
         collapsed: node.flags?.collapsed,
       })
     }
@@ -5378,7 +5376,6 @@ export class LGraphCanvas {
       shape = RenderShape.BOX,
       title_height = LiteGraph.NODE_TITLE_HEIGHT,
       title_mode = TitleMode.NORMAL_TITLE,
-      fgcolor = LiteGraph.NODE_BOX_OUTLINE_COLOR,
       padding = 6,
       collapsed = false,
     }: IDrawSelectionBoundingOptions = {},
@@ -5437,7 +5434,6 @@ export class LGraphCanvas {
     ctx.stroke()
 
     // Reset context
-    ctx.strokeStyle = fgcolor
     ctx.globalAlpha = 1
   }
 

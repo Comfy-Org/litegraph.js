@@ -184,10 +184,7 @@ export class LGraphGroup implements Positionable, IPinnable {
 
     if (LiteGraph.highlight_selected_group && this.selected) {
       graphCanvas.drawSelectionBounding(ctx, this._bounding, {
-        shape: RenderShape.BOX,
         title_height: this.titleHeight,
-        title_mode: TitleMode.NORMAL_TITLE,
-        fgcolor: this.color,
         padding,
       })
     }
