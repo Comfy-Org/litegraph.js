@@ -5122,8 +5122,9 @@ export class LGraphCanvas {
     const title_height = LiteGraph.NODE_TITLE_HEIGHT
     const low_quality = this.ds.scale < 0.5
 
+    const { collapsed } = node.flags
     const shape = node._shape || node.constructor.shape || RenderShape.ROUND
-    const title_mode = node.constructor.title_mode
+    const { title_mode } = node.constructor
 
     const render_title = title_mode == TitleMode.TRANSPARENT_TITLE || title_mode == TitleMode.NO_TITLE
       ? false
@@ -5156,8 +5157,8 @@ export class LGraphCanvas {
     }
     ctx.fill()
 
-    // separator
-    if (!node.flags.collapsed && render_title) {
+    // Separator - title bar <-> body
+    if (!collapsed && render_title) {
       ctx.shadowColor = "transparent"
       ctx.fillStyle = "rgba(0,0,0,0.2)"
       ctx.fillRect(0, -1, area[2], 2)
@@ -5166,9 +5167,8 @@ export class LGraphCanvas {
 
     node.onDrawBackground?.(ctx, this, this.canvas, this.graph_mouse)
 
-    // title bg (remember, it is rendered ABOVE the node)
+    // Title bar background (remember, it is rendered ABOVE the node)
     if (render_title || title_mode == TitleMode.TRANSPARENT_TITLE) {
-      // title bar
       if (node.onDrawTitleBar) {
         node.onDrawTitleBar(ctx, title_height, size, this.ds.scale, fgcolor)
       } else if (
@@ -5177,7 +5177,7 @@ export class LGraphCanvas {
       ) {
         const title_color = node.constructor.title_color || fgcolor
 
-        if (node.flags.collapsed) {
+        if (collapsed) {
           ctx.shadowColor = LiteGraph.DEFAULT_SHADOW_COLOR
         }
 
@@ -5192,7 +5192,7 @@ export class LGraphCanvas {
             -title_height,
             size[0],
             title_height,
-            node.flags.collapsed
+            collapsed
               ? [this.round_radius]
               : [this.round_radius, this.round_radius, 0, 0],
           )
@@ -5235,8 +5235,7 @@ export class LGraphCanvas {
           ctx.fill()
         }
 
-        ctx.fillStyle =
-          node.boxcolor || colState || LiteGraph.NODE_DEFAULT_BOXCOLOR
+        ctx.fillStyle = node.boxcolor || colState || LiteGraph.NODE_DEFAULT_BOXCOLOR
         if (low_quality)
           ctx.fillRect(
             title_height * 0.5 - box_size * 0.5,
@@ -5295,7 +5294,7 @@ export class LGraphCanvas {
           } else {
             ctx.fillStyle = node.constructor.title_text_color || this.node_title_color
           }
-          if (node.flags.collapsed) {
+          if (collapsed) {
             ctx.textAlign = "left"
             // const measure = ctx.measureText(title)
             ctx.fillText(
@@ -5317,7 +5316,7 @@ export class LGraphCanvas {
 
       // subgraph box
       if (
-        !node.flags.collapsed &&
+        !collapsed &&
         node.subgraph &&
         !node.skip_subgraph_button
       ) {
