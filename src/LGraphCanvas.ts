@@ -5372,21 +5372,31 @@ export class LGraphCanvas {
   }
 
   /**
-   * Draws the selection bounding of an area.
+   * Draws only the path of a shape on the canvas, without filling.
+   * Used to draw indicators for node status, e.g. "selected".
+   * @param ctx The 2D context to draw on
+   * @param area The position and size of the shape to render
    */
   strokeShape(
     ctx: CanvasRenderingContext2D,
     area: Rect,
     {
+      /** The shape to render */
       shape = RenderShape.BOX,
+      /** Shape will extend above the Y-axis 0 by this amount */
       title_height = LiteGraph.NODE_TITLE_HEIGHT,
+      /** @deprecated This is node-specific: it should be removed entirely, and behaviour defined by the caller more explicitly */
       title_mode = TitleMode.NORMAL_TITLE,
+      /** The colour that should be drawn */
       colour = LiteGraph.NODE_BOX_OUTLINE_COLOR,
+      /** The distance between the edge of the {@link area} and the middle of the line */
       padding = 6,
+      /** @deprecated This is node-specific: it should be removed entirely, and behaviour defined by the caller more explicitly */
       collapsed = false,
+      /** Thickness of the line drawn (`lineWidth`) */
       thickness = 1,
     }: IDrawSelectionBoundingOptions = {},
-  ) {
+  ): void {
     // Adjust area if title is transparent
     if (title_mode === TitleMode.TRANSPARENT_TITLE) {
       area[1] -= title_height
