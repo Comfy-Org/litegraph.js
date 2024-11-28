@@ -5424,7 +5424,7 @@ export class LGraphCanvas {
     }
     case RenderShape.ROUND:
     case RenderShape.CARD: {
-      const radius = this.round_radius * 2
+      const radius = this.round_radius + padding
       const isCollapsed = shape === RenderShape.CARD && collapsed
       const cornerRadii =
           isCollapsed || shape === RenderShape.ROUND
