@@ -5181,26 +5181,9 @@ export class LGraphCanvas {
           ctx.shadowColor = LiteGraph.DEFAULT_SHADOW_COLOR
         }
 
-        //* gradient test
-        if (this.use_gradients) {
-          // TODO: This feature may not have been completed.  Could finish or remove.
-          // Original impl. may cause CanvasColour to be used as index key.  Also, colour requires validation before blindly passing on.
-          // @ts-expect-error Fix or remove gradient feature
-          let grad = LGraphCanvas.gradients[title_color]
-          if (!grad) {
-            // @ts-expect-error Fix or remove gradient feature
-            grad = LGraphCanvas.gradients[title_color] =
-              ctx.createLinearGradient(0, 0, 400, 0)
-            grad.addColorStop(0, title_color)
-            grad.addColorStop(1, "#000")
-          }
-          ctx.fillStyle = grad
-        } else {
-          ctx.fillStyle = title_color
-        }
-
-        // ctx.globalAlpha = 0.5 * old_alpha;
+        ctx.fillStyle = title_color
         ctx.beginPath()
+
         if (shape == RenderShape.BOX || low_quality) {
           ctx.rect(0, -title_height, size[0], title_height)
         } else if (shape == RenderShape.ROUND || shape == RenderShape.CARD) {
