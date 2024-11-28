@@ -5358,7 +5358,7 @@ export class LGraphCanvas {
     if (selected) {
       node.onBounding?.(area)
 
-      this.drawSelectionBounding(ctx, area, {
+      this.strokeShape(ctx, area, {
         shape,
         title_height,
         title_mode,
@@ -5374,7 +5374,7 @@ export class LGraphCanvas {
   /**
    * Draws the selection bounding of an area.
    */
-  drawSelectionBounding(
+  strokeShape(
     ctx: CanvasRenderingContext2D,
     area: Rect,
     {

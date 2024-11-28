@@ -183,7 +183,7 @@ export class LGraphGroup implements Positionable, IPinnable {
     ctx.fillText(this.title + (this.pinned ? "📌" : ""), x + padding, y + font_size)
 
     if (LiteGraph.highlight_selected_group && this.selected) {
-      graphCanvas.drawSelectionBounding(ctx, this._bounding, {
+      graphCanvas.strokeShape(ctx, this._bounding, {
         title_height: this.titleHeight,
         padding,
       })
