@@ -5138,31 +5138,29 @@ export class LGraphCanvas {
     const old_alpha = ctx.globalAlpha
 
     // Draw node background (shape)
-    {
-      ctx.beginPath()
-      if (shape == RenderShape.BOX || low_quality) {
-        ctx.fillRect(area[0], area[1], area[2], area[3])
-      } else if (shape == RenderShape.ROUND || shape == RenderShape.CARD) {
-        ctx.roundRect(
-          area[0],
-          area[1],
-          area[2],
-          area[3],
-          shape == RenderShape.CARD
-            ? [this.round_radius, this.round_radius, 0, 0]
-            : [this.round_radius],
-        )
-      } else if (shape == RenderShape.CIRCLE) {
-        ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
-      }
-      ctx.fill()
+    ctx.beginPath()
+    if (shape == RenderShape.BOX || low_quality) {
+      ctx.fillRect(area[0], area[1], area[2], area[3])
+    } else if (shape == RenderShape.ROUND || shape == RenderShape.CARD) {
+      ctx.roundRect(
+        area[0],
+        area[1],
+        area[2],
+        area[3],
+        shape == RenderShape.CARD
+          ? [this.round_radius, this.round_radius, 0, 0]
+          : [this.round_radius],
+      )
+    } else if (shape == RenderShape.CIRCLE) {
+      ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
+    }
+    ctx.fill()
 
-      // separator
-      if (!node.flags.collapsed && render_title) {
-        ctx.shadowColor = "transparent"
-        ctx.fillStyle = "rgba(0,0,0,0.2)"
-        ctx.fillRect(0, -1, area[2], 2)
-      }
+    // separator
+    if (!node.flags.collapsed && render_title) {
+      ctx.shadowColor = "transparent"
+      ctx.fillStyle = "rgba(0,0,0,0.2)"
+      ctx.fillRect(0, -1, area[2], 2)
     }
     ctx.shadowColor = "transparent"
 
