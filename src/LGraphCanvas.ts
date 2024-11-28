@@ -4738,7 +4738,7 @@ export class LGraphCanvas {
     this.current_node = node
 
     const color = node.color || node.constructor.color || LiteGraph.NODE_DEFAULT_COLOR
-    let bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
+    const bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
 
     const low_quality = this.ds.scale < 0.6 // zoomed out
     const editor_alpha = this.editor_alpha
@@ -4791,9 +4791,6 @@ export class LGraphCanvas {
     }
 
     // draw shape
-    if (node.has_errors) {
-      bgcolor = "red"
-    }
     this.drawNodeShape(
       node,
       ctx,
@@ -5121,7 +5118,7 @@ export class LGraphCanvas {
   ): void {
     // Rendering options
     ctx.strokeStyle = fgcolor
-    ctx.fillStyle = bgcolor
+    ctx.fillStyle = LiteGraph.use_legacy_node_error_indicator ? "#F00" : bgcolor
 
     const title_height = LiteGraph.NODE_TITLE_HEIGHT
     const low_quality = this.ds.scale < 0.5
@@ -5160,6 +5157,18 @@ export class LGraphCanvas {
       ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
     }
     ctx.fill()
+
+    if (node.has_errors && !LiteGraph.use_legacy_node_error_indicator) {
+      this.strokeShape(ctx, area, {
+        shape,
+        title_mode,
+        title_height,
+        padding: 12,
+        colour: LiteGraph.NODE_ERROR_COLOUR,
+        collapsed,
+        thickness: 10,
+      })
+    }
 
     // Separator - title bar <-> body
     if (!collapsed && render_title) {
@@ -5291,7 +5300,8 @@ export class LGraphCanvas {
       }
       if (!low_quality) {
         ctx.font = this.title_text_font
-        const title = String(node.getTitle()) + (node.pinned ? "📌" : "")
+        const rawTitle = node.getTitle() ?? `❌ ${node.type}`
+        const title = String(rawTitle) + (node.pinned ? "📌" : "")
         if (title) {
           if (selected) {
             ctx.fillStyle = LiteGraph.NODE_SELECTED_TITLE_COLOR
@@ -5358,10 +5368,13 @@ export class LGraphCanvas {
     if (selected) {
       node.onBounding?.(area)
 
+      const padding = node.has_errors && !LiteGraph.use_legacy_node_error_indicator ? 20 : undefined
+
       this.strokeShape(ctx, area, {
         shape,
         title_height,
         title_mode,
+        padding,
         collapsed: node.flags?.collapsed,
       })
     }
