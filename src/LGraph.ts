@@ -117,7 +117,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
   /** @returns Whether the graph has no items */
   get empty(): boolean {
-    return this.positionableItems.length === 0
+    return this._nodes.length + this._groups.length + this.reroutes.size === 0
   }
 
   /** @returns All items on the canvas that can be selected */
