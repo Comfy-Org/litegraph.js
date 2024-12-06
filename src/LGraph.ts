@@ -121,8 +121,11 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /** @returns All items on the canvas that can be selected */
-  get positionableItems(): Positionable[] {
-    return [...this._nodes, ...this._groups, ...this.reroutes.values()]
+  *positionableItems(): Generator<LGraphNode | LGraphGroup | Reroute> {
+    for (const node of this._nodes) yield node
+    for (const group of this._groups) yield group
+    for (const reroute of this.reroutes.values()) yield reroute
+    return
   }
 
   #reroutes = new Map<RerouteId, Reroute>()
