@@ -198,7 +198,7 @@ export interface INodeSlot {
   /**
    * The localized name of the slot to display in the UI.
    * Takes higher priority than {@link name} if set.
-   * Will NOT be included in the serialized data.
+   * Will be included in the serialized data.
    */
   localized_name?: string
   /**
