@@ -2374,16 +2374,16 @@ export class LGraphCanvas {
               for (const linkId of output.links) {
                 const link = graph._links.get(linkId)
                 const slot = link.target_slot
-                const linked_node = graph._nodes_by_id[link.target_id]
-                const input = linked_node.inputs[slot]
-                const pos = linked_node.getConnectionPos(true, slot)
+                const otherNode = graph._nodes_by_id[link.target_id]
+                const input = otherNode.inputs[slot]
+                const pos = otherNode.getConnectionPos(true, slot)
 
                 this.connecting_links.push({
-                  node: linked_node,
-                  slot: slot,
-                  input: input,
+                  node: otherNode,
+                  slot,
+                  input,
                   output: null,
-                  pos: pos,
+                  pos,
                   direction: node.horizontal !== true ? LinkDirection.RIGHT : LinkDirection.CENTER,
                 })
               }
