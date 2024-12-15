@@ -2457,7 +2457,7 @@ export class LGraphCanvas {
                   connecting.output = linked_node.outputs[slot]
                 }
                 pointer.onDragEnd = (upEvent) => {
-                  this.#processConnectingLinks(upEvent.canvasX, upEvent.canvasY, upEvent)
+                  this.#processConnectingLinks(upEvent)
                   if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
                     node.disconnectInput(i)
                   this.connecting_links = null
@@ -3170,7 +3170,7 @@ export class LGraphCanvas {
       const y = e.canvasY
 
       if (this.connecting_links?.length) {
-        this.#processConnectingLinks(x, y, e)
+        this.#processConnectingLinks(e)
       } else {
         this.dirty_canvas = true
 
@@ -3202,7 +3202,8 @@ export class LGraphCanvas {
     return
   }
 
-  #processConnectingLinks(x: number, y: number, e: PointerEvent & CanvasMouseEvent) {
+  #processConnectingLinks(e: PointerEvent & CanvasMouseEvent) {
+    const { canvasX: x, canvasY: y } = e
     const node = this.graph.getNodeOnPos(x, y, this.visible_nodes)
 
     // node below mouse
