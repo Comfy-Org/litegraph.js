@@ -3163,10 +3163,9 @@ export class LGraphCanvas {
 
       const x = e.canvasX
       const y = e.canvasY
-      const node = graph.getNodeOnPos(x, y, this.visible_nodes)
 
       if (this.connecting_links?.length) {
-        this.#processConnectingLinks(node, x, y, e)
+        this.#processConnectingLinks(x, y, e)
       } else {
         this.dirty_canvas = true
 
@@ -3198,7 +3197,9 @@ export class LGraphCanvas {
     return
   }
 
-  #processConnectingLinks(node: LGraphNode, x: number, y: number, e: PointerEvent & CanvasMouseEvent) {
+  #processConnectingLinks(x: number, y: number, e: PointerEvent & CanvasMouseEvent) {
+    const node = this.graph.getNodeOnPos(x, y, this.visible_nodes)
+
     // node below mouse
     const firstLink = this.connecting_links[0]
     if (node) {
