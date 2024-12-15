@@ -2449,13 +2449,18 @@ export class LGraphCanvas {
                   slot,
                   output: linked_node.outputs[slot],
                   pos: linked_node.getConnectionPos(false, slot),
+                  afterRerouteId: link_info.parentId,
                 }
                 this.connecting_links = [connecting]
 
                 pointer.onDragStart = () => {
+                  connecting.output = linked_node.outputs[slot]
+                }
+                pointer.onDragEnd = (upEvent) => {
+                  this.#processConnectingLinks(upEvent.canvasX, upEvent.canvasY, upEvent)
                   if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
                     node.disconnectInput(i)
-                  connecting.output = linked_node.outputs[slot]
+                  this.connecting_links = null
                 }
 
                 this.dirty_bgcanvas = true
