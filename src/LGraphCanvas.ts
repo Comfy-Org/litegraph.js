@@ -2320,13 +2320,23 @@ export class LGraphCanvas implements ConnectionColorContext {
                   slot,
                   output: linked_node.outputs[slot],
                   pos: linked_node.getConnectionPos(false, slot),
+                  afterRerouteId: link_info.parentId,
                 }
                 this.connecting_links = [connecting]
 
                 pointer.onDragStart = () => {
-                  if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
-                    node.disconnectInput(i)
                   connecting.output = linked_node.outputs[slot]
+                }
+                pointer.onDragEnd = (upEvent) => {
+                  const { graph, connecting_links } = this
+                  if (!graph || !connecting_links) return
+
+                  this.#processConnectingLinks(graph, upEvent.canvasX, upEvent.canvasY, upEvent, connecting_links)
+                  if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
+                    node.disconnectInput(i)
+                  }
+                  connecting.output = linked_node.outputs[slot]
+                  this.connecting_links = null
                 }
 
                 this.dirty_bgcanvas = true
