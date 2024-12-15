@@ -2328,10 +2328,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   connecting.output = linked_node.outputs[slot]
                 }
                 pointer.onDragEnd = (upEvent) => {
-                  const { graph, connecting_links } = this
-                  if (!graph || !connecting_links) return
-
-                  this.#processConnectingLinks(graph, upEvent.canvasX, upEvent.canvasY, upEvent, connecting_links)
+                  this.#processConnectingLinks(upEvent)
                   if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
                     node.disconnectInput(i)
                   }
@@ -2915,7 +2912,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       if (this.connecting_links?.length) {
         // node below mouse
-        this.#processConnectingLinks(graph, x, y, e, this.connecting_links)
+        this.#processConnectingLinks(e)
       } else {
         this.dirty_canvas = true
 
@@ -2947,7 +2944,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     return
   }
 
-  #processConnectingLinks(graph: LGraph, x: number, y: number, e: PointerEvent & CanvasMouseEvent, connecting_links: ConnectingLink[]) {
+  #processConnectingLinks(e: CanvasPointerEvent) {
+    const { graph, connecting_links } = this
+    if (!graph) throw new NullGraphError()
+    if (!connecting_links) return
+
+    const { canvasX: x, canvasY: y } = e
     const node = graph.getNodeOnPos(x, y, this.visible_nodes)
     const firstLink = connecting_links[0]
 
