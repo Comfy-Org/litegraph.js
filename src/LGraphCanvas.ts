@@ -2374,16 +2374,16 @@ export class LGraphCanvas {
               for (const linkId of output.links) {
                 const link = graph._links.get(linkId)
                 const slot = link.target_slot
-                const linked_node = graph._nodes_by_id[link.target_id]
-                const input = linked_node.inputs[slot]
-                const pos = linked_node.getConnectionPos(true, slot)
+                const otherNode = graph._nodes_by_id[link.target_id]
+                const input = otherNode.inputs[slot]
+                const pos = otherNode.getConnectionPos(true, slot)
 
                 this.connecting_links.push({
-                  node: linked_node,
-                  slot: slot,
-                  input: input,
+                  node: otherNode,
+                  slot,
+                  input,
                   output: null,
-                  pos: pos,
+                  pos,
                   direction: node.horizontal !== true ? LinkDirection.RIGHT : LinkDirection.CENTER,
                 })
               }
@@ -2449,13 +2449,18 @@ export class LGraphCanvas {
                   slot,
                   output: linked_node.outputs[slot],
                   pos: linked_node.getConnectionPos(false, slot),
+                  afterRerouteId: link_info.parentId,
                 }
                 this.connecting_links = [connecting]
 
                 pointer.onDragStart = () => {
+                  connecting.output = linked_node.outputs[slot]
+                }
+                pointer.onDragEnd = (upEvent) => {
+                  this.#processConnectingLinks(upEvent)
                   if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to)
                     node.disconnectInput(i)
-                  connecting.output = linked_node.outputs[slot]
+                  this.connecting_links = null
                 }
 
                 this.dirty_bgcanvas = true
@@ -3163,90 +3168,9 @@ export class LGraphCanvas {
 
       const x = e.canvasX
       const y = e.canvasY
-      const node = graph.getNodeOnPos(x, y, this.visible_nodes)
 
       if (this.connecting_links?.length) {
-        // node below mouse
-        const firstLink = this.connecting_links[0]
-        if (node) {
-          for (const link of this.connecting_links) {
-            // dragging a connection
-            this.#dirty()
-
-            // slot below mouse? connect
-            if (link.output) {
-              const slot = this.isOverNodeInput(node, x, y)
-              if (slot != -1) {
-                link.node.connect(link.slot, node, slot, link.afterRerouteId)
-              } else if (this.link_over_widget) {
-                this.emitEvent({
-                  subType: "connectingWidgetLink",
-                  link,
-                  node,
-                  widget: this.link_over_widget,
-                })
-                this.link_over_widget = null
-              } else {
-                // not on top of an input
-                // look for a good slot
-                link.node.connectByType(link.slot, node, link.output.type, {
-                  afterRerouteId: link.afterRerouteId,
-                })
-              }
-            } else if (link.input) {
-              const slot = this.isOverNodeOutput(node, x, y)
-
-              if (slot != -1) {
-                node.connect(slot, link.node, link.slot, link.afterRerouteId) // this is inverted has output-input nature like
-              } else {
-                // not on top of an input
-                // look for a good slot
-                link.node.connectByTypeOutput(
-                  link.slot,
-                  node,
-                  link.input.type,
-                  { afterRerouteId: link.afterRerouteId },
-                )
-              }
-            }
-          }
-        } else if (firstLink.input || firstLink.output) {
-          const linkReleaseContext = firstLink.output
-            ? {
-              node_from: firstLink.node,
-              slot_from: firstLink.output,
-              type_filter_in: firstLink.output.type,
-            }
-            : {
-              node_to: firstLink.node,
-              slot_from: firstLink.input,
-              type_filter_out: firstLink.input.type,
-            }
-          // For external event only.
-          const linkReleaseContextExtended: LinkReleaseContextExtended = {
-            links: this.connecting_links,
-          }
-          this.emitEvent({
-            subType: "empty-release",
-            originalEvent: e,
-            linkReleaseContext: linkReleaseContextExtended,
-          })
-          // No longer in use
-          // add menu when releasing link in empty space
-          if (LiteGraph.release_link_on_empty_shows_menu) {
-            if (e.shiftKey) {
-              if (this.allow_searchbox) {
-                this.showSearchBox(e, linkReleaseContext)
-              }
-            } else {
-              if (firstLink.output) {
-                this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.output, e: e })
-              } else if (firstLink.input) {
-                this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.input, e: e })
-              }
-            }
-          }
-        }
+        this.#processConnectingLinks(e)
       } else {
         this.dirty_canvas = true
 
@@ -3276,6 +3200,93 @@ export class LGraphCanvas {
     e.stopPropagation()
     e.preventDefault()
     return
+  }
+
+  #processConnectingLinks(e: PointerEvent & CanvasMouseEvent) {
+    const { canvasX: x, canvasY: y } = e
+    const node = this.graph.getNodeOnPos(x, y, this.visible_nodes)
+
+    // node below mouse
+    const firstLink = this.connecting_links[0]
+    if (node) {
+      for (const link of this.connecting_links) {
+        // dragging a connection
+        this.#dirty()
+
+        // slot below mouse? connect
+        if (link.output) {
+          const slot = this.isOverNodeInput(node, x, y)
+          if (slot != -1) {
+            link.node.connect(link.slot, node, slot, link.afterRerouteId)
+          } else if (this.link_over_widget) {
+            this.emitEvent({
+              subType: "connectingWidgetLink",
+              link,
+              node,
+              widget: this.link_over_widget,
+            })
+            this.link_over_widget = null
+          } else {
+            // not on top of an input
+            // look for a good slot
+            link.node.connectByType(link.slot, node, link.output.type, {
+              afterRerouteId: link.afterRerouteId,
+            })
+          }
+        } else if (link.input) {
+          const slot = this.isOverNodeOutput(node, x, y)
+
+          if (slot != -1) {
+            node.connect(slot, link.node, link.slot, link.afterRerouteId) // this is inverted has output-input nature like
+          } else {
+            // not on top of an input
+            // look for a good slot
+            link.node.connectByTypeOutput(
+              link.slot,
+              node,
+              link.input.type,
+              { afterRerouteId: link.afterRerouteId },
+            )
+          }
+        }
+      }
+    } else if (firstLink.input || firstLink.output) {
+      const linkReleaseContext = firstLink.output
+        ? {
+          node_from: firstLink.node,
+          slot_from: firstLink.output,
+          type_filter_in: firstLink.output.type,
+        }
+        : {
+          node_to: firstLink.node,
+          slot_from: firstLink.input,
+          type_filter_out: firstLink.input.type,
+        }
+      // For external event only.
+      const linkReleaseContextExtended: LinkReleaseContextExtended = {
+        links: this.connecting_links,
+      }
+      this.emitEvent({
+        subType: "empty-release",
+        originalEvent: e,
+        linkReleaseContext: linkReleaseContextExtended,
+      })
+      // No longer in use
+      // add menu when releasing link in empty space
+      if (LiteGraph.release_link_on_empty_shows_menu) {
+        if (e.shiftKey) {
+          if (this.allow_searchbox) {
+            this.showSearchBox(e, linkReleaseContext)
+          }
+        } else {
+          if (firstLink.output) {
+            this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.output, e: e })
+          } else if (firstLink.input) {
+            this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.input, e: e })
+          }
+        }
+      }
+    }
   }
 
   /**
