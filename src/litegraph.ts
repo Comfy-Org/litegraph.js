@@ -23,7 +23,7 @@ import type {
 import type { SlotShape, LabelPosition, SlotDirection, SlotType } from "./draw"
 import type { IWidget } from "./types/widgets"
 import type { RenderShape, TitleMode } from "./types/globalEnums"
-import type { CanvasEventDetail, GroupDoubleClickEventDetail } from "./types/events"
+import type { CanvasEventDetail } from "./types/events"
 import { LiteGraphGlobal } from "./LiteGraphGlobal"
 import { loadPolyfills } from "./polyfills"
 
