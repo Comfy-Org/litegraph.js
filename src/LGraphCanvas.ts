@@ -4686,7 +4686,7 @@ export class LGraphCanvas {
         }
 
         let pattern = this._pattern
-        if (pattern == null && this._bg_img.width > 0) {
+        if (!pattern && this._bg_img.width > 0) {
           pattern = ctx.createPattern(this._bg_img, "repeat")
           this._pattern_img = this._bg_img
           this._pattern = pattern
