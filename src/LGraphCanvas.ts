@@ -5055,6 +5055,7 @@ export class LGraphCanvas {
    * @todo Split tooltip from hover, so it can be drawn / eased separately
    */
   drawLinkTooltip(ctx: CanvasRenderingContext2D, link: LinkSegment): void {
+    if (this.links_render_mode === LinkRenderType.HIDDEN_LINK) return
     const pos = link._pos
     ctx.fillStyle = "black"
     ctx.beginPath()
