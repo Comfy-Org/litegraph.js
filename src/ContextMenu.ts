@@ -360,8 +360,6 @@ export class ContextMenu {
   ): CustomEvent {
     const evt = document.createEvent("CustomEvent")
     evt.initCustomEvent(event_name, true, true, params) // canBubble, cancelable, detail
-    // @ts-expect-error
-    evt.srcElement = origin
     if (element.dispatchEvent) element.dispatchEvent(evt)
     // @ts-expect-error
     else if (element.__events) element.__events.dispatchEvent(evt)
