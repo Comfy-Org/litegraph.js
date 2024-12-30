@@ -267,6 +267,15 @@ export class LGraphCanvas {
     this.#updateCursorStyle()
   }
 
+  get hoveringOver(): CanvasItem {
+    return this.state.hoveringOver
+  }
+
+  set hoveringOver(value: CanvasItem) {
+    this.state.hoveringOver = value
+    this.#updateCursorStyle()
+  }
+
   /** @deprecated Replace all references with {@link pointer}.{@link CanvasPointer.isDown isDown}. */
   get pointer_is_down() {
     return this.pointer.isDown
@@ -3089,8 +3098,7 @@ export class LGraphCanvas {
       if (this.resizing_node) underPointer |= CanvasItem.ResizeSe
     }
 
-    this.state.hoveringOver = underPointer
-    this.#updateCursorStyle()
+    this.hoveringOver = underPointer
 
     e.preventDefault()
     return
