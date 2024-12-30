@@ -4447,9 +4447,12 @@ export class LGraphCanvas {
           const ratio = window.devicePixelRatio
           ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
 
-          const x = eDown.offsetX
-          const y = eDown.offsetY
-          ctx.strokeRect(x, y, eMove.offsetX - x, eMove.offsetY - y)
+          const rect = this.canvas.getBoundingClientRect()
+          const x = (eDown.clientX - rect.left)
+          const y = (eDown.clientY - rect.top)
+          const currentX = (eMove.clientX - rect.left)
+          const currentY = (eMove.clientY - rect.top)
+          ctx.strokeRect(x, y, currentX - x, currentY - y)
 
           ctx.setTransform(transform)
         } else {
