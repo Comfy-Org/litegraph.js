@@ -264,7 +264,6 @@ export class LGraphCanvas {
 
   set isDragging(value: boolean) {
     this.state.draggingItems = value
-    this.#updateCursorStyle()
   }
 
   get hoveringOver(): CanvasItem {
