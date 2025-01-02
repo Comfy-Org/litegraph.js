@@ -22,7 +22,10 @@ export interface IDeltaPosition {
   deltaY: number
 }
 
-/** Workaround for Firefox returning 0 on offsetX/Y props */
+/**
+ * Workaround for Firefox returning 0 on offsetX/Y props
+ * See https://github.com/Comfy-Org/litegraph.js/issues/403 for details
+ */
 export interface IOffsetWorkaround {
   /** See {@link MouseEvent.offsetX}.  This workaround is required (2024-12-31) to support Firefox, which always returns 0 */
   safeOffsetX: number
