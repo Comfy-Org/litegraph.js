@@ -18,7 +18,6 @@ import {
   snapPoint,
 } from "./measure"
 import { LGraphNode } from "./LGraphNode"
-import { RenderShape, TitleMode } from "./types/globalEnums"
 
 export interface IGraphGroupFlags extends Record<string, unknown> {
   pinned?: true
@@ -263,6 +262,9 @@ export class LGraphGroup implements Positionable, IPinnable {
     this.pos[1] = boundingBox[1] - this.titleHeight
     this.size[0] = boundingBox[2]
     this.size[1] = boundingBox[3] + this.titleHeight
+
+    const snapTo = this.graph?.getSnapToGridSize()
+    if (snapTo) this.snapToGrid(snapTo)
   }
 
   /**
