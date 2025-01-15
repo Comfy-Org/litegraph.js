@@ -1486,7 +1486,7 @@ export class LGraphNode implements Positionable, IPinnable {
   getResizeCorner(canvasX: number, canvasY: number): ResizeCorner | null {
     const rows = this.outputs ? this.outputs.length : 1
     const outputs_offset = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
-    const minHeight = Math.max(this.size[1], outputs_offset)
+    const minHeight = Math.max(this.size[1] - 15, outputs_offset)
 
     const corners = [
       {
@@ -1496,18 +1496,18 @@ export class LGraphNode implements Positionable, IPinnable {
       },
       {
         corner: ResizeCorner.TopRight,
-        x: this.pos[0] + this.size[0] - 20,
+        x: this.pos[0] + this.size[0] - 15,
         y: this.pos[1],
       },
       {
         corner: ResizeCorner.BottomLeft,
         x: this.pos[0],
-        y: this.pos[1] + minHeight - 20,
+        y: this.pos[1] + minHeight,
       },
       {
         corner: ResizeCorner.BottomRight,
-        x: this.pos[0] + this.size[0] - 20,
-        y: this.pos[1] + minHeight - 20,
+        x: this.pos[0] + this.size[0] - 15,
+        y: this.pos[1] + minHeight,
       },
     ]
 
