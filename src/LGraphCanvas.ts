@@ -2429,6 +2429,9 @@ export class LGraphCanvas {
             }
             }
 
+            snapPoint(newPos, this.#snapToGrid)
+            snapPoint(newSize, this.#snapToGrid)
+
             const minSize = node.computeSize()
             if (newSize[0] < minSize[0]) {
               const diff = minSize[0] - newSize[0]
