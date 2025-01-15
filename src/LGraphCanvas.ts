@@ -2357,7 +2357,8 @@ export class LGraphCanvas {
         node.collapse()
         this.setDirty(true, true)
       }
-    } else if (!node.flags.collapsed) {
+    }
+    if (!node.flags.collapsed) {
       // Resize node
       if (node.resizable !== false) {
         const corner = node.getResizeCorner(x, y)
@@ -3133,7 +3134,7 @@ export class LGraphCanvas {
 
         // Resize corner
         const corner = node.getResizeCorner(e.canvasX, e.canvasY)
-        if (corner) {
+        if (corner && !node.flags.collapsed) {
           switch (corner) {
           case ResizeCorner.TopLeft:
           case ResizeCorner.BottomRight:
@@ -3160,7 +3161,8 @@ export class LGraphCanvas {
             group &&
             !e.ctrlKey &&
             !this.read_only &&
-            group.isInResize(e.canvasX, e.canvasY)
+            group.isInResize(e.canvasX, e.canvasY) &&
+            !node.flags.collapsed
           ) {
             underPointer |= CanvasItem.ResizeNwSe
           }
@@ -3193,7 +3195,7 @@ export class LGraphCanvas {
         this.#dirty()
       }
 
-      if (this.resizing_node) {
+      if (this.resizing_node && !node.flags.collapsed) {
         switch (this.resizing_corner) {
         case ResizeCorner.TopLeft:
         case ResizeCorner.BottomRight:

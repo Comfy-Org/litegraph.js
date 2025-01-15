@@ -1492,12 +1492,12 @@ export class LGraphNode implements Positionable, IPinnable {
       {
         corner: ResizeCorner.TopLeft,
         x: this.pos[0],
-        y: this.pos[1],
+        y: this.pos[1] - LiteGraph.NODE_TITLE_HEIGHT,
       },
       {
         corner: ResizeCorner.TopRight,
         x: this.pos[0] + this.size[0] - 15,
-        y: this.pos[1],
+        y: this.pos[1] - LiteGraph.NODE_TITLE_HEIGHT,
       },
       {
         corner: ResizeCorner.BottomLeft,
