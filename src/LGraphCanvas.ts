@@ -43,6 +43,7 @@ import {
   LinkRenderType,
   RenderShape,
   TitleMode,
+  ResizeCorner,
 } from "./types/globalEnums"
 import { LGraphGroup } from "./LGraphGroup"
 import {
@@ -232,8 +233,10 @@ export class LGraphCanvas {
         cursor = "grabbing"
       } else if (this.state.readOnly) {
         cursor = "grab"
-      } else if (this.state.hoveringOver & CanvasItem.ResizeSe) {
-        cursor = "se-resize"
+      } else if (this.state.hoveringOver & CanvasItem.ResizeNwSe) {
+        cursor = "nwse-resize"
+      } else if (this.state.hoveringOver & CanvasItem.ResizeNeSw) {
+        cursor = "nesw-resize"
       } else if (this.state.hoveringOver & CanvasItem.Node) {
         cursor = "crosshair"
       }
@@ -460,6 +463,7 @@ export class LGraphCanvas {
   /** @deprecated Panels */
   last_click_position?: Point
   resizing_node?: LGraphNode
+  resizing_corner?: ResizeCorner
   /** @deprecated See {@link LGraphCanvas.resizingGroup} */
   selected_group_resizing?: boolean
   /** @deprecated See {@link pointer}.{@link CanvasPointer.dragStarted dragStarted} */
@@ -2355,42 +2359,124 @@ export class LGraphCanvas {
       }
     } else if (!node.flags.collapsed) {
       // Resize node
-      if (node.resizable !== false && node.inResizeCorner(x, y)) {
-        const b = node.boundingRect
-        const offsetX = x - (b[0] + b[2])
-        const offsetY = y - (b[1] + b[3])
+      if (node.resizable !== false) {
+        const corner = node.getResizeCorner(x, y)
+        if (corner) {
+          const b = node.boundingRect
+          let offsetX: number, offsetY: number
+          switch (corner) {
+          case ResizeCorner.TopLeft:
+            offsetX = x - b[0]
+            offsetY = y - b[1]
+            break
+          case ResizeCorner.TopRight:
+            offsetX = x - (b[0] + b[2])
+            offsetY = y - b[1]
+            break
+          case ResizeCorner.BottomLeft:
+            offsetX = x - b[0]
+            offsetY = y - (b[1] + b[3])
+            break
+          case ResizeCorner.BottomRight:
+            offsetX = x - (b[0] + b[2])
+            offsetY = y - (b[1] + b[3])
+            break
+          }
 
-        pointer.onDragStart = () => {
-          graph.beforeChange()
-          this.resizing_node = node
+          pointer.onDragStart = () => {
+            graph.beforeChange()
+            this.resizing_node = node
+            this.resizing_corner = corner
+          }
+
+          pointer.onDrag = (eMove) => {
+            if (this.read_only) return
+
+            const mouseX = eMove.canvasX
+            const mouseY = eMove.canvasY
+
+            const newPos = [...node.pos] as [number, number]
+            const newSize = [...node.size] as [number, number]
+
+            switch (this.resizing_corner) {
+            case ResizeCorner.BottomRight: {
+              newSize[0] = mouseX - node.pos[0] - offsetX
+              newSize[1] = mouseY - node.pos[1] - offsetY
+              break
+            }
+            case ResizeCorner.BottomLeft: {
+              const diffX = mouseX - (node.pos[0] + offsetX)
+              newPos[0] = node.pos[0] + diffX
+              newSize[0] = node.size[0] - diffX
+              newSize[1] = mouseY - node.pos[1] - offsetY
+              break
+            }
+            case ResizeCorner.TopRight: {
+              newSize[0] = mouseX - node.pos[0] - offsetX
+              const diffY = mouseY - (node.pos[1] + offsetY)
+              newPos[1] = node.pos[1] + diffY
+              newSize[1] = node.size[1] - diffY
+              break
+            }
+            case ResizeCorner.TopLeft: {
+              const diffX = mouseX - (node.pos[0] + offsetX)
+              newPos[0] = node.pos[0] + diffX
+              newSize[0] = node.size[0] - diffX
+              const diffY = mouseY - (node.pos[1] + offsetY)
+              newPos[1] = node.pos[1] + diffY
+              newSize[1] = node.size[1] - diffY
+              break
+            }
+            }
+
+            const minSize = node.computeSize()
+            if (newSize[0] < minSize[0]) {
+              const diff = minSize[0] - newSize[0]
+              newSize[0] = minSize[0]
+              if (this.resizing_corner === ResizeCorner.TopLeft || this.resizing_corner === ResizeCorner.BottomLeft) {
+                newPos[0] -= diff
+              }
+            }
+
+            if (newSize[1] < minSize[1]) {
+              const diff = minSize[1] - newSize[1]
+              newSize[1] = minSize[1]
+              if (this.resizing_corner === ResizeCorner.TopLeft || this.resizing_corner === ResizeCorner.TopRight) {
+                newPos[1] -= diff
+              }
+            }
+
+            // Update node
+            node.pos[0] = newPos[0]
+            node.pos[1] = newPos[1]
+            node.setSize(newSize)
+
+            this.#dirty()
+          }
+
+          pointer.onDragEnd = (upEvent) => {
+            this.#dirty()
+            graph.afterChange(this.resizing_node)
+          }
+
+          pointer.finally = () => {
+            this.resizing_node = null
+            this.resizing_corner = null
+          }
+
+          switch (corner) {
+          case ResizeCorner.TopLeft:
+          case ResizeCorner.BottomRight:
+            this.canvas.style.cursor = "nwse-resize"
+            break
+          case ResizeCorner.TopRight:
+          case ResizeCorner.BottomLeft:
+            this.canvas.style.cursor = "nesw-resize"
+            break
+          }
+
+          return
         }
-
-        pointer.onDrag = (eMove) => {
-          if (this.read_only) return
-
-          // Resize only by the exact pointer movement
-          const pos: Point = [
-            eMove.canvasX - node.pos[0] - offsetX,
-            eMove.canvasY - node.pos[1] - offsetY,
-          ]
-          // Unless snapping.
-          snapPoint(pos, this.#snapToGrid)
-
-          const min = node.computeSize()
-          pos[0] = Math.max(min[0], pos[0])
-          pos[1] = Math.max(min[1], pos[1])
-          node.setSize(pos)
-
-          this.#dirty()
-        }
-
-        pointer.onDragEnd = (upEvent) => {
-          this.#dirty()
-          graph.afterChange(this.resizing_node)
-        }
-        pointer.finally = () => this.resizing_node = null
-        this.canvas.style.cursor = "se-resize"
-        return
       }
 
       // Outputs
@@ -2910,7 +2996,7 @@ export class LGraphCanvas {
       this.dirty_canvas = true
     } else if (resizingGroup) {
       // Resizing a group
-      underPointer |= CanvasItem.ResizeSe | CanvasItem.Group
+      underPointer |= CanvasItem.ResizeNwSe | CanvasItem.Group
     } else if (this.dragging_canvas) {
       this.ds.offset[0] += delta[0] / this.ds.scale
       this.ds.offset[1] += delta[1] / this.ds.scale
@@ -3043,8 +3129,18 @@ export class LGraphCanvas {
         }
 
         // Resize corner
-        if (node.inResizeCorner(e.canvasX, e.canvasY)) {
-          underPointer |= CanvasItem.ResizeSe
+        const corner = node.getResizeCorner(e.canvasX, e.canvasY)
+        if (corner) {
+          switch (corner) {
+          case ResizeCorner.TopLeft:
+          case ResizeCorner.BottomRight:
+            underPointer |= CanvasItem.ResizeNwSe
+            break
+          case ResizeCorner.TopRight:
+          case ResizeCorner.BottomLeft:
+            underPointer |= CanvasItem.ResizeNeSw
+            break
+          }
         }
       } else {
         // Not over a node
@@ -3063,7 +3159,7 @@ export class LGraphCanvas {
             !this.read_only &&
             group.isInResize(e.canvasX, e.canvasY)
           ) {
-            underPointer |= CanvasItem.ResizeSe
+            underPointer |= CanvasItem.ResizeNwSe
           }
         }
       } // end
@@ -3094,7 +3190,18 @@ export class LGraphCanvas {
         this.#dirty()
       }
 
-      if (this.resizing_node) underPointer |= CanvasItem.ResizeSe
+      if (this.resizing_node) {
+        switch (this.resizing_corner) {
+        case ResizeCorner.TopLeft:
+        case ResizeCorner.BottomRight:
+          underPointer |= CanvasItem.ResizeNwSe
+          break
+        case ResizeCorner.TopRight:
+        case ResizeCorner.BottomLeft:
+          underPointer |= CanvasItem.ResizeNeSw
+          break
+        }
+      }
     }
 
     this.hoveringOver = underPointer

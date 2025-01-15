@@ -185,7 +185,7 @@ type LGraphCanvasState = {
 canvas.state.shouldSetCursor = false
 
 // Checking state - bit operators
-if (canvas.state.hoveringOver & CanvasItem.ResizeSe) element.style.cursor = 'se-resize'
+if (canvas.state.hoveringOver & CanvasItem.ResizeNwSe) element.style.cursor = 'nwse-resize'
 ```
 
 </detail>

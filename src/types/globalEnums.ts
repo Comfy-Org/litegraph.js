@@ -34,8 +34,10 @@ export enum CanvasItem {
   Reroute = 1 << 2,
   /** The path of a link */
   Link = 1 << 3,
-  /** A resize in the bottom-right corner */
-  ResizeSe = 1 << 4,
+  /** A resize in the top-left or bottom-right corner */
+  ResizeNwSe = 1 << 4,
+  /** A resize in the top-right or bottom-left corner */
+  ResizeNeSw = 1 << 5,
 }
 
 /** The direction that a link point will flow towards - e.g. horizontal outputs are right by default */
@@ -89,4 +91,11 @@ export enum EaseFunction {
   EASE_IN_QUAD = "easeInQuad",
   EASE_OUT_QUAD = "easeOutQuad",
   EASE_IN_OUT_QUAD = "easeInOutQuad",
+}
+
+export enum ResizeCorner {
+  TopLeft = 1,
+  TopRight = 2,
+  BottomLeft = 3,
+  BottomRight = 4,
 }

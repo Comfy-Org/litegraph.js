@@ -26,6 +26,7 @@ import {
   NodeSlotType,
   TitleMode,
   RenderShape,
+  ResizeCorner,
 } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
@@ -1482,17 +1483,41 @@ export class LGraphNode implements Positionable, IPinnable {
     return size
   }
 
-  inResizeCorner(canvasX: number, canvasY: number): boolean {
+  getResizeCorner(canvasX: number, canvasY: number): ResizeCorner | null {
     const rows = this.outputs ? this.outputs.length : 1
     const outputs_offset = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
-    return isInRectangle(
-      canvasX,
-      canvasY,
-      this.pos[0] + this.size[0] - 15,
-      this.pos[1] + Math.max(this.size[1] - 15, outputs_offset),
-      20,
-      20,
-    )
+    const minHeight = Math.max(this.size[1], outputs_offset)
+
+    const corners = [
+      {
+        corner: ResizeCorner.TopLeft,
+        x: this.pos[0],
+        y: this.pos[1],
+      },
+      {
+        corner: ResizeCorner.TopRight,
+        x: this.pos[0] + this.size[0] - 20,
+        y: this.pos[1],
+      },
+      {
+        corner: ResizeCorner.BottomLeft,
+        x: this.pos[0],
+        y: this.pos[1] + minHeight - 20,
+      },
+      {
+        corner: ResizeCorner.BottomRight,
+        x: this.pos[0] + this.size[0] - 20,
+        y: this.pos[1] + minHeight - 20,
+      },
+    ]
+
+    for (const corner of corners) {
+      if (isInRectangle(canvasX, canvasY, corner.x, corner.y, 20, 20)) {
+        return corner.corner
+      }
+    }
+
+    return null
   }
 
   /**
