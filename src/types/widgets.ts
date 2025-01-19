@@ -17,8 +17,6 @@ export interface IWidgetOptions<TValue = unknown> extends Record<string, unknown
   // TODO: Confirm this
   property?: string
 
-  hasOwnProperty?(arg0: string): any
-  // values?(widget?: IWidget, node?: LGraphNode): any
   values?: TValue[]
   callback?: IWidget["callback"]
 }
