@@ -144,7 +144,7 @@ export interface IBaseWidget<TElement extends HTMLElement = HTMLElement> {
     y: number,
     H: number,
   ): void
-  computeSize?(width: number): Size
+  computeSize?(width?: number): Size
 
   /**
    * Callback for pointerdown events, allowing custom widgets to register callbacks to occur
