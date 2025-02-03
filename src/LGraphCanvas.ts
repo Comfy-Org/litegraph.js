@@ -56,7 +56,7 @@ import {
   isInRect,
   snapPoint,
 } from "./measure"
-import { drawSlot, LabelPosition } from "./draw"
+import { drawSlot, LabelPosition, strokeShape } from "./draw"
 import { DragAndScale } from "./DragAndScale"
 import { LinkReleaseContextExtended, LiteGraph, clamp } from "./litegraph"
 import { stringOrEmpty, stringOrNull } from "./strings"
@@ -130,16 +130,6 @@ interface IDialogOptions {
   checkForInput?: boolean
   closeOnLeave?: boolean
   onclose?(): void
-}
-
-interface IDrawSelectionBoundingOptions {
-  shape?: RenderShape
-  title_height?: number
-  title_mode?: TitleMode
-  colour?: CanvasColour
-  padding?: number
-  collapsed?: boolean
-  thickness?: number
 }
 
 /** @inheritdoc {@link LGraphCanvas.state} */
@@ -5200,7 +5190,7 @@ export class LGraphCanvas {
     ctx.fill()
 
     if (node.has_errors && !LiteGraph.use_legacy_node_error_indicator) {
-      this.strokeShape(ctx, area, {
+      strokeShape(ctx, area, {
         shape,
         title_mode,
         title_height,
@@ -5411,7 +5401,7 @@ export class LGraphCanvas {
 
       const padding = node.has_errors && !LiteGraph.use_legacy_node_error_indicator ? 20 : undefined
 
-      this.strokeShape(ctx, area, {
+      strokeShape(ctx, area, {
         shape,
         title_height,
         title_mode,
@@ -5423,94 +5413,6 @@ export class LGraphCanvas {
     // these counter helps in conditioning drawing based on if the node has been executed or an action occurred
     if (node.execute_triggered > 0) node.execute_triggered--
     if (node.action_triggered > 0) node.action_triggered--
-  }
-
-  /**
-   * Draws only the path of a shape on the canvas, without filling.
-   * Used to draw indicators for node status, e.g. "selected".
-   * @param ctx The 2D context to draw on
-   * @param area The position and size of the shape to render
-   */
-  strokeShape(
-    ctx: CanvasRenderingContext2D,
-    area: Rect,
-    {
-      /** The shape to render */
-      shape = RenderShape.BOX,
-      /** Shape will extend above the Y-axis 0 by this amount */
-      title_height = LiteGraph.NODE_TITLE_HEIGHT,
-      /** @deprecated This is node-specific: it should be removed entirely, and behaviour defined by the caller more explicitly */
-      title_mode = TitleMode.NORMAL_TITLE,
-      /** The colour that should be drawn */
-      colour = LiteGraph.NODE_BOX_OUTLINE_COLOR,
-      /** The distance between the edge of the {@link area} and the middle of the line */
-      padding = 6,
-      /** @deprecated This is node-specific: it should be removed entirely, and behaviour defined by the caller more explicitly */
-      collapsed = false,
-      /** Thickness of the line drawn (`lineWidth`) */
-      thickness = 1,
-    }: IDrawSelectionBoundingOptions = {},
-  ): void {
-    // Adjust area if title is transparent
-    if (title_mode === TitleMode.TRANSPARENT_TITLE) {
-      area[1] -= title_height
-      area[3] += title_height
-    }
-
-    // Set up context
-    const { lineWidth, strokeStyle } = ctx
-    ctx.lineWidth = thickness
-    ctx.globalAlpha = 0.8
-    ctx.strokeStyle = colour
-    ctx.beginPath()
-
-    // Draw shape based on type
-    const [x, y, width, height] = area
-    switch (shape) {
-    case RenderShape.BOX: {
-      ctx.rect(
-        x - padding,
-        y - padding,
-        width + 2 * padding,
-        height + 2 * padding,
-      )
-      break
-    }
-    case RenderShape.ROUND:
-    case RenderShape.CARD: {
-      const radius = this.round_radius + padding
-      const isCollapsed = shape === RenderShape.CARD && collapsed
-      const cornerRadii =
-          isCollapsed || shape === RenderShape.ROUND
-            ? [radius]
-            : [radius, 2, radius, 2]
-      ctx.roundRect(
-        x - padding,
-        y - padding,
-        width + 2 * padding,
-        height + 2 * padding,
-        cornerRadii,
-      )
-      break
-    }
-    case RenderShape.CIRCLE: {
-      const centerX = x + width / 2
-      const centerY = y + height / 2
-      const radius = Math.max(width, height) / 2 + padding
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-      break
-    }
-    }
-
-    // Stroke the shape
-    ctx.stroke()
-
-    // Reset context
-    ctx.lineWidth = lineWidth
-    ctx.strokeStyle = strokeStyle
-
-    // TODO: Store and reset value properly.  Callers currently expect this behaviour (e.g. muted nodes).
-    ctx.globalAlpha = 1
   }
 
   /**
