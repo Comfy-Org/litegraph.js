@@ -187,12 +187,12 @@ export class LGraphNode implements Positionable, IPinnable {
 
   /** The fg color used to render the node. */
   get renderingColor(): string {
-    return this.color ?? this.constructor.color ?? LiteGraph.NODE_DEFAULT_COLOR
+    return this.color || this.constructor.color || LiteGraph.NODE_DEFAULT_COLOR
   }
 
   /** The bg color used to render the node. */
   get renderingBgColor(): string {
-    return this.bgcolor ?? this.constructor.bgcolor ?? LiteGraph.NODE_DEFAULT_BGCOLOR
+    return this.bgcolor || this.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
   }
 
   /** The box color used to render the node. */
@@ -209,7 +209,7 @@ export class LGraphNode implements Positionable, IPinnable {
           : colState
     }
 
-    return this.boxcolor ?? colState ?? LiteGraph.NODE_DEFAULT_BOXCOLOR
+    return this.boxcolor || colState || LiteGraph.NODE_DEFAULT_BOXCOLOR
   }
 
   exec_version: number
