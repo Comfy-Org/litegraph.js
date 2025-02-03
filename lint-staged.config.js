@@ -5,7 +5,8 @@ export default {
 
   "*.{ts,mts}": stagedFiles => [
     ...prettierAndEslint(stagedFiles),
-    `npm run typecheck`,
+    "tsc --noEmit",
+    "tsc-strict",
   ],
 }
 
