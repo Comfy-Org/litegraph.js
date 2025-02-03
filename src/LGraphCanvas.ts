@@ -317,6 +317,13 @@ export class LGraphCanvas {
     LiteGraph.ROUND_RADIUS = value
   }
 
+  /**
+   * Render low quality when zoomed out.
+   */
+  get low_quality(): boolean {
+    return this.ds.scale < 0.5
+  }
+
   options: {
     skip_events?: any
     viewport?: any
@@ -4781,7 +4788,7 @@ export class LGraphCanvas {
     const color = node.color || node.constructor.color || LiteGraph.NODE_DEFAULT_COLOR
     const bgcolor = node.bgcolor || node.constructor.bgcolor || LiteGraph.NODE_DEFAULT_BGCOLOR
 
-    const low_quality = this.ds.scale < 0.6 // zoomed out
+    const low_quality = this.low_quality
     const editor_alpha = this.editor_alpha
     ctx.globalAlpha = editor_alpha
 
@@ -5162,7 +5169,7 @@ export class LGraphCanvas {
     ctx.fillStyle = LiteGraph.use_legacy_node_error_indicator ? "#F00" : bgcolor
 
     const title_height = LiteGraph.NODE_TITLE_HEIGHT
-    const low_quality = this.ds.scale < 0.5
+    const low_quality = this.low_quality
 
     const { collapsed } = node.flags
     const shape = node._shape || node.constructor.shape || LiteGraph.NODE_DEFAULT_SHAPE
