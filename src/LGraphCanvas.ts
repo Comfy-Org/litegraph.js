@@ -5226,8 +5226,7 @@ export class LGraphCanvas {
       if (node.onDrawTitleBar) {
         node.onDrawTitleBar(ctx, title_height, size, this.ds.scale, fgcolor)
       } else if (
-        title_mode != TitleMode.TRANSPARENT_TITLE &&
-        node.constructor.title_color
+        title_mode !== TitleMode.TRANSPARENT_TITLE
       ) {
         const title_color = node.constructor.title_color || fgcolor
 
