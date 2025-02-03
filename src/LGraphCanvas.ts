@@ -321,7 +321,7 @@ export class LGraphCanvas {
    * Render low quality when zoomed out.
    */
   get low_quality(): boolean {
-    return this.ds.scale < 0.5
+    return this.ds.scale < this.low_quality_zoom_threshold
   }
 
   options: {
@@ -383,6 +383,8 @@ export class LGraphCanvas {
   /** Shape of the markers shown at the midpoint of links.  Default: Circle */
   linkMarkerShape: LinkMarkerShape = LinkMarkerShape.Circle
   links_render_mode: number
+  /** Zoom threshold for low quality rendering. Zoom below this threshold will render low quality. */
+  low_quality_zoom_threshold: number = 0.5
   /** mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle */
   readonly mouse: Point
   /** mouse in graph coordinates, where 0,0 is the top-left corner of the blue rectangle */
