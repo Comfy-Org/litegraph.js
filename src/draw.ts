@@ -146,6 +146,7 @@ export function drawSlot(
 
 interface IDrawSelectionBoundingOptions {
   shape?: RenderShape
+  round_radius?: number
   title_height?: number
   title_mode?: TitleMode
   colour?: CanvasColour
@@ -166,6 +167,8 @@ export function strokeShape(
   {
     /** The shape to render */
     shape = RenderShape.BOX,
+    /** The radius of the rounded corners for {@link RenderShape.ROUND} and {@link RenderShape.CARD} */
+    round_radius = LiteGraph.ROUND_RADIUS,
     /** Shape will extend above the Y-axis 0 by this amount */
     title_height = LiteGraph.NODE_TITLE_HEIGHT,
     /** @deprecated This is node-specific: it should be removed entirely, and behaviour defined by the caller more explicitly */
@@ -207,7 +210,7 @@ export function strokeShape(
   }
   case RenderShape.ROUND:
   case RenderShape.CARD: {
-    const radius = LiteGraph.ROUND_RADIUS + padding
+    const radius = round_radius + padding
     const isCollapsed = shape === RenderShape.CARD && collapsed
     const cornerRadii =
         isCollapsed || shape === RenderShape.ROUND
