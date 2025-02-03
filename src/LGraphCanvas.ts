@@ -4698,7 +4698,7 @@ export class LGraphCanvas {
         )
       }
 
-      if (this.background_image && this.ds.scale > 0.5 && !bg_already_painted) {
+      if (this.background_image && !this.low_quality && !bg_already_painted) {
         if (this.zoom_modify_alpha) {
           ctx.globalAlpha = (1.0 - 0.5 / this.ds.scale) * this.editor_alpha
         } else {
@@ -5712,7 +5712,7 @@ export class LGraphCanvas {
       : null
 
     // TODO: Subline code below was inserted in the wrong place - should be before this statement
-    if (this.render_connections_border && this.ds.scale > 0.6) {
+    if (this.render_connections_border && !this.low_quality) {
       ctx.lineWidth = this.connections_width + 4
     }
     ctx.lineJoin = "round"
@@ -5855,7 +5855,7 @@ export class LGraphCanvas {
     }
 
     // rendering the outline of the connection can be a little bit slow
-    if (this.render_connections_border && this.ds.scale > 0.6 && !skip_border) {
+    if (this.render_connections_border && !this.low_quality && !skip_border) {
       ctx.strokeStyle = "rgba(0,0,0,0.5)"
       ctx.stroke(path)
     }
@@ -6060,7 +6060,7 @@ export class LGraphCanvas {
     const widgets = node.widgets
     posY += 2
     const H = LiteGraph.NODE_WIDGET_HEIGHT
-    const show_text = this.ds.scale > 0.5
+    const show_text = !this.low_quality
     ctx.save()
     ctx.globalAlpha = this.editor_alpha
     const background_color = LiteGraph.WIDGET_BGCOLOR
