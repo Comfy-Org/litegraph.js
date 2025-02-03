@@ -2726,8 +2726,7 @@ export class LGraphNode implements Positionable, IPinnable {
   }
 
   get height() {
-    // @ts-expect-error Not impl.
-    return this.collapsed ? LiteGraph.NODE_COLLAPSED_HEIGHT : this.size[1]
+    return this.collapsed ? LiteGraph.NODE_TITLE_HEIGHT : this.size[1]
   }
 
   drawBadges(ctx: CanvasRenderingContext2D, { gap = 2 } = {}): void {
