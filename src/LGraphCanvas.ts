@@ -310,6 +310,13 @@ export class LGraphCanvas {
     return LiteGraph.ROUND_RADIUS
   }
 
+  /**
+   * @deprecated Use {@link LiteGraphGlobal.ROUND_RADIUS} instead.
+   */
+  set round_radius(value: number) {
+    LiteGraph.ROUND_RADIUS = value
+  }
+
   options: {
     skip_events?: any
     viewport?: any
