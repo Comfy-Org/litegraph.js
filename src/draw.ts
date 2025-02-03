@@ -207,7 +207,7 @@ export function strokeShape(
   }
   case RenderShape.ROUND:
   case RenderShape.CARD: {
-    const radius = this.round_radius + padding
+    const radius = LiteGraph.ROUND_RADIUS + padding
     const isCollapsed = shape === RenderShape.CARD && collapsed
     const cornerRadii =
         isCollapsed || shape === RenderShape.ROUND

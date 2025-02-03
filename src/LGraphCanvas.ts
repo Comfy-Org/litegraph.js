@@ -303,6 +303,13 @@ export class LGraphCanvas {
     this.#maximumFrameGap = value > Number.EPSILON ? 1000 / value : 0
   }
 
+  /**
+   * @deprecated Use {@link LiteGraphGlobal.ROUND_RADIUS} instead.
+   */
+  get round_radius() {
+    return LiteGraph.ROUND_RADIUS
+  }
+
   options: {
     skip_events?: any
     viewport?: any
@@ -378,7 +385,6 @@ export class LGraphCanvas {
   /** to render foreground objects (above nodes and connections) in the canvas affected by transform */
   onDrawForeground?: (arg0: CanvasRenderingContext2D, arg1: any) => void
   connections_width: number
-  round_radius: number
   /** The current node being drawn by {@link drawNode}.  This should NOT be used to determine the currently selected node.  See {@link selectedItems} */
   current_node: LGraphNode | null
   /** used for widgets */
@@ -618,7 +624,6 @@ export class LGraphCanvas {
     this.onAfterChange = null
 
     this.connections_width = 3
-    this.round_radius = 8
 
     this.current_node = null
     this.node_widget = null
@@ -4524,7 +4529,7 @@ export class LGraphCanvas {
 
     const area = node.boundingRect
     const gap = 3
-    const radius = this.round_radius + gap
+    const radius = LiteGraph.ROUND_RADIUS + gap
 
     const x = area[0] - gap
     const y = area[1] - gap
@@ -5181,8 +5186,8 @@ export class LGraphCanvas {
         area[2],
         area[3],
         shape == RenderShape.CARD
-          ? [this.round_radius, this.round_radius, 0, 0]
-          : [this.round_radius],
+          ? [LiteGraph.ROUND_RADIUS, LiteGraph.ROUND_RADIUS, 0, 0]
+          : [LiteGraph.ROUND_RADIUS],
       )
     } else if (shape == RenderShape.CIRCLE) {
       ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
@@ -5237,8 +5242,8 @@ export class LGraphCanvas {
             size[0],
             title_height,
             collapsed
-              ? [this.round_radius]
-              : [this.round_radius, this.round_radius, 0, 0],
+              ? [LiteGraph.ROUND_RADIUS]
+              : [LiteGraph.ROUND_RADIUS, LiteGraph.ROUND_RADIUS, 0, 0],
           )
         }
         ctx.fill()
