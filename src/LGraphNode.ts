@@ -2868,15 +2868,16 @@ export class LGraphNode implements Positionable, IPinnable {
   drawTitleBox(ctx: CanvasRenderingContext2D, options: {
     scale: number
     low_quality?: boolean
+    title_height?: number
     box_size?: number
   }): void {
     const {
       scale,
       low_quality = false,
+      title_height = LiteGraph.NODE_TITLE_HEIGHT,
       box_size = 10,
     } = options
 
-    const title_height = LiteGraph.NODE_TITLE_HEIGHT
     const size = this.renderingSize
     const shape = this.renderingShape
 
