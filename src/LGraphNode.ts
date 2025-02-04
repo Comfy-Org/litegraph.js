@@ -223,6 +223,10 @@ export class LGraphNode implements Positionable, IPinnable {
   badgePosition: BadgePosition = BadgePosition.TopLeft
   onOutputRemoved?(this: LGraphNode, slot: number): void
   onInputRemoved?(this: LGraphNode, slot: number, input: INodeInputSlot): void
+  /**
+   * The width of the node when collapsed.
+   * Updated by {@link LGraphCanvas.drawNode}
+   */
   _collapsed_width: number
   /** Called once at the start of every frame.  Caller may change the values in {@link out}, which will be reflected in {@link boundingRect}. */
   onBounding?(this: LGraphNode, out: Rect): void
@@ -293,6 +297,13 @@ export class LGraphNode implements Positionable, IPinnable {
 
     this._size[0] = value[0]
     this._size[1] = value[1]
+  }
+
+  /**
+   * The size of the node used for rendering.
+   */
+  get renderingSize(): Size {
+    return this.flags.collapsed ? [this._collapsed_width, 0] : this._size
   }
 
   get shape(): RenderShape {
@@ -2814,7 +2825,7 @@ export class LGraphNode implements Positionable, IPinnable {
 
     const fgcolor = this.renderingColor
     const shape = this.renderingShape
-    const size = this.size
+    const size = this.renderingSize
 
     if (this.onDrawTitleBar) {
       this.onDrawTitleBar(ctx, title_height, size, scale, fgcolor)
