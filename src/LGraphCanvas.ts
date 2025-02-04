@@ -385,7 +385,7 @@ export class LGraphCanvas {
   linkMarkerShape: LinkMarkerShape = LinkMarkerShape.Circle
   links_render_mode: number
   /** Zoom threshold for low quality rendering. Zoom below this threshold will render low quality. */
-  low_quality_zoom_threshold: number = 0.5
+  low_quality_zoom_threshold: number = 0.6
   /** mouse in canvas coordinates, where 0,0 is the top-left corner of the blue rectangle */
   readonly mouse: Point
   /** mouse in graph coordinates, where 0,0 is the top-left corner of the blue rectangle */
@@ -4698,7 +4698,7 @@ export class LGraphCanvas {
         )
       }
 
-      if (this.background_image && !this.low_quality && !bg_already_painted) {
+      if (this.background_image && this.ds.scale > 0.5 && !bg_already_painted) {
         if (this.zoom_modify_alpha) {
           ctx.globalAlpha = (1.0 - 0.5 / this.ds.scale) * this.editor_alpha
         } else {
