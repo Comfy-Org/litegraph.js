@@ -297,11 +297,8 @@ export class LGraphNode implements Positionable, IPinnable {
     this._size[1] = value[1]
   }
 
-  /**
-   * The shape of the node. @see {@link RenderShape}
-   */
   get shape(): RenderShape {
-    return this._shape || this.constructor.shape || LiteGraph.NODE_DEFAULT_SHAPE
+    return this._shape
   }
 
   set shape(v: RenderShape | "default" | "box" | "round" | "circle" | "card") {
@@ -324,6 +321,13 @@ export class LGraphNode implements Positionable, IPinnable {
     default:
       this._shape = v
     }
+  }
+
+  /**
+   * The shape of the node used for rendering. @see {@link RenderShape}
+   */
+  get renderingShape(): RenderShape {
+    return this._shape || this.constructor.shape || LiteGraph.NODE_DEFAULT_SHAPE
   }
 
   public get is_selected(): boolean {
@@ -671,7 +675,7 @@ export class LGraphNode implements Positionable, IPinnable {
     if (this.color) o.color = this.color
     if (this.bgcolor) o.bgcolor = this.bgcolor
     if (this.boxcolor) o.boxcolor = this.boxcolor
-    if (this._shape) o.shape = this._shape
+    if (this.shape) o.shape = this.shape
 
     if (this.onSerialize?.(o)) console.warn("node onSerialize shouldnt return anything, data should be stored in the object pass in the first parameter")
 
