@@ -65,6 +65,7 @@ import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 import { Reroute, type RerouteId } from "./Reroute"
 import { getAllNestedItems, findFirstNode } from "./utils/collections"
 import { CanvasPointer } from "./CanvasPointer"
+import { BooleanWidget } from "./widgets/BooleanWidget"
 
 interface IShowSearchOptions {
   node_to?: LGraphNode
@@ -5954,38 +5955,10 @@ export class LGraphCanvas {
         }
         break
       case "toggle":
-        ctx.textAlign = "left"
-        ctx.strokeStyle = outline_color
-        ctx.fillStyle = background_color
-        ctx.beginPath()
-        if (show_text)
-          ctx.roundRect(margin, y, widget_width - margin * 2, H, [H * 0.5])
-        else ctx.rect(margin, y, widget_width - margin * 2, H)
-        ctx.fill()
-        if (show_text && !w.disabled) ctx.stroke()
-        ctx.fillStyle = w.value ? "#89A" : "#333"
-        ctx.beginPath()
-        ctx.arc(
-          widget_width - margin * 2,
-          y + H * 0.5,
-          H * 0.36,
-          0,
-          Math.PI * 2,
-        )
-        ctx.fill()
-        if (show_text) {
-          ctx.fillStyle = secondary_text_color
-          const label = w.label || w.name
-          if (label != null) {
-            ctx.fillText(label, margin * 2, y + H * 0.7)
-          }
-          ctx.fillStyle = w.value ? text_color : secondary_text_color
-          ctx.textAlign = "right"
-          ctx.fillText(
-            w.value ? w.options.on || "true" : w.options.off || "false",
-            widget_width - 40,
-            y + H * 0.7,
-          )
+        if (w instanceof BooleanWidget) {
+          w.drawWidget(ctx, { y, width: widget_width, show_text, margin })
+        } else {
+          console.warn("BooleanWidget expected, but got", w)
         }
         break
       case "slider": {
