@@ -3,7 +3,7 @@ import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
-import { IWidget } from "./litegraph"
+import type { IWidget } from "./types/widgets"
 
 export type Dictionary<T> = { [key: string]: T }
 
