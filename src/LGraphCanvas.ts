@@ -66,6 +66,7 @@ import { Reroute, type RerouteId } from "./Reroute"
 import { getAllNestedItems, findFirstNode } from "./utils/collections"
 import { CanvasPointer } from "./CanvasPointer"
 import { BooleanWidget } from "./widgets/BooleanWidget"
+import { toClass } from "./utils/type"
 
 interface IShowSearchOptions {
   node_to?: LGraphNode
@@ -5955,11 +5956,7 @@ export class LGraphCanvas {
         }
         break
       case "toggle":
-        if (w instanceof BooleanWidget) {
-          w.drawWidget(ctx, { y, width: widget_width, show_text, margin })
-        } else {
-          console.warn("BooleanWidget expected, but got", w)
-        }
+        toClass(BooleanWidget, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
         break
       case "slider": {
         ctx.fillStyle = background_color

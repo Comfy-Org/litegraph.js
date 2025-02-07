@@ -4,7 +4,7 @@ import type { CanvasPointer, LGraphCanvas, LGraphNode, Size } from "@/litegraph"
 import type { CanvasMouseEvent, CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget, IWidget, IWidgetOptions } from "@/types/widgets"
 
-export class BaseWidget implements IBaseWidget {
+export abstract class BaseWidget implements IBaseWidget {
   linkedWidgets?: IWidget[]
   options: IWidgetOptions<unknown>
   marker?: number
@@ -63,4 +63,11 @@ export class BaseWidget implements IBaseWidget {
   get secondary_text_color() {
     return LiteGraph.WIDGET_SECONDARY_TEXT_COLOR
   }
+
+  abstract drawWidget(ctx: CanvasRenderingContext2D, options: {
+    y: number
+    width: number
+    show_text?: boolean
+    margin?: number
+  }): void
 }
