@@ -5902,7 +5902,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         // Manually draw a slot next to the widget simulating an input
         new NodeInputSlot({
           name: "",
-          type: "",
+          type: this.link_over_widget_type,
           link: 0,
         }).draw(ctx, { pos: [10, y + 10], colorContext: this })
       }
