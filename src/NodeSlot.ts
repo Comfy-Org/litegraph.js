@@ -72,7 +72,7 @@ export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
     this.link = slot.link
   }
 
-  isConnected(): boolean {
+  override isConnected(): boolean {
     return this.link != null
   }
 }
@@ -89,7 +89,7 @@ export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
     this.slot_index = slot.slot_index
   }
 
-  isConnected(): boolean {
+  override isConnected(): boolean {
     return this.links != null && this.links.length > 0
   }
 }

@@ -4878,10 +4878,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       // input connection slots
       if (node.inputs) {
         for (let i = 0; i < node.inputs.length; i++) {
-          const slot =
-            node.inputs[i] instanceof NodeInputSlot
-              ? node.inputs[i] as NodeInputSlot
-              : new NodeInputSlot(node.inputs[i])
+          const slot = toClass(NodeInputSlot, node.inputs[i])
 
           // change opacity of incompatible slots when dragging a connection
           const isValid =
@@ -4920,10 +4917,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       ctx.strokeStyle = "black"
       if (node.outputs) {
         for (let i = 0; i < node.outputs.length; i++) {
-          const slot =
-            node.outputs[i] instanceof NodeOutputSlot
-              ? node.outputs[i] as NodeOutputSlot
-              : new NodeOutputSlot(node.outputs[i])
+          const slot = toClass(NodeOutputSlot, node.outputs[i])
 
           const slot_type = slot.type
 
