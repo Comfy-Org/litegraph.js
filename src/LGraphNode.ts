@@ -1657,16 +1657,7 @@ export class LGraphNode implements Positionable, IPinnable {
       throw "LiteGraph addWidget('combo',...) requires to pass values in options: { values:['red','blue'] }"
     }
 
-    let widget: IWidget
-    switch (w.type) {
-    case "toggle":
-      widget = new BooleanWidget(w)
-      break
-    default:
-      widget = w
-    }
-
-    this.widgets.push(widget)
+    const widget = this.addCustomWidget(w)
     this.setSize(this.computeSize())
     return widget
   }
