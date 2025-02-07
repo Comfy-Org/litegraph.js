@@ -20,7 +20,7 @@ export class BooleanWidget extends BaseWidget implements IBooleanWidget {
    * @note Not naming this `draw` as `draw` conflicts with the `draw` method in
    * custom widgets.
    */
-  drawWidget(ctx: CanvasRenderingContext2D, options: {
+  override drawWidget(ctx: CanvasRenderingContext2D, options: {
     y: number
     width: number
     show_text?: boolean
