@@ -68,6 +68,7 @@ import { CanvasPointer } from "./CanvasPointer"
 import { BooleanWidget } from "./widgets/BooleanWidget"
 import { toClass } from "./utils/type"
 import { NodeInputSlot, NodeOutputSlot, type ConnectionColorContext } from "./NodeSlot"
+import { ComboWidget } from "./widgets/ComboWidget"
 
 interface IShowSearchOptions {
   node_to?: LGraphNode
@@ -5982,8 +5983,10 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
         break
       }
-      case "number":
       case "combo":
+        toClass(ComboWidget, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
+        break
+      case "number":
         ctx.textAlign = "left"
         ctx.strokeStyle = outline_color
         ctx.fillStyle = background_color
