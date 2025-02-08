@@ -2635,61 +2635,11 @@ export class LGraphCanvas implements ConnectionColorContext {
       break
     }
     case "combo": {
-      // TODO: Type checks on widget values
-      let values: string[]
-      let values_list: string[]
-
-      pointer.onClick = (upEvent) => {
-        const delta = x < 40
-          ? -1
-          : x > width - 40
-            ? 1
-            : 0
-
-        // Combo buttons
-        values = widget.options.values
-        if (typeof values === "function") {
-          // @ts-expect-error
-          values = values(widget, node)
-        }
-        values_list = null
-
-        values_list = Array.isArray(values) ? values : Object.keys(values)
-
-        // Left/right arrows
-        if (delta) {
-          let index = -1
-          this.last_mouseclick = 0 // avoids dobl click event
-          index = typeof values === "object"
-            ? values_list.indexOf(String(widget.value)) + delta
-            // @ts-expect-error
-            : values_list.indexOf(widget.value) + delta
-
-          if (index >= values_list.length) index = values_list.length - 1
-          if (index < 0) index = 0
-
-          widget.value = Array.isArray(values)
-            ? values[index]
-            : index
-
-          if (oldValue != widget.value) setWidgetValue(this, node, widget, widget.value)
-          this.dirty_canvas = true
-          return
-        }
-        const text_values = values != values_list ? Object.values(values) : values
-        new LiteGraph.ContextMenu(text_values, {
-          scale: Math.max(1, this.ds.scale),
-          event: e,
-          className: "dark",
-          callback: (value: string) => {
-            widget.value = values != values_list
-              ? text_values.indexOf(value)
-              : value
-
-            setWidgetValue(this, node, widget, widget.value)
-            this.dirty_canvas = true
-            return false
-          },
+      pointer.onClick = () => {
+        toClass(ComboWidget, widget).onClick({
+          e,
+          node,
+          canvas: this,
         })
       }
       break
@@ -6025,7 +5975,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               y + H * 0.7,
             )
           } else {
-            let v = typeof w.value === "number" ? String(w.value) : w.value
+            let v = String(w.value)
             if (w.options.values) {
               let values = w.options.values
               if (typeof values === "function")

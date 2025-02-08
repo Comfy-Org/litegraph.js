@@ -1,5 +1,9 @@
 import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
 import { BaseWidget } from "./BaseWidget"
+import { LiteGraph } from "@/litegraph"
+import type { LGraphNode } from "@/LGraphNode"
+import type { CanvasMouseEvent } from "@/types/events"
+import type { LGraphCanvas } from "@/LGraphCanvas"
 
 export class ComboWidget extends BaseWidget implements IComboWidget {
   // IComboWidget properties
@@ -126,5 +130,77 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
     ctx.textAlign = originalTextAlign
     ctx.strokeStyle = originalStrokeStyle
     ctx.fillStyle = originalFillStyle
+  }
+
+  override onClick(options: {
+    e: CanvasMouseEvent
+    node: LGraphNode
+    canvas: LGraphCanvas
+  }) {
+    const { e, node, canvas } = options
+    const x = e.canvasX - node.pos[0]
+    const width = this.width || node.size[0]
+
+    // Determine if clicked on left/right arrows
+    const delta = x < 40
+      ? -1
+      : x > width - 40
+        ? 1
+        : 0
+
+    // Get values
+    let values = this.options.values
+    if (typeof values === "function") {
+      // @ts-expect-error handle () => string[] type that is not typed in IWidgetOptions
+      values = values(this, node)
+    }
+    // @ts-ignore Record<string, string> is not typed in IWidgetOptions
+    const values_list = Array.isArray(values) ? values : Object.keys(values)
+
+    // Handle left/right arrow clicks
+    if (delta) {
+      let index = -1
+      canvas.last_mouseclick = 0 // avoids double click event
+      index = typeof values === "object"
+        ? values_list.indexOf(String(this.value)) + delta
+        // @ts-expect-error handle non-string values
+        : values_list.indexOf(this.value) + delta
+
+      if (index >= values_list.length) index = values_list.length - 1
+      if (index < 0) index = 0
+
+      this.setValue(
+        Array.isArray(values)
+          ? values[index]
+          : index,
+        {
+          e,
+          node,
+          canvas,
+        },
+      )
+      return
+    }
+
+    // Handle center click - show dropdown menu
+    // @ts-ignore Record<string, string> is not typed in IWidgetOptions
+    const text_values = values != values_list ? Object.values(values) : values
+    new LiteGraph.ContextMenu(text_values, {
+      scale: Math.max(1, canvas.ds.scale),
+      event: e,
+      className: "dark",
+      callback: (value: string) => {
+        this.setValue(
+          values != values_list
+            ? text_values.indexOf(value)
+            : value,
+          {
+            e,
+            node,
+            canvas,
+          },
+        )
+      },
+    })
   }
 }
