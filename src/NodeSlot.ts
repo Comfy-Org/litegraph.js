@@ -3,7 +3,7 @@ import type { IWidget } from "./types/widgets"
 import type { LinkId } from "./LLink"
 import { LinkDirection, RenderShape } from "./types/globalEnums"
 import { LabelPosition, SlotShape, SlotType } from "./draw"
-import { LiteGraph } from "./litegraph"
+import { type LGraphNode, LiteGraph } from "./litegraph"
 
 export interface ConnectionColorContext {
   default_connection_color: {
@@ -54,6 +54,17 @@ export abstract class NodeSlot implements INodeSlot {
    * @param link - The link to check against.
    */
   abstract isValidTarget(link: ConnectingLink | null): boolean
+
+  /**
+   * Whether this slot is the one that the mouse is currently over.
+   * @param node - The node to check against.
+   */
+  abstract isMouseOver(node: LGraphNode): boolean
+
+  /**
+   * Whether this slot is an input slot.
+   */
+  abstract isInputSlot(): boolean
 
   /**
    * The label to display in the UI.
@@ -236,6 +247,10 @@ export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
     this.link = slot.link
   }
 
+  override isInputSlot(): boolean {
+    return true
+  }
+
   override isConnected(): boolean {
     return this.link != null
   }
@@ -244,6 +259,13 @@ export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
     if (!link) return true
 
     return !!link.output && LiteGraph.isValidConnection(this.type, link.output.type)
+  }
+
+  override isMouseOver(node: LGraphNode): boolean {
+    const inputId = node.mouseOver?.inputId
+    if (!inputId) return false
+
+    return node.inputs?.[inputId]?.name === this.name
   }
 
   override draw(ctx: CanvasRenderingContext2D, options: Omit<IDrawOptions, "doStroke" | "labelPosition">) {
@@ -272,10 +294,21 @@ export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
     this.slot_index = slot.slot_index
   }
 
+  override isInputSlot(): boolean {
+    return false
+  }
+
   override isValidTarget(link: ConnectingLink | null): boolean {
     if (!link) return true
 
     return !!link.input && LiteGraph.isValidConnection(this.type, link.input.type)
+  }
+
+  override isMouseOver(node: LGraphNode): boolean {
+    const outputId = node.mouseOver?.outputId
+    if (!outputId) return false
+
+    return node.outputs?.[outputId]?.name === this.name
   }
 
   override isConnected(): boolean {
