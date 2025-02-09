@@ -31,7 +31,7 @@ import {
   RenderShape,
 } from "./types/globalEnums"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
-import { type LGraphNodeConstructor, LiteGraph, Vector4 } from "./litegraph"
+import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { isInRectangle, isInRect, snapPoint } from "./measure"
 import { LLink } from "./LLink"
 import { ConnectionColorContext, NodeInputSlot, NodeOutputSlot } from "./NodeSlot"
@@ -324,23 +324,23 @@ export class LGraphNode implements Positionable, IPinnable {
 
   set shape(v: RenderShape | "default" | "box" | "round" | "circle" | "card") {
     switch (v) {
-      case "default":
-        delete this._shape
-        break
-      case "box":
-        this._shape = RenderShape.BOX
-        break
-      case "round":
-        this._shape = RenderShape.ROUND
-        break
-      case "circle":
-        this._shape = RenderShape.CIRCLE
-        break
-      case "card":
-        this._shape = RenderShape.CARD
-        break
-      default:
-        this._shape = v
+    case "default":
+      delete this._shape
+      break
+    case "box":
+      this._shape = RenderShape.BOX
+      break
+    case "round":
+      this._shape = RenderShape.ROUND
+      break
+    case "circle":
+      this._shape = RenderShape.CIRCLE
+      break
+    case "card":
+      this._shape = RenderShape.CARD
+      break
+    default:
+      this._shape = v
     }
   }
 
@@ -1068,28 +1068,28 @@ export class LGraphNode implements Positionable, IPinnable {
 
   changeMode(modeTo: number): boolean {
     switch (modeTo) {
-      case LGraphEventMode.ON_EVENT:
-        // this.addOnExecutedOutput();
-        break
+    case LGraphEventMode.ON_EVENT:
+      // this.addOnExecutedOutput();
+      break
 
-      case LGraphEventMode.ON_TRIGGER:
-        this.addOnTriggerInput()
-        this.addOnExecutedOutput()
-        break
+    case LGraphEventMode.ON_TRIGGER:
+      this.addOnTriggerInput()
+      this.addOnExecutedOutput()
+      break
 
-      case LGraphEventMode.NEVER:
-        break
+    case LGraphEventMode.NEVER:
+      break
 
-      case LGraphEventMode.ALWAYS:
-        break
+    case LGraphEventMode.ALWAYS:
+      break
 
       // @ts-expect-error Not impl.
-      case LiteGraph.ON_REQUEST:
-        break
+    case LiteGraph.ON_REQUEST:
+      break
 
-      default:
-        return false
-        break
+    default:
+      return false
+      break
     }
     this.mode = modeTo
     return true
@@ -3202,13 +3202,19 @@ export class LGraphNode implements Positionable, IPinnable {
     return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
   }
 
+  /**
+   * Draws the node's input and output slots.
+   * @returns The maximum y-coordinate of the slots.
+   * TODO: Calculate the bounding box of the slots and return it instead of the maximum y-coordinate.
+   */
   drawSlots(ctx: CanvasRenderingContext2D, options: {
     colorContext: ConnectionColorContext
     connectingLink: ConnectingLink | null
     editorAlpha: number
     lowQuality: boolean
-  }): void {
+  }): number {
     const { colorContext, connectingLink, editorAlpha, lowQuality } = options
+    let max_y = 0
 
     // input connection slots
     // Reuse slot_pos to avoid creating a new Float32Array on each iteration
@@ -3227,6 +3233,8 @@ export class LGraphNode implements Positionable, IPinnable {
       const pos = this.getConnectionPos(true, i, /* out= */slot_pos)
       pos[0] -= this.pos[0]
       pos[1] -= this.pos[1]
+
+      max_y = Math.max(max_y, pos[1] + LiteGraph.NODE_SLOT_HEIGHT * 0.5)
 
       slot.draw(ctx, {
         pos,
@@ -3255,6 +3263,8 @@ export class LGraphNode implements Positionable, IPinnable {
       pos[0] -= this.pos[0]
       pos[1] -= this.pos[1]
 
+      max_y = Math.max(max_y, pos[1] + LiteGraph.NODE_SLOT_HEIGHT * 0.5)
+
       slot.draw(ctx, {
         pos,
         colorContext,
@@ -3265,5 +3275,7 @@ export class LGraphNode implements Positionable, IPinnable {
         highlight,
       })
     }
+
+    return max_y
   }
 }

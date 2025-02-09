@@ -66,7 +66,7 @@ import { Reroute, type RerouteId } from "./Reroute"
 import { getAllNestedItems, findFirstNode } from "./utils/collections"
 import { CanvasPointer } from "./CanvasPointer"
 import { toClass } from "./utils/type"
-import { NodeInputSlot, NodeOutputSlot, type ConnectionColorContext } from "./NodeSlot"
+import { type ConnectionColorContext } from "./NodeSlot"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
 interface IShowSearchOptions {
@@ -4698,7 +4698,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // render inputs and outputs
     if (!node.collapsed) {
-      node.drawSlots(ctx, {
+      const max_y = node.drawSlots(ctx, {
         colorContext: this,
         connectingLink: this.connecting_links?.[0],
         editorAlpha: this.editor_alpha,
@@ -4708,7 +4708,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       ctx.textAlign = "left"
       ctx.globalAlpha = 1
 
-      const max_y = 0
       this.drawNodeWidgets(node, max_y, ctx)
     } else if (this.render_collapsed_slots) {
       node.drawCollapsedSlots(ctx)
