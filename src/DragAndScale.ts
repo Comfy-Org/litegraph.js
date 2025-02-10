@@ -1,5 +1,5 @@
 // @ts-strict-ignore
-import type { Point, Rect, Rect32 } from "./interfaces"
+import type { Point, Rect, Rect32, Positionable } from "./interfaces"
 import type { CanvasMouseEvent } from "./types/events"
 import { LiteGraph } from "./litegraph"
 import { isInRect } from "./measure"
@@ -28,6 +28,11 @@ export class DragAndScale {
   _binded_mouse_callback
   dragging?: boolean
   viewport?: Rect
+
+  /** Auto canvas movement multiplier */
+  move_factor: number
+  /** Threshold to trigger auto canvas movement RANGE[0,1] */
+  move_threshold: number
 
   onredraw?(das: DragAndScale): void
   /** @deprecated */
@@ -61,6 +66,9 @@ export class DragAndScale {
     this.last_mouse = [0, 0]
     this.element = null
     this.visible_area = new Float32Array(4)
+
+    this.move_factor = 350
+    this.move_threshold = 0.95
 
     if (element) {
       this.element = element
@@ -251,5 +259,48 @@ export class DragAndScale {
     this.scale = 1
     this.offset[0] = 0
     this.offset[1] = 0
+  }
+
+  /**
+   * Calculates the clamped vector between two points.
+   * @param pointA The first point
+   * @param pointB The second point
+   * @returns Vector2 {@link Point} of pointA to pointB, clamped to the range [-1, 1]
+   * @remarks Calculates a pseudo "normalized" Vector2 by clamping it in range. Faster than using SQRT for truly normalized vectors. DO NOT use as a true unit vector.
+   * */
+  getVector2Clamped(pointA: Point, pointB: Point): Point {
+    const tempVector: Point = [
+      (pointA[0] - pointB[0]) / pointB[0],
+      (pointA[1] - pointB[1]) / pointB[1]
+    ]
+    return [
+      Math.max(-1, Math.min(1, tempVector[0])),
+      Math.max(-1, Math.min(1, tempVector[1]))
+    ]
+  }
+
+  /**
+   * Automatically moves the canvas to follow the mouse.
+   * @param deltaT Time difference since last frame
+   * @param mouse Current mouse position
+   * @param canvasCenter Center of the canvas
+   * @param selectedItems Items that should be moved with the canvas when moving
+   * @remarks Does not require items to be selected to work properly. Could add ramp up/down for smoother movement transition.
+   * */
+  autoMoveCanvas(deltaT: number, mouse: Point, canvasCenter: Point, selectedItems: Set<Positionable> = null): void {
+    const moveDirection = this.getVector2Clamped(mouse, canvasCenter)
+    if (Math.abs(moveDirection[0]) > this.move_threshold || Math.abs(moveDirection[1]) > this.move_threshold) {
+      const newOffset = [
+        moveDirection[0] * deltaT * this.move_factor,
+        moveDirection[1] * deltaT * this.move_factor,
+      ]
+      this.offset[0] -= newOffset[0] / this.scale
+      this.offset[1] -= newOffset[1] / this.scale
+
+      if (!selectedItems) return
+      for (const item of selectedItems) {
+        item.move(newOffset[0] / this.scale, newOffset[1] / this.scale, false)
+      }
+    }
   }
 }

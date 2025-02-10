@@ -4095,7 +4095,18 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.render_time = (now - this.last_draw_time) * 0.001
     this.last_draw_time = now
 
-    if (this.graph) this.ds.computeVisibleArea(this.viewport)
+    if (this.graph) {
+      this.ds.computeVisibleArea(this.viewport)
+      if (this.isDragging || this.connecting_links) {
+        const canvasCenter: Point = [
+          this.canvas.clientWidth / 2,
+          this.canvas.clientHeight / 2
+        ]
+        const selected = this.connecting_links ? null : this.selectedItems // Prevent selected items from being moved when dragging a connector
+        this.ds.autoMoveCanvas(this.render_time, this.mouse, canvasCenter, selected)
+        this.#dirty()
+      }
+    }
 
     // Compute node size before drawing links.
     if (this.dirty_canvas || force_canvas)
