@@ -68,6 +68,7 @@ import { CanvasPointer } from "./CanvasPointer"
 import { toClass } from "./utils/type"
 import { type ConnectionColorContext } from "./NodeSlot"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
+import type { NodeLayout } from "./types/layout"
 
 interface IShowSearchOptions {
   node_to?: LGraphNode
@@ -4698,17 +4699,25 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // render inputs and outputs
     if (!node.collapsed) {
-      const max_y = node.drawSlots(ctx, {
-        colorContext: this,
+      const layout = node.computeLayout({
         connectingLink: this.connecting_links?.[0],
+      })
+      node.drawSlots(ctx, {
+        layoutSlots: layout.inputSlots,
+        colorContext: this,
         editorAlpha: this.editor_alpha,
         lowQuality: this.low_quality,
       })
-
+      node.drawSlots(ctx, {
+        layoutSlots: layout.outputSlots,
+        colorContext: this,
+        editorAlpha: this.editor_alpha,
+        lowQuality: this.low_quality,
+      })
       ctx.textAlign = "left"
       ctx.globalAlpha = 1
 
-      this.drawNodeWidgets(node, max_y, ctx)
+      this.drawNodeWidgets(node, 0, ctx, layout.widgets)
     } else if (this.render_collapsed_slots) {
       node.drawCollapsedSlots(ctx)
     }
@@ -5555,9 +5564,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     node: LGraphNode,
     posY: number,
     ctx: CanvasRenderingContext2D,
+    layoutWidgets: NodeLayout["widgets"],
   ): void {
     node.drawWidgets(ctx, {
-      y: posY,
+      layoutWidgets,
       colorContext: this,
       linkOverWidget: this.link_over_widget,
       linkOverWidgetType: this.link_over_widget_type,

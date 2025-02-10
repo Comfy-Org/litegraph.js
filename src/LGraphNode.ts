@@ -24,6 +24,7 @@ import type { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
 import type { DragAndScale } from "./DragAndScale"
 import type { RerouteId } from "./Reroute"
+import type { ElementLayout, NodeLayout } from "@/types/layout"
 import {
   LGraphEventMode,
   NodeSlotType,
@@ -37,6 +38,7 @@ import { LLink } from "./LLink"
 import { ConnectionColorContext, NodeInputSlot, NodeOutputSlot } from "./NodeSlot"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 import { toClass } from "./utils/type"
+import { computeBounds } from "@/utils/layout"
 export type NodeId = number | string
 
 export interface INodePropertyInfo {
@@ -160,6 +162,13 @@ export class LGraphNode implements Positionable, IPinnable {
    */
   get titleFontStyle(): string {
     return `${LiteGraph.NODE_TEXT_SIZE}px Arial`
+  }
+
+  /**
+   * The height of the node's title text.
+   */
+  get titleHeight(): number {
+    return LiteGraph.NODE_TITLE_HEIGHT
   }
 
   graph: LGraph | null = null
@@ -3087,37 +3096,37 @@ export class LGraphNode implements Positionable, IPinnable {
   }
 
   drawWidgets(ctx: CanvasRenderingContext2D, options: {
-    y: number
+    layoutWidgets: NodeLayout["widgets"]
     colorContext: ConnectionColorContext
     linkOverWidget: IWidget
     linkOverWidgetType: ISlotType
     lowQuality?: boolean
     editorAlpha?: number
   }): void {
-    if (!this.widgets) return
+    const {
+      layoutWidgets,
+      colorContext,
+      linkOverWidget,
+      linkOverWidgetType,
+      lowQuality = false,
+      editorAlpha = 1,
+    } = options
 
-    const { y, colorContext, linkOverWidget, linkOverWidgetType, lowQuality = false, editorAlpha = 1 } = options
-    let posY = y
-    if (this.horizontal || this.widgets_up) {
-      posY = 2
-    }
-    if (this.widgets_start_y != null) posY = this.widgets_start_y
-
-    const width = this.size[0]
-    const widgets = this.widgets
-    posY += 2
-    const H = LiteGraph.NODE_WIDGET_HEIGHT
+    const widgets = layoutWidgets.elements
     const show_text = !lowQuality
+
     ctx.save()
     ctx.globalAlpha = editorAlpha
-    const margin = 15
 
-    for (const w of widgets) {
-      if (w.hidden || (w.advanced && !this.showAdvanced)) continue
-      const y = w.y || posY
-      const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
+    for (const layoutWidget of widgets) {
+      const widget = layoutWidget.data
 
-      if (w === linkOverWidget) {
+      const y = layoutWidget.y
+      const widget_width = layoutWidget.width
+      const outline_color =
+        widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
+
+      if (widget === linkOverWidget) {
         // Manually draw a slot next to the widget simulating an input
         new NodeInputSlot({
           name: "",
@@ -3126,20 +3135,20 @@ export class LGraphNode implements Positionable, IPinnable {
         }).draw(ctx, { pos: [10, y + 10], colorContext })
       }
 
-      w.last_y = y
+      widget.last_y = y
+
       ctx.strokeStyle = outline_color
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
-      if (w.disabled) ctx.globalAlpha *= 0.5
-      const widget_width = w.width || width
 
-      const WidgetClass = WIDGET_TYPE_MAP[w.type]
+      if (layoutWidget.disabled) ctx.globalAlpha *= 0.5
+
+      const WidgetClass = WIDGET_TYPE_MAP[widget.type]
       if (WidgetClass) {
-        toClass(WidgetClass, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
+        toClass(WidgetClass, widget).drawWidget(ctx, { y, width: widget_width, show_text, margin: layoutWidget.x })
       } else {
-        w.draw?.(ctx, this, widget_width, y, H)
+        widget.draw?.(ctx, this, widget_width, y, layoutWidget.height)
       }
-      posY += (w.computeSize ? w.computeSize(widget_width)[1] : H) + 4
       ctx.globalAlpha = editorAlpha
     }
     ctx.restore()
@@ -3200,78 +3209,146 @@ export class LGraphNode implements Positionable, IPinnable {
 
   /**
    * Draws the node's input and output slots.
-   * @returns The maximum y-coordinate of the slots.
-   * TODO: Calculate the bounding box of the slots and return it instead of the maximum y-coordinate.
    */
   drawSlots(ctx: CanvasRenderingContext2D, options: {
+    layoutSlots: NodeLayout["inputSlots"] | NodeLayout["outputSlots"]
     colorContext: ConnectionColorContext
-    connectingLink: ConnectingLink | null
     editorAlpha: number
     lowQuality: boolean
-  }): number {
-    const { colorContext, connectingLink, editorAlpha, lowQuality } = options
-    let max_y = 0
+  }): void {
+    const { layoutSlots, colorContext, editorAlpha, lowQuality } = options
 
     // input connection slots
     // Reuse slot_pos to avoid creating a new Float32Array on each iteration
-    const slot_pos = new Float32Array(2)
-    for (const [i, input] of (this.inputs ?? []).entries()) {
+    for (const slot of layoutSlots.elements) {
+      const isValid = !slot.invalid
+      const highlight = !!slot.highlight
+      const label_color = highlight
+        ? this.highlightColor
+        : LiteGraph.NODE_TEXT_COLOR
+      ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
+
+      slot.data.draw(ctx, {
+        pos: [slot.x, slot.y],
+        colorContext,
+        labelColor: label_color,
+        horizontal: this.horizontal,
+        lowQuality,
+        renderText: !lowQuality,
+        highlight,
+      })
+    }
+  }
+
+  computeLayout(options: {
+    connectingLink: ConnectingLink | null
+  }): NodeLayout {
+    const { connectingLink } = options
+
+    const layout: NodeLayout = {
+      bounds: { x: 0, y: 0, width: this.size[0], height: this.size[1] },
+      inputSlots: {
+        elements: [],
+        bounds: { x: 0, y: 0, width: 0, height: 0 },
+      },
+      outputSlots: {
+        elements: [],
+        bounds: { x: 0, y: 0, width: 0, height: 0 },
+      },
+      widgets: {
+        elements: [],
+        bounds: { x: 0, y: 0, width: 0, height: 0 },
+      },
+    }
+
+    // Compute slots layout
+    this.inputs?.forEach((input, index) => {
       const slot = toClass(NodeInputSlot, input)
-
-      // change opacity of incompatible slots when dragging a connection
+      const pos = this.getConnectionPos(true, index)
       const isValid = slot.isValidTarget(connectingLink)
-      const highlight = isValid && this.mouseOver?.inputId === i
-      const label_color = highlight
-        ? this.highlightColor
-        : LiteGraph.NODE_TEXT_COLOR
-      ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
+      const highlight = isValid && this.mouseOver?.inputId === index
 
-      const pos = this.getConnectionPos(true, i, /* out= */slot_pos)
-      pos[0] -= this.pos[0]
-      pos[1] -= this.pos[1]
-
-      max_y = Math.max(max_y, pos[1] + LiteGraph.NODE_SLOT_HEIGHT * 0.5)
-
-      slot.draw(ctx, {
-        pos,
-        colorContext,
-        labelColor: label_color,
-        horizontal: this.horizontal,
-        lowQuality,
-        renderText: !lowQuality,
+      layout.inputSlots.elements.push({
+        type: "slot",
+        id: index,
+        x: pos[0] - this.pos[0],
+        y: pos[1] - this.pos[1],
+        width: LiteGraph.NODE_SLOT_HEIGHT * 0.5,
+        height: LiteGraph.NODE_SLOT_HEIGHT * 0.5,
+        data: slot,
         highlight,
+        invalid: !isValid,
       })
-    }
+    })
 
-    // output connection slots
-    for (const [i, output] of (this.outputs ?? []).entries()) {
+    this.outputs?.forEach((output, index) => {
       const slot = toClass(NodeOutputSlot, output)
-
-      // change opacity of incompatible slots when dragging a connection
+      const pos = this.getConnectionPos(false, index)
       const isValid = slot.isValidTarget(connectingLink)
-      const highlight = isValid && this.mouseOver?.outputId === i
-      const label_color = highlight
-        ? this.highlightColor
-        : LiteGraph.NODE_TEXT_COLOR
-      ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
+      const highlight = isValid && this.mouseOver?.outputId === index
 
-      const pos = this.getConnectionPos(false, i, /* out= */slot_pos)
-      pos[0] -= this.pos[0]
-      pos[1] -= this.pos[1]
-
-      max_y = Math.max(max_y, pos[1] + LiteGraph.NODE_SLOT_HEIGHT * 0.5)
-
-      slot.draw(ctx, {
-        pos,
-        colorContext,
-        labelColor: label_color,
-        horizontal: this.horizontal,
-        lowQuality,
-        renderText: !lowQuality,
+      layout.outputSlots.elements.push({
+        type: "slot",
+        id: index,
+        x: pos[0] - this.pos[0],
+        y: pos[1] - this.pos[1],
+        width: LiteGraph.NODE_SLOT_HEIGHT * 0.5,
+        height: LiteGraph.NODE_SLOT_HEIGHT * 0.5,
+        data: slot,
         highlight,
+        invalid: !isValid,
       })
+    })
+
+    layout.inputSlots.bounds = computeBounds(layout.inputSlots.elements)
+    layout.outputSlots.bounds = computeBounds(layout.outputSlots.elements)
+    const slotsBounds = computeBounds([
+      layout.inputSlots.bounds,
+      layout.outputSlots.bounds,
+    ])
+    const widgetsStartY = slotsBounds.height + slotsBounds.y
+
+    // Compute widgets layout
+    if (this.widgets?.length) {
+      let posY = this.widgets_up ? 2 : (this.widgets_start_y ?? widgetsStartY + 2)
+      if (this.horizontal) {
+        posY = 2
+      }
+
+      const widgetElements: ElementLayout[] = []
+      const margin = 15
+      const H = LiteGraph.NODE_WIDGET_HEIGHT
+
+      for (const widget of this.widgets) {
+        if (widget.hidden || (widget.advanced && !this.showAdvanced)) {
+          continue
+        }
+
+        const y = widget.y || posY
+        const widget_width = widget.width || this.size[0]
+        const height = widget.computeSize
+          ? widget.computeSize(widget_width)[1]
+          : H
+
+        widgetElements.push({
+          type: "widget",
+          x: margin,
+          y,
+          width: widget_width,
+          height,
+          data: widget,
+          disabled: widget.disabled,
+        })
+
+        posY += height + 4
+      }
+
+      layout.widgets = {
+        elements: widgetElements,
+        bounds: computeBounds(widgetElements),
+      }
     }
 
-    return max_y
+    return layout
   }
 }
