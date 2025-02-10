@@ -65,9 +65,8 @@ import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 import { Reroute, type RerouteId } from "./Reroute"
 import { getAllNestedItems, findFirstNode } from "./utils/collections"
 import { CanvasPointer } from "./CanvasPointer"
-import { toClass } from "./utils/type"
 import { type ConnectionColorContext } from "./NodeSlot"
-import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
+import { toWidgetClass } from "./widgets/widgetMap"
 
 interface IShowSearchOptions {
   node_to?: LGraphNode
@@ -2557,23 +2556,21 @@ export class LGraphCanvas implements ConnectionColorContext {
     const x = pos[0] - node.pos[0]
     const y = pos[1] - node.pos[1]
 
-    const WidgetClass = WIDGET_TYPE_MAP[widget.type]
-    if (WidgetClass) {
-      const widgetInstance = toClass(WidgetClass, widget)
-      pointer.onClick = () => widgetInstance.onClick({
-        e,
-        node,
-        canvas: this,
-      })
-      pointer.onDrag = eMove => widgetInstance.onDrag({
-        e: eMove,
-        node,
-      })
-    } else {
-      if (widget.mouse) {
-        const result = widget.mouse(e, [x, y], node)
-        if (result != null) this.dirty_canvas = result
-      }
+    const widgetInstance = toWidgetClass(widget)
+    pointer.onClick = () => widgetInstance.onClick({
+      e,
+      node,
+      canvas: this,
+    })
+    pointer.onDrag = eMove => widgetInstance.onDrag({
+      e: eMove,
+      node,
+    })
+
+    // Legacy custom widget callback
+    if (widget.mouse) {
+      const result = widget.mouse(e, [x, y], node)
+      if (result != null) this.dirty_canvas = result
     }
 
     // value changed

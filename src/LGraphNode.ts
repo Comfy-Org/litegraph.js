@@ -35,8 +35,8 @@ import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { isInRectangle, isInRect, snapPoint } from "./measure"
 import { LLink } from "./LLink"
 import { ConnectionColorContext, NodeInputSlot, NodeOutputSlot } from "./NodeSlot"
-import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 import { toClass } from "./utils/type"
+import { toWidgetClass } from "./widgets/widgetMap"
 export type NodeId = number | string
 
 export interface INodePropertyInfo {
@@ -1641,7 +1641,7 @@ export class LGraphNode implements Positionable, IPinnable {
     }
 
     const w: IWidget = {
-      // @ts-expect-error Type check or just assert?
+      // @ts-expect-error
       type: type.toLowerCase(),
       name: name,
       value: value,
@@ -1666,11 +1666,10 @@ export class LGraphNode implements Positionable, IPinnable {
   }
 
   addCustomWidget<T extends IWidget>(custom_widget: T): T {
+    const widget = toWidgetClass(custom_widget)
     this.widgets ||= []
-    const WidgetClass = WIDGET_TYPE_MAP[custom_widget.type]
-    const widget = WidgetClass ? new WidgetClass(custom_widget) as IWidget : custom_widget
     this.widgets.push(widget)
-    return widget as T
+    return widget
   }
 
   move(deltaX: number, deltaY: number): void {
@@ -3137,12 +3136,8 @@ export class LGraphNode implements Positionable, IPinnable {
       if (w.disabled) ctx.globalAlpha *= 0.5
       const widget_width = w.width || width
 
-      const WidgetClass = WIDGET_TYPE_MAP[w.type]
-      if (WidgetClass) {
-        toClass(WidgetClass, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
-      } else {
-        w.draw?.(ctx, this, widget_width, y, H)
-      }
+      toWidgetClass(w).drawWidget(ctx, { y, width: widget_width, node: this, show_text, margin })
+
       posY += (w.computeSize ? w.computeSize(widget_width)[1] : H) + 4
       ctx.globalAlpha = editorAlpha
     }
