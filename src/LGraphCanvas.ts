@@ -2541,6 +2541,9 @@ export class LGraphCanvas implements ConnectionColorContext {
                 }
 
                 this.dirty_bgcanvas = true
+
+                // enable canvas auto panning for disconnected link input
+                this.setAutoPanCanvas(true)
               }
             }
             if (!pointer.onDragStart) {
