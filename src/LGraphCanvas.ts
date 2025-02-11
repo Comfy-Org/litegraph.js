@@ -529,7 +529,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   auto_panning_threshold: number = 0.95
   /** Defines the speed in which the viewport will pan automatic  */
   auto_panning_speed: number = 350
-  auto_panning_event: Interval | null = null
+  auto_panning_event: ReturnType<typeof setInterval> | null = null
 
   getMenuOptions?(): IContextMenuValue[]
   getExtraMenuOptions?(
@@ -1948,29 +1948,27 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @remarks Does not require items to be selected to work properly. Could add ramp up/down for smoother movement transition.
    * */
   autoPanCanvas(deltaT: number): void {
-    if (this.isDragging || this.connecting_links) {
-      const moveDirection = getVector2Clamped(
-        this.mouse,
-        [this.canvas.clientWidth / 2, this.canvas.clientHeight / 2],
-      )
-      if (Math.abs(moveDirection[0]) > this.auto_panning_threshold || Math.abs(moveDirection[1]) > this.auto_panning_threshold) {
-        const { scale } = this.ds
-        const newOffsetX: number = (moveDirection[0] * deltaT * this.auto_panning_speed) / scale
-        const newOffsetY: number = (moveDirection[1] * deltaT * this.auto_panning_speed) / scale
+    const moveDirection = getVector2Clamped(
+      this.mouse,
+      [this.canvas.clientWidth / 2, this.canvas.clientHeight / 2],
+    )
+    if (Math.abs(moveDirection[0]) > this.auto_panning_threshold || Math.abs(moveDirection[1]) > this.auto_panning_threshold) {
+      const { scale } = this.ds
+      const newOffsetX: number = (moveDirection[0] * deltaT * this.auto_panning_speed) / scale
+      const newOffsetY: number = (moveDirection[1] * deltaT * this.auto_panning_speed) / scale
 
-        this.ds.offset[0] -= newOffsetX
-        this.ds.offset[1] -= newOffsetY
+      this.ds.offset[0] -= newOffsetX
+      this.ds.offset[1] -= newOffsetY
 
-        this.#dirty()
-        if (this.connecting_links) { // Prevent selected Positionables from moving while dragging a link
-          // Update graph_mouse to prevent link from staying behind while dragging
-          this.graph_mouse[0] += newOffsetX
-          this.graph_mouse[1] += newOffsetY
-          return
-        }
-        for (const item of this.selectedItems) {
-          item.move(newOffsetX, newOffsetY, false)
-        }
+      this.#dirty()
+      if (this.connecting_links) { // Prevent selected Positionables from moving while dragging a link
+        // Update graph_mouse to prevent link from staying behind while dragging
+        this.graph_mouse[0] += newOffsetX
+        this.graph_mouse[1] += newOffsetY
+        return
+      }
+      for (const item of this.selectedItems) {
+        item.move(newOffsetX, newOffsetY, false)
       }
     }
   }
