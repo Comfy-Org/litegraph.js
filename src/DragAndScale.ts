@@ -260,29 +260,4 @@ export class DragAndScale {
     this.offset[0] = 0
     this.offset[1] = 0
   }
-
-  /**
-   * Automatically moves the canvas to follow the mouse.
-   * @param deltaT Time difference since last frame
-   * @param mouse Current mouse position
-   * @param canvasCenter Center of the canvas
-   * @param selectedItems Items that should be moved with the canvas when moving
-   * @remarks Does not require items to be selected to work properly. Could add ramp up/down for smoother movement transition.
-   * */
-  autoMoveCanvas(deltaT: number, mouse: Point, canvasCenter: Point, selectedItems: Set<Positionable> = null): void {
-    const moveDirection = this.getVector2Clamped(mouse, canvasCenter)
-    if (Math.abs(moveDirection[0]) > this.move_threshold || Math.abs(moveDirection[1]) > this.move_threshold) {
-      const newOffset = [
-        moveDirection[0] * deltaT * this.move_factor,
-        moveDirection[1] * deltaT * this.move_factor,
-      ]
-      this.offset[0] -= newOffset[0] / this.scale
-      this.offset[1] -= newOffset[1] / this.scale
-
-      if (!selectedItems) return
-      for (const item of selectedItems) {
-        item.move(newOffset[0] / this.scale, newOffset[1] / this.scale, false)
-      }
-    }
-  }
 }
