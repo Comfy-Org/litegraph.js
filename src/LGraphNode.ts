@@ -627,9 +627,11 @@ export class LGraphNode implements Positionable, IPinnable {
           w.value = JSON.parse(JSON.stringify(this.properties[w.options.property]))
       }
 
-      for (const [i, value] of (info.widgets_values ?? []).entries()) {
-        if (this.widgets[i]) {
-          this.widgets[i].value = value
+      if (info.widgets_values) {
+        for (let i = 0; i < info.widgets_values.length; ++i) {
+          if (this.widgets[i]) {
+            this.widgets[i].value = info.widgets_values[i]
+          }
         }
       }
     }
