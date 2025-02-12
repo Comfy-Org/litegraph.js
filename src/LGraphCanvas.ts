@@ -4209,7 +4209,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           let connDir = connInOrOut?.dir
           if (connDir == null) {
             if (link.output)
-              connDir = LinkDirection.DOWN
+              connDir = LinkDirection.RIGHT
             else
               connDir = LinkDirection.LEFT
           }
