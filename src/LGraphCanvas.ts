@@ -1978,7 +1978,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (enabled) {
       if (this.auto_panning_event) clearInterval(this.auto_panning_event)
       this.auto_panning_event = setInterval(() => {
-        this.autoPanCanvas(this.render_time)
+        this.autoPanCanvas(interval * 0.001)
       }, interval)
       return
     } else {
