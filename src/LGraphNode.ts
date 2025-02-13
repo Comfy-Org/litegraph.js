@@ -35,7 +35,7 @@ import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { isInRectangle, isInRect, snapPoint } from "./measure"
 import { LLink } from "./LLink"
-import { ConnectionColorContext, isINodeInputSlot, NodeInputSlot, NodeOutputSlot } from "./NodeSlot"
+import { ConnectionColorContext, isINodeInputSlot, NodeInputSlot, NodeOutputSlot, serializeSlot } from "./NodeSlot"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 import { toClass } from "./utils/type"
 import { LayoutElement } from "./utils/layout"
@@ -668,15 +668,8 @@ export class LGraphNode implements Positionable, IPinnable {
     if (this.constructor === LGraphNode && this.last_serialization)
       return this.last_serialization
 
-    if (this.inputs) o.inputs = this.inputs
-
-    if (this.outputs) {
-      // clear outputs last data (because data in connections is never serialized but stored inside the outputs info)
-      for (let i = 0; i < this.outputs.length; i++) {
-        delete this.outputs[i]._data
-      }
-      o.outputs = this.outputs
-    }
+    if (this.inputs) o.inputs = this.inputs.map(serializeSlot)
+    if (this.outputs) o.outputs = this.outputs.map(serializeSlot)
 
     if (this.title && this.title != this.constructor.title) o.title = this.title
 

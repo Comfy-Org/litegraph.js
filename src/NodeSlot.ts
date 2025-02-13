@@ -27,6 +27,14 @@ interface IDrawOptions {
   highlight?: boolean
 }
 
+export function serializeSlot<T extends INodeSlot>(slot: T): T {
+  return {
+    ...slot,
+    _layoutElement: undefined,
+    _data: undefined,
+  }
+}
+
 export abstract class NodeSlot implements INodeSlot {
   name: string
   localized_name?: string
