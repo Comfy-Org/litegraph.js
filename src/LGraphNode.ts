@@ -3181,16 +3181,12 @@ export class LGraphNode implements Positionable, IPinnable {
 
   layoutSlot(slot: INodeSlot, options: {
     slotIndex: number
-    connectingLink: ConnectingLink | null
   }): void {
-    const { slotIndex, connectingLink } = options
+    const { slotIndex } = options
     const isInput = isINodeInputSlot(slot)
 
     const slotInstance = isInput ? toClass(NodeInputSlot, slot) : toClass(NodeOutputSlot, slot as INodeOutputSlot)
-
     const pos = this.getConnectionPos(isInput, slotIndex)
-    const isValid = slotInstance.isValidTarget(connectingLink)
-    const highlight = isValid && this.mouseOver?.[isInput ? "inputId" : "outputId"] === slotIndex
 
     slot._layoutElement = new LayoutElement({
       value: slotInstance,
@@ -3200,45 +3196,51 @@ export class LGraphNode implements Positionable, IPinnable {
         LiteGraph.NODE_SLOT_HEIGHT,
         LiteGraph.NODE_SLOT_HEIGHT,
       ],
-      highlight,
-      invalid: !isValid,
     })
   }
 
-  layoutSlots(options: {
-    connectingLink: ConnectingLink | null
-  }): void {
-    const { connectingLink } = options
+  layoutSlots(): void {
+    for (const [i, slot] of this.inputs.entries()) {
+      this.layoutSlot(slot, {
+        slotIndex: i,
+      })
+    }
+    for (const [i, slot] of this.outputs.entries()) {
+      this.layoutSlot(slot, {
+        slotIndex: i,
+      })
+    }
+  }
 
-    for (const [i, slot] of (this.inputs ?? []).entries()) {
-      this.layoutSlot(slot, {
-        slotIndex: i,
-        connectingLink,
-      })
+  #getMouseOverSlot(slot: INodeSlot): INodeSlot | null {
+    const isInput = isINodeInputSlot(slot)
+    const mouseOverId = this.mouseOver?.[isInput ? "inputId" : "outputId"]
+    if (!mouseOverId) {
+      return null
     }
-    for (const [i, slot] of (this.outputs ?? []).entries()) {
-      this.layoutSlot(slot, {
-        slotIndex: i,
-        connectingLink,
-      })
-    }
+    return isInput ? this.inputs[mouseOverId] : this.outputs[mouseOverId]
+  }
+
+  #isMouseOverSlot(slot: INodeSlot): boolean {
+    return this.#getMouseOverSlot(slot) === slot
   }
 
   /**
    * Draws the node's input and output slots.
    */
   drawSlots(ctx: CanvasRenderingContext2D, options: {
+    connectingLink: ConnectingLink | null
     colorContext: ConnectionColorContext
     editorAlpha: number
     lowQuality: boolean
   }) {
-    const { colorContext, editorAlpha, lowQuality } = options
+    const { connectingLink, colorContext, editorAlpha, lowQuality } = options
 
     for (const slot of this.slots) {
       // change opacity of incompatible slots when dragging a connection
       const layoutElement = slot._layoutElement
-      const isValid = !layoutElement?.invalid
-      const highlight = layoutElement?.highlight
+      const isValid = layoutElement.value.isValidTarget(connectingLink)
+      const highlight = isValid && this.#isMouseOverSlot(slot)
       const labelColor = highlight
         ? this.highlightColor
         : LiteGraph.NODE_TEXT_COLOR

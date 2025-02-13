@@ -3,16 +3,11 @@ import { Point, ReadOnlyRect } from "@/interfaces"
 export class LayoutElement<T> {
   public readonly value: T
   public readonly boundingRect: ReadOnlyRect
-  public readonly highlight?: boolean
-  public readonly invalid?: boolean
 
   constructor(o: {
     value: T
     boundingRect: ReadOnlyRect
-    highlight?: boolean
-    invalid?: boolean
   }) {
-    Object.assign(this, o)
     this.value = o.value
     this.boundingRect = o.boundingRect
   }
