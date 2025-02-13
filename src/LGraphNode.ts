@@ -3246,7 +3246,7 @@ export class LGraphNode implements Positionable, IPinnable {
       const layoutElement = slot._layoutElement
       const isValid = !layoutElement?.invalid
       const highlight = layoutElement?.highlight
-      const label_color = highlight
+      const labelColor = highlight
         ? this.highlightColor
         : LiteGraph.NODE_TEXT_COLOR
       ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
@@ -3254,7 +3254,7 @@ export class LGraphNode implements Positionable, IPinnable {
       layoutElement.value.draw(ctx, {
         pos: layoutElement.center,
         colorContext,
-        labelColor: label_color,
+        labelColor,
         lowQuality,
         renderText: !lowQuality,
         highlight,
