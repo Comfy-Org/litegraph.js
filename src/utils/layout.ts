@@ -1,10 +1,10 @@
 import { Point, ReadOnlyRect } from "@/interfaces"
 
 export class LayoutElement<T> {
-  public value: T
-  public boundingRect: ReadOnlyRect
-  public highlight?: boolean
-  public invalid?: boolean
+  public readonly value: T
+  public readonly boundingRect: ReadOnlyRect
+  public readonly highlight?: boolean
+  public readonly invalid?: boolean
 
   constructor(o: {
     value: T
