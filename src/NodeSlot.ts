@@ -222,6 +222,10 @@ export abstract class NodeSlot implements INodeSlot {
   }
 }
 
+export function isINodeInputSlot(slot: INodeSlot): slot is INodeInputSlot {
+  return "link" in slot
+}
+
 export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
   link: LinkId | null
 
@@ -252,6 +256,10 @@ export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
 
     ctx.textAlign = originalTextAlign
   }
+}
+
+export function isINodeOutputSlot(slot: INodeSlot): slot is INodeOutputSlot {
+  return "links" in slot
 }
 
 export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {

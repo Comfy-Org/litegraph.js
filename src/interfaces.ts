@@ -4,6 +4,8 @@ import type { LinkDirection, RenderShape } from "./types/globalEnums"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { IWidget } from "./types/widgets"
+import type { LayoutElement } from "./utils/layout"
+import type { NodeSlot, NodeInputSlot, NodeOutputSlot } from "./NodeSlot"
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -225,6 +227,12 @@ export interface INodeSlot {
    * for more information.
    */
   widget?: IWidget
+
+  /**
+   * A layout element that is used internally to position the slot.
+   * Set by {@link LGraphNode.#layoutSlots}.
+   */
+  _layoutElement?: LayoutElement<NodeSlot>
 }
 
 export interface INodeFlags {
@@ -238,12 +246,14 @@ export interface INodeFlags {
 
 export interface INodeInputSlot extends INodeSlot {
   link: LinkId | null
+  _layoutElement?: LayoutElement<NodeInputSlot>
 }
 
 export interface INodeOutputSlot extends INodeSlot {
   links: LinkId[] | null
   _data?: unknown
   slot_index?: number
+  _layoutElement?: LayoutElement<NodeOutputSlot>
 }
 
 /** Links */
