@@ -380,6 +380,6 @@ export function getVector2Clamped(pointA: Point, pointB: Point): Point {
   const y: number = (pointA[1] - pointB[1]) / pointB[1]
   return [
     Math.max(-1, Math.min(1, x)),
-    Math.max(-1, Math.min(1, y))
+    Math.max(-1, Math.min(1, y)),
   ]
 }
