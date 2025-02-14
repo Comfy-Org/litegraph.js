@@ -1701,7 +1701,7 @@ export class LGraphNode implements Positionable, IPinnable {
     } else {
       this._collapsed_width = Math.min(
         this.size[0],
-        ctx.measureText(this.getTitle()).width + LiteGraph.NODE_TITLE_HEIGHT * 2,
+        ctx.measureText(this.getTitle() ?? "").width + LiteGraph.NODE_TITLE_HEIGHT * 2,
       )
       out[2] = (this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH)
       out[3] = LiteGraph.NODE_TITLE_HEIGHT
