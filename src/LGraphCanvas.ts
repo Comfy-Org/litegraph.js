@@ -4807,7 +4807,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Normalised node dimensions
     const area = LGraphCanvas.#tmp_area
-    node.measure(area)
+    area.set(node.boundingRect)
     area[0] -= node.pos[0]
     area[1] -= node.pos[1]
 
