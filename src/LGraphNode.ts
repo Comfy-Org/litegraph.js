@@ -3284,6 +3284,8 @@ export class LGraphNode implements Positionable, IPinnable {
    * -  {@link IBaseWidget.y}
    */
   layoutWidgets(options: { widgetStartY: number }): void {
+    if (!this.widgets || !this.widgets.length) return
+
     const bodyHeight = this.bodyHeight
     const widgetStartY = this.widgets_start_y ?? (
       (this.widgets_up ? 0 : options.widgetStartY) + 2
