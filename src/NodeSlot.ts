@@ -28,11 +28,12 @@ interface IDrawOptions {
 }
 
 export function serializeSlot<T extends INodeSlot>(slot: T): T {
-  return {
-    ...slot,
-    _layoutElement: undefined,
-    _data: undefined,
+  const serialized = { ...slot }
+  delete serialized._layoutElement
+  if ("_data" in serialized) {
+    delete serialized._data
   }
+  return serialized
 }
 
 export abstract class NodeSlot implements INodeSlot {
