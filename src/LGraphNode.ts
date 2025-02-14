@@ -3214,8 +3214,8 @@ export class LGraphNode implements Positionable, IPinnable {
 
   #getMouseOverSlot(slot: INodeSlot): INodeSlot | null {
     const isInput = isINodeInputSlot(slot)
-    const mouseOverId = this.mouseOver?.[isInput ? "inputId" : "outputId"]
-    if (!mouseOverId) {
+    const mouseOverId = this.mouseOver?.[isInput ? "inputId" : "outputId"] ?? -1
+    if (mouseOverId === -1) {
       return null
     }
     return isInput ? this.inputs[mouseOverId] : this.outputs[mouseOverId]
