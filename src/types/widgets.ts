@@ -135,11 +135,6 @@ export interface IBaseWidget<TElement extends HTMLElement = HTMLElement> {
   y?: number
 
   /**
-   * The ending y position of the widget after layout.
-   */
-  y_end?: number
-
-  /**
    * The y position of the widget after drawing (rendering).
    * @deprecated There is no longer dynamic y adjustment on rendering anymore.
    * Use {@link IBaseWidget.y} instead.

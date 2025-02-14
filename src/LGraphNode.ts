@@ -178,6 +178,12 @@ export class LGraphNode implements Positionable, IPinnable {
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
   widgets?: IWidget[]
+  /**
+   * The amount of space available for widgets to grow into.
+   * @see {@link layoutWidgets}
+   */
+  freeWidgetSpace?: number
+
   locked?: boolean
 
   // Execution order, automatically computed during run
@@ -3276,7 +3282,6 @@ export class LGraphNode implements Positionable, IPinnable {
    * Sets following properties on each widget:
    * -  {@link IBaseWidget.computedHeight}
    * -  {@link IBaseWidget.y}
-   * -  {@link IBaseWidget.y_end}
    */
   layoutWidgets(options: { widgetStartY: number }): void {
     const bodyHeight = this.bodyHeight
@@ -3315,6 +3320,7 @@ export class LGraphNode implements Positionable, IPinnable {
 
     // Calculate remaining space for DOM widgets
     freeSpace -= fixedWidgetHeight
+    this.freeWidgetSpace = freeSpace
 
     // Prepare space requests for distribution
     const spaceRequests = growableWidgets.map(d => ({
@@ -3335,7 +3341,6 @@ export class LGraphNode implements Positionable, IPinnable {
     for (const w of this.widgets) {
       w.y = y
       y += w.computedHeight
-      w.y_end = y
     }
   }
 }
