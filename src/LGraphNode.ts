@@ -161,6 +161,10 @@ export class LGraphNode implements Positionable, IPinnable {
     return `${LiteGraph.NODE_TEXT_SIZE}px Arial`
   }
 
+  get innerFontStyle(): string {
+    return `normal ${LiteGraph.NODE_SUBTEXT_SIZE}px Arial`
+  }
+
   graph: LGraph | null = null
   id: NodeId
   type: string | null = null
@@ -1699,6 +1703,7 @@ export class LGraphNode implements Positionable, IPinnable {
       out[2] = this.size[0]
       out[3] = this.size[1] + titleHeight
     } else {
+      ctx.font = this.innerFontStyle
       this._collapsed_width = Math.min(
         this.size[0],
         ctx.measureText(this.getTitle() ?? "").width + LiteGraph.NODE_TITLE_HEIGHT * 2,
