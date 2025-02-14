@@ -1267,6 +1267,7 @@ export class LGraphNode implements Positionable, IPinnable {
    */
   setSize(size: Size): void {
     this.size = size
+    this.layoutSlots()
     this.onResize?.(this.size)
   }
 

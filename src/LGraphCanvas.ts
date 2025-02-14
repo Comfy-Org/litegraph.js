@@ -4052,7 +4052,15 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     const _nodes = nodes || this.graph._nodes
     for (const node of _nodes) {
+      const oldSize = [node.boundingRect[2], node.boundingRect[3]]
       node.updateArea()
+      const newSize = [node.boundingRect[2], node.boundingRect[3]]
+
+      // If the node has resized, layout the slots.
+      if (oldSize[0] !== newSize[0] || oldSize[1] !== newSize[1]) {
+        node.layoutSlots()
+      }
+
       // Not in visible area
       if (!overlapBounding(this.visible_area, node.renderArea)) continue
 
@@ -4671,7 +4679,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // render inputs and outputs
     if (!node.collapsed) {
-      node.layoutSlots()
       node.drawSlots(ctx, {
         connectingLink: this.connecting_links?.[0],
         colorContext: this,
