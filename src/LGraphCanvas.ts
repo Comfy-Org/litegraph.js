@@ -4052,7 +4052,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     const _nodes = nodes || this.graph._nodes
     for (const node of _nodes) {
-      node.updateArea()
+      node.updateArea(this.ctx)
       // Not in visible area
       if (!overlapBounding(this.visible_area, node.renderArea)) continue
 
@@ -4621,10 +4621,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       ctx.font = this.inner_text_font
       const title = node.getTitle ? node.getTitle() : node.title
       if (title != null) {
-        node._collapsed_width = Math.min(
-          node.size[0],
-          ctx.measureText(title).width + LiteGraph.NODE_TITLE_HEIGHT * 2,
-        ) // LiteGraph.NODE_COLLAPSED_WIDTH;
         size[0] = node._collapsed_width
         size[1] = 0
       }
