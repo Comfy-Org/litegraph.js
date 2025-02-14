@@ -4617,7 +4617,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const size = LGraphCanvas.#temp_vec2
     size.set(node.boundingRect, /* offset= */ 2)
 
-    if (node.flags.collapsed) {
+    if (node.collapsed) {
       ctx.font = this.inner_text_font
     }
 
