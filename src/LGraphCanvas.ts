@@ -4615,7 +4615,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     // clip if required (mask)
     const shape = node._shape || RenderShape.BOX
     const size = LGraphCanvas.#temp_vec2
-    size.set(node.boundingRect, /* offset= */ 2)
+    size.set(node.boundingRect.slice(2, 4))
 
     if (node.collapsed) {
       ctx.font = this.inner_text_font
