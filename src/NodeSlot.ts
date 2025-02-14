@@ -36,6 +36,15 @@ export function serializeSlot<T extends INodeSlot>(slot: T): T {
   return serialized
 }
 
+export function toNodeSlotClass(slot: INodeSlot): NodeSlot {
+  if (isINodeInputSlot(slot)) {
+    return new NodeInputSlot(slot)
+  } else if (isINodeOutputSlot(slot)) {
+    return new NodeOutputSlot(slot)
+  }
+  throw new Error("Invalid slot type")
+}
+
 export abstract class NodeSlot implements INodeSlot {
   name: string
   localized_name?: string

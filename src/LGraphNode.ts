@@ -35,7 +35,7 @@ import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { isInRectangle, isInRect, snapPoint } from "./measure"
 import { LLink } from "./LLink"
-import { ConnectionColorContext, isINodeInputSlot, NodeInputSlot, NodeOutputSlot, serializeSlot } from "./NodeSlot"
+import { ConnectionColorContext, isINodeInputSlot, NodeInputSlot, NodeOutputSlot, serializeSlot, toNodeSlotClass } from "./NodeSlot"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 import { toClass } from "./utils/type"
 import { LayoutElement } from "./utils/layout"
@@ -3184,12 +3184,10 @@ export class LGraphNode implements Positionable, IPinnable {
   }): void {
     const { slotIndex } = options
     const isInput = isINodeInputSlot(slot)
-
-    const slotInstance = isInput ? toClass(NodeInputSlot, slot) : toClass(NodeOutputSlot, slot as INodeOutputSlot)
     const pos = this.getConnectionPos(isInput, slotIndex)
 
     slot._layoutElement = new LayoutElement({
-      value: slotInstance,
+      value: slot,
       boundingRect: [
         pos[0] - this.pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5,
         pos[1] - this.pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5,
@@ -3239,14 +3237,15 @@ export class LGraphNode implements Positionable, IPinnable {
     for (const slot of this.slots) {
       // change opacity of incompatible slots when dragging a connection
       const layoutElement = slot._layoutElement
-      const isValid = layoutElement.value.isValidTarget(connectingLink)
+      const slotInstance = toNodeSlotClass(slot)
+      const isValid = slotInstance.isValidTarget(connectingLink)
       const highlight = isValid && this.#isMouseOverSlot(slot)
       const labelColor = highlight
         ? this.highlightColor
         : LiteGraph.NODE_TEXT_COLOR
       ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
 
-      layoutElement.value.draw(ctx, {
+      slotInstance.draw(ctx, {
         pos: layoutElement.center,
         colorContext,
         labelColor,
