@@ -3222,7 +3222,7 @@ export class LGraphNode implements Positionable, IPinnable {
     const slots: LayoutElement<INodeSlot>[] = []
 
     for (const [i, slot] of this.inputs.entries()) {
-      /** Widget input slots are handled in {@link layoutWidgets} */
+      /** Widget input slots are handled in {@link layoutWidgetInputSlots} */
       if (isWidgetInputSlot(slot)) continue
 
       this.layoutSlot(slot, {
