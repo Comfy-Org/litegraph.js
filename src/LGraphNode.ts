@@ -3218,7 +3218,7 @@ export class LGraphNode implements Positionable, IPinnable {
     })
   }
 
-  layoutSlots(): ReadOnlyRect {
+  layoutSlots(): ReadOnlyRect | null {
     const slots: LayoutElement<INodeSlot>[] = []
 
     for (const [i, slot] of this.inputs.entries()) {
@@ -3237,7 +3237,7 @@ export class LGraphNode implements Positionable, IPinnable {
       slots.push(slot._layoutElement)
     }
 
-    return slots.length ? createBounds(slots, /** padding= */ 0) : [0, 0, 0, 0]
+    return slots.length ? createBounds(slots, /** padding= */ 0) : null
   }
 
   #getMouseOverSlot(slot: INodeSlot): INodeSlot | null {
