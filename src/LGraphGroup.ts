@@ -33,7 +33,7 @@ export class LGraphGroup implements Positionable, IPinnable {
   static defaultColour = "#335"
 
   id: number
-  color: string
+  color?: string
   title: string
   font?: string
   font_size: number = LiteGraph.DEFAULT_GROUP_FONT || 24
