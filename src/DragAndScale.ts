@@ -29,6 +29,11 @@ export class DragAndScale {
   dragging?: boolean
   viewport?: Rect
 
+  /** Auto canvas movement multiplier */
+  move_factor: number
+  /** Threshold to trigger auto canvas movement RANGE[0,1] */
+  move_threshold: number
+
   onredraw?(das: DragAndScale): void
   /** @deprecated */
   onmouse?(e: unknown): boolean
@@ -61,6 +66,9 @@ export class DragAndScale {
     this.last_mouse = [0, 0]
     this.element = null
     this.visible_area = new Float32Array(4)
+
+    this.move_factor = 350
+    this.move_threshold = 0.95
 
     if (element) {
       this.element = element
