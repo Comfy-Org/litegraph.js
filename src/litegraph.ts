@@ -84,6 +84,7 @@ export { CanvasPointer } from "./CanvasPointer"
 export { Reroute } from "./Reroute"
 export { createBounds } from "./measure"
 export { strokeShape } from "./draw"
+export { ColorOption } from "./interfaces"
 
 export function clamp(v: number, a: number, b: number): number {
   return a > v ? a : b < v ? b : v
