@@ -1,5 +1,6 @@
 // @ts-strict-ignore
 import type {
+  IColorable,
   IContextMenuValue,
   IPinnable,
   Point,
@@ -25,7 +26,7 @@ export interface IGraphGroupFlags extends Record<string, unknown> {
   pinned?: true
 }
 
-export class LGraphGroup implements Positionable, IPinnable {
+export class LGraphGroup implements Positionable, IPinnable, IColorable {
   static minWidth = 140
   static minHeight = 80
   static resizeLength = 10
@@ -60,6 +61,26 @@ export class LGraphGroup implements Positionable, IPinnable {
     this.color = LGraphCanvas.node_colors.pale_blue
       ? LGraphCanvas.node_colors.pale_blue.groupcolor
       : "#AAA"
+  }
+
+  /** The name of the color option used to set {@link color}. */
+  #colorOptionName: string | null = null
+
+  /** @inheritdoc {@link IColorable.setColorByName} */
+  setColorByName(colorName: string | null): void {
+    const colorOption = LGraphCanvas.node_colors[colorName]
+    if (colorName == null || !colorOption) {
+      delete this.color
+      this.#colorOptionName = null
+    } else {
+      this.color = colorOption.groupcolor
+      this.#colorOptionName = colorName
+    }
+  }
+
+  /** @inheritdoc {@link IColorable.getColorName} */
+  getColorName(): string | null {
+    return this.#colorOptionName
   }
 
   /** Position of the group, as x,y co-ordinates in graph space */

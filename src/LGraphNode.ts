@@ -3,6 +3,7 @@ import type {
   CanvasColour,
   ConnectingLink,
   Dictionary,
+  IColorable,
   IContextMenuValue,
   IFoundSlot,
   INodeFlags,
@@ -21,7 +22,7 @@ import type {
 import type { LGraph } from "./LGraph"
 import type { IBaseWidget, IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
-import type { LGraphCanvas } from "./LGraphCanvas"
+import { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
 import type { DragAndScale } from "./DragAndScale"
 import type { RerouteId } from "./Reroute"
@@ -142,7 +143,7 @@ export interface LGraphNode {
  * @param {string} name a name for the node
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class LGraphNode implements Positionable, IPinnable {
+export class LGraphNode implements Positionable, IPinnable, IColorable {
   // Static properties used by dynamic child classes
   static title?: string
   static MAX_CONSOLE?: number
@@ -232,6 +233,28 @@ export class LGraphNode implements Positionable, IPinnable {
     }
 
     return this.boxcolor || colState || LiteGraph.NODE_DEFAULT_BOXCOLOR
+  }
+
+  /** The name of the color option used to set {@link color} and {@link bgcolor}. */
+  #colorOptionName: string | null = null
+
+  /** @inheritdoc {@link IColorable.setColorByName} */
+  setColorByName(colorName: string | null): void {
+    const colorOption = LGraphCanvas.node_colors[colorName]
+    if (colorName == null || !colorOption) {
+      delete this.color
+      delete this.bgcolor
+      this.#colorOptionName = null
+    } else {
+      this.color = colorOption.color
+      this.bgcolor = colorOption.bgcolor
+      this.#colorOptionName = colorName
+    }
+  }
+
+  /** @inheritdoc {@link IColorable.getColorName} */
+  getColorName(): string | null {
+    return this.#colorOptionName
   }
 
   exec_version: number
