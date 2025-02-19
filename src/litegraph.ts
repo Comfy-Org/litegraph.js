@@ -20,6 +20,8 @@ import type {
   Rect32,
   Size,
   ColorOption,
+  IColorable,
+  isColorable,
 } from "./interfaces"
 import type { SlotShape, LabelPosition, SlotDirection, SlotType } from "./draw"
 import type { IWidget } from "./types/widgets"
@@ -72,6 +74,8 @@ export {
   Rect32,
   Size,
   ColorOption,
+  IColorable,
+  isColorable,
 }
 export { IWidget }
 export { LGraphBadge, BadgePosition }
