@@ -23,7 +23,7 @@ import type {
 import type { LGraph } from "./LGraph"
 import type { IBaseWidget, IWidget, TWidgetValue } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
-import { LGraphCanvas } from "./LGraphCanvas"
+import type { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
 import type { DragAndScale } from "./DragAndScale"
 import type { RerouteId } from "./Reroute"
