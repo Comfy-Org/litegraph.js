@@ -1,6 +1,7 @@
 // @ts-strict-ignore
 import type {
   CanvasColour,
+  ColorOption,
   ConnectingLink,
   Dictionary,
   IColorable,
@@ -235,26 +236,25 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this.boxcolor || colState || LiteGraph.NODE_DEFAULT_BOXCOLOR
   }
 
-  /** The name of the color option used to set {@link color} and {@link bgcolor}. */
-  #colorOptionName: string | null = null
+  /** The color option used to set {@link color} and {@link bgcolor}. */
+  #colorOption: ColorOption | null = null
 
-  /** @inheritdoc {@link IColorable.setColorByName} */
-  setColorByName(colorName: string | null): void {
-    const colorOption = LGraphCanvas.node_colors[colorName]
-    if (colorName == null || !colorOption) {
+  /** @inheritdoc {@link IColorable.setColorOption} */
+  setColorOption(colorOption: ColorOption | null): void {
+    if (colorOption == null) {
       delete this.color
       delete this.bgcolor
-      this.#colorOptionName = null
+      this.#colorOption = null
     } else {
       this.color = colorOption.color
       this.bgcolor = colorOption.bgcolor
-      this.#colorOptionName = colorName
+      this.#colorOption = colorOption
     }
   }
 
-  /** @inheritdoc {@link IColorable.getColorName} */
-  getColorName(): string | null {
-    return this.#colorOptionName
+  /** @inheritdoc {@link IColorable.getColorOption} */
+  getColorOption(): ColorOption | null {
+    return this.#colorOption
   }
 
   exec_version: number

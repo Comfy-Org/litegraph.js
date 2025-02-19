@@ -1,5 +1,6 @@
 // @ts-strict-ignore
 import type {
+  ColorOption,
   IColorable,
   IContextMenuValue,
   IPinnable,
@@ -63,24 +64,23 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
       : "#AAA"
   }
 
-  /** The name of the color option used to set {@link color}. */
-  #colorOptionName: string | null = null
+  /** The color option used to set {@link color}. */
+  #colorOption: ColorOption | null = null
 
-  /** @inheritdoc {@link IColorable.setColorByName} */
-  setColorByName(colorName: string | null): void {
-    const colorOption = LGraphCanvas.node_colors[colorName]
-    if (colorName == null || !colorOption) {
+  /** @inheritdoc {@link IColorable.setColorOption} */
+  setColorOption(colorOption: ColorOption | null): void {
+    if (colorOption == null) {
       delete this.color
-      this.#colorOptionName = null
+      this.#colorOption = null
     } else {
       this.color = colorOption.groupcolor
-      this.#colorOptionName = colorName
+      this.#colorOption = colorOption
     }
   }
 
-  /** @inheritdoc {@link IColorable.getColorName} */
-  getColorName(): string | null {
-    return this.#colorOptionName
+  /** @inheritdoc {@link IColorable.getColorOption} */
+  getColorOption(): ColorOption | null {
+    return this.#colorOption
   }
 
   /** Position of the group, as x,y co-ordinates in graph space */

@@ -76,11 +76,11 @@ export interface ColorOption {
 }
 
 /**
- * An object that can be colored with color defined in {@link LGraphCanvas.node_colors}.
+ * An object that can be colored with a {@link ColorOption}.
  */
 export interface IColorable {
-  setColorByName(colorName: string | null): void
-  getColorName(): string | null
+  setColorOption(colorOption: ColorOption | null): void
+  getColorOption(): ColorOption | null
 }
 
 /**

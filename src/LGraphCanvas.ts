@@ -1434,7 +1434,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (!node) return
 
       const fApplyColor = function (item: IColorable) {
-        item.setColorByName(v.value)
+        const colorOption = v.value ? LGraphCanvas.node_colors[v.value] : null
+        item.setColorOption(colorOption)
       }
 
       const canvas = LGraphCanvas.active_canvas
