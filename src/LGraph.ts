@@ -748,7 +748,9 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
    * @param action Action to run for every canvas
    */
   canvasAction(action: (canvas: LGraphCanvas) => void): void {
-    this.list_of_graphcanvas?.forEach(action)
+    const canvases = this.list_of_graphcanvas
+    if (!canvases) return
+    for (const canvas of canvases) action(canvas)
   }
 
   /** @deprecated See {@link LGraph.canvasAction} */
@@ -1054,9 +1056,9 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     const snapTo = this.getSnapToGridSize()
     if (!snapTo) return
 
-    getAllNestedItems(items).forEach((item) => {
+    for (const item of getAllNestedItems(items)) {
       if (!item.pinned) item.snapToGrid(snapTo)
-    })
+    }
   }
 
   /**
@@ -1387,9 +1389,11 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       const link = this._links.get(linkId)
       if (!link) continue
       if (link.parentId === before.parentId) link.parentId = rerouteId
-      LLink.getReroutes(this, link)
-        ?.filter(x => x.parentId === before.parentId)
-        .forEach(x => x.parentId = rerouteId)
+
+      const reroutes = LLink.getReroutes(this, link)
+      for (const x of reroutes.filter(x => x.parentId === before.parentId)) {
+        x.parentId = rerouteId
+      }
     }
 
     return reroute

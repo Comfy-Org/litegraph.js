@@ -3729,10 +3729,16 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.onNodeSelected?.(item)
 
     // Highlight links
-    item.inputs?.forEach(input => this.highlighted_links[input.link] = true)
-    item.outputs
-      ?.flatMap(x => x.links)
-      .forEach(id => this.highlighted_links[id] = true)
+    if (item.inputs) {
+      for (const input of item.inputs) {
+        this.highlighted_links[input.link] = true
+      }
+    }
+    if (item.outputs) {
+      for (const id of item.outputs.flatMap(x => x.links)) {
+        this.highlighted_links[id] = true
+      }
+    }
   }
 
   /**
@@ -3753,10 +3759,16 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.onNodeDeselected?.(item)
 
     // Clear link highlight
-    item.inputs?.forEach(input => delete this.highlighted_links[input.link])
-    item.outputs
-      ?.flatMap(x => x.links)
-      .forEach(id => delete this.highlighted_links[id])
+    if (item.inputs) {
+      for (const input of item.inputs) {
+        delete this.highlighted_links[input.link]
+      }
+    }
+    if (item.outputs) {
+      for (const id of item.outputs.flatMap(x => x.links)) {
+        delete this.highlighted_links[id]
+      }
+    }
   }
 
   /** @deprecated See {@link LGraphCanvas.processSelect} */
@@ -3844,9 +3856,16 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (oldNode) this.selected_nodes[oldNode.id] = oldNode
 
       // Highlight links
-      keepSelected.inputs?.forEach(input => this.highlighted_links[input.link] = true)
-      keepSelected.outputs?.flatMap(x => x.links)
-        .forEach(id => this.highlighted_links[id] = true)
+      if (keepSelected.inputs) {
+        for (const input of keepSelected.inputs) {
+          this.highlighted_links[input.link] = true
+        }
+      }
+      if (keepSelected.outputs) {
+        for (const id of keepSelected.outputs.flatMap(x => x.links)) {
+          this.highlighted_links[id] = true
+        }
+      }
     }
 
     this.onSelectionChange?.(this.selected_nodes)
@@ -6738,20 +6757,22 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (options.checkForInput) {
       const aI = dialog.querySelectorAll("input")
       const focused = false
-      aI?.forEach(function (iX) {
-        iX.addEventListener("keydown", function (e) {
-          dialog.modified()
-          if (e.keyCode == 27) {
-            dialog.close()
-          } else if (e.keyCode != 13) {
-            return
-          }
-          // set value ?
-          e.preventDefault()
-          e.stopPropagation()
-        })
-        if (!focused) iX.focus()
-      })
+      if (aI) {
+        for (const iX of aI) {
+          iX.addEventListener("keydown", function (e) {
+            dialog.modified()
+            if (e.keyCode == 27) {
+              dialog.close()
+            } else if (e.keyCode != 13) {
+              return
+            }
+            // set value ?
+            e.preventDefault()
+            e.stopPropagation()
+          })
+          if (!focused) iX.focus()
+        }
+      }
     }
 
     dialog.modified = function () {
@@ -6778,17 +6799,19 @@ export class LGraphCanvas implements ConnectionColorContext {
     })
     const selInDia = dialog.querySelectorAll("select")
     // if filtering, check focus changed to comboboxes and prevent closing
-    selInDia?.forEach(function (selIn) {
-      selIn.addEventListener("click", function () {
-        prevent_timeout++
-      })
-      selIn.addEventListener("blur", function () {
-        prevent_timeout = 0
-      })
-      selIn.addEventListener("change", function () {
-        prevent_timeout = -1
-      })
-    })
+    if (selInDia) {
+      for (const selIn of selInDia) {
+        selIn.addEventListener("click", function () {
+          prevent_timeout++
+        })
+        selIn.addEventListener("blur", function () {
+          prevent_timeout = 0
+        })
+        selIn.addEventListener("change", function () {
+          prevent_timeout = -1
+        })
+      }
+    }
 
     return dialog
   }

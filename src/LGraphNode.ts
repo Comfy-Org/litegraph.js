@@ -2414,8 +2414,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     target_node.inputs[targetIndex].link = link_info.id
 
     // Reroutes
-    LLink.getReroutes(graph, link_info)
-      .forEach(x => x?.linkIds.add(nextId))
+    for (const x of LLink.getReroutes(graph, link_info)) x?.linkIds.add(nextId)
     graph._version++
 
     // link_info has been created now, so its updated
@@ -3364,9 +3363,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const allocations = distributeSpace(Math.max(0, freeSpace), spaceRequests)
 
     // Apply computed heights
-    growableWidgets.forEach((d, i) => {
+    for (const [i, d] of growableWidgets.entries()) {
       d.w.computedHeight = allocations[i]
-    })
+    }
 
     // Position widgets
     let y = widgetStartY
