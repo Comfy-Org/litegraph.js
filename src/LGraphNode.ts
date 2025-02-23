@@ -1685,7 +1685,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       name: name,
       value: value,
       callback: typeof callback !== "function" ? null : callback,
-      options
+      options,
     }
 
     if (w.options.y !== undefined) {
