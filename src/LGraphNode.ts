@@ -667,10 +667,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
 
       if (info.widgets_values) {
-        for (const [i, value] of info.widgets_values.entries()) {
+        for (let i = 0; i < info.widgets_values.length; ++i) {
           const widget = this.widgets[i]
           if (widget) {
-            widget.value = value
+            widget.value = info.widgets_values[i]
           }
         }
       }
