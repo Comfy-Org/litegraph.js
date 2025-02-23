@@ -21,7 +21,7 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { IBaseWidget, IWidget, TWidgetValue } from "./types/widgets"
+import type { IBaseWidget, IWidget, TWidgetValue, TWidgetType, IWidgetOptions } from "./types/widgets"
 import type { ISerialisedNode } from "./types/serialisation"
 import { LGraphCanvas } from "./LGraphCanvas"
 import type { CanvasMouseEvent } from "./types/events"
@@ -1647,7 +1647,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   /**
    * Defines a widget inside the node, it will be rendered on top of the node, you can control lots of properties
-   * @param type the widget type (could be "number","string","combo"
+   * @param type the widget type
    * @param name the text to show on the widget
    * @param value the default value
    * @param callback function to call when it changes (optionally, it can be the name of the property to modify)
@@ -1655,11 +1655,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @returns the created widget object
    */
   addWidget(
-    type: string,
+    type: TWidgetType,
     name: string,
-    value: any,
-    callback: IWidget["callback"],
-    options?: any,
+    value: string | number | boolean | object,
+    callback: IWidget["callback"] | string,
+    options?: IWidgetOptions | string,
   ): IWidget {
     this.widgets ||= []
 
@@ -1674,8 +1674,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // callback can be the property name
     if (callback && typeof callback === "string") {
-      options ||= {}
-      options.property = callback
+      options = { ...(options as IWidgetOptions || {}), property: callback }
       callback = null
     }
 
@@ -1684,14 +1683,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       callback = null
     }
 
-    const w: IWidget = {
-      // @ts-expect-error Type check or just assert?
+    const w = {
       type: type.toLowerCase(),
       name: name,
       value: value,
       callback: callback,
       options: options || {},
-    }
+    } as IWidget
 
     if (w.options.y !== undefined) {
       w.y = w.options.y
