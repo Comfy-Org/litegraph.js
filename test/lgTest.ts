@@ -1,4 +1,4 @@
-import { test } from "vitest"
+import { test as baseTest } from "vitest"
 import type { ISerialisedGraph, SerialisableGraph } from "../src/types/serialisation"
 import { LGraph } from "@/LGraph"
 
@@ -71,7 +71,7 @@ interface LitegraphFixtures {
   oldSchemaGraph: ISerialisedGraph
 }
 
-export const lgTest = test.extend<LitegraphFixtures>({
+export const test = baseTest.extend<LitegraphFixtures>({
   minimalGraph: async ({ }, use) => {
     // Before each test function
     const serialisable = structuredClone(minimalSerialisableGraph)
