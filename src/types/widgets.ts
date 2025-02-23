@@ -29,6 +29,14 @@ export interface IWidgetSliderOptions extends IWidgetOptions<number> {
   marker_color?: CanvasColour
 }
 
+export interface IWidgetKnobOptions extends IWidgetOptions<number> {
+  min: number
+  max: number
+  step: number
+  slider_color?: CanvasColour // TODO: Replace with knob color
+  marker_color?: CanvasColour
+}
+
 /**
  * A widget for a node.
  * All types are based on IBaseWidget - additions can be made there or directly on individual types.
@@ -46,6 +54,7 @@ export type IWidget =
   | ICustomWidget
   | ISliderWidget
   | IButtonWidget
+  | IKnobWidget
 
 export interface IBooleanWidget extends IBaseWidget {
   type?: "toggle"
@@ -62,6 +71,12 @@ export interface ISliderWidget extends IBaseWidget {
   type?: "slider"
   value: number
   options: IWidgetSliderOptions
+}
+
+export interface IKnobWidget extends IBaseWidget {
+  type?: "knob"
+  value: number
+  options: IWidgetKnobOptions
 }
 
 /** A combo-box widget (dropdown, select, etc) */
