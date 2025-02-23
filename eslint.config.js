@@ -37,7 +37,7 @@ export default tseslint.config(
       "prefer-spread": "off",
       "no-empty": "off",
       "no-prototype-builtins": "off",
-      "no-var": "warn",
+      "no-var": "error",
       "no-fallthrough": "off",
 
       "no-empty-pattern": ["error", { allowObjectPatternsAsParameters: true }],
@@ -168,7 +168,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
       "unused-imports/no-unused-imports": "error",
-      "unused-imports/no-unused-vars": "warn",
+      "unused-imports/no-unused-vars": "error",
     },
   },
 )
