@@ -500,8 +500,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     const remaining_links: Record<NodeId, number> = {} // to a
 
     // search for the nodes without inputs (starting nodes)
-    for (let i = 0, l = this._nodes.length; i < l; ++i) {
-      const node = this._nodes[i]
+    for (const node of this._nodes) {
       if (only_onExecute && !node.onExecute) {
         continue
       }
@@ -539,8 +538,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       if (!node.outputs) continue
 
       // for every output
-      for (let i = 0; i < node.outputs.length; i++) {
-        const output = node.outputs[i]
+      for (const output of node.outputs) {
         // not connected
         // TODO: Confirm functionality, clean condition
         if (output?.links == null || output.links.length == 0)
