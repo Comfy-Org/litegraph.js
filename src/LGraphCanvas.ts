@@ -911,8 +911,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     let entries: IOptionalSlotData<INodeInputSlot>[] = []
     if (options) {
-      for (let i = 0; i < options.length; i++) {
-        const entry = options[i]
+      for (const entry of options) {
         if (!entry) {
           entries.push(null)
           continue
@@ -991,8 +990,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     let entries: IOptionalSlotData<INodeOutputSlot>[] = []
     if (options) {
-      for (let i = 0; i < options.length; i++) {
-        const entry = options[i]
+      for (const entry of options) {
         if (!entry) {
           // separator?
           entries.push(null)
@@ -4134,9 +4132,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       const visible_nodes = this.visible_nodes
       const drawSnapGuides = this.#snapToGrid && this.isDragging
 
-      for (let i = 0; i < visible_nodes.length; ++i) {
-        const node = visible_nodes[i]
-
+      for (const node of visible_nodes) {
         ctx.save()
 
         // Draw snap shadow
@@ -5454,8 +5450,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.globalAlpha = 0.75
 
     const visible_nodes = this.visible_nodes
-    for (let i = 0; i < visible_nodes.length; ++i) {
-      const node = visible_nodes[i]
+    for (const node of visible_nodes) {
       ctx.fillStyle = "black"
       ctx.fillRect(
         node.pos[0] - LiteGraph.NODE_TITLE_HEIGHT,
@@ -5512,9 +5507,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.globalAlpha = 0.5 * this.editor_alpha
     const drawSnapGuides = this.#snapToGrid && this.isDragging
 
-    for (let i = 0; i < groups.length; ++i) {
-      const group = groups[i]
-
+    for (const group of groups) {
       if (!overlapBounding(this.visible_area, group._bounding)) {
         continue
       } // out of the visible area
@@ -6383,8 +6376,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (that.onSearchBox) {
         const list = that.onSearchBox(helper, str, graphcanvas)
         if (list) {
-          for (let i = 0; i < list.length; ++i) {
-            addResult(list[i])
+          for (const item of list) {
+            addResult(item)
           }
         }
       } else {
@@ -6431,8 +6424,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           }
         }
 
-        for (let i = 0; i < filtered.length; i++) {
-          addResult(filtered[i])
+        for (const item of filtered) {
+          addResult(item)
           if (LGraphCanvas.search_limit !== -1 && c++ > LGraphCanvas.search_limit)
             break
         }
@@ -6456,9 +6449,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               filtered_extra.push(i)
           }
           // @ts-expect-error
-          for (let i = 0; i < filtered_extra.length; i++) {
-            // @ts-expect-error
-            addResult(filtered_extra[i], "generic_type")
+          for (const extraItem of filtered_extra) {
+            addResult(extraItem, "generic_type")
             if (LGraphCanvas.search_limit !== -1 && c++ > LGraphCanvas.search_limit)
               break
           }
@@ -6478,9 +6470,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               filtered_extra.push(i)
           }
           // @ts-expect-error
-          for (let i = 0; i < filtered_extra.length; i++) {
-            // @ts-expect-error
-            addResult(filtered_extra[i], "not_in_filter")
+          for (const extraItem of filtered_extra) {
+            addResult(extraItem, "not_in_filter")
             if (LGraphCanvas.search_limit !== -1 && c++ > LGraphCanvas.search_limit)
               break
           }
@@ -7130,8 +7121,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (!this.canvas) return
 
     const panels = this.canvas.parentNode.querySelectorAll(".litegraph.dialog")
-    for (let i = 0; i < panels.length; ++i) {
-      const panel = panels[i]
+    for (const panel of panels) {
       // @ts-expect-error Panel
       if (!panel.node) continue
       // @ts-expect-error Panel

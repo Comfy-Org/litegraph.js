@@ -658,8 +658,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
     const nodes = this.computeExecutionOrder(false, true)
     const columns: LGraphNode[][] = []
-    for (let i = 0; i < nodes.length; ++i) {
-      const node = nodes[i]
+    for (const node of nodes) {
       const col = node._level || 1
       columns[col] ||= []
       columns[col].push(node)
@@ -667,14 +666,12 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
     let x = margin
 
-    for (let i = 0; i < columns.length; ++i) {
-      const column = columns[i]
+    for (const column of columns) {
       if (!column) continue
 
       let max_size = 100
       let y = margin + LiteGraph.NODE_TITLE_HEIGHT
-      for (let j = 0; j < column.length; ++j) {
-        const node = column[j]
+      for (const node of column) {
         node.pos[0] = layout == LiteGraph.VERTICAL_LAYOUT ? y : x
         node.pos[1] = layout == LiteGraph.VERTICAL_LAYOUT ? x : y
         const max_size_index = layout == LiteGraph.VERTICAL_LAYOUT ? 1 : 0
@@ -1297,18 +1294,18 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   /** @todo Clean up - never implemented. */
   triggerInput(name: string, value: any): void {
     const nodes = this.findNodesByTitle(name)
-    for (let i = 0; i < nodes.length; ++i) {
+    for (const node of nodes) {
       // @ts-expect-error
-      nodes[i].onTrigger(value)
+      node.onTrigger(value)
     }
   }
 
   /** @todo Clean up - never implemented. */
   setCallback(name: string, func: any): void {
     const nodes = this.findNodesByTitle(name)
-    for (let i = 0; i < nodes.length; ++i) {
+    for (const node of nodes) {
       // @ts-expect-error
-      nodes[i].setTrigger(func)
+      node.setTrigger(func)
     }
   }
 
