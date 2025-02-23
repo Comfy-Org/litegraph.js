@@ -1658,7 +1658,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     type: TWidgetType,
     name: string,
     value: string | number | boolean | object,
-    callback: IWidget["callback"] | string,
+    callback: IWidget["callback"] | string | null,
     options?: IWidgetOptions | string,
   ): IWidget {
     this.widgets ||= []
@@ -1669,27 +1669,24 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     // options can be the property name
-    if (options && typeof options === "string")
+    options ||= {}
+    if (typeof options === "string")
       options = { property: options }
 
     // callback can be the property name
     if (callback && typeof callback === "string") {
-      options = { ...(options as IWidgetOptions || {}), property: callback }
+      options.property = callback
       callback = null
     }
 
-    if (callback && typeof callback !== "function") {
-      console.warn("addWidget: callback must be a function")
-      callback = null
-    }
-
-    const w = {
+    const w: IWidget = {
+      // @ts-expect-error Type check or just assert?
       type: type.toLowerCase(),
       name: name,
       value: value,
-      callback: callback,
-      options: options || {},
-    } as IWidget
+      callback: typeof callback !== "function" ? null : callback,
+      options
+    }
 
     if (w.options.y !== undefined) {
       w.y = w.options.y
