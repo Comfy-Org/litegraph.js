@@ -8,6 +8,8 @@ import { NumberWidget } from "./NumberWidget"
 import { SliderWidget } from "./SliderWidget"
 import { TextWidget } from "./TextWidget"
 
+import { KnobWidget } from "./KnobWidget"
+
 type WidgetConstructor = {
   new (plain: IBaseWidget): BaseWidget
 }
@@ -19,6 +21,7 @@ export const WIDGET_TYPE_MAP: Record<string, WidgetConstructor> = {
   toggle: BooleanWidget,
   // @ts-ignore #616
   slider: SliderWidget,
+  knob: KnobWidget,
   // @ts-ignore #616
   combo: ComboWidget,
   // @ts-ignore #616
