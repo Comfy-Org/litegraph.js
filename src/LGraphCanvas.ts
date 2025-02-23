@@ -1486,13 +1486,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     return false
   }
 
-  static onMenuNodeRemove(
-    value: IContextMenuValue,
-    options: IContextMenuOptions,
-    e: MouseEvent,
-    menu: ContextMenu,
-    node: LGraphNode,
-  ): void {
+  static onMenuNodeRemove(): void {
     LGraphCanvas.active_canvas.deleteSelected()
   }
 
