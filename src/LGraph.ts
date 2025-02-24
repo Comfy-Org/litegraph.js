@@ -1665,7 +1665,6 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   load(url: string | Blob | URL | File, callback: () => void) {
     const that = this
 
-    // LEGACY: This was changed from constructor === File/Blob
     // from file
     if (url instanceof Blob || url instanceof File) {
       const reader = new FileReader()
