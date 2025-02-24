@@ -275,7 +275,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /** Called once at the start of every frame.  Caller may change the values in {@link out}, which will be reflected in {@link boundingRect}. */
   onBounding?(this: LGraphNode, out: Rect): void
   console?: string[]
-  _level: number
+  _level?: number
   _shape?: RenderShape
   mouseOver?: IMouseOverData
   redraw_on_mouse?: boolean

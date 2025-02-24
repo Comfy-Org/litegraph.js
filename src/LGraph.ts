@@ -570,8 +570,11 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
             continue
           }
 
-          if (set_level && (!target_node._level || target_node._level <= node._level)) {
-            target_node._level = node._level + 1
+          if (set_level) {
+            node._level ??= 0
+            if (!target_node._level || target_node._level <= node._level) {
+              target_node._level = node._level + 1
+            }
           }
 
           // mark as visited
