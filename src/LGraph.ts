@@ -1491,7 +1491,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
    * Mutating the properties of the return object may result in changes to your graph.
    * It is intended for use with {@link structuredClone} or {@link JSON.stringify}.
    */
-  asSerialisable(options?: { sortNodes: boolean }): SerialisableGraph {
+  asSerialisable(options?: { sortNodes: boolean }): Required<SerialisableGraph> {
     const { config, state, extra } = this
 
     const nodeList = !LiteGraph.use_uuids && options?.sortNodes
@@ -1505,7 +1505,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     const links = [...this._links.values()].map(x => x.asSerialisable())
     const reroutes = [...this.reroutes.values()].map(x => x.asSerialisable())
 
-    const data: SerialisableGraph = {
+    const data: Required<SerialisableGraph> = {
       version: LGraph.serialisedSchemaVersion,
       config,
       state,
