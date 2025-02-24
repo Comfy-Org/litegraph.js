@@ -37,6 +37,10 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
     }
   }
 
+  get height(): number {
+    return this.computedHeight || super.height
+  }
+
   drawWidget(
     ctx: CanvasRenderingContext2D,
     options: {
@@ -53,15 +57,16 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
 
     const { y, width: widget_width, show_text = true, margin = 15 } = options
     const effective_height = this.computedHeight || this.height
-
     // Draw background
-    const size_modifier = Math.min(
-      this.computedHeight || this.height,
-      this.width || 20,
-    ) / 20 // TODO: replace magic numbers
+    const size_modifier =
+      Math.min(this.computedHeight || this.height, this.width || 20) / 20 // TODO: replace magic numbers
     const arc_center = { x: widget_width / 2, y: effective_height / 2 + y }
-    ctx.lineWidth = (Math.min(widget_width, effective_height) - (margin * size_modifier)) / 6
-    const arc_size = (Math.min(widget_width, effective_height) - (margin * size_modifier) - ctx.lineWidth) / 2
+    ctx.lineWidth =
+      (Math.min(widget_width, effective_height) - margin * size_modifier) / 6
+    const arc_size =
+      (Math.min(widget_width, effective_height) -
+        margin * size_modifier -
+        ctx.lineWidth) / 2
     {
       const gradient = ctx.createRadialGradient(
         arc_center.x,
@@ -185,10 +190,10 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
       ctx.fillStyle = this.text_color
       ctx.fillText(
         (this.label || this.name) +
-          "  " +
-          Number(this.value).toFixed(
-            this.options.precision != null ? this.options.precision : 3,
-          ),
+        "\n" +
+        Number(this.value).toFixed(
+          this.options.precision != null ? this.options.precision : 3,
+        ),
         widget_width * 0.5,
         y + effective_height * 0.5,
       )
@@ -200,11 +205,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
     ctx.fillStyle = originalFillStyle
   }
 
-  onClick(options: {
-    e: CanvasMouseEvent
-    node: LGraphNode
-    canvas: LGraphCanvas
-  }): void {
+  onClick(): void {
     return
   }
 
