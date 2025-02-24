@@ -25,6 +25,7 @@ import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { isSortaInsideOctagon } from "./measure"
 import { getAllNestedItems } from "./utils/collections"
+import { stringOrEmpty } from "./strings"
 
 interface IGraphInput {
   name: string
@@ -121,6 +122,9 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   extra: Record<any, any> = {}
   inputs: Dictionary<IGraphInput> = {}
   outputs: Dictionary<IGraphInput> = {}
+
+  /** @deprecated Deserialising a workflow sets this unused property. */
+  version?: number
 
   /** @returns Whether the graph has no items */
   get empty(): boolean {
@@ -1103,6 +1107,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       console.log("node being replaced by newer version: " + node.type)
       // @ts-expect-error deprecated
       const newnode = LiteGraph.createNode(node.type)
+      if (!newnode) continue
       _nodes[i] = newnode
       newnode.configure(node.serialize())
       newnode.graph = this
@@ -1607,6 +1612,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         i === "reroutes"
       )
         continue
+      // @ts-expect-error #574 Legacy property assignment
       this[i] = data[i]
     }
 
@@ -1617,12 +1623,12 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (nodesData) {
       for (const n_info of nodesData) {
         // stored info
-        let node = LiteGraph.createNode(n_info.type, n_info.title)
+        let node = LiteGraph.createNode(String(n_info.type), n_info.title)
         if (!node) {
           if (LiteGraph.debug) console.log("Node not found or has errors: " + n_info.type)
 
           // in case of error we create a replacement node to avoid losing info
-          node = new LGraphNode(undefined)
+          node = new LGraphNode("")
           node.last_serialization = n_info
           node.has_errors = true
           error = true
@@ -1669,7 +1675,8 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (url instanceof Blob || url instanceof File) {
       const reader = new FileReader()
       reader.addEventListener("load", function (event) {
-        const data = JSON.parse(event.target.result.toString())
+        const result = stringOrEmpty(event.target?.result)
+        const data = JSON.parse(result)
         that.configure(data)
         callback?.()
       })
