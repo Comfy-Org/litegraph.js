@@ -146,7 +146,7 @@ export class LiteGraphGlobal {
   Globals = {}
 
   /** @deprecated Unused and will be deleted. */
-  searchbox_extras = {}
+  searchbox_extras: Dictionary<unknown> = {}
 
   /** [true!] this make the nodes box (top left circle) coloured when triggered (execute/action), visual feedback */
   node_box_coloured_when_on = false
@@ -322,6 +322,7 @@ export class LiteGraphGlobal {
 
     // extend class
     for (const i in LGraphNode.prototype) {
+      // @ts-expect-error #576 This functionality is deprecated and should be removed.
       base_class.prototype[i] ||= LGraphNode.prototype[i]
     }
 
@@ -354,7 +355,7 @@ export class LiteGraphGlobal {
       : type
     if (!base_class) throw "node type not found: " + type
 
-    delete this.registered_node_types[base_class.type]
+    delete this.registered_node_types[String(base_class.type)]
 
     const name = base_class.constructor.name
     if (name) delete this.Nodes[name]
@@ -430,7 +431,7 @@ export class LiteGraphGlobal {
     type: string,
     title?: string,
     options?: Dictionary<unknown>,
-  ): LGraphNode {
+  ): LGraphNode | null {
     const base_class = this.registered_node_types[type]
     if (!base_class) {
       if (this.debug) console.log(`GraphNode type "${type}" not registered.`)
@@ -466,6 +467,7 @@ export class LiteGraphGlobal {
     // extra options
     if (options) {
       for (const i in options) {
+        // @ts-expect-error #577 Requires interface
         node[i] = options[i]
       }
     }
@@ -511,7 +513,7 @@ export class LiteGraphGlobal {
    * @returns array with all the names of the categories
    */
   getNodeTypesCategories(filter: string): string[] {
-    const categories = { "": 1 }
+    const categories: Dictionary<number> = { "": 1 }
     for (const i in this.registered_node_types) {
       const type = this.registered_node_types[i]
       if (type.category && !type.skip_list) {
@@ -561,13 +563,15 @@ export class LiteGraphGlobal {
   }
 
   // separated just to improve if it doesn't work
-  cloneObject<T extends object>(obj: T, target?: T): T {
+  /** @deprecated Prefer {@link structuredClone} */
+  cloneObject<T extends object>(obj: T, target?: T): T | null {
     if (obj == null) return null
 
     const r = JSON.parse(JSON.stringify(obj))
     if (!target) return r
 
     for (const i in r) {
+      // @ts-expect-error deprecated
       target[i] = r[i]
     }
     return target
