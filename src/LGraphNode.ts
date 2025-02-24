@@ -3403,9 +3403,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Apply computed heights
     for (const [i, d] of growableWidgets.entries()) {
       d.w.computedHeight = allocations[i]
-      if (d.w.element) {
-        d.w.element.style.height = "" + 1000 + "px"
-      }
     }
 
     // Position widgets
