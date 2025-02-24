@@ -1,4 +1,3 @@
-// @ts-strict-ignore
 import { LGraph } from "./LGraph"
 import { LLink } from "./LLink"
 import { LGraphGroup } from "./LGraphGroup"
@@ -461,7 +460,7 @@ export class LiteGraphGlobal {
     node.flags ||= {}
     // call onresize?
     node.size ||= node.computeSize()
-    node.pos ||= this.DEFAULT_POSITION.concat()
+    node.pos ||= [this.DEFAULT_POSITION[0], this.DEFAULT_POSITION[1]]
     node.mode ||= LGraphEventMode.ALWAYS
 
     // extra options
@@ -830,7 +829,7 @@ export class LiteGraphGlobal {
     }
 
     for (const result of results) {
-      if (result.close) {
+      if ("close" in result && typeof result.close === "function") {
         result.close()
       } else if (result.parentNode) {
         result.parentNode.removeChild(result)
