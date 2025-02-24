@@ -341,6 +341,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /**
+   * @deprecated Will be removed in 0.9
    * Starts running this graph every interval milliseconds.
    * @param interval amount of milliseconds between executions, if 0 then it renders to the monitor refresh rate
    */
@@ -386,6 +387,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /**
+   * @deprecated Will be removed in 0.9
    * Stops the execution loop of the graph
    */
   stop(): void {
@@ -622,6 +624,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /**
+   * @deprecated Will be removed in 0.9
    * Returns all the nodes that could affect this one (ancestors) by crawling all the inputs recursively.
    * It doesn't include the node itself
    * @returns an array with all the LGraphNodes that affect this node, in order of execution
@@ -649,6 +652,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     }
 
     ancestors.sort(function (a, b) {
+      // @ts-expect-error deprecated
       return a.order - b.order
     })
     return ancestors
@@ -719,6 +723,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /**
+   * @deprecated Will be removed in 0.9
    * Sends an event to all the nodes, useful to trigger stuff
    * @param eventname the name of the event (function to be called)
    * @param params parameters in array format
@@ -734,12 +739,16 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (!nodes) return
 
     for (const node of nodes) {
+      // @ts-expect-error deprecated
       if (!node[eventname] || node.mode != mode) continue
       if (params === undefined) {
+        // @ts-expect-error deprecated
         node[eventname]()
       } else if (params && params.constructor === Array) {
+        // @ts-expect-error deprecated
         node[eventname].apply(node, params)
       } else {
+        // @ts-expect-error deprecated
         node[eventname](params)
       }
     }
@@ -1079,6 +1088,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   }
 
   /**
+   * @deprecated Will be removed in 0.9
    * Checks that the node type matches the node type registered,
    * used when replacing a nodetype by a newer version during execution
    * this replaces the ones using the old version with the new version
@@ -1086,10 +1096,12 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   checkNodeTypes() {
     const { _nodes } = this
     for (const [i, node] of _nodes.entries()) {
+      // @ts-expect-error deprecated
       const ctor = LiteGraph.registered_node_types[node.type]
       if (node.constructor == ctor) continue
 
       console.log("node being replaced by newer version: " + node.type)
+      // @ts-expect-error deprecated
       const newnode = LiteGraph.createNode(node.type)
       _nodes[i] = newnode
       newnode.configure(node.serialize())
