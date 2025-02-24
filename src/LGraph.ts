@@ -656,7 +656,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     }
 
     ancestors.sort(function (a, b) {
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       return a.order - b.order
     })
     return ancestors
@@ -743,16 +743,16 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (!nodes) return
 
     for (const node of nodes) {
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       if (!node[eventname] || node.mode != mode) continue
       if (params === undefined) {
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated
         node[eventname]()
       } else if (params && params.constructor === Array) {
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated
         node[eventname].apply(node, params)
       } else {
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated
         node[eventname](params)
       }
     }
@@ -1100,12 +1100,12 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   checkNodeTypes() {
     const { _nodes } = this
     for (const [i, node] of _nodes.entries()) {
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       const ctor = LiteGraph.registered_node_types[node.type]
       if (node.constructor == ctor) continue
 
       console.log("node being replaced by newer version: " + node.type)
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       const newnode = LiteGraph.createNode(node.type)
       if (!newnode) continue
       _nodes[i] = newnode
@@ -1612,7 +1612,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         i === "reroutes"
       )
         continue
-      // @ts-expect-error #574 Legacy property assignment
+      // @ts-ignore #574 Legacy property assignment
       this[i] = data[i]
     }
 
