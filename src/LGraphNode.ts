@@ -1873,9 +1873,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       )
         continue
 
-      const h = widget.computeSize
-        ? widget.computeSize(nodeWidth)[1]
-        : LiteGraph.NODE_WIDGET_HEIGHT
+      const h = widget.computedHeight ??
+        widget.computeSize?.(nodeWidth)[1] ??
+        LiteGraph.NODE_WIDGET_HEIGHT
+
       const w = widget.width || nodeWidth
       if (
         widget.last_y !== undefined &&
@@ -3362,6 +3363,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Apply computed heights
     for (const [i, d] of growableWidgets.entries()) {
       d.w.computedHeight = allocations[i]
+      if (d.w.element) {
+        d.w.element.style.height = "" + 1000 + "px"
+      }
     }
 
     // Position widgets
