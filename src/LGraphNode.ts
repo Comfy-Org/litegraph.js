@@ -190,7 +190,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   // Execution order, automatically computed during run
   order?: number
-  mode: LGraphEventMode
+  mode?: LGraphEventMode
   last_serialization?: ISerialisedNode
   serialize_widgets?: boolean
   /**
@@ -255,10 +255,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     ) ?? null
   }
 
-  exec_version: number
+  exec_version?: number
   action_call?: string
-  execute_triggered: number
-  action_triggered: number
+  execute_triggered?: number
+  action_triggered?: number
   widgets_up?: boolean
   widgets_start_y?: number
   lostFocusAt?: number
@@ -271,7 +271,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * The width of the node when collapsed.
    * Updated by {@link LGraphCanvas.drawNode}
    */
-  _collapsed_width: number
+  _collapsed_width?: number
   /** Called once at the start of every frame.  Caller may change the values in {@link out}, which will be reflected in {@link boundingRect}. */
   onBounding?(this: LGraphNode, out: Rect): void
   console?: string[]
