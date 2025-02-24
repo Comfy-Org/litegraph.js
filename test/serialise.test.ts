@@ -1,6 +1,6 @@
 import { describe } from "vitest"
 import { LGraph, LGraphGroup, LGraphNode } from "@/litegraph"
-import { test } from "./lgTest"
+import { test } from "./testExtensions"
 import type { ISerialisedGraph } from "@/types/serialisation"
 
 describe.concurrent("LGraph Serialisation", () => {

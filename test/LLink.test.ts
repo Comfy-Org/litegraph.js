@@ -1,6 +1,6 @@
 import { describe, expect } from "vitest"
 import { LLink } from "@/litegraph"
-import { test } from "./lgTest"
+import { test } from "./testExtensions"
 
 describe("LLink", () => {
   test("matches previous snapshot", () => {

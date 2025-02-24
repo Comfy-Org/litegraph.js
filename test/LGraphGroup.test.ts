@@ -1,6 +1,6 @@
 import { describe, expect } from "vitest"
 import { LGraphGroup } from "@/litegraph"
-import { test } from "./lgTest"
+import { test } from "./testExtensions"
 
 describe("LGraphGroup", () => {
   test("serializes to the existing format", () => {

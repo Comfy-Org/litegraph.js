@@ -1,7 +1,7 @@
 import { describe, expect } from "vitest"
 import { LGraphNode } from "@/litegraph"
 import { NodeInputSlot, NodeOutputSlot } from "@/NodeSlot"
-import { test } from "./lgTest"
+import { test } from "./testExtensions"
 
 describe("LGraphNode", () => {
   test("should serialize position/size correctly", () => {
