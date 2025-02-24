@@ -72,6 +72,7 @@ export interface ISliderWidget extends IBaseWidget {
   type?: "slider"
   value: number
   options: IWidgetSliderOptions
+  marker?: number
 }
 
 export interface IKnobWidget<TElement extends HTMLElement = HTMLElement> extends IBaseWidget {
@@ -139,7 +140,6 @@ export interface IBaseWidget<TElement extends HTMLElement = HTMLElement> {
   linkedWidgets?: IWidget[]
 
   options: IWidgetOptions
-  marker?: number
   label?: string
   name?: string
   /** Widget type (see {@link TWidgetType}) */
