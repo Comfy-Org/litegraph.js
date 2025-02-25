@@ -898,7 +898,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @param slot
    * @returns datatype in string format
    */
-  getInputDataType(slot: number): ISlotType {
+  getInputDataType(slot: number): ISlotType | null {
     if (!this.inputs) return null
     if (slot >= this.inputs.length || this.inputs[slot].link == null) return null
 
@@ -943,7 +943,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * tells you info about an input connection (which node, type, etc)
    * @returns object or null { link: id, name: string, type: string or 0 }
    */
-  getInputInfo(slot: number): INodeInputSlot {
+  getInputInfo(slot: number): INodeInputSlot | null {
     return !this.inputs || !(slot < this.inputs.length)
       ? null
       : this.inputs[slot]
@@ -966,7 +966,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * returns the node connected in the input slot
    * @returns node or null
    */
-  getInputNode(slot: number): LGraphNode {
+  getInputNode(slot: number): LGraphNode | null {
     if (!this.inputs) return null
     if (slot >= this.inputs.length) return null
 
@@ -1014,7 +1014,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * tells you info about an output connection (which node, type, etc)
    * @returns object or null { name: string, type: string, links: [ ids of links in number ] }
    */
-  getOutputInfo(slot: number): INodeOutputSlot {
+  getOutputInfo(slot: number): INodeOutputSlot | null {
     return !this.outputs || !(slot < this.outputs.length)
       ? null
       : this.outputs[slot]
@@ -1045,7 +1045,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * retrieves all the nodes connected to this output slot
    */
-  getOutputNodes(slot: number): LGraphNode[] {
+  getOutputNodes(slot: number): LGraphNode[] | null {
     if (!this.outputs || this.outputs.length == 0) return null
 
     if (slot >= this.outputs.length) return null
@@ -1215,8 +1215,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   triggerSlot(
     slot: number,
     param: unknown,
-    link_id: number,
-    options: { action_call?: any },
+    link_id: number | null,
+    options?: { action_call?: any },
   ): void {
     options = options || {}
     if (!this.outputs) return
