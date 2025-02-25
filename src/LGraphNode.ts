@@ -343,7 +343,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * The size of the node used for rendering.
    */
   get renderingSize(): Size {
-    return this.flags.collapsed ? [this._collapsed_width, 0] : this._size
+    return this.flags.collapsed ? [this._collapsed_width ?? 0, 0] : this._size
   }
 
   get shape(): RenderShape | undefined {
@@ -640,7 +640,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     this.inputs ??= []
     this.inputs = this.inputs.map(input => toClass(NodeInputSlot, input))
     for (const [i, input] of this.inputs.entries()) {
-      const link = this.graph ? this.graph._links.get(input.link) : null
+      const link = this.graph && input.link != null
+        ? this.graph._links.get(input.link)
+        : null
       this.onConnectionsChange?.(NodeSlotType.INPUT, i, true, link, input)
       this.onInputAdded?.(input)
     }
@@ -691,7 +693,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // create serialization object
     const o: ISerialisedNode = {
       id: this.id,
-      type: this.type,
+      type: this.type ?? undefined,
       pos: [this.pos[0], this.pos[1]],
       size: [this.size[0], this.size[1]],
       flags: LiteGraph.cloneObject(this.flags),
@@ -736,6 +738,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   /* Creates a clone of this node */
   clone(): LGraphNode | null {
+    if (this.type == null) return null
     const node = LiteGraph.createNode(this.type)
     if (!node) return null
 
