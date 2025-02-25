@@ -3122,13 +3122,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       for (const output of outputs) {
         if (!LiteGraph.isValidConnection(input.type, output.type)) continue
 
-        bypassAllLinks(output, inNode, inLink)
+        bypassAllLinks(output, inNode, inLink, graph)
         break
       }
     }
     return madeAnyConnections
 
-    function bypassAllLinks(output: INodeOutputSlot, inNode: LGraphNode, inLink: LLink) {
+    function bypassAllLinks(output: INodeOutputSlot, inNode: LGraphNode, inLink: LLink, graph: LGraph) {
       const outLinks = output.links
         ?.map(x => _links.get(x))
         .filter(x => !!x)
