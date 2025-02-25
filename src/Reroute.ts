@@ -200,6 +200,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     if (this.#parentId === withParentId) return this
     if (visited.has(this)) return null
     visited.add(this)
+    if (this.#parentId === undefined) return
 
     return this.#network
       .deref()
