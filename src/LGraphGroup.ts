@@ -266,6 +266,8 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
         return children.has(b) ? -1 : 0
       } else if (b === this) {
         return children.has(a) ? 1 : 0
+      } else {
+        return 0
       }
     })
   }
@@ -295,7 +297,7 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
     this.resizeTo([...this.children, ...this._nodes, ...nodes], padding)
   }
 
-  getMenuOptions(): IContextMenuValue[] {
+  getMenuOptions(): (IContextMenuValue | null)[] {
     return [
       {
         content: this.pinned ? "Unpin" : "Pin",
