@@ -48,6 +48,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
       width: number
       show_text?: boolean
       margin?: number
+      gradient_stops?: string
     },
   ): void {
     // Store original context attributes
@@ -56,6 +57,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
     const originalFillStyle = ctx.fillStyle
 
     const { y, width: widget_width, show_text = true, margin = 15 } = options
+    const { gradient_stops = "rgb(14, 182, 201); rgb(0, 216, 72)" } = this.options
     const effective_height = this.computedHeight || this.height
     // Draw background
     const size_modifier =
@@ -136,8 +138,12 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
       arc_center.x,
       arc_center.y,
     )
-    gradient.addColorStop(0, "rgb(14, 182, 201)") // TODO: Parametrize these
-    gradient.addColorStop(1, "rgb(0, 216, 72)")
+    const gs = gradient_stops.split(";")
+    gs.forEach((stop, index) => {
+      console.log(stop)
+      gradient.addColorStop(index, stop.trim())
+    })
+
     ctx.strokeStyle = gradient
     const value_end_angle =
       (arc.end_angle - arc.start_angle) * nvalue + arc.start_angle
@@ -206,9 +212,10 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
   }
 
   onClick(): void {
-    return
+    this.current_drag_offset = 0
   }
 
+  current_drag_offset = 0
   override onDrag(options: {
     e: CanvasMouseEvent
     node: LGraphNode
@@ -216,17 +223,23 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
   }): void {
     if (this.options.read_only) return
     const { e } = options
-    const size_modifier = Math.min(
-      this.computedHeight || this.height,
-      this.width || 20,
-    )
-    const shift_modifier = e.shiftKey ? 0.5 : 1.0 // Consider this for other widgets
-    const deltaX = (e.movementX / size_modifier) * shift_modifier
+    const deltaX = e.movementX
     const step = this.options.step
+    const drag_threshold = 15
     // Calculate new value based on drag movement
+    this.current_drag_offset += deltaX
+    let adjustment = 0
+    if (this.current_drag_offset > drag_threshold) {
+      adjustment += 1
+      this.current_drag_offset -= drag_threshold
+    } else if (this.current_drag_offset < -drag_threshold) {
+      adjustment -= 1
+      this.current_drag_offset += drag_threshold
+    }
+    const step_with_shift_modifier = e.shiftKey ? (this.options.max - this.options.min) : step
     // HACK: For some reason, the front-end multiplies step by 10, this brings it down to the advertised value
-    // see src/utils/mathUtil.ts@getNumberDefaults
-    const deltaValue = (deltaX * step) / 10
+    // SEE: src/utils/mathUtil.ts@getNumberDefaults in front end
+    const deltaValue = adjustment * step_with_shift_modifier / 10
     const newValue = clamp(
       this.value + deltaValue,
       this.options.min,

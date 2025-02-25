@@ -36,6 +36,7 @@ export interface IWidgetKnobOptions extends IWidgetOptions<number> {
   step: number
   slider_color?: CanvasColour // TODO: Replace with knob color
   marker_color?: CanvasColour
+  gradient_stops?: string
 }
 
 /**
