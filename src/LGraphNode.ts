@@ -862,7 +862,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (this.outputs[slot].links) {
       for (let i = 0; i < this.outputs[slot].links.length; i++) {
         const link_id = this.outputs[slot].links[i]
-        this.graph._links.get(link_id).type = type
+        const link = this.graph._links.get(link_id)
+        if (!link) continue
+        link.type = type
       }
     }
   }
@@ -1047,7 +1049,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (!this.outputs) return false
 
     for (let i = 0; i < this.outputs.length; ++i) {
-      if (this.outputs[i].links && this.outputs[i].links.length) {
+      if (this.outputs[i].links && this.outputs[i].links?.length) {
         return true
       }
     }
@@ -2514,7 +2516,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         const link_info = graph._links.get(link_id)
 
         // is the link we are searching for...
-        if (link_info.target_id == target_node.id) {
+        if (link_info?.target_id == target.id) {
           links.splice(i, 1) // remove here
           const input = target_node.inputs[link_info.target_slot]
           input.link = null // remove there
