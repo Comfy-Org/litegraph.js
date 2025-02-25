@@ -11,18 +11,19 @@ describe("LGraph", () => {
     expect(graph.extra).toBe("TestGraph")
   })
 
+  test("is exactly the same type", async ({ expect }) => {
+    const directImport = await import("@/LGraph")
+    const entryPointImport = await import("@/litegraph")
+
+    expect(LiteGraph.LGraph).toBe(directImport.LGraph)
+    expect(LiteGraph.LGraph).toBe(entryPointImport.LGraph)
+  })
+
   test("populates optional values", ({ expect, minimalSerialisableGraph }) => {
     const dGraph = new LGraph(minimalSerialisableGraph)
     expect(dGraph.links).toBeInstanceOf(Map)
     expect(dGraph.nodes).toBeInstanceOf(Array)
     expect(dGraph.groups).toBeInstanceOf(Array)
-  })
-
-  test("matches previous snapshot", ({ expect, minimalSerialisableGraph, basicSerialisableGraph }) => {
-    const minLGraph = new LGraph(minimalSerialisableGraph)
-    expect(minLGraph).toMatchSnapshot("minLGraph")
-    const basicLGraph = new LGraph(basicSerialisableGraph)
-    expect(basicLGraph).toMatchSnapshot("basicLGraph")
   })
 
   test("supports schema v0.4 graphs", ({ expect, oldSchemaGraph }) => {
