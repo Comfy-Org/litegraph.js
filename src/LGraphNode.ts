@@ -1422,13 +1422,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   removeOutput(slot: number): void {
     this.disconnectOutput(slot)
     this.outputs.splice(slot, 1)
-    if (!this.graph) throw new NullGraphError()
 
     for (let i = slot; i < this.outputs.length; ++i) {
       if (!this.outputs[i] || !this.outputs[i].links) continue
 
       const links = this.outputs[i].links
       for (const linkId of links) {
+        if (!this.graph) throw new NullGraphError()
+
         const link = this.graph._links.get(linkId)
         if (!link) continue
 
@@ -1497,11 +1498,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   removeInput(slot: number): void {
     this.disconnectInput(slot)
     const slot_info = this.inputs.splice(slot, 1)
-    if (!this.graph) throw new NullGraphError()
 
     for (let i = slot; i < this.inputs.length; ++i) {
       if (!this.inputs[i]) continue
 
+      if (!this.graph) throw new NullGraphError()
       const link = this.graph._links.get(this.inputs[i].link)
       if (!link) continue
 
