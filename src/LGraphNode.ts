@@ -3107,7 +3107,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const inNode = graph.getNodeById(inLink?.origin_id)
       if (!inNode) continue
 
-      bypassAllLinks(output, inNode, inLink)
+      bypassAllLinks(output, inNode, inLink, graph)
     }
     // Configured to only use index-to-index matching
     if (!(this.flags.keepAllLinksOnBypass ?? LGraphNode.keepAllLinksOnBypass))
