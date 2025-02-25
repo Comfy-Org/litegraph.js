@@ -157,7 +157,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   static keepAllLinksOnBypass: boolean = false
 
   /** The title text of the node. */
-  title: string
+  title?: string
   /**
    * The font style used to render the node's title text.
    */
@@ -350,7 +350,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this.flags.collapsed ? [this._collapsed_width, 0] : this._size
   }
 
-  get shape(): RenderShape {
+  get shape(): RenderShape | undefined {
     return this._shape
   }
 
@@ -383,7 +383,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this._shape || this.constructor.shape || LiteGraph.NODE_DEFAULT_SHAPE
   }
 
-  public get is_selected(): boolean {
+  public get is_selected(): boolean | undefined {
     return this.selected
   }
 
@@ -426,7 +426,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     type: ISlotType,
     index: number,
     isConnected: boolean,
-    link_info: LLink,
+    link_info: LLink | null | undefined,
     inputOrOutput: INodeInputSlot | INodeOutputSlot,
   ): void
   onInputAdded?(this: LGraphNode, input: INodeInputSlot): void
@@ -518,8 +518,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   onOutputDblClick?(this: LGraphNode, index: number, e: CanvasMouseEvent): void
   // TODO: Return type
   onGetPropertyInfo?(this: LGraphNode, property: string): any
-  onNodeOutputAdd?(this: LGraphNode, value): void
-  onNodeInputAdd?(this: LGraphNode, value): void
+  onNodeOutputAdd?(this: LGraphNode, value: unknown): void
+  onNodeInputAdd?(this: LGraphNode, value: unknown): void
   onMenuNodeInputs?(
     this: LGraphNode,
     entries: IOptionalSlotData<INodeInputSlot>[],
@@ -617,17 +617,22 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         continue
       }
 
+      // @ts-expect-error #594
       if (info[j] == null) {
         continue
+      // @ts-expect-error #594
       } else if (typeof info[j] == "object") {
-        // object
+        // @ts-expect-error #594
         if (this[j]?.configure) {
+          // @ts-expect-error #594
           this[j]?.configure(info[j])
         } else {
+          // @ts-expect-error #594
           this[j] = LiteGraph.cloneObject(info[j], this[j])
         }
       } else {
         // value
+        // @ts-expect-error #594
         this[j] = info[j]
       }
     }
@@ -733,7 +738,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   /* Creates a clone of this node */
-  clone(): LGraphNode {
+  clone(): LGraphNode | null {
     const node = LiteGraph.createNode(this.type)
     if (!node) return null
 
@@ -775,7 +780,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * get the title string
    */
-  getTitle(): string {
+  getTitle(): string | undefined {
     return this.title || this.constructor.title
   }
 
