@@ -1,4 +1,3 @@
-// @ts-strict-ignore
 import type {
   CanvasColour,
   LinkSegment,
@@ -98,16 +97,22 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** @inheritdoc */
   get origin_id(): NodeId | undefined {
     // if (!this.linkIds.size) return this.#network.deref()?.reroutes.get(this.parentId)
-    return this.#network.deref()
-      ?.links.get(this.linkIds.values().next().value)
-      ?.origin_id
+    const nextId = this.linkIds.values().next().value
+    return nextId === undefined
+      ? undefined
+      : this.#network.deref()
+        ?.links.get(nextId)
+        ?.origin_id
   }
 
   /** @inheritdoc */
   get origin_slot(): number | undefined {
-    return this.#network.deref()
-      ?.links.get(this.linkIds.values().next().value)
-      ?.origin_slot
+    const nextId = this.linkIds.values().next().value
+    return nextId === undefined
+      ? undefined
+      : this.#network.deref()
+        ?.links.get(nextId)
+        ?.origin_slot
   }
 
   /**
@@ -280,7 +285,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
    */
   draw(ctx: CanvasRenderingContext2D): void {
     const { pos } = this
-    ctx.fillStyle = this._colour
+    ctx.fillStyle = this._colour ?? "#18184d"
     ctx.beginPath()
     ctx.arc(pos[0], pos[1], Reroute.radius, 0, 2 * Math.PI)
     ctx.fill()
