@@ -617,22 +617,22 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         continue
       }
 
-      // @ts-expect-error #594
+      // @ts-ignore #594
       if (info[j] == null) {
         continue
-      // @ts-expect-error #594
+      // @ts-ignore #594
       } else if (typeof info[j] == "object") {
-        // @ts-expect-error #594
+        // @ts-ignore #594
         if (this[j]?.configure) {
-          // @ts-expect-error #594
+          // @ts-ignore #594
           this[j]?.configure(info[j])
         } else {
-          // @ts-expect-error #594
+          // @ts-ignore #594
           this[j] = LiteGraph.cloneObject(info[j], this[j])
         }
       } else {
         // value
-        // @ts-expect-error #594
+        // @ts-ignore #594
         this[j] = info[j]
       }
     }
@@ -721,7 +721,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (this.widgets[i])
           o.widgets_values[i] = this.widgets[i].value
         else
-          // @ts-expect-error #595 No-null
+          // @ts-ignore #595 No-null
           o.widgets_values[i] = null
       }
     }
