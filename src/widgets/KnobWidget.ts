@@ -177,18 +177,8 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
       ctx.closePath()
     }
 
-    // // Draw marker if present
-    // if (this.marker != null) {
-    //   let marker_nvalue = (this.marker - this.options.min) / range
-    //   marker_nvalue = clamp(marker_nvalue, 0, 1)
-    //   ctx.fillStyle = this.options.marker_color ?? "#AA9"
-    //   ctx.fillRect(
-    //     margin + marker_nvalue * (widget_width - margin * 2),
-    //     y,
-    //     2,
-    //     H,
-    //   )
-    // }
+    // Draw marker if present
+    // TODO: TBD later when options work
 
     // Draw text
     if (show_text) {
@@ -223,11 +213,21 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
   }): void {
     if (this.options.read_only) return
     const { e } = options
-    const deltaX = e.movementX
     const step = this.options.step
+    // Shift to move by 10% increments, there is no division by 10 due to the front-end multiplier
+    const maxMinDifference = (this.options.max - this.options.min)
+    const maxMinDifference10pct = maxMinDifference / 10
+    const step_for = {
+      delta_x: step,
+      shift: maxMinDifference > step ? maxMinDifference - (maxMinDifference % step) : step,
+      delta_y: maxMinDifference10pct > step ? maxMinDifference10pct - (maxMinDifference10pct % step) : step, // 1% increments
+    }
+
+    const use_y = Math.abs(e.movementY) > Math.abs(e.movementX)
+    const delta = use_y ? -e.movementY : e.movementX // Y is inverted so that UP increases the value
     const drag_threshold = 15
     // Calculate new value based on drag movement
-    this.current_drag_offset += deltaX
+    this.current_drag_offset += delta
     let adjustment = 0
     if (this.current_drag_offset > drag_threshold) {
       adjustment += 1
@@ -236,7 +236,12 @@ export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
       adjustment -= 1
       this.current_drag_offset += drag_threshold
     }
-    const step_with_shift_modifier = e.shiftKey ? (this.options.max - this.options.min) : step
+
+    const step_with_shift_modifier = e.shiftKey
+      ? step_for.shift
+      : use_y
+        ? step_for.delta_y
+        : step
     // HACK: For some reason, the front-end multiplies step by 10, this brings it down to the advertised value
     // SEE: src/utils/mathUtil.ts@getNumberDefaults in front end
     const deltaValue = adjustment * step_with_shift_modifier / 10
