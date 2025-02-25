@@ -31,12 +31,12 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
 
   #parentId?: RerouteId
   /** @inheritdoc */
-  public get parentId(): RerouteId {
+  public get parentId(): RerouteId | undefined {
     return this.#parentId
   }
 
   /** Ignores attempts to create an infinite loop. @inheritdoc */
-  public set parentId(value: RerouteId) {
+  public set parentId(value) {
     if (value === this.id) return
     if (this.getReroutes() === null) return
     this.#parentId = value
