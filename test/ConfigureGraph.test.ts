@@ -1,9 +1,9 @@
 import { describe } from "vitest"
 import { LGraph } from "@/litegraph"
-import { test } from "./testExtensions"
+import { dirtyTest } from "./testExtensions"
 
 describe("LGraph configure()", () => {
-  test("LGraph matches previous snapshot (normal configure() usage)", ({ expect, minimalSerialisableGraph, basicSerialisableGraph }) => {
+  dirtyTest("LGraph matches previous snapshot (normal configure() usage)", ({ expect, minimalSerialisableGraph, basicSerialisableGraph }) => {
     const configuredMinGraph = new LGraph()
     configuredMinGraph.configure(minimalSerialisableGraph)
     expect(configuredMinGraph).toMatchSnapshot("configuredMinGraph")
