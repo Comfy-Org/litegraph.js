@@ -1037,7 +1037,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   isOutputConnected(slot: number): boolean {
     if (!this.outputs) return false
-    return slot < this.outputs.length && this.outputs[slot].links?.length > 0
+    return slot < this.outputs.length && Number(this.outputs[slot].links?.length) > 0
   }
 
   /**
