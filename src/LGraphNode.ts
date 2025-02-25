@@ -721,6 +721,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (this.widgets[i])
           o.widgets_values[i] = this.widgets[i].value
         else
+          // @ts-expect-error #595 No-null
           o.widgets_values[i] = null
       }
     }
@@ -3059,7 +3060,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @returns `true` if any new links were established, otherwise `false`.
    * @todo Decision: Change API to return array of new links instead?
    */
-  connectInputToOutput(): boolean {
+  connectInputToOutput(): boolean | undefined {
     const { inputs, outputs, graph } = this
     if (!inputs || !outputs) return
 

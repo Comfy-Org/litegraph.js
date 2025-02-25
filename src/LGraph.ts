@@ -206,7 +206,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   onGetNodeMenuOptions?(options: IContextMenuValue[], node: LGraphNode): void
   onNodeConnectionChange?(
     nodeSlotType: ISlotType,
-    targetNode: LGraphNode,
+    targetNode: LGraphNode | null | undefined,
     slotIndex: number,
     sourceNode?: LGraphNode,
     sourceSlotIndex?: number,
