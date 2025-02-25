@@ -80,7 +80,7 @@ export {
 export { IWidget }
 export { LGraphBadge, BadgePosition }
 export { SlotShape, LabelPosition, SlotDirection, SlotType }
-export { EaseFunction, LinkMarkerShape, LGraphEventMode } from "./types/globalEnums"
+export { CanvasItem, EaseFunction, LinkMarkerShape, LGraphEventMode, RenderShape, TitleMode } from "./types/globalEnums"
 export type {
   SerialisableGraph,
   SerialisableLLink,
