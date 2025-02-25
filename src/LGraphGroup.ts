@@ -22,6 +22,7 @@ import {
 } from "./measure"
 import { LGraphNode } from "./LGraphNode"
 import { strokeShape } from "./draw"
+import { NullGraphError } from "@/infrastructure/NullGraphError"
 
 export interface IGraphGroupFlags extends Record<string, unknown> {
   pinned?: true
@@ -51,7 +52,7 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
   /** @deprecated See {@link _children} */
   _nodes: LGraphNode[] = []
   _children: Set<Positionable> = new Set()
-  graph: LGraph | null = null
+  graph?: LGraph
   flags: IGraphGroupFlags = {}
   selected?: boolean
 
@@ -236,6 +237,7 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
   }
 
   recomputeInsideNodes(): void {
+    if (!this.graph) throw new NullGraphError()
     const { nodes, reroutes, groups } = this.graph
     const children = this._children
     this._nodes.length = 0
