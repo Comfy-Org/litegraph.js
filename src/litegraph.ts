@@ -75,7 +75,7 @@ export {
   ColorOption,
   IColorable,
 }
-export { isColorable } from "./typeGuards"
+export { isColorable } from "./utils/type"
 export { IWidget }
 export { LGraphBadge, BadgePosition }
 export { RenderShape, TitleMode }
