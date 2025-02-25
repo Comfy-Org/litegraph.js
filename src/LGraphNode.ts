@@ -221,8 +221,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   /** The box color used to render the node. */
   get renderingBoxColor(): string {
-    let colState = LiteGraph.node_box_coloured_by_mode && LiteGraph.NODE_MODES_COLORS[this.mode]
-      ? LiteGraph.NODE_MODES_COLORS[this.mode]
+    const mode = this.mode ?? LGraphEventMode.ALWAYS
+    let colState = LiteGraph.node_box_coloured_by_mode && LiteGraph.NODE_MODES_COLORS[mode]
+      ? LiteGraph.NODE_MODES_COLORS[mode]
       : undefined
 
     if (LiteGraph.node_box_coloured_when_on) {
