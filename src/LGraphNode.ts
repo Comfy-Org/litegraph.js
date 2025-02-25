@@ -969,7 +969,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (!this.graph) throw new NullGraphError()
 
       const slot_info = this.inputs[slot]
-      return this.graph._links.get(slot_info.link)
+      return this.graph._links.get(slot_info.link) ?? null
     }
     return null
   }
