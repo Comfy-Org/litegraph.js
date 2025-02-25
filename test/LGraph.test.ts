@@ -2,7 +2,7 @@ import { describe } from "vitest"
 import { LGraph, LiteGraph } from "@/litegraph"
 import { test } from "./testExtensions"
 
-describe.concurrent("LGraph", () => {
+describe("LGraph", () => {
   test("can be instantiated", ({ expect }) => {
     // @ts-expect-error Intentional - extra holds any / all consumer data that should be serialised
     const graph = new LGraph({ extra: "TestGraph" })
@@ -31,7 +31,7 @@ describe.concurrent("LGraph", () => {
   })
 })
 
-describe.concurrent("Legacy LGraph Compatibility Layer", () => {
+describe("Legacy LGraph Compatibility Layer", () => {
   test("can be extended via prototype", ({ expect, minimalGraph }) => {
     // @ts-expect-error Should always be an error.
     LGraph.prototype.newMethod = function () {
