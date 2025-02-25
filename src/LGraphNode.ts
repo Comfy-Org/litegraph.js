@@ -2508,9 +2508,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (!graph) throw new NullGraphError()
 
     if (target_node) {
-      if (typeof target_node === "number")
-        target_node = graph.getNodeById(target_node)
-      if (!target_node) throw "Target Node not found"
+      const target = typeof target_node === "number"
+        ? graph.getNodeById(target_node)
+        : target_node
+      if (!target) throw "Target Node not found"
 
       for (const [i, link_id] of links.entries()) {
         const link_info = graph._links.get(link_id)
@@ -2518,7 +2519,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         // is the link we are searching for...
         if (link_info?.target_id == target.id) {
           links.splice(i, 1) // remove here
-          const input = target_node.inputs[link_info.target_slot]
+          const input = target.inputs[link_info.target_slot]
           input.link = null // remove there
 
           // remove the link from the links pool
@@ -2526,7 +2527,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           graph._version++
 
           // link_info hasn't been modified so its ok
-          target_node.onConnectionsChange?.(
+          target.onConnectionsChange?.(
             NodeSlotType.INPUT,
             link_info.target_slot,
             false,
@@ -2542,7 +2543,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           )
 
           graph.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
-          graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
+          graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target, link_info.target_slot)
           break
         }
       }
@@ -2553,16 +2554,16 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         // bug: it happens sometimes
         if (!link_info) continue
 
-        target_node = graph.getNodeById(link_info.target_id)
+        const target = graph.getNodeById(link_info.target_id)
         graph._version++
 
-        if (target_node) {
-          const input = target_node.inputs[link_info.target_slot]
+        if (target) {
+          const input = target.inputs[link_info.target_slot]
           // remove other side link
           input.link = null
 
           // link_info hasn't been modified so its ok
-          target_node.onConnectionsChange?.(
+          target.onConnectionsChange?.(
             NodeSlotType.INPUT,
             link_info.target_slot,
             false,
@@ -2581,7 +2582,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           output,
         )
         graph.onNodeConnectionChange?.(NodeSlotType.OUTPUT, this, slot)
-        graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target_node, link_info.target_slot)
+        graph.onNodeConnectionChange?.(NodeSlotType.INPUT, target, link_info.target_slot)
       }
       output.links = null
     }
