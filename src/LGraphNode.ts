@@ -157,7 +157,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   static keepAllLinksOnBypass: boolean = false
 
   /** The title text of the node. */
-  title?: string
+  title: string
   /**
    * The font style used to render the node's title text.
    */
@@ -781,7 +781,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * get the title string
    */
-  getTitle(): string | undefined {
+  getTitle(): string {
     return this.title || this.constructor.title
   }
 
