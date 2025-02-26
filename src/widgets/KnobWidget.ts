@@ -1,9 +1,11 @@
-import type { IKnobWidget, IWidgetKnobOptions } from "@/types/widgets"
-import { BaseWidget } from "./BaseWidget"
 import type { LGraphNode } from "@/LGraphNode"
+import type { IKnobWidget, IWidgetKnobOptions } from "@/types/widgets"
+
 import { LGraphCanvas } from "@/LGraphCanvas"
-import { CanvasMouseEvent } from "@/types/events"
 import { clamp } from "@/litegraph"
+import { CanvasMouseEvent } from "@/types/events"
+
+import { BaseWidget } from "./BaseWidget"
 
 export class KnobWidget extends BaseWidget implements IKnobWidget {
   declare type: "knob"
