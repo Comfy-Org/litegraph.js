@@ -2575,6 +2575,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       // Legacy custom widget callback
       if (widget.mouse) {
         const { eUp } = pointer
+        if (!eUp) return
         const { canvasX, canvasY } = eUp
         widget.mouse(eUp, [canvasX - node.pos[0], canvasY - node.pos[1]], node)
       }
