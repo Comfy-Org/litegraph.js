@@ -170,7 +170,7 @@ interface ClipboardPasteResult {
 
 /** Options for {@link LGraphCanvas.pasteFromClipboard}. */
 interface IPasteFromClipboardOptions {
-  /** If true, connect the inputs of the pasted items to the outputs of the nodes they are connected to. */
+  /** If `true`, always attempt to connect inputs of pasted nodes - including to nodes that were not pasted. */
   connectInputs?: boolean
   /** The position to paste the items at. */
   position?: Point
@@ -903,7 +903,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   static onMenuCollapseAll() {}
   static onMenuNodeEdit() {}
 
-  /** @param options Parameter is never used */
+  /** @param _options Parameter is never used */
   static showMenuNodeOptionalInputs(
     v: unknown,
     /** Unused - immediately overwritten */
@@ -984,7 +984,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     return false
   }
 
-  /** @param options Parameter is never used */
+  /** @param _options Parameter is never used */
   static showMenuNodeOptionalOutputs(
     v: unknown,
     /** Unused - immediately overwritten */
@@ -3402,7 +3402,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
   /**
    * Pastes the items from the canvas "clipbaord" - a local storage variable.
-   * @param connectInputs If `true`, always attempt to connect inputs of pasted nodes - including to nodes that were not pasted.
    */
   _pasteFromClipboard(options: IPasteFromClipboardOptions = {}): ClipboardPasteResult {
     const {
@@ -5515,7 +5514,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /**
    * draws the widgets stored inside a node
    * @deprecated Use {@link LGraphNode.drawWidgets} instead.
-   * @note Currently there are extensions hijacking this function, so we cannot remove it.
+   * @remarks Currently there are extensions hijacking this function, so we cannot remove it.
    */
   drawNodeWidgets(
     node: LGraphNode,

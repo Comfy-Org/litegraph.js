@@ -18,8 +18,8 @@ export class TextWidget extends BaseWidget implements IStringWidget {
 
   /**
    * Draws the widget
-   * @param ctx - The canvas context
-   * @param options - The options for drawing the widget
+   * @param ctx The canvas context
+   * @param options The options for drawing the widget
    */
   override drawWidget(ctx: CanvasRenderingContext2D, options: {
     y: number
