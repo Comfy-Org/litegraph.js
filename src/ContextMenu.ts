@@ -85,7 +85,7 @@ export class ContextMenu {
     // this prevents the default context browser menu to open in case this menu was created when pressing right button
     root.addEventListener(
       "pointerup",
-      function (e: MouseEvent) {
+      function (e) {
         // console.log("pointerevents: ContextMenu up root prevent");
         e.preventDefault()
         return true
@@ -94,7 +94,7 @@ export class ContextMenu {
     )
     root.addEventListener(
       "contextmenu",
-      function (e: MouseEvent) {
+      function (e) {
         // right button
         if (e.button != 2) return false
         e.preventDefault()
@@ -105,7 +105,7 @@ export class ContextMenu {
 
     root.addEventListener(
       "pointerdown",
-      (e: MouseEvent) => {
+      (e) => {
         // console.log("pointerevents: ContextMenu down");
         if (e.button == 2) {
           this.close()
