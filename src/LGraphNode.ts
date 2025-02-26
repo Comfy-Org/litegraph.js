@@ -753,8 +753,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     if (data.outputs) {
       for (let i = 0; i < data.outputs.length; ++i) {
-        if (data.outputs[i].links) {
-          data.outputs[i].links.length = 0
+        const links = data.outputs[i].links
+        if (links) {
+          links.length = 0
         }
       }
     }
