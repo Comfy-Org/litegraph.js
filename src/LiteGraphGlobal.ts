@@ -552,7 +552,7 @@ export class LiteGraphGlobal {
         const dynamicScript = document.createElement("script")
         dynamicScript.type = "text/javascript"
         dynamicScript.src = src
-        docHeadObj.appendChild(dynamicScript)
+        docHeadObj.append(dynamicScript)
         docHeadObj.removeChild(script_file)
       } catch (err) {
         if (this.throw_errors) throw err
