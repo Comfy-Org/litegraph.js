@@ -1157,7 +1157,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
-    this.execute_triggered = 2 // the nFrames it will be used (-- each step), means "how old" is the event
+    // the nFrames it will be used (-- each step), means "how old" is the event
+    this.execute_triggered = 2
     this.onAfterExecuteNode?.(param, options)
   }
 
@@ -1185,7 +1186,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
-    this.action_triggered = 2 // the nFrames it will be used (-- each step), means "how old" is the event
+    // the nFrames it will be used (-- each step), means "how old" is the event
+    this.action_triggered = 2
     this.onAfterExecuteNode?.(param, options)
   }
 
