@@ -22,7 +22,6 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
   computedHeight?: number
   /**
    * Compute the layout size of the widget.
-   * @param node The node this widget belongs to.
    * @returns The layout size of the widget.
    */
   computeLayoutSize(): {
