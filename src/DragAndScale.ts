@@ -49,10 +49,8 @@ export class DragAndScale {
     }
     this.max_scale = 10
     this.min_scale = 0.1
-    this.onredraw = null
     this.enabled = true
     this.last_mouse = [0, 0]
-    this.element = null
     this.visible_area = new Float32Array(4)
 
     this.element = element
