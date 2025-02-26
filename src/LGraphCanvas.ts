@@ -58,6 +58,7 @@ import {
   createBounds,
   isInRect,
   snapPoint,
+  getVector2Clamped,
 } from "./measure"
 import { strokeShape } from "./draw"
 import { DragAndScale } from "./DragAndScale"
@@ -520,6 +521,17 @@ export class LGraphCanvas implements ConnectionColorContext {
   dragZoomEnabled: boolean = false
   /** The start position of the drag zoom. */
   #dragZoomStart: { pos: Point, scale: number } | null = null
+
+  /** If true, enable automatic panning of the viewport when interacting close to canvas edges. */
+  auto_panning_enabled: boolean = false
+  /**
+   * Threshold to trigger automatic panning. Works based of the percent distance between the center of the canvas and its edges
+   * @remarks A value of 1.0 basically disables automatic panning.
+   */
+  auto_panning_threshold: number = 0.95
+  /** Defines the speed in which the viewport will pan automatic  */
+  auto_panning_speed: number = 350
+  auto_panning_event: ReturnType<typeof setInterval> | null = null
 
   getMenuOptions?(): IContextMenuValue[]
   getExtraMenuOptions?(
@@ -1889,6 +1901,51 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   /**
+   * Automatically moves the canvas to follow the mouse.
+   * @param deltaT Time difference since last frame
+   * @remarks Does not require items to be selected to work properly. Could add ramp up/down for smoother movement transition.
+   * */
+  autoPanCanvas(deltaT: number): void {
+    const moveDirection = getVector2Clamped(
+      this.mouse,
+      [this.canvas.clientWidth / 2, this.canvas.clientHeight / 2],
+    )
+    if (Math.abs(moveDirection[0]) > this.auto_panning_threshold || Math.abs(moveDirection[1]) > this.auto_panning_threshold) {
+      const { scale } = this.ds
+      const newOffsetX: number = (moveDirection[0] * deltaT * this.auto_panning_speed) / scale
+      const newOffsetY: number = (moveDirection[1] * deltaT * this.auto_panning_speed) / scale
+
+      this.ds.offset[0] -= newOffsetX
+      this.ds.offset[1] -= newOffsetY
+
+      this.#dirty()
+      if (this.connecting_links) { // Prevent selected Positionables from moving while dragging a link
+        // Update graph_mouse to prevent link from staying behind while dragging
+        this.graph_mouse[0] += newOffsetX
+        this.graph_mouse[1] += newOffsetY
+        return
+      }
+      for (const item of this.selectedItems) {
+        item.move(newOffsetX, newOffsetY, false)
+      }
+    }
+  }
+
+  setAutoPanCanvas(enabled: boolean, interval: number = 30) { // 30 ms == roughly 33 fps
+    if (!this.auto_panning_enabled) return
+    if (enabled) {
+      if (this.auto_panning_event) clearInterval(this.auto_panning_event)
+      this.auto_panning_event = setInterval(() => {
+        this.autoPanCanvas(interval * 0.001)
+      }, interval)
+      return
+    } else {
+      clearInterval(this.auto_panning_event)
+      this.auto_panning_event = null
+    }
+  }
+
+  /**
    * Gets the widget at the current cursor position
    * @param node Optional node to check for widgets under cursor
    * @returns The widget located at the current cursor position or null
@@ -2392,6 +2449,9 @@ export class LGraphCanvas implements ConnectionColorContext {
               }
             }
 
+            // enable canvas auto panning for link output
+            this.setAutoPanCanvas(true)
+
             // TODO: Move callbacks to the start of this closure (onInputClick is already correct).
             pointer.onDoubleClick = () => node.onOutputDblClick?.(i, e)
             pointer.onClick = () => node.onOutputClick?.(i, e)
@@ -2438,6 +2498,9 @@ export class LGraphCanvas implements ConnectionColorContext {
                 }
 
                 this.dirty_bgcanvas = true
+
+                // enable canvas auto panning for disconnected link input
+                this.setAutoPanCanvas(true)
               }
             }
             if (!pointer.onDragStart) {
@@ -2452,6 +2515,9 @@ export class LGraphCanvas implements ConnectionColorContext {
               pointer.onDragStart = () => connecting.input = input
 
               this.dirty_bgcanvas = true
+
+              // enable canvas auto panning for link input
+              this.setAutoPanCanvas(true)
             }
 
             // pointer.finally = () => this.connecting_links = null
@@ -2928,10 +2994,12 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.isDragging = false
       this.graph.afterChange()
       this.emitAfterChange()
+      this.setAutoPanCanvas(false)
     }
 
     this.processSelect(item, pointer.eDown, sticky)
     this.isDragging = true
+    this.setAutoPanCanvas(true)
   }
 
   /**
@@ -3082,6 +3150,8 @@ export class LGraphCanvas implements ConnectionColorContext {
             }
           }
         }
+        // disable canvas auto panning for links
+        this.setAutoPanCanvas(false)
       } else {
         this.dirty_canvas = true
 

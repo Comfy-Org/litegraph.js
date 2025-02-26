@@ -366,3 +366,19 @@ export function snapPoint(pos: Point | Rect, snapTo: number): boolean {
   pos[1] = snapTo * Math.round(pos[1] / snapTo)
   return true
 }
+
+/**
+ * Calculates the clamped vector between two points.
+ * @param pointA The first point
+ * @param pointB The second point
+ * @returns Vector2 {@link Point} of pointA to pointB, clamped to the range [-1, 1]
+ * @remarks Calculates a pseudo "normalized" Vector2 by clamping it in range. Faster than using SQRT for truly normalized vectors. DO NOT use as a true unit vector.
+ * */
+export function getVector2Clamped(pointA: Point, pointB: Point): Point {
+  const x: number = (pointA[0] - pointB[0]) / pointB[0]
+  const y: number = (pointA[1] - pointB[1]) / pointB[1]
+  return [
+    Math.max(-1, Math.min(1, x)),
+    Math.max(-1, Math.min(1, y)),
+  ]
+}
