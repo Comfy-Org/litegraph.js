@@ -131,10 +131,6 @@ export default tseslint.config(
         "error",
         { consistent: true, multiline: true },
       ],
-      "@stylistic/object-curly-newline": [
-        "error",
-        { consistent: true, multiline: true },
-      ],
       // "@stylistic/object-property-newline": ["error", { allowAllPropertiesOnSameLine: true }],
       // "@stylistic/object-property-newline": "error",
       "@stylistic/one-var-declaration-per-line": "error",
@@ -226,6 +222,7 @@ export default tseslint.config(
   {
     rules: {
       "antfu/consistent-chaining": "error",
+      "antfu/consistent-list-newline": "error",
     },
   },
 
