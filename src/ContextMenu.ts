@@ -188,8 +188,8 @@ export class ContextMenu {
   }
 
   addItem(
-    name: string,
-    value: IContextMenuValue | string,
+    name: string | null,
+    value: IContextMenuValue | string | null,
     options: IContextMenuOptions,
   ): HTMLElement {
     options ||= {}
@@ -363,7 +363,7 @@ export class ContextMenu {
       : this
   }
 
-  getFirstEvent(): MouseEvent {
+  getFirstEvent(): MouseEvent | undefined {
     return this.options.parentMenu
       ? this.options.parentMenu.getFirstEvent()
       : this.options.event
