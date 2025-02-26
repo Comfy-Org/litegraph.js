@@ -45,7 +45,7 @@ export class ContextMenu {
     if (parent) {
       if (!(parent instanceof ContextMenu)) {
         console.error("parentMenu must be of class ContextMenu, ignoring it")
-        options.parentMenu = null
+        options.parentMenu = undefined
       } else {
         this.parentMenu = parent
         this.parentMenu.lock = true
@@ -66,7 +66,7 @@ export class ContextMenu {
       eventClass !== "PointerEvent"
     ) {
       console.error(`Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it. (${eventClass})`)
-      options.event = null
+      options.event = undefined
     }
 
     const root: ContextMenuDivElement = document.createElement("div")
@@ -325,7 +325,7 @@ export class ContextMenu {
     this.root.remove()
     if (this.parentMenu && !ignore_parent_menu) {
       this.parentMenu.lock = false
-      this.parentMenu.current_submenu = null
+      this.parentMenu.current_submenu = undefined
       if (e === undefined) {
         this.parentMenu.close()
       } else if (e && !ContextMenu.isCursorOverElement(e, this.parentMenu.root)) {
