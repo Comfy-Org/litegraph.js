@@ -5,12 +5,12 @@ import { LGraphCanvas } from "@/LGraphCanvas"
 import { CanvasMouseEvent } from "@/types/events"
 import { clamp } from "@/litegraph"
 
-export class KnobWidget extends BaseWidget implements IKnobWidget<HTMLElement> {
+export class KnobWidget extends BaseWidget implements IKnobWidget {
   declare type: "knob"
   declare value: number
   declare options: IWidgetKnobOptions
 
-  constructor(widget: IKnobWidget<HTMLElement>) {
+  constructor(widget: IKnobWidget) {
     super(widget)
     this.type = "knob"
     this.value = widget.value

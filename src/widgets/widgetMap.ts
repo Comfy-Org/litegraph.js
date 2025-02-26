@@ -21,6 +21,7 @@ export const WIDGET_TYPE_MAP: Record<string, WidgetConstructor> = {
   toggle: BooleanWidget,
   // @ts-ignore #616
   slider: SliderWidget,
+  // @ts-ignore #616
   knob: KnobWidget,
   // @ts-ignore #616
   combo: ComboWidget,
