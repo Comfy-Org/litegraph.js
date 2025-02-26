@@ -1727,7 +1727,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   addCustomWidget<T extends IWidget>(custom_widget: T): T {
     this.widgets ||= []
-    // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+    // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
     const WidgetClass = WIDGET_TYPE_MAP[custom_widget.type]
     const widget = WidgetClass ? new WidgetClass(custom_widget) as IWidget : custom_widget
     this.widgets.push(widget)
@@ -3189,13 +3189,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (w.disabled) ctx.globalAlpha *= 0.5
       const widget_width = w.width || width
 
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[w.type]
       if (WidgetClass) {
-        // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+        // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
         toClass(WidgetClass, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
       } else {
-        // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+        // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
         w.draw?.(ctx, this, widget_width, y, H)
       }
       ctx.globalAlpha = editorAlpha

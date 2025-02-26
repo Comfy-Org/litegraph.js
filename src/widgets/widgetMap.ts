@@ -13,18 +13,18 @@ type WidgetConstructor = {
 }
 
 export const WIDGET_TYPE_MAP: Record<string, WidgetConstructor> = {
-  // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+  // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
   button: ButtonWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   toggle: BooleanWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   slider: SliderWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   combo: ComboWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   number: NumberWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   string: TextWidget,
-  // @ts-expect-error #616
+  // @ts-ignore #616
   text: TextWidget,
 }
