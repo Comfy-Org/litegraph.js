@@ -553,7 +553,7 @@ export class LiteGraphGlobal {
         dynamicScript.type = "text/javascript"
         dynamicScript.src = src
         docHeadObj.append(dynamicScript)
-        docHeadObj.removeChild(script_file)
+        script_file.remove()
       } catch (err) {
         if (this.throw_errors) throw err
         if (this.debug) console.log("Error while reloading " + src)
@@ -836,7 +836,7 @@ export class LiteGraphGlobal {
       if ("close" in result && typeof result.close === "function") {
         result.close()
       } else if (result.parentNode) {
-        result.parentNode.removeChild(result)
+        result.remove()
       }
     }
   }

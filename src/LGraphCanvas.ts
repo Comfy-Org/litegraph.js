@@ -1213,7 +1213,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     dialog.innerHTML =
       "<span class='name'></span><input autofocus type='text' class='value'/><button>OK</button>"
     dialog.close = function () {
-      dialog.parentNode?.removeChild(dialog)
+      dialog.remove()
     }
     const title = dialog.querySelector(".name")
     title.innerText = property
@@ -1293,7 +1293,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         value = Boolean(value)
       }
       node[property] = value
-      dialog.parentNode?.removeChild(dialog)
+      dialog.remove()
       canvas.setDirty(true, true)
     }
   }
@@ -5924,7 +5924,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     dialog.close = function () {
       that.prompt_box = null
       if (dialog.parentNode) {
-        dialog.parentNode.removeChild(dialog)
+        dialog.remove()
       }
     }
 
@@ -6104,7 +6104,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       setTimeout(function () {
         that.canvas.focus()
       }, 20)
-      dialog.parentNode?.removeChild(dialog)
+      dialog.remove()
     }
 
     if (this.ds.scale > 1) {
@@ -6772,7 +6772,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       dialog.is_modified = true
     }
     dialog.close = function () {
-      dialog.parentNode?.removeChild(dialog)
+      dialog.remove()
     }
 
     let dialogCloseTimer = null
@@ -6842,10 +6842,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     root.close = function () {
       if (typeof root.onClose == "function") root.onClose()
-      root.parentNode?.removeChild(root)
-      /* XXX CHECK THIS */
-      this.parentNode?.removeChild(this)
-      /* XXX this was not working, was fixed with an IF, check this */
+      root.remove()
+      this.remove()
     }
 
     // function to swap panel content
@@ -7105,7 +7103,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       const fDoneWith = function () {
         panel.toggleAltContent(false)
         panel.toggleFooterVisibility(true)
-        textarea.parentNode.removeChild(textarea)
+        textarea.remove()
         panel.classList.add("settings")
         panel.classList.remove("centered")
         inner_refresh()
