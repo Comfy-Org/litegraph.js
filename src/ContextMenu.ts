@@ -202,10 +202,11 @@ export class ContextMenu {
     if (value === null) {
       element.classList.add("separator")
     } else {
+      const innerHtml = name === null ? "" : String(name)
       if (typeof value === "string") {
-        element.innerHTML = name
+        element.innerHTML = innerHtml
       } else {
-        element.innerHTML = value?.title ?? name
+        element.innerHTML = value?.title ?? innerHtml
 
         if (value.disabled) {
           disabled = true
@@ -223,7 +224,7 @@ export class ContextMenu {
       element.setAttribute("role", "menuitem")
 
       if (typeof value === "function") {
-        element.dataset["value"] = name
+        element.dataset["value"] = String(name)
         element.onclick_callback = value
       } else {
         element.dataset["value"] = String(value)
