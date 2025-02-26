@@ -83,9 +83,8 @@ export class ContextMenu {
     }, 100)
 
     // this prevents the default context browser menu to open in case this menu was created when pressing right button
-    LiteGraph.pointerListenerAdd(
-      root,
-      "up",
+    root.addEventListener(
+      "pointerup",
       function (e: MouseEvent) {
         // console.log("pointerevents: ContextMenu up root prevent");
         e.preventDefault()
@@ -104,9 +103,8 @@ export class ContextMenu {
       true,
     )
 
-    LiteGraph.pointerListenerAdd(
-      root,
-      "down",
+    root.addEventListener(
+      "pointerdown",
       (e: MouseEvent) => {
         // console.log("pointerevents: ContextMenu down");
         if (e.button == 2) {
@@ -142,7 +140,7 @@ export class ContextMenu {
       this.addItem(name, value, options)
     }
 
-    LiteGraph.pointerListenerAdd(root, "enter", function () {
+    root.addEventListener("pointerenter", function () {
       if (root.closing_timer) {
         clearTimeout(root.closing_timer)
       }
@@ -235,7 +233,7 @@ export class ContextMenu {
     this.root.appendChild(element)
     if (!disabled) element.addEventListener("click", inner_onclick)
     if (!disabled && options.autoopen)
-      LiteGraph.pointerListenerAdd(element, "enter", inner_over)
+      element.addEventListener("pointerenter", inner_over)
 
     const setAriaExpanded = () => {
       const entries = this.root.querySelectorAll("div.litemenu-entry.has_submenu")
