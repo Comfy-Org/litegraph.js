@@ -20,7 +20,7 @@ export interface ContextMenu {
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class ContextMenu {
-  options?: IContextMenuOptions
+  options: IContextMenuOptions
   parentMenu?: ContextMenu
   root: ContextMenuDivElement
   current_submenu?: ContextMenu
