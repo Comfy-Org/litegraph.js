@@ -1,4 +1,3 @@
-// @ts-strict-ignore
 import type { IContextMenuOptions, IContextMenuValue } from "./interfaces"
 
 import { LiteGraph } from "./litegraph"
@@ -137,6 +136,7 @@ export class ContextMenu {
           : name
       }
 
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/578
       this.addItem(name, value, options)
     }
 
