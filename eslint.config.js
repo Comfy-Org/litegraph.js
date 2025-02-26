@@ -64,6 +64,7 @@ export default tseslint.config(
   unicornRecommended,
   {
     rules: {
+      "unicorn/better-regex": "error",
     },
   },
 
