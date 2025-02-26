@@ -20,6 +20,7 @@ const antfuLint = {
 }
 
 export default tseslint.config(
+  { ignores: [".*/**", "dist/**", "scripts/**"] },
   { files: ["**/*.{js,mjs,ts,mts}"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
