@@ -6959,7 +6959,13 @@ export class LGraphCanvas implements ConnectionColorContext {
         value_element.addEventListener("click", function (event) {
           const values = options.values || []
           const propname = this.parentNode.dataset["property"]
-          const elem_that = this
+          const inner_clicked = (v) => {
+            // node.setProperty(propname,v);
+            // graphcanvas.dirty_canvas = true;
+            this.textContent = v
+            innerChange(propname, v)
+            return false
+          }
           new LiteGraph.ContextMenu(
             values,
             {
@@ -6970,13 +6976,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             // @ts-expect-error
             ref_window,
           )
-          function inner_clicked(v) {
-            // node.setProperty(propname,v);
-            // graphcanvas.dirty_canvas = true;
-            elem_that.textContent = v
-            innerChange(propname, v)
-            return false
-          }
         })
       }
 
