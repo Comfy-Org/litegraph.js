@@ -70,7 +70,6 @@ export default tseslint.config(
       "unicorn/prefer-keyboard-event-key": "off",
       "unicorn/prefer-logical-operator-over-ternary": "off",
       "unicorn/prefer-math-min-max": "off",
-      "unicorn/prefer-native-coercion-functions": "off",
       "unicorn/prefer-query-selector": "off",
       "unicorn/prefer-spread": "off",
       "unicorn/prefer-structured-clone": "off",
