@@ -1638,8 +1638,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
     // litescene mode using the constructor
-    if (this.constructor["@" + property])
-      info = this.constructor["@" + property]
+    // @ts-expect-error deprecated https://github.com/Comfy-Org/litegraph.js/issues/639
+    if (this.constructor["@" + property]) info = this.constructor["@" + property]
 
     if (this.constructor.widgets_info?.[property])
       info = this.constructor.widgets_info[property]
