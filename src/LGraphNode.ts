@@ -1334,11 +1334,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     extra_info?: Partial<INodePropertyInfo>,
   ): INodePropertyInfo {
     const o: INodePropertyInfo = { name, type, default_value }
-    if (extra_info) {
-      for (const i in extra_info) {
-        o[i] = extra_info[i]
-      }
-    }
+    if (extra_info) Object.assign(o, extra_info)
+
     this.properties_info ||= []
     this.properties_info.push(o)
     this.properties ||= {}
@@ -1357,11 +1354,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     extra_info?: Partial<INodeOutputSlot>,
   ): INodeOutputSlot {
     const output = new NodeOutputSlot({ name, type, links: null })
-    if (extra_info) {
-      for (const i in extra_info) {
-        output[i] = extra_info[i]
-      }
-    }
+    if (extra_info) Object.assign(output, extra_info)
 
     this.outputs ||= []
     this.outputs.push(output)
@@ -1382,11 +1375,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   addOutputs(array: [string, ISlotType, Partial<INodeOutputSlot>][]): void {
     for (const info of array) {
       const o = new NodeOutputSlot({ name: info[0], type: info[1], links: null })
-      if (array[2]) {
-        for (const j in info[2]) {
-          o[j] = info[2][j]
-        }
-      }
+      // TODO: Checking the wrong variable here - confirm no downstream consumers, then remove.
+      if (array[2]) Object.assign(o, info[2])
 
       this.outputs ||= []
       this.outputs.push(o)
@@ -1434,11 +1424,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   addInput(name: string, type: ISlotType, extra_info?: Partial<INodeInputSlot>): INodeInputSlot {
     type = type || 0
     const input: INodeInputSlot = new NodeInputSlot({ name: name, type: type, link: null })
-    if (extra_info) {
-      for (const i in extra_info) {
-        input[i] = extra_info[i]
-      }
-    }
+    if (extra_info) Object.assign(input, extra_info)
 
     this.inputs ||= []
     this.inputs.push(input)
@@ -1459,11 +1445,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     for (const info of array) {
       const o: INodeInputSlot = new NodeInputSlot({ name: info[0], type: info[1], link: null })
       // TODO: Checking the wrong variable here - confirm no downstream consumers, then remove.
-      if (array[2]) {
-        for (const j in info[2]) {
-          o[j] = info[2][j]
-        }
-      }
+      if (array[2]) Object.assign(o, info[2])
 
       this.inputs ||= []
       this.inputs.push(o)
