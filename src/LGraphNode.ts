@@ -1418,7 +1418,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         const link = this.graph._links.get(linkId)
         if (!link) continue
 
-        link.origin_slot -= 1
+        link.origin_slot--
       }
     }
 
@@ -1492,7 +1492,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const link = this.graph._links.get(input.link)
       if (!link) continue
 
-      link.target_slot -= 1
+      link.target_slot--
     }
     this.onInputRemoved?.(slot, slot_info[0])
     this.setDirtyCanvas(true, true)
