@@ -7004,24 +7004,23 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.SELECTED_NODE = node
     this.closePanels()
     const ref_window = this.getCanvasWindow()
-    const graphcanvas = this
     const panel = this.createPanel(node.title || "", {
       closable: true,
       window: ref_window,
-      onOpen: function () {
-        graphcanvas.NODEPANEL_IS_OPEN = true
+      onOpen: () => {
+        this.NODEPANEL_IS_OPEN = true
       },
-      onClose: function () {
-        graphcanvas.NODEPANEL_IS_OPEN = false
-        graphcanvas.node_panel = null
+      onClose: () => {
+        this.NODEPANEL_IS_OPEN = false
+        this.node_panel = null
       },
     })
-    graphcanvas.node_panel = panel
+    this.node_panel = panel
     panel.id = "node-panel"
     panel.node = node
     panel.classList.add("settings")
 
-    function inner_refresh() {
+    const inner_refresh = () => {
       // clear
       panel.content.innerHTML = ""
       // @ts-expect-error ctor props
@@ -7029,8 +7028,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       panel.addHTML("<h3>Properties</h3>")
 
-      const fUpdate = function (name, value) {
-        graphcanvas.graph.beforeChange(node)
+      const fUpdate = (name, value) => {
+        this.graph.beforeChange(node)
         switch (name) {
         case "Title":
           node.title = value
@@ -7056,8 +7055,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           node.setProperty(name, value)
           break
         }
-        graphcanvas.graph.afterChange()
-        graphcanvas.dirty_canvas = true
+        this.graph.afterChange()
+        this.dirty_canvas = true
       }
 
       panel.addWidget("string", "Title", node.title, {}, fUpdate)
