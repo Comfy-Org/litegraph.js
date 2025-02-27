@@ -763,7 +763,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     if (LiteGraph.use_uuids) data.id = LiteGraph.uuidv4()
 
-    // remove links
     node.configure(data)
 
     return node
