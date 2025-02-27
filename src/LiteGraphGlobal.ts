@@ -446,8 +446,8 @@ export class LiteGraphGlobal {
     if (this.catch_exceptions) {
       try {
         node = new base_class(title)
-      } catch (err) {
-        console.error(err)
+      } catch (error) {
+        console.error(error)
         return null
       }
     } else {
@@ -554,8 +554,8 @@ export class LiteGraphGlobal {
         dynamicScript.src = src
         docHeadObj.append(dynamicScript)
         script_file.remove()
-      } catch (err) {
-        if (this.throw_errors) throw err
+      } catch (error) {
+        if (this.throw_errors) throw error
         if (this.debug) console.log("Error while reloading " + src)
       }
     }
