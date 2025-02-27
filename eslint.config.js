@@ -59,7 +59,6 @@ export default tseslint.config(
     rules: {
       // Temporarily disabled
       // See https://github.com/Comfy-Org/litegraph.js/issues/629
-      "unicorn/consistent-existence-index-check": "off",
       "unicorn/no-array-callback-reference": "off",
       "unicorn/no-array-push-push": "off",
       "unicorn/no-console-spaces": "off",

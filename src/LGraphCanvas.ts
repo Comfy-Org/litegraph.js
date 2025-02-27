@@ -1384,7 +1384,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       const kV = Object.values(LiteGraph.NODE_MODES).indexOf(v)
       const fApplyMultiNode = function (node) {
-        if (kV >= 0 && LiteGraph.NODE_MODES[kV]) {
+        if (kV !== -1 && LiteGraph.NODE_MODES[kV]) {
           node.changeMode(kV)
         } else {
           console.warn("unexpected mode: " + v)
@@ -7035,7 +7035,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           break
         case "Mode": {
           const kV = Object.values(LiteGraph.NODE_MODES).indexOf(value)
-          if (kV >= 0 && LiteGraph.NODE_MODES[kV]) {
+          if (kV !== -1 && LiteGraph.NODE_MODES[kV]) {
             node.changeMode(kV)
           } else {
             console.warn("unexpected mode: " + value)
