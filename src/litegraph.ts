@@ -1,57 +1,30 @@
-import type { LabelPosition, SlotDirection, SlotShape, SlotType } from "./draw"
+export type { IWidget } from "./types/widgets"
+import type { ContextMenu } from "./ContextMenu"
 import type { ConnectingLink, Point } from "./interfaces"
 import type {
-  CanvasColour,
-  ColorOption,
-  Direction,
-  IBoundaryNodes,
-  IColorable,
   IContextMenuOptions,
-  IContextMenuValue,
-  IFoundSlot,
-  IInputOrOutput,
-  INodeFlags,
-  INodeInputSlot,
-  INodeOutputSlot,
   INodeSlot,
-  IOptionalSlotData,
-  ISlotType,
-  KeysOfType,
-  MethodNames,
-  PickByType,
-  Rect,
-  Rect32,
   Size,
 } from "./interfaces"
+import type { LGraphNode } from "./LGraphNode"
 import type { CanvasEventDetail } from "./types/events"
 import type { RenderShape, TitleMode } from "./types/globalEnums"
-import type { IWidget } from "./types/widgets"
 
-import { ContextMenu } from "./ContextMenu"
-import { CurveEditor } from "./CurveEditor"
-import { DragAndScale } from "./DragAndScale"
-import { LGraph } from "./LGraph"
-import { BadgePosition, LGraphBadge } from "./LGraphBadge"
-import { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
-import { LGraphGroup } from "./LGraphGroup"
-import { LGraphNode } from "./LGraphNode"
+export { ContextMenu } from "./ContextMenu"
+export { CurveEditor } from "./CurveEditor"
+export { DragAndScale } from "./DragAndScale"
+export { LGraph } from "./LGraph"
+export { BadgePosition, LGraphBadge } from "./LGraphBadge"
+export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
+export { LGraphGroup } from "./LGraphGroup"
+export { LGraphNode } from "./LGraphNode"
+export { LLink } from "./LLink"
+
 import { LiteGraphGlobal } from "./LiteGraphGlobal"
-import { LLink } from "./LLink"
 import { loadPolyfills } from "./polyfills"
 
 export const LiteGraph = new LiteGraphGlobal()
-export {
-  ContextMenu,
-  CurveEditor,
-  DragAndScale,
-  LGraph,
-  LGraphCanvas,
-  LGraphCanvasState,
-  LGraphGroup,
-  LGraphNode,
-  LLink,
-}
-export {
+export type {
   CanvasColour,
   ColorOption,
   ConnectingLink,
@@ -74,11 +47,9 @@ export {
   Rect,
   Rect32,
   Size,
-}
+} from "./interfaces"
 export { isColorable } from "./utils/type"
-export { IWidget }
-export { BadgePosition, LGraphBadge }
-export { LabelPosition, SlotDirection, SlotShape, SlotType }
+export { LabelPosition, SlotDirection, SlotShape, SlotType } from "./draw"
 export { CanvasPointer } from "./CanvasPointer"
 export { strokeShape } from "./draw"
 export { createBounds } from "./measure"
