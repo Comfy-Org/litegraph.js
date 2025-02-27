@@ -679,7 +679,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     // Sync the state of this.resizable.
-    if (this.pinned) this.pin(true)
+    if (this.pinned) this.resizable = false
 
     this.onConfigure?.(info)
   }
@@ -2815,9 +2815,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * Toggles pinned state if no value is provided.
    */
   pin(v?: boolean): void {
-    if (this.graph) {
-      this.graph._version++
-    }
+    if (!this.graph) throw new NullGraphError()
+
+    this.graph._version++
     this.flags.pinned = v ?? !this.flags.pinned
     this.resizable = !this.pinned
     // Delete the flag if unpinned, so that we don't get unnecessary
