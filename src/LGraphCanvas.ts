@@ -1232,7 +1232,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           // save
           inner()
           // @ts-expect-error Intentional - undefined if not present
-        } else if (e.keyCode != 13 && e.target.localName != "textarea") {
+        } else if (e.target.localName != "textarea") {
           return
         }
         e.preventDefault()
@@ -6658,7 +6658,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             // ENTER
             // save
             inner()
-          } else if (e.keyCode != 13) {
+          } else {
             dialog.modified()
             return
           }
@@ -7457,10 +7457,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           } else if (e.keyCode == 13) {
             // save
             inner()
-          } else if (
-            e.keyCode != 13 &&
-            (e.target as Element).localName != "textarea"
-          ) {
+          } else if ((e.target as Element).localName != "textarea") {
             return
           }
           e.preventDefault()
