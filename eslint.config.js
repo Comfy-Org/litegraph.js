@@ -67,6 +67,7 @@ export default tseslint.config(
       "unicorn/no-array-for-each": "error",
       "unicorn/empty-brace-spaces": "error",
       "unicorn/no-nested-ternary": "error",
+      "unicorn/prefer-string-replace-all": "error",
 
       // Node rules: dev dependency config, etc.
       "unicorn/prefer-node-protocol": "error",
