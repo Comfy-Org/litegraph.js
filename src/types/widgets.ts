@@ -13,7 +13,7 @@ export interface IWidgetOptions<TValue = unknown> extends Record<string, unknown
   precision?: number
   read_only?: boolean
   /**
-   * @deprecated Use {@link IWidgetSliderOptions.step2} instead.
+   * @deprecated Use {@link IWidgetOptions.step2} instead.
    * The legacy step is scaled up by 10x in the legacy frontend logic.
    */
   step?: number
