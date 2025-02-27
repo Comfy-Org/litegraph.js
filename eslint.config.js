@@ -19,10 +19,6 @@ const antfuLint = {
 
 const unicornRecommended = eslintPluginUnicorn.configs.recommended
 
-for (const id of Object.keys(unicornRecommended.rules)) {
-  unicornRecommended.rules[id] = "off"
-}
-
 export default tseslint.config(
   { ignores: [".*/**", "dist/**", "scripts/**"] },
   { files: ["**/*.{js,mjs,ts,mts}"] },
@@ -61,14 +57,49 @@ export default tseslint.config(
   unicornRecommended,
   {
     rules: {
-      "unicorn/better-regex": "error",
-      "unicorn/prefer-dom-node-append": "error",
-      "unicorn/prefer-dom-node-remove": "error",
-      "unicorn/no-array-for-each": "error",
-      "unicorn/empty-brace-spaces": "error",
-      "unicorn/no-nested-ternary": "error",
-      "unicorn/prefer-string-replace-all": "error",
-      "unicorn/prefer-dom-node-text-content": "error",
+      // Temporarily disabled
+      // See https://github.com/Comfy-Org/litegraph.js/issues/629
+      "unicorn/prefer-export-from": "off",
+      "unicorn/catch-error-name": "off",
+      "unicorn/consistent-existence-index-check": "off",
+      "unicorn/no-array-callback-reference": "off",
+      "unicorn/no-array-push-push": "off",
+      "unicorn/no-console-spaces": "off",
+      "unicorn/no-lonely-if": "off",
+      "unicorn/no-this-assignment": "off",
+      "unicorn/no-typeof-undefined": "off",
+      "unicorn/no-useless-switch-case": "off",
+      "unicorn/no-zero-fractions": "off",
+      "unicorn/numeric-separators-style": "off",
+      "unicorn/prefer-add-event-listener": "off",
+      "unicorn/prefer-blob-reading-methods": "off",
+      "unicorn/prefer-date-now": "off",
+      "unicorn/prefer-default-parameters": "off",
+      "unicorn/prefer-keyboard-event-key": "off",
+      "unicorn/prefer-logical-operator-over-ternary": "off",
+      "unicorn/prefer-math-min-max": "off",
+      "unicorn/prefer-native-coercion-functions": "off",
+      "unicorn/prefer-query-selector": "off",
+      "unicorn/prefer-spread": "off",
+      "unicorn/prefer-structured-clone": "off",
+      "unicorn/prefer-switch": "off",
+      "unicorn/prefer-ternary": "off",
+      "unicorn/prefer-includes": "off",
+
+      // Disable rules
+      "unicorn/prefer-string-slice": "off",
+      "unicorn/prefer-number-properties": "off",
+      "unicorn/require-number-to-fixed-digits-argument": "off",
+      "unicorn/explicit-length-check": "off",
+      "unicorn/no-negated-condition": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/no-null": "off",
+      "unicorn/prevent-abbreviations": "off",
+      "unicorn/switch-case-braces": "off",
+      "unicorn/prefer-global-this": "off",
+      "unicorn/consistent-function-scoping": "off",
+      "unicorn/no-new-array": "off",
+      "unicorn/prefer-string-raw": "off",
 
       // Node rules: dev dependency config, etc.
       "unicorn/prefer-node-protocol": "error",
