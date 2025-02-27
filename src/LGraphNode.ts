@@ -1172,9 +1172,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     options = options || {}
     if (this.onAction) {
       // enable this to give the event an ID
-      options.action_call ||= this.id + "_" + (action ? action : "action") + "_" + Math.floor(Math.random() * 9999)
+      options.action_call ||= this.id + "_" + (action || "action") + "_" + Math.floor(Math.random() * 9999)
 
-      this.graph.nodes_actioning[this.id] = action ? action : "actioning"
+      this.graph.nodes_actioning[this.id] = action || "actioning"
       this.onAction(action, param, options)
       this.graph.nodes_actioning[this.id] = false
 
