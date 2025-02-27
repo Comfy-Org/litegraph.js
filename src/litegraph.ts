@@ -1,4 +1,3 @@
-export type { IWidget } from "./types/widgets"
 import type { ContextMenu } from "./ContextMenu"
 import type { ConnectingLink, Point } from "./interfaces"
 import type {
@@ -10,56 +9,10 @@ import type { LGraphNode } from "./LGraphNode"
 import type { CanvasEventDetail } from "./types/events"
 import type { RenderShape, TitleMode } from "./types/globalEnums"
 
-export { ContextMenu } from "./ContextMenu"
-export { CurveEditor } from "./CurveEditor"
-export { DragAndScale } from "./DragAndScale"
-export { LGraph } from "./LGraph"
-export { BadgePosition, LGraphBadge } from "./LGraphBadge"
-export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
-export { LGraphGroup } from "./LGraphGroup"
-export { LGraphNode } from "./LGraphNode"
-export { LLink } from "./LLink"
-
 import { LiteGraphGlobal } from "./LiteGraphGlobal"
 import { loadPolyfills } from "./polyfills"
 
 export const LiteGraph = new LiteGraphGlobal()
-export type {
-  CanvasColour,
-  ColorOption,
-  ConnectingLink,
-  Direction,
-  IBoundaryNodes,
-  IColorable,
-  IContextMenuOptions,
-  IContextMenuValue,
-  IFoundSlot,
-  IInputOrOutput,
-  INodeFlags,
-  INodeInputSlot,
-  INodeOutputSlot,
-  INodeSlot,
-  IOptionalSlotData,
-  ISlotType,
-  KeysOfType,
-  MethodNames,
-  PickByType,
-  Rect,
-  Rect32,
-  Size,
-} from "./interfaces"
-export { isColorable } from "./utils/type"
-export { LabelPosition, SlotDirection, SlotShape, SlotType } from "./draw"
-export { CanvasPointer } from "./CanvasPointer"
-export { strokeShape } from "./draw"
-export { createBounds } from "./measure"
-export { Reroute } from "./Reroute"
-export { CanvasItem, EaseFunction, LGraphEventMode, LinkMarkerShape, RenderShape, TitleMode } from "./types/globalEnums"
-export type {
-  ISerialisedGraph,
-  SerialisableGraph,
-  SerialisableLLink,
-} from "./types/serialisation"
 
 export function clamp(v: number, a: number, b: number): number {
   return a > v ? a : (b < v ? b : v)
@@ -133,3 +86,57 @@ export interface LGraphNodeConstructor<T extends LGraphNode = LGraphNode> {
 }
 
 // End backwards compat
+
+export { CanvasPointer } from "./CanvasPointer"
+export { ContextMenu } from "./ContextMenu"
+export { CurveEditor } from "./CurveEditor"
+export { DragAndScale } from "./DragAndScale"
+export { LabelPosition, SlotDirection, SlotShape, SlotType } from "./draw"
+export { strokeShape } from "./draw"
+export type {
+  CanvasColour,
+  ColorOption,
+  ConnectingLink,
+  Direction,
+  IBoundaryNodes,
+  IColorable,
+  IContextMenuOptions,
+  IContextMenuValue,
+  IFoundSlot,
+  IInputOrOutput,
+  INodeFlags,
+  INodeInputSlot,
+  INodeOutputSlot,
+  INodeSlot,
+  IOptionalSlotData,
+  ISlotType,
+  KeysOfType,
+  MethodNames,
+  PickByType,
+  Rect,
+  Rect32,
+  Size,
+} from "./interfaces"
+export { LGraph } from "./LGraph"
+export { BadgePosition, LGraphBadge } from "./LGraphBadge"
+export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
+export { LGraphGroup } from "./LGraphGroup"
+export { LGraphNode } from "./LGraphNode"
+export { LLink } from "./LLink"
+export { createBounds } from "./measure"
+export { Reroute } from "./Reroute"
+export {
+  CanvasItem,
+  EaseFunction,
+  LGraphEventMode,
+  LinkMarkerShape,
+  RenderShape,
+  TitleMode,
+} from "./types/globalEnums"
+export type {
+  ISerialisedGraph,
+  SerialisableGraph,
+  SerialisableLLink,
+} from "./types/serialisation"
+export type { IWidget } from "./types/widgets"
+export { isColorable } from "./utils/type"
