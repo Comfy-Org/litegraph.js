@@ -555,7 +555,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     size: Size,
     scale: number,
     title_text_font: string,
-    selected: boolean,
+    selected?: boolean,
   ): void
   onDrawTitleBox?(
     this: LGraphNode,
@@ -755,6 +755,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
 
+    // @ts-expect-error Exceptional case: id is removed so that the graph can assign a new one on add.
     delete data.id
 
     if (LiteGraph.use_uuids) data.id = LiteGraph.uuidv4()
@@ -959,8 +960,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (slot < this.inputs.length) {
       if (!this.graph) throw new NullGraphError()
 
-      const slot_info = this.inputs[slot]
-      return this.graph._links.get(slot_info.link) ?? null
+      const input = this.inputs[slot]
+      if (input.link != null) {
+        return this.graph._links.get(input.link) ?? null
+      }
     }
     return null
   }
@@ -1137,15 +1140,19 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (this.onExecute) {
       // enable this to give the event an ID
       options.action_call ||= this.id + "_exec_" + Math.floor(Math.random() * 9999)
+      if (!this.graph) throw new NullGraphError()
 
+      // @ts-expect-error Technically it works when id is a string. Array gets props.
       this.graph.nodes_executing[this.id] = true
       this.onExecute(param, options)
+      // @ts-expect-error deprecated
       this.graph.nodes_executing[this.id] = false
 
       // save execution/action ref
       this.exec_version = this.graph.iteration
       if (options?.action_call) {
         this.action_call = options.action_call
+        // @ts-expect-error deprecated
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
@@ -1167,14 +1174,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (this.onAction) {
       // enable this to give the event an ID
       options.action_call ||= this.id + "_" + (action || "action") + "_" + Math.floor(Math.random() * 9999)
+      if (!this.graph) throw new NullGraphError()
 
+      // @ts-expect-error deprecated
       this.graph.nodes_actioning[this.id] = action || "actioning"
       this.onAction(action, param, options)
+      // @ts-expect-error deprecated
       this.graph.nodes_actioning[this.id] = false
 
       // save execution/action ref
       if (options?.action_call) {
         this.action_call = options.action_call
+        // @ts-expect-error deprecated
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
@@ -1467,7 +1478,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     for (let i = slot; i < inputs.length; ++i) {
       const input = inputs[i]
-      if (!input) continue
+      if (!input?.link) continue
 
       if (!this.graph) throw new NullGraphError()
       const link = this.graph._links.get(input.link)
@@ -1676,7 +1687,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       type: type.toLowerCase(),
       name: name,
       value: value,
-      callback: typeof callback !== "function" ? null : callback,
+      callback: typeof callback !== "function" ? undefined : callback,
       options,
     }
 
@@ -2178,7 +2189,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (!this.graph) throw new NullGraphError()
 
     if (node && typeof node === "number") {
-      node = this.graph.getNodeById(node)
+      const nodeById = this.graph.getNodeById(node)
+      if (!nodeById) return null
+
+      node = nodeById
     }
     const slot = node.findSlotByType(findInputs, slotType, false, true)
     if (slot >= 0 && slot !== null) return slot
@@ -2279,7 +2293,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     afterRerouteId?: RerouteId,
   ): LLink | null {
     // Allow legacy API support for searching target_slot by string, without mutating the input variables
-    let targetIndex: number
+    let targetIndex: number | null
 
     const graph = this.graph
     if (!graph) {
@@ -2302,7 +2316,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     if (target_node && typeof target_node === "number") {
-      target_node = graph.getNodeById(target_node)
+      const nodeById = graph.getNodeById(target_node)
+      if (!nodeById) throw "target node is null"
+
+      target_node = nodeById
     }
     if (!target_node) throw "target node is null"
 
@@ -2350,7 +2367,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let changed = false
 
     const input = target_node.inputs[targetIndex]
-    let link_info: LLink = null
+    let link_info: LLink | null = null
     const output = this.outputs[slot]
 
     if (!this.outputs[slot]) return null
@@ -2715,9 +2732,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   /* Console output */
-  trace(msg?: string): void {
+  trace(msg: string): void {
     this.console ||= []
     this.console.push(msg)
+    // @ts-expect-error deprecated
     if (this.console.length > LGraphNode.MAX_CONSOLE)
       this.console.shift()
   }
@@ -2991,7 +3009,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   drawTitleText(ctx: CanvasRenderingContext2D, options: {
     scale: number
-    default_title_color?: string
+    default_title_color: string
     low_quality?: boolean
     title_height?: number
   }): void {
@@ -3076,10 +3094,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // First pass: only match exactly index-to-index
     for (const [index, input] of inputs.entries()) {
+      if (input.link == null) continue
+
       const output = outputs[index]
       if (!output || !LiteGraph.isValidConnection(input.type, output.type)) continue
 
       const inLink = _links.get(input.link)
+      if (!inLink) continue
       const inNode = graph.getNodeById(inLink?.origin_id)
       if (!inNode) continue
 
@@ -3091,7 +3112,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // Second pass: match any remaining links
     for (const input of inputs) {
+      if (input.link == null) continue
+
       const inLink = _links.get(input.link)
+      if (!inLink) continue
       const inNode = graph.getNodeById(inLink?.origin_id)
       if (!inNode) continue
 
