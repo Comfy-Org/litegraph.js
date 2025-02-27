@@ -2623,7 +2623,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (!target_node) return false
 
         const output = target_node.outputs[link_info.origin_slot]
-        if (!(output?.links?.length > 0)) return false
+        if (!(output?.links?.length)) return false
 
         // search in the inputs list for this link
         let i = 0
