@@ -131,7 +131,7 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
         // Solve the equation if possible
         try {
           v = eval(v)
-        } catch { }
+        } catch {}
       }
       const newValue = Number(v)
       if (!isNaN(newValue)) {
