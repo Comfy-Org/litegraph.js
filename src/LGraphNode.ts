@@ -743,20 +743,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // we clone it because serialize returns shared containers
     const data = LiteGraph.cloneObject(this.serialize())
+    const { inputs, outputs } = data
 
     // remove links
-    if (data.inputs) {
-      for (let i = 0; i < data.inputs.length; ++i) {
-        data.inputs[i].link = null
+    if (inputs) {
+      for (const element of inputs) {
+        element.link = null
       }
     }
 
-    if (data.outputs) {
-      for (let i = 0; i < data.outputs.length; ++i) {
-        const links = data.outputs[i].links
-        if (links) {
-          links.length = 0
-        }
+    if (outputs) {
+      for (const { links } of outputs) {
+        if (links) links.length = 0
       }
     }
 
