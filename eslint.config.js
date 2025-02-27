@@ -61,7 +61,6 @@ export default tseslint.config(
       // See https://github.com/Comfy-Org/litegraph.js/issues/629
       "unicorn/no-lonely-if": "off",
       "unicorn/no-this-assignment": "off",
-      "unicorn/no-typeof-undefined": "off",
       "unicorn/no-useless-switch-case": "off",
       "unicorn/no-zero-fractions": "off",
       "unicorn/numeric-separators-style": "off",

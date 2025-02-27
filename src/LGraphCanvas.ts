@@ -6315,7 +6315,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                 ? options.node_from.findOutputSlot(options.slot_from.name)
                 : -1
               // @ts-expect-error change interface check
-              if (iS == -1 && typeof options.slot_from.slot_index !== "undefined") iS = options.slot_from.slot_index
+              if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
               break
             case "number":
               iS = options.slot_from
@@ -6324,7 +6324,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               // try with first if no name set
               iS = 0
             }
-            if (typeof options.node_from.outputs[iS] !== "undefined") {
+            if (options.node_from.outputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
                 options.node_from.connectByType(iS, node, options.node_from.outputs[iS].type)
               }
@@ -6344,7 +6344,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                 ? options.node_to.findInputSlot(options.slot_from.name)
                 : -1
               // @ts-expect-error change interface check
-              if (iS == -1 && typeof options.slot_from.slot_index !== "undefined") iS = options.slot_from.slot_index
+              if (iS == -1 && options.slot_from.slot_index !== undefined) iS = options.slot_from.slot_index
               break
             case "number":
               iS = options.slot_from
@@ -6353,7 +6353,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               // try with first if no name set
               iS = 0
             }
-            if (typeof options.node_to.inputs[iS] !== "undefined") {
+            if (options.node_to.inputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
                 // try connection
                 options.node_to.connectByTypeOutput(iS, node, options.node_to.inputs[iS].type)
@@ -6847,7 +6847,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     root.toggleAltContent = function (force: unknown) {
       let vTo: string
       let vAlt: string
-      if (typeof force != "undefined") {
+      if (force !== undefined) {
         vTo = force ? "block" : "none"
         vAlt = force ? "none" : "block"
       } else {
@@ -6860,7 +6860,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     root.toggleFooterVisibility = function (force: unknown) {
       let vTo: string
-      if (typeof force != "undefined") {
+      if (force !== undefined) {
         vTo = force ? "block" : "none"
       } else {
         vTo = root.footer.style.display != "block" ? "block" : "none"
