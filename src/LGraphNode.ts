@@ -1,4 +1,3 @@
-// @ts-strict-ignore
 import type { DragAndScale } from "./DragAndScale"
 import type {
   CanvasColour,
@@ -3156,6 +3155,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           name: "",
           type: linkOverWidgetType,
           link: 0,
+          // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
         }).draw(ctx, { pos: [10, y + 10], colorContext })
       }
 
@@ -3216,6 +3216,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const x = this._collapsed_width
       const y = LiteGraph.NODE_TITLE_HEIGHT * -0.5
       toClass(NodeOutputSlot, output_slot).drawCollapsed(ctx, {
+        // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
         pos: [x, y],
       })
     }
@@ -3259,12 +3260,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
+      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
       slots.push(slot._layoutElement)
     }
     for (const [i, slot] of this.outputs.entries()) {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
+      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
       slots.push(slot._layoutElement)
     }
 
@@ -3307,6 +3310,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
 
       slotInstance.draw(ctx, {
+      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
         pos: layoutElement.center,
         colorContext,
         labelColor,
@@ -3350,6 +3354,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         const { minHeight, maxHeight } = w.computeLayoutSize(this)
         growableWidgets.push({
           minHeight,
+          // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
           prefHeight: maxHeight,
           w,
         })
@@ -3382,6 +3387,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let y = widgetStartY
     for (const w of this.widgets) {
       w.y = y
+      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
       y += w.computedHeight
     }
 
@@ -3418,6 +3424,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       const actualSlot = this.inputs[slot.index]
       const offset = LiteGraph.NODE_SLOT_HEIGHT * 0.5
+      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
       actualSlot.pos = [offset, widget.y + offset]
       this.layoutSlot(actualSlot, { slotIndex: slot.index })
     }
