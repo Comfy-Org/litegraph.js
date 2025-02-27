@@ -2255,7 +2255,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (slotIndex !== null)
       return this.connect(slot, target_node, slotIndex, optsIn?.afterRerouteId)
 
-    console.debug("[connectByType]: no way to connect type: ", target_slotType, " to node: ", target_node)
+    console.debug("[connectByType]: no way to connect type:", target_slotType, "to node:", target_node)
     return null
   }
 
@@ -2286,7 +2286,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (slotIndex !== null)
       return source_node.connect(slotIndex, this, slot, optsIn?.afterRerouteId)
 
-    console.debug("[connectByType]: no way to connect type: ", source_slotType, " to node: ", source_node)
+    console.debug("[connectByType]: no way to connect type:", source_slotType, "to node:", source_node)
     return null
   }
 

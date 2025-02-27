@@ -59,7 +59,6 @@ export default tseslint.config(
     rules: {
       // Temporarily disabled
       // See https://github.com/Comfy-Org/litegraph.js/issues/629
-      "unicorn/no-console-spaces": "off",
       "unicorn/no-lonely-if": "off",
       "unicorn/no-this-assignment": "off",
       "unicorn/no-typeof-undefined": "off",
