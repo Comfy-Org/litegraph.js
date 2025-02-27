@@ -65,7 +65,6 @@ export default tseslint.config(
       "unicorn/no-zero-fractions": "off",
       "unicorn/prefer-add-event-listener": "off",
       "unicorn/prefer-blob-reading-methods": "off",
-      "unicorn/prefer-date-now": "off",
       "unicorn/prefer-default-parameters": "off",
       "unicorn/prefer-keyboard-event-key": "off",
       "unicorn/prefer-logical-operator-over-ternary": "off",

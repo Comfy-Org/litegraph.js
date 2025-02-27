@@ -297,7 +297,7 @@ export class LiteGraphGlobal {
       }
     } else {
       this.getTime = function () {
-        return new Date().getTime()
+        return Date.now()
       }
     }
   }
