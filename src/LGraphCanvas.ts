@@ -6424,7 +6424,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           // filter supported
           // types
           const keys = Object.keys(LiteGraph.registered_node_types)
-          filtered = keys.filter(inner_test_filter)
+          filtered = keys.filter(x => inner_test_filter(x))
         } else {
           filtered = []
           for (const i in LiteGraph.registered_node_types) {
@@ -6488,13 +6488,11 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         function inner_test_filter(
           type: string,
-          optsIn?:
-            | number
-            | {
-              inTypeOverride?: string | boolean
-              outTypeOverride?: string | boolean
-              skipFilter?: boolean
-            },
+          optsIn?: {
+            inTypeOverride?: string | boolean
+            outTypeOverride?: string | boolean
+            skipFilter?: boolean
+          },
         ): boolean {
           optsIn = optsIn || {}
           const optsDef = {
