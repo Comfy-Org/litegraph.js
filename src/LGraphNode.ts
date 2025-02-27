@@ -755,7 +755,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
 
-    // @ts-expect-error Exceptional case: id is removed so that the graph can assign a new one on add.
+    // @ts-ignore Exceptional case: id is removed so that the graph can assign a new one on add.
     delete data.id
 
     if (LiteGraph.use_uuids) data.id = LiteGraph.uuidv4()
@@ -1142,17 +1142,17 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       options.action_call ||= this.id + "_exec_" + Math.floor(Math.random() * 9999)
       if (!this.graph) throw new NullGraphError()
 
-      // @ts-expect-error Technically it works when id is a string. Array gets props.
+      // @ts-ignore Technically it works when id is a string. Array gets props.
       this.graph.nodes_executing[this.id] = true
       this.onExecute(param, options)
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       this.graph.nodes_executing[this.id] = false
 
       // save execution/action ref
       this.exec_version = this.graph.iteration
       if (options?.action_call) {
         this.action_call = options.action_call
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
@@ -1176,16 +1176,16 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       options.action_call ||= this.id + "_" + (action || "action") + "_" + Math.floor(Math.random() * 9999)
       if (!this.graph) throw new NullGraphError()
 
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       this.graph.nodes_actioning[this.id] = action || "actioning"
       this.onAction(action, param, options)
-      // @ts-expect-error deprecated
+      // @ts-ignore deprecated
       this.graph.nodes_actioning[this.id] = false
 
       // save execution/action ref
       if (options?.action_call) {
         this.action_call = options.action_call
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated
         this.graph.nodes_executedAction[this.id] = options.action_call
       }
     }
@@ -1630,7 +1630,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
     // litescene mode using the constructor
-    // @ts-expect-error deprecated https://github.com/Comfy-Org/litegraph.js/issues/639
+    // @ts-ignore deprecated https://github.com/Comfy-Org/litegraph.js/issues/639
     if (this.constructor["@" + property]) info = this.constructor["@" + property]
 
     if (this.constructor.widgets_info?.[property])
@@ -2735,7 +2735,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   trace(msg: string): void {
     this.console ||= []
     this.console.push(msg)
-    // @ts-expect-error deprecated
+    // @ts-ignore deprecated
     if (this.console.length > LGraphNode.MAX_CONSOLE)
       this.console.shift()
   }
@@ -3240,7 +3240,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const x = this._collapsed_width
       const y = LiteGraph.NODE_TITLE_HEIGHT * -0.5
       toClass(NodeOutputSlot, output_slot).drawCollapsed(ctx, {
-        // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+        // @ts-ignore8 https://github.com/Comfy-Org/litegraph.js/issues/616
         pos: [x, y],
       })
     }
@@ -3284,14 +3284,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       slots.push(slot._layoutElement)
     }
     for (const [i, slot] of this.outputs.entries()) {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       slots.push(slot._layoutElement)
     }
 
@@ -3334,7 +3334,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
 
       slotInstance.draw(ctx, {
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
         pos: layoutElement.center,
         colorContext,
         labelColor,
@@ -3378,7 +3378,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         const { minHeight, maxHeight } = w.computeLayoutSize(this)
         growableWidgets.push({
           minHeight,
-          // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+          // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
           prefHeight: maxHeight,
           w,
         })
@@ -3411,7 +3411,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let y = widgetStartY
     for (const w of this.widgets) {
       w.y = y
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       y += w.computedHeight
     }
 
@@ -3448,7 +3448,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       const actualSlot = this.inputs[slot.index]
       const offset = LiteGraph.NODE_SLOT_HEIGHT * 0.5
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       actualSlot.pos = [offset, widget.y + offset]
       this.layoutSlot(actualSlot, { slotIndex: slot.index })
     }
