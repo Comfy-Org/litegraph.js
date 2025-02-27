@@ -745,8 +745,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // remove links
     if (inputs) {
-      for (const element of inputs) {
-        element.link = null
+      for (const input of inputs) {
+        input.link = null
       }
     }
 
