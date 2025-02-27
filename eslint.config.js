@@ -66,7 +66,6 @@ export default tseslint.config(
       "unicorn/prefer-add-event-listener": "off",
       "unicorn/prefer-blob-reading-methods": "off",
       "unicorn/prefer-default-parameters": "off",
-      "unicorn/prefer-keyboard-event-key": "off",
       "unicorn/prefer-math-min-max": "off",
       "unicorn/prefer-query-selector": "off",
       "unicorn/prefer-spread": "off",

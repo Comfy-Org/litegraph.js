@@ -1225,10 +1225,10 @@ export class LGraphCanvas implements ConnectionColorContext {
       })
       input.addEventListener("keydown", function (e: KeyboardEvent) {
         dialog.is_modified = true
-        if (e.keyCode == 27) {
+        if (e.key == "Escape") {
           // ESC
           dialog.close()
-        } else if (e.keyCode == 13) {
+        } else if (e.key == "Enter") {
           // save
           inner()
           // @ts-expect-error Intentional - undefined if not present
@@ -5978,11 +5978,11 @@ export class LGraphCanvas implements ConnectionColorContext {
     const input = value_element
     input.addEventListener("keydown", function (e: KeyboardEvent) {
       dialog.is_modified = true
-      if (e.keyCode == 27) {
+      if (e.key == "Escape") {
         // ESC
         dialog.close()
       } else if (
-        e.keyCode == 13 &&
+        e.key == "Enter" &&
         (e.target as Element).localName != "textarea"
       ) {
         if (callback) {
@@ -6168,17 +6168,17 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.focus()
       })
       input.addEventListener("keydown", function (e) {
-        if (e.keyCode == 38) {
+        if (e.key == "ArrowUp") {
           // UP
           changeSelection(false)
-        } else if (e.keyCode == 40) {
+        } else if (e.key == "ArrowDown") {
           // DOWN
           changeSelection(true)
-        } else if (e.keyCode == 27) {
+        } else if (e.key == "Escape") {
           // ESC
           // @ts-expect-error Panel?
           dialog.close()
-        } else if (e.keyCode == 13) {
+        } else if (e.key == "Enter") {
           if (selected) {
             select(unescape(selected.dataset["type"]))
           } else if (first) {
@@ -6651,10 +6651,10 @@ export class LGraphCanvas implements ConnectionColorContext {
         // @ts-expect-error
         input.value = v
         input.addEventListener("keydown", function (e) {
-          if (e.keyCode == 27) {
+          if (e.key == "Escape") {
             // ESC
             dialog.close()
-          } else if (e.keyCode == 13) {
+          } else if (e.key == "Enter") {
             // ENTER
             // save
             inner()
@@ -6751,9 +6751,9 @@ export class LGraphCanvas implements ConnectionColorContext {
         for (const iX of aI) {
           iX.addEventListener("keydown", function (e) {
             dialog.modified()
-            if (e.keyCode == 27) {
+            if (e.key == "Escape") {
               dialog.close()
-            } else if (e.keyCode != 13) {
+            } else if (e.key != "Enter") {
               return
             }
             // set value ?
@@ -7451,10 +7451,10 @@ export class LGraphCanvas implements ConnectionColorContext {
         dialog.querySelector("button").addEventListener("click", inner)
         input.addEventListener("keydown", function (e) {
           dialog.is_modified = true
-          if (e.keyCode == 27) {
+          if (e.key == "Escape") {
             // ESC
             dialog.close()
-          } else if (e.keyCode == 13) {
+          } else if (e.key == "Enter") {
             // save
             inner()
           } else if ((e.target as Element).localName != "textarea") {
