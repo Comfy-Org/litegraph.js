@@ -5841,8 +5841,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const options = ["Add Node", null]
 
     if (opts.allow_searchbox) {
-      options.push("Search")
-      options.push(null)
+      options.push("Search", null)
     }
 
     // get defaults nodes for this slottype
@@ -7282,8 +7281,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         content: "Align Selected To",
         has_submenu: true,
         callback: LGraphCanvas.onNodeAlign,
-      })
-      options.push({
+      }, {
         content: "Distribute Nodes",
         has_submenu: true,
         callback: LGraphCanvas.createDistributeMenu,
