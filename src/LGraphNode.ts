@@ -2771,6 +2771,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (!v && c.node_capturing_input != this) continue
 
       // change
+      // @ts-ignore Strict mode plugin detects an error that doesn't exist.
       c.node_capturing_input = v ? this : null
     }
   }
