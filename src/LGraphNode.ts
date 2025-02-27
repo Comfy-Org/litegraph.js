@@ -49,7 +49,7 @@ export type NodeId = number | string
 
 export interface INodePropertyInfo {
   name: string
-  type: string
+  type?: string
   default_value: unknown
 }
 
@@ -1331,13 +1331,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     name: string,
     default_value: unknown,
     type?: string,
-    extra_info?: Dictionary<unknown>,
+    extra_info?: Partial<INodePropertyInfo>,
   ): INodePropertyInfo {
-    const o: INodePropertyInfo = {
-      name: name,
-      type: type,
-      default_value: default_value,
-    }
+    const o: INodePropertyInfo = { name, type, default_value }
     if (extra_info) {
       for (const i in extra_info) {
         o[i] = extra_info[i]
@@ -1356,11 +1352,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @param extra_info this can be used to have special properties of an output (label, special color, position, etc)
    */
   addOutput(
-    name?: string,
-    type?: ISlotType,
+    name: string,
+    type: ISlotType,
     extra_info?: Partial<INodeOutputSlot>,
   ): INodeOutputSlot {
-    const output = new NodeOutputSlot({ name: name, type: type, links: null })
+    const output = new NodeOutputSlot({ name, type, links: null })
     if (extra_info) {
       for (const i in extra_info) {
         output[i] = extra_info[i]
