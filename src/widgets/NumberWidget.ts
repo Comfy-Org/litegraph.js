@@ -105,9 +105,9 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
     // Determine if clicked on left/right arrows
     const delta = x < 40
       ? -1
-      : x > width - 40
+      : (x > width - 40
         ? 1
-        : 0
+        : 0)
 
     if (delta) {
       // Handle left/right arrow clicks
@@ -154,9 +154,9 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
     const x = e.canvasX - node.pos[0]
     const delta = x < 40
       ? -1
-      : x > width - 40
+      : (x > width - 40
         ? 1
-        : 0
+        : 0)
 
     if (delta && (x > -3 && x < width + 3)) return
 

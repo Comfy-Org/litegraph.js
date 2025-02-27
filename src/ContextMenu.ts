@@ -132,7 +132,7 @@ export class ContextMenu {
 
       if (typeof name !== "string") {
         name = name != null
-          ? name.content === undefined ? String(name) : name.content
+          ? (name.content === undefined ? String(name) : name.content)
           : name
       }
 
