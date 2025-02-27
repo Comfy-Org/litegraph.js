@@ -72,7 +72,7 @@ export class LiteGraphGlobal {
   CONNECTING_LINK_COLOR = "#AFA"
 
   /** avoid infinite loops */
-  MAX_NUMBER_OF_NODES = 10000
+  MAX_NUMBER_OF_NODES = 10_000
   /** default node position */
   DEFAULT_POSITION = [100, 100]
   /** ,"circle" */
