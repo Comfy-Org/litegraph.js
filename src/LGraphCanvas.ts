@@ -7311,7 +7311,6 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   processContextMenu(node: LGraphNode, event: CanvasMouseEvent): void {
-    const that = this
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
 
@@ -7404,6 +7403,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     // @ts-expect-error Remove param ref_window - unused
     new LiteGraph.ContextMenu(menu_info, options, ref_window)
 
+    const createDialog = (options: IDialogOptions) => this.createDialog(
+      "<span class='name'>Name</span><input autofocus type='text'/><button>OK</button>",
+      options,
+    )
+    const setDirty = () => this.setDirty(true)
+
     function inner_option_clicked(v, options) {
       if (!v) return
 
@@ -7432,10 +7437,8 @@ export class LGraphCanvas implements ConnectionColorContext {
         const slot_info = info.input
           ? node.getInputInfo(info.slot)
           : node.getOutputInfo(info.slot)
-        const dialog = that.createDialog(
-          "<span class='name'>Name</span><input autofocus type='text'/><button>OK</button>",
-          options,
-        )
+        const dialog = createDialog(options)
+
         const input = dialog.querySelector("input")
         if (input && slot_info) {
           input.value = slot_info.label || ""
@@ -7446,7 +7449,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             if (slot_info) {
               slot_info.label = input.value
             }
-            that.setDirty(true)
+            setDirty()
           }
           dialog.close()
           node.graph.afterChange()
