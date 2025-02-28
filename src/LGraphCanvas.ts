@@ -1168,6 +1168,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     return false
   }
 
+  /** @deprecated */
   static decodeHTML(str: string): string {
     const e = document.createElement("div")
     e.textContent = str
