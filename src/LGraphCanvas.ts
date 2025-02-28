@@ -437,8 +437,8 @@ export class LGraphCanvas implements ConnectionColorContext {
   autoresize: boolean
   static active_canvas: LGraphCanvas
   static onMenuNodeOutputs?(
-    entries: IOptionalSlotData<INodeOutputSlot>[],
-  ): IOptionalSlotData<INodeOutputSlot>[]
+    entries: (IOptionalSlotData<INodeOutputSlot> | null)[],
+  ): (IOptionalSlotData<INodeOutputSlot> | null)[]
   frame = 0
   last_draw_time = 0
   render_time = 0
@@ -927,7 +927,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       ? node.onGetInputs()
       : undefined
 
-    let entries: IOptionalSlotData<INodeInputSlot>[] = []
+    let entries: (IOptionalSlotData<INodeInputSlot> | null)[] = []
     if (options) {
       for (const entry of options) {
         if (!entry) {
@@ -1009,7 +1009,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       ? node.onGetOutputs()
       : undefined
 
-    let entries: IOptionalSlotData<INodeOutputSlot>[] = []
+    let entries: (IOptionalSlotData<INodeOutputSlot> | null)[] = []
     if (options) {
       for (const entry of options) {
         if (!entry) {
