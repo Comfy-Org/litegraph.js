@@ -1660,12 +1660,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     element.tabindex = "1"
 
     // Background canvas: To render objects behind nodes (background, links, groups)
-    this.bgcanvas = null
-    if (!this.bgcanvas) {
-      this.bgcanvas = document.createElement("canvas")
-      this.bgcanvas.width = this.canvas.width
-      this.bgcanvas.height = this.canvas.height
-    }
+    this.bgcanvas = document.createElement("canvas")
+    this.bgcanvas.width = this.canvas.width
+    this.bgcanvas.height = this.canvas.height
+
     if (element.getContext == null) {
       if (element.localName != "canvas") {
         throw "Element supplied for LGraphCanvas must be a <canvas> element, you passed a " +
