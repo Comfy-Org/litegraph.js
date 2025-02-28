@@ -823,7 +823,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         })
       const entries = []
 
-      categories.map(function (category) {
+      for (const category of categories) {
         if (!category) return
 
         const base_category_regex = new RegExp("^(" + base_category + ")")
@@ -853,13 +853,14 @@ export class LGraphCanvas implements ConnectionColorContext {
             },
           })
         }
-      })
+      }
 
       const nodes = LiteGraph.getNodeTypesInCategory(
         base_category.slice(0, -1),
         canvas.filter || graph.filter,
       )
-      nodes.map(function (node) {
+
+      for (const node of nodes) {
         if (node.skip_list) return
 
         const entry = {
@@ -881,7 +882,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
 
         entries.push(entry)
-      })
+      }
 
       // @ts-expect-error Remove param ref_window - unused
       new LiteGraph.ContextMenu(entries, { event: e, parentMenu: prev_menu }, ref_window)
