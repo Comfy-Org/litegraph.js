@@ -655,21 +655,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.graph_mouse = [0, 0]
     this.canvas_mouse = this.graph_mouse
 
-    // to personalize the search box
-    this.onSearchBox = null
-    this.onSearchBoxSelection = null
-
-    // callbacks
-    this.onMouse = null
-    this.onDrawBackground = null
-    this.onDrawForeground = null
-    this.onDrawOverlay = null
-    this.onDrawLinkTooltip = null
-    this.onNodeMoved = null
-    this.onSelectionChange = null
-    this.onBeforeChange = null
-    this.onAfterChange = null
-
     this.connections_width = 3
 
     this.current_node = null
