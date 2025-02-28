@@ -888,6 +888,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             canvas.graph.beforeChange()
             const node = LiteGraph.createNode(value.value)
             if (node) {
+              if (!first_event) throw new TypeError("Context menu event was null. This should not occure in normal usage.")
               node.pos = canvas.convertEventToCanvasOffset(first_event)
               canvas.graph.add(node)
             }
