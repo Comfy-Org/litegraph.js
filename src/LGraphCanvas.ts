@@ -830,22 +830,20 @@ export class LGraphCanvas implements ConnectionColorContext {
       for (const category of categories) {
         if (!category) return
 
-        const base_category_regex = new RegExp("^(" + base_category + ")")
+        const base_category_regex = new RegExp(`^(${base_category})`)
         const category_name = category
           .replace(base_category_regex, "")
           .split("/", 1)[0]
         const category_path =
           base_category === ""
-            ? category_name + "/"
-            : base_category + category_name + "/"
+            ? `${category_name}/`
+            : `${base_category}${category_name}/`
 
         let name = category_name
         // in case it has a namespace like "shader::math/rand" it hides the namespace
         if (name.includes("::")) name = name.split("::", 2)[1]
 
-        const index = entries.findIndex(function (entry) {
-          return entry.value === category_path
-        })
+        const index = entries.findIndex(entry => entry.value === category_path)
         if (index === -1) {
           entries.push({
             value: category_path,
