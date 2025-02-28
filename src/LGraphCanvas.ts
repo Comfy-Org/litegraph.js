@@ -5700,7 +5700,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const isTo = !isFrom && opts.nodeTo && opts.slotTo !== null
 
     if (!isFrom && !isTo) {
-      console.warn(`No data passed to createDefaultNodeForSlot ${opts.nodeFrom} ${opts.slotFrom} ${opts.nodeTo} ${opts.slotTo}`)
+      console.warn(`No data passed to createDefaultNodeForSlot`, opts.nodeFrom, opts.slotFrom, opts.nodeTo, opts.slotTo)
       return false
     }
     if (!opts.nodeType) {
@@ -5727,7 +5727,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       break
     case "undefined":
     default:
-      console.warn(`Cant get slot information ${slotX}`)
+      console.warn("Cant get slot information", slotX)
       return false
     }
 
@@ -5871,7 +5871,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
       break
     default:
-      console.warn(`Cant get slot information ${slotX}`)
+      console.warn("Cant get slot information", slotX)
       return
     }
 
