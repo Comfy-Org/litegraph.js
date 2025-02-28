@@ -7358,7 +7358,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const ref_window = canvas.getCanvasWindow()
 
     // TODO: Remove type kludge
-    let menu_info: (IContextMenuValue | string)[] = null
+    let menu_info: (IContextMenuValue | string)[]
     const options: IContextMenuOptions = {
       event: event,
       callback: inner_option_clicked,
@@ -7368,7 +7368,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (node) options.title = node.type
 
     // check if mouse is in input
-    let slot: ReturnType<LGraphNode["getSlotInPosition"]> = null
+    let slot: ReturnType<LGraphNode["getSlotInPosition"]>
     if (node) {
       slot = node.getSlotInPosition(event.canvasX, event.canvasY)
       LGraphCanvas.active_node = node
