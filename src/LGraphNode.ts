@@ -51,7 +51,7 @@ export type NodeProperty = string | number | boolean | object
 export interface INodePropertyInfo {
   name: string
   type?: string
-  default_value: NodeProperty
+  default_value: NodeProperty | undefined
 }
 
 export interface IMouseOverData {
