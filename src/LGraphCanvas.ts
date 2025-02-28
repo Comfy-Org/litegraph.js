@@ -467,7 +467,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   node_in_panel?: LGraphNode
   last_mouse: ReadOnlyPoint = [0, 0]
   last_mouseclick: number = 0
-  graph!: LGraph | null
+  graph: LGraph | null
   canvas: HTMLCanvasElement
   bgcanvas: HTMLCanvasElement
   ctx?: CanvasRenderingContext2D
@@ -811,7 +811,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     e: MouseEvent,
     prev_menu: ContextMenu,
     callback?: (node: LGraphNode) => void,
-  ): boolean {
+  ): boolean | undefined {
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
     const graph = canvas.graph
@@ -826,7 +826,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       ) => void
     }
 
-    function inner_onMenuAdded(base_category: string, prev_menu: ContextMenu): void {
+    function inner_onMenuAdded(base_category: string, prev_menu?: ContextMenu): void {
       if (!graph) return
 
       const categories = LiteGraph
@@ -915,7 +915,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     e: MouseEvent,
     prev_menu: ContextMenu,
     node: LGraphNode,
-  ): boolean {
+  ): boolean | undefined {
     if (!node) return
 
     // FIXME: Static function this
@@ -998,7 +998,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     e: unknown,
     prev_menu: ContextMenu,
     node: LGraphNode,
-  ): boolean {
+  ): boolean | undefined {
     if (!node) return
 
     const that = this
@@ -1114,7 +1114,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     e: MouseEvent,
     prev_menu: ContextMenu,
     node: LGraphNode,
-  ): boolean {
+  ): boolean | undefined {
     if (!node || !node.properties) return
 
     const canvas = LGraphCanvas.active_canvas
@@ -1628,7 +1628,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /**
    * @returns the visually active graph (in case there are more in the stack)
    */
-  getCurrentGraph(): LGraph {
+  getCurrentGraph(): LGraph | null {
     return this.graph
   }
 
@@ -2976,11 +2976,11 @@ export class LGraphCanvas implements ConnectionColorContext {
    */
   #startDraggingItems(item: Positionable, pointer: CanvasPointer, sticky = false): void {
     this.emitBeforeChange()
-    this.graph.beforeChange()
+    this.graph?.beforeChange()
     // Ensure that dragging is properly cleaned up, on success or failure.
     pointer.finally = () => {
       this.isDragging = false
-      this.graph.afterChange()
+      this.graph?.afterChange()
       this.emitAfterChange()
     }
 
@@ -2995,7 +2995,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   #processDraggedItems(e: CanvasPointerEvent): void {
     const { graph } = this
     if (e.shiftKey || LiteGraph.alwaysSnapToGrid)
-      graph.snapToGrid(this.selectedItems)
+      graph?.snapToGrid(this.selectedItems)
 
     this.dirty_canvas = true
     this.dirty_bgcanvas = true
@@ -3285,7 +3285,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /**
    * process a key event
    */
-  processKey(e: KeyboardEvent): boolean | null {
+  processKey(e: KeyboardEvent): boolean | null | undefined {
     this.#shiftDown = e.shiftKey
     if (!this.graph) return
 
@@ -3369,7 +3369,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @param items The items to copy.  If nullish, all selected items are copied.
    */
   copyToClipboard(items?: Iterable<Positionable>): void {
-    const serialisable: ClipboardItems = {
+    const serialisable: Required<ClipboardItems> = {
       nodes: [],
       groups: [],
       reroutes: [],
@@ -3390,7 +3390,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         // Links
         const links = item.inputs
-          ?.map(input => this.graph._links.get(input?.link)?.asSerialisable())
+          ?.map(input => this.graph?._links.get(input?.link)?.asSerialisable())
           .filter(x => !!x)
 
         if (!links) continue
@@ -4173,7 +4173,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // TODO: Set snapping value when changed instead of once per frame
     this.#snapToGrid = this.#shiftDown || LiteGraph.alwaysSnapToGrid
-      ? this.graph.getSnapToGridSize()
+      ? this.graph?.getSnapToGridSize()
       : undefined
 
     // clear
