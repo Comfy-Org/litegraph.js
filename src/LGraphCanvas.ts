@@ -817,6 +817,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     const graph = canvas.graph
     if (!graph) return
 
+    inner_onMenuAdded("", prev_menu)
+    return false
+
     type AddNodeMenu = Omit<IContextMenuValue, "callback"> & {
       callback: (
         value: { value: string },
@@ -899,9 +902,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       // @ts-expect-error Remove param ref_window - unused
       new LiteGraph.ContextMenu(entries, { event: e, parentMenu: prev_menu }, ref_window)
     }
-
-    inner_onMenuAdded("", prev_menu)
-    return false
   }
 
   static onMenuCollapseAll() {}
