@@ -491,26 +491,26 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** @deprecated See {@link LGraphCanvas.resizingGroup} */
   selected_group_resizing?: boolean
   /** @deprecated See {@link pointer}.{@link CanvasPointer.dragStarted dragStarted} */
-  last_mouse_dragging: boolean
-  onMouseDown: (arg0: CanvasMouseEvent) => void
+  last_mouse_dragging?: boolean
+  onMouseDown?: (arg0: CanvasMouseEvent) => void
   _highlight_pos?: Point
   _highlight_input?: INodeInputSlot
   // TODO: Check if panels are used
   /** @deprecated Panels */
-  node_panel
+  node_panel?: any
   /** @deprecated Panels */
-  options_panel
-  onDropItem: (e: Event) => any
-  _bg_img: HTMLImageElement
+  options_panel?: any
+  onDropItem?: (e: Event) => any
+  _bg_img?: HTMLImageElement
   _pattern?: CanvasPattern
-  _pattern_img: HTMLImageElement
+  _pattern_img?: HTMLImageElement
   // TODO: This looks like another panel thing
-  prompt_box: IDialog
-  search_box: HTMLDivElement
+  prompt_box?: IDialog | null
+  search_box?: HTMLDivElement
   /** @deprecated Panels */
-  SELECTED_NODE: LGraphNode
+  SELECTED_NODE?: LGraphNode
   /** @deprecated Panels */
-  NODEPANEL_IS_OPEN: boolean
+  NODEPANEL_IS_OPEN?: boolean
 
   /** Once per frame check of snap to grid value.  @todo Update on change. */
   #snapToGrid?: number
