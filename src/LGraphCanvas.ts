@@ -58,7 +58,7 @@ import {
 } from "./measure"
 import { type ConnectionColorContext } from "./NodeSlot"
 import { Reroute, type RerouteId } from "./Reroute"
-import { stringOrEmpty, stringOrNull } from "./strings"
+import { stringOrEmpty } from "./strings"
 import {
   CanvasItem,
   EaseFunction,
@@ -1130,7 +1130,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         value = LGraphCanvas.getPropertyPrintableValue(value, info.values)
 
       // value could contain invalid html characters, clean that
-      value = LGraphCanvas.decodeHTML(stringOrNull(value))
+      value = LGraphCanvas.decodeHTML(stringOrEmpty(value))
       entries.push({
         content: "<span class='property_name'>" +
           (info.label || i) +
