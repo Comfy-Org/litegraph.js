@@ -4113,7 +4113,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Compute node size before drawing links.
     if (this.dirty_canvas || force_canvas)
-      this.computeVisibleNodes(null, this.visible_nodes)
+      this.computeVisibleNodes(undefined, this.visible_nodes)
 
     if (
       this.dirty_bgcanvas ||
