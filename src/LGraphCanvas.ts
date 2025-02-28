@@ -1108,7 +1108,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
   /** @param value Parameter is never used */
   static onShowMenuNodeProperties(
-    value: unknown,
+    value: string | number | boolean | object,
     options: unknown,
     e: MouseEvent,
     prev_menu: ContextMenu<string>,

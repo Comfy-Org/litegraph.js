@@ -46,13 +46,13 @@ import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
 export type NodeId = number | string
 
+export type NodeProperty = string | number | boolean | object
+
 export interface INodePropertyInfo {
   name: string
   type?: string
-  default_value: unknown
+  default_value: NodeProperty
 }
-
-export type INodeProperties = Dictionary<unknown>
 
 export interface IMouseOverData {
   inputId: number | null
@@ -177,7 +177,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   outputs: INodeOutputSlot[] = []
   // Not used
   connections: unknown[] = []
-  properties: INodeProperties = {}
+  properties: Dictionary<NodeProperty | undefined> = {}
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
   widgets?: IWidget[]
@@ -1339,7 +1339,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   addProperty(
     name: string,
-    default_value: unknown,
+    default_value: NodeProperty | undefined,
     type?: string,
     extra_info?: Partial<INodePropertyInfo>,
   ): INodePropertyInfo {
