@@ -492,7 +492,7 @@ export class LiteGraphGlobal {
    * @param category category name
    * @returns array with all the node classes
    */
-  getNodeTypesInCategory(category: string, filter: any) {
+  getNodeTypesInCategory(category: string, filter?: string) {
     const r = []
     for (const i in this.registered_node_types) {
       const type = this.registered_node_types[i]

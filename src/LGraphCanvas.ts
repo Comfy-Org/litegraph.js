@@ -817,6 +817,15 @@ export class LGraphCanvas implements ConnectionColorContext {
     const graph = canvas.graph
     if (!graph) return
 
+    type AddNodeMenu = Omit<IContextMenuValue, "callback"> & {
+      callback: (
+        value: { value: string },
+        event: Event,
+        mouseEvent: MouseEvent,
+        contextMenu: ContextMenu
+      ) => void
+    }
+
     function inner_onMenuAdded(base_category: string, prev_menu: ContextMenu): void {
       if (!graph) return
 
@@ -825,7 +834,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         .filter(function (category) {
           return category.startsWith(base_category)
         })
-      const entries = []
+      const entries: AddNodeMenu[] = []
 
       for (const category of categories) {
         if (!category) return
@@ -864,7 +873,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       for (const node of nodes) {
         if (node.skip_list) return
 
-        const entry = {
+        const entry: AddNodeMenu = {
           value: node.type,
           content: node.title,
           has_submenu: false,
