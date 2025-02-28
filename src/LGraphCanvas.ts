@@ -919,8 +919,6 @@ export class LGraphCanvas implements ConnectionColorContext {
   ): boolean | undefined {
     if (!node) return
 
-    // FIXME: Static function this
-    const that = this
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
 
@@ -971,10 +969,10 @@ export class LGraphCanvas implements ConnectionColorContext {
       ref_window,
     )
 
-    function inner_clicked(v: IContextMenuValue<INodeSlotContextItem>, e: MouseEvent, prev: ContextMenu<INodeSlotContextItem>) {
+    function inner_clicked(this: ContextMenuDivElement<INodeSlotContextItem>, v: IContextMenuValue<INodeSlotContextItem>, e: MouseEvent, prev: ContextMenu<INodeSlotContextItem>) {
       if (!node) return
 
-      v.callback?.call(that, node, v, e, prev)
+      v.callback?.call(this, node, v, e, prev)
 
       if (!v.value) return
       if (!node.graph) throw new NullGraphError()
