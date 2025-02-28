@@ -581,7 +581,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.background_image = LGraphCanvas.DEFAULT_BACKGROUND_IMAGE
 
     this.ds = new DragAndScale()
-    this.pointer = new CanvasPointer(this.canvas)
+    this.pointer = new CanvasPointer(canvas)
     // otherwise it generates ugly patterns when scaling down too much
     this.zoom_modify_alpha = true
     // in range (1.01, 2.5). Less than 1 will invert the zoom direction
@@ -670,7 +670,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.viewport = options.viewport || null
 
     // link canvas and graph
+    this.graph = graph
     graph?.attachCanvas(this)
+
+    // TypeScript strict workaround: cannot use method to initialize properties.
+    this.canvas = undefined!
+    this.bgcanvas = undefined!
 
     this.setCanvas(canvas, options.skip_events)
     this.clear()
