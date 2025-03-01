@@ -2086,9 +2086,15 @@ export class LGraphCanvas implements ConnectionColorContext {
         if (reroute) {
           if (e.shiftKey) {
             // Connect new link from reroute
-            const link = graph._links.get(reroute.linkIds.values().next().value)
+            const linkId = reroute.linkIds.values().next().value
+            if (linkId == null) return
+
+            const link = graph._links.get(linkId)
+            if (!link) return
 
             const outputNode = graph.getNodeById(link.origin_id)
+            if (!outputNode) return
+
             const slot = link.origin_slot
             const connecting: ConnectingLink = {
               node: outputNode,
@@ -2133,6 +2139,9 @@ export class LGraphCanvas implements ConnectionColorContext {
 
           if (e.shiftKey && !e.altKey) {
             const slot = linkSegment.origin_slot
+            if (slot == null) return console.warn("Connecting link from corrupt link segment: `slot` null", linkSegment)
+            if (linkSegment.origin_id == null) return console.warn("Connecting link from corrupt link segment: `origin_id` null", linkSegment)
+
             const originNode = graph._nodes_by_id[linkSegment.origin_id]
 
             const connecting: ConnectingLink = {
@@ -2331,10 +2340,12 @@ export class LGraphCanvas implements ConnectionColorContext {
           const link_pos = node.getConnectionPos(false, i)
           if (isInRectangle(x, y, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
             // Drag multiple output links
-            if (e.shiftKey && output.links?.length > 0) {
+            if (e.shiftKey && output.links?.length) {
               this.connecting_links = []
               for (const linkId of output.links) {
                 const link = graph._links.get(linkId)
+                if (!link) continue
+
                 const slot = link.target_slot
                 const linked_node = graph._nodes_by_id[link.target_id]
                 const input = linked_node.inputs[slot]
