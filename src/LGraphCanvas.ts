@@ -42,7 +42,7 @@ import { DragAndScale } from "./DragAndScale"
 import { strokeShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { LGraphGroup } from "./LGraphGroup"
-import { LGraphNode, type NodeId } from "./LGraphNode"
+import { LGraphNode, type NodeId, type NodeProperty } from "./LGraphNode"
 import { LinkReleaseContextExtended, LiteGraph } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import {
@@ -1205,51 +1205,49 @@ export class LGraphCanvas implements ConnectionColorContext {
     const property = item.property || "title"
     const value = node[property]
 
-    // TODO: Remove "any" kludge
-    // TODO refactor :: use createDialog ?
-    const dialog: any = document.createElement("div")
-    dialog.is_modified = false
-    dialog.className = "graphdialog"
-    dialog.innerHTML =
-      "<span class='name'></span><input autofocus type='text' class='value'/><button>OK</button>"
-    dialog.close = function () {
-      dialog.remove()
-    }
-    const title = dialog.querySelector(".name")
+    const title = document.createElement("span")
+    title.className = "name"
     title.textContent = property
-    const input = dialog.querySelector(".value")
-    if (input) {
-      input.value = value
-      input.addEventListener("blur", function () {
-        this.focus()
-      })
-      input.addEventListener("keydown", function (e: KeyboardEvent) {
-        dialog.is_modified = true
-        if (e.key == "Escape") {
-          // ESC
-          dialog.close()
-        } else if (e.key == "Enter") {
-          // save
-          inner()
-          // @ts-expect-error Intentional - undefined if not present
-        } else if (e.target.localName != "textarea") {
-          return
-        }
-        e.preventDefault()
-        e.stopPropagation()
-      })
-    }
+
+    const input = document.createElement("input")
+    Object.assign(input, { type: "text", className: "value", autofocus: true })
+
+    const button = document.createElement("button")
+    button.textContent = "OK"
+
+    // TODO refactor :: use createDialog ?
+    const dialog = Object.assign(document.createElement("div"), {
+      is_modified: false,
+      className: "graphdialog",
+      close: () => dialog.remove(),
+    })
+    dialog.append(title, input, button)
+
+    input.value = String(value)
+    input.addEventListener("blur", function () {
+      this.focus()
+    })
+    input.addEventListener("keydown", (e: KeyboardEvent) => {
+      dialog.is_modified = true
+      if (e.key == "Escape") {
+        // ESC
+        dialog.close()
+      } else if (e.key == "Enter") {
+        // save
+        inner()
+      } else if (!e.target || !("localName" in e.target) || e.target.localName != "textarea") {
+        return
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    })
 
     const canvas = LGraphCanvas.active_canvas
     const canvasEl = canvas.canvas
 
     const rect = canvasEl.getBoundingClientRect()
-    let offsetx = -20
-    let offsety = -20
-    if (rect) {
-      offsetx -= rect.left
-      offsety -= rect.top
-    }
+    const offsetx = rect ? -20 - rect.left : -20
+    const offsety = rect ? -20 - rect.top : -20
 
     if (e) {
       dialog.style.left = `${e.clientX + offsetx}px`
@@ -1259,13 +1257,14 @@ export class LGraphCanvas implements ConnectionColorContext {
       dialog.style.top = `${canvasEl.height * 0.5 + offsety}px`
     }
 
-    const button = dialog.querySelector("button")
     button.addEventListener("click", inner)
+
+    if (canvasEl.parentNode == null) throw new TypeError("canvasEl.parentNode was null")
     canvasEl.parentNode.append(dialog)
 
-    input?.focus()
+    input.focus()
 
-    let dialogCloseTimer = null
+    let dialogCloseTimer: ReturnType<typeof setTimeout> | null = null
     dialog.addEventListener("mouseleave", function () {
       if (LiteGraph.dialog_close_on_mouse_leave) {
         if (!dialog.is_modified && LiteGraph.dialog_close_on_mouse_leave) {
@@ -1286,7 +1285,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (input) setValue(input.value)
     }
 
-    function setValue(value) {
+    function setValue(value: NodeProperty) {
       if (item.type == "Number") {
         value = Number(value)
       } else if (item.type == "Boolean") {
