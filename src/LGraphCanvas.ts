@@ -2416,6 +2416,8 @@ export class LGraphCanvas implements ConnectionColorContext {
             if (input.link !== null) {
               // before disconnecting
               const link_info = graph._links.get(input.link)
+              if (!link_info) throw new TypeError("Input link ID was invalid.")
+
               const slot = link_info.origin_slot
               const linked_node = graph._nodes_by_id[link_info.origin_id]
               if (
@@ -2427,6 +2429,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               ) {
                 node.disconnectInput(i)
               } else if (e.shiftKey || this.allow_reconnect_links) {
+                if (!linked_node) throw new TypeError("linked_node was null")
+
                 const connecting: ConnectingLink = {
                   node: linked_node,
                   slot,
