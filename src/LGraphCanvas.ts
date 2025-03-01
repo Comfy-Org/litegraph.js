@@ -1860,10 +1860,8 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @param node Optional node to check for widgets under cursor
    * @returns The widget located at the current cursor position or null
    */
-  getWidgetAtCursor(node?: LGraphNode): IWidget | null {
-    node ??= this.node_over
-
-    if (!node.widgets) return null
+  getWidgetAtCursor(node: LGraphNode): IWidget | null {
+    if (!node?.widgets) return null
 
     const graphPos = this.graph_mouse
     const x = graphPos[0] - node.pos[0]
