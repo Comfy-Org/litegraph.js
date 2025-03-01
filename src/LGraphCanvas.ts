@@ -1768,14 +1768,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     LiteGraph.pointerListenerRemove(canvas, "move", this._mousemove_callback)
     LiteGraph.pointerListenerRemove(canvas, "up", this._mouseup_callback)
     LiteGraph.pointerListenerRemove(canvas, "down", this._mousedown_callback)
-    canvas.removeEventListener(
-      "mousewheel",
-      this._mousewheel_callback,
-    )
-    canvas.removeEventListener(
-      "DOMMouseScroll",
-      this._mousewheel_callback,
-    )
+    canvas.removeEventListener("wheel", this._mousewheel_callback!)
     canvas.removeEventListener("keydown", this._key_callback)
     document.removeEventListener("keyup", this._key_callback)
     canvas.removeEventListener("contextmenu", this._doNothing)
