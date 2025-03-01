@@ -133,6 +133,7 @@ interface IDialogExtensions extends ICloseable {
 }
 
 interface IDialog extends HTMLDivElement, IDialogExtensions {}
+type PromptDialog = Omit<IDialog, "modified">
 
 interface IDialogOptions {
   position?: Point
@@ -506,7 +507,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   _pattern?: CanvasPattern
   _pattern_img?: HTMLImageElement
   // TODO: This looks like another panel thing
-  prompt_box?: IDialog | null
+  prompt_box?: PromptDialog | null
   search_box?: HTMLDivElement
   /** @deprecated Panels */
   SELECTED_NODE?: LGraphNode
@@ -5912,7 +5913,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       },
     } satisfies Partial<IDialog>
 
-    const dialog = Object.assign(document.createElement("div"), customProperties)
+    const div = document.createElement("div")
+    const dialog: PromptDialog = Object.assign(div, customProperties)
 
     const graphcanvas = LGraphCanvas.active_canvas
     const canvas = graphcanvas.canvas
@@ -6705,7 +6707,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       },
     } satisfies Partial<IDialog>
 
-    const dialog: IDialog = Object.assign(document.createElement("div"), customProperties)
+    const div = document.createElement("div")
+    const dialog: IDialog = Object.assign(div, customProperties)
 
     const rect = this.canvas.getBoundingClientRect()
     let offsetx = -20
