@@ -181,6 +181,15 @@ interface IPasteFromClipboardOptions {
   position?: Point
 }
 
+interface ICreatePanelOptions {
+  closable?: any
+  window?: any
+  onOpen?: () => void
+  onClose?: () => void
+  width?: any
+  height?: any
+}
+
 /**
  * This class is in charge of rendering one graph inside a canvas. And provides all the interaction required.
  * Valid callbacks are: onNodeSelected, onNodeDeselected, onShowNodePanel, onNodeDblClicked
@@ -6793,7 +6802,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     return dialog
   }
 
-  createPanel(title, options) {
+  createPanel(title: string, options: ICreatePanelOptions) {
     options = options || {}
 
     const ref_window = options.window || window
@@ -6971,7 +6980,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       return elem
     }
 
-    if (root.onOpen && typeof root.onOpen == "function") root.onOpen()
+    if (typeof root.onOpen == "function") root.onOpen()
 
     return root
   }
