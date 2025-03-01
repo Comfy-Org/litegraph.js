@@ -1308,7 +1308,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (typeof values === "object") {
       let desc_value = ""
       for (const k in values) {
-        // @ts-expect-error deprecated
+        // @ts-ignore deprecated #578
         if (values[k] != value) continue
 
         desc_value = k
