@@ -1657,9 +1657,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     // TODO: classList.add
     element.className += " lgraphcanvas"
     element.data = this
-    // @ts-expect-error Likely safe to remove.  A decent default, but expectation is to be configured by calling app.
-    // to allow key events
-    element.tabindex = "1"
 
     // Background canvas: To render objects behind nodes (background, links, groups)
     this.bgcanvas = document.createElement("canvas")
