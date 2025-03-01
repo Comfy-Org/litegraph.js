@@ -2007,6 +2007,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
   #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode) {
     const { pointer, graph } = this
+    if (!graph) throw new NullGraphError()
+
     const x = e.canvasX
     const y = e.canvasY
 
@@ -2022,8 +2024,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       dragRect[3] = 1
 
       pointer.onClick = (eUp) => {
-        if (!graph) throw new NullGraphError()
-
         // Click, not drag
         const clickedItem = node ??
           (this.reroutesEnabled ? graph.getRerouteOnPos(eUp.canvasX, eUp.canvasY) : null) ??
