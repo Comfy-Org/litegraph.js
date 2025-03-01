@@ -453,7 +453,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** @deprecated See {@link LGraphCanvas.selectedItems} */
   selected_group: LGraphGroup | null = null
   visible_nodes: LGraphNode[] = []
-  node_over?: LGraphNode | null
+  node_over?: LGraphNode
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
   link_over_widget?: IWidget
@@ -1572,7 +1572,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.onSelectionChange?.(this.selected_nodes)
 
     this.visible_nodes = []
-    this.node_over = null
+    this.node_over = undefined
     this.node_capturing_input = null
     this.connecting_links = null
     this.highlighted_links = {}
@@ -1860,7 +1860,9 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @param node Optional node to check for widgets under cursor
    * @returns The widget located at the current cursor position or null
    */
-  getWidgetAtCursor(node: LGraphNode): IWidget | null {
+  getWidgetAtCursor(node?: LGraphNode): IWidget | null {
+    node ??= this.node_over
+
     if (!node?.widgets) return null
 
     const graphPos = this.graph_mouse
@@ -1920,7 +1922,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         otherNode.lostFocusAt = LiteGraph.getTime()
 
         this.node_over?.onMouseLeave?.(e)
-        this.node_over = null
+        this.node_over = undefined
         this.dirty_canvas = true
       }
     }
