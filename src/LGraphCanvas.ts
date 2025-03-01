@@ -1763,16 +1763,17 @@ export class LGraphCanvas implements ConnectionColorContext {
     const { document } = this.getCanvasWindow()
     const { canvas } = this
 
-    canvas.removeEventListener("pointercancel", this._mousecancel_callback)
-    canvas.removeEventListener("pointerout", this._mouseout_callback)
-    LiteGraph.pointerListenerRemove(canvas, "move", this._mousemove_callback)
-    LiteGraph.pointerListenerRemove(canvas, "up", this._mouseup_callback)
-    LiteGraph.pointerListenerRemove(canvas, "down", this._mousedown_callback)
+    // Assertions: removing nullish is fine.
+    canvas.removeEventListener("pointercancel", this._mousecancel_callback!)
+    canvas.removeEventListener("pointerout", this._mouseout_callback!)
+    canvas.removeEventListener("pointermove", this._mousemove_callback!)
+    canvas.removeEventListener("pointerup", this._mouseup_callback!)
+    canvas.removeEventListener("pointerdown", this._mousedown_callback!)
     canvas.removeEventListener("wheel", this._mousewheel_callback!)
-    canvas.removeEventListener("keydown", this._key_callback)
-    document.removeEventListener("keyup", this._key_callback)
+    canvas.removeEventListener("keydown", this._key_callback!)
+    document.removeEventListener("keyup", this._key_callback!)
     canvas.removeEventListener("contextmenu", this._doNothing)
-    canvas.removeEventListener("drop", this._ondrop_callback)
+    canvas.removeEventListener("drop", this._ondrop_callback!)
     canvas.removeEventListener("dragenter", this._doReturnTrue)
 
     this._mousedown_callback = null
