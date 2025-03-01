@@ -473,13 +473,13 @@ export class LGraphCanvas implements ConnectionColorContext {
   bgcanvas: HTMLCanvasElement
   ctx?: CanvasRenderingContext2D | null
   _events_binded?: boolean
-  _mousedown_callback?(e: PointerEvent): boolean
-  _mousewheel_callback?(e: WheelEvent): boolean
-  _mousemove_callback?(e: PointerEvent): boolean
-  _mouseup_callback?(e: PointerEvent): boolean
-  _mouseout_callback?(e: PointerEvent): boolean
-  _mousecancel_callback?(e: PointerEvent): boolean
-  _key_callback?(e: KeyboardEvent): boolean
+  _mousedown_callback?(e: PointerEvent): void
+  _mousewheel_callback?(e: WheelEvent): void
+  _mousemove_callback?(e: PointerEvent): void
+  _mouseup_callback?(e: PointerEvent): void
+  _mouseout_callback?(e: PointerEvent): void
+  _mousecancel_callback?(e: PointerEvent): void
+  _key_callback?(e: KeyboardEvent): void
   _ondrop_callback?(e: DragEvent): unknown
   /** @deprecated WebGL */
   gl?: never
