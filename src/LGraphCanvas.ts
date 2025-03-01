@@ -7305,7 +7305,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       LGraphCanvas.active_node = node
 
       // check if mouse is in input
-      const slot = node?.getSlotInPosition(event.canvasX, event.canvasY)
+      const slot = node.getSlotInPosition(event.canvasX, event.canvasY)
       if (slot) {
         // on slot
         menu_info = []
