@@ -471,7 +471,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   graph: LGraph | null
   canvas: HTMLCanvasElement
   bgcanvas: HTMLCanvasElement
-  ctx?: CanvasRenderingContext2D | null
+  ctx: CanvasRenderingContext2D
   _events_binded?: boolean
   _mousedown_callback?(e: PointerEvent): void
   _mousewheel_callback?(e: WheelEvent): void
@@ -676,6 +676,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     // TypeScript strict workaround: cannot use method to initialize properties.
     this.canvas = undefined!
     this.bgcanvas = undefined!
+    this.ctx = undefined!
 
     this.setCanvas(canvas, options.skip_events)
     this.clear()
@@ -1663,14 +1664,14 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.bgcanvas.width = this.canvas.width
     this.bgcanvas.height = this.canvas.height
 
-    if (element.getContext == null) {
+    const ctx = element.getContext?.("2d")
+    if (ctx == null) {
       if (element.localName != "canvas") {
         throw `Element supplied for LGraphCanvas must be a <canvas> element, you passed a ${element.localName}`
       }
       throw "This browser doesn't support Canvas"
     }
-
-    this.ctx = element.getContext("2d")
+    this.ctx = ctx
 
     if (!skip_events) this.bindEvents()
   }
@@ -4080,7 +4081,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.dirty_canvas = false
 
     const ctx = this.ctx
-    if (!ctx) return
 
     const canvas = this.canvas
     // @ts-expect-error
