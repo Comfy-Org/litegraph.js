@@ -75,9 +75,9 @@ import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
 interface IShowSearchOptions {
-  node_to?: LGraphNode
-  node_from?: LGraphNode
-  slot_from: number | INodeOutputSlot | INodeInputSlot
+  node_to?: LGraphNode | null
+  node_from?: LGraphNode | null
+  slot_from: number | INodeOutputSlot | INodeInputSlot | null | undefined
   type_filter_in?: ISlotType
   type_filter_out?: ISlotType | false
 
@@ -6554,7 +6554,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     node: LGraphNode,
     property: string,
     options: IDialogOptions,
-  ): IDialog {
+  ): IDialog | undefined {
     if (!node || node.properties[property] === undefined) return
 
     options = options || {}
@@ -7272,7 +7272,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     return options
   }
 
-  getGroupMenuOptions(group: LGraphGroup): IContextMenuValue[] {
+  /** @deprecated */
+  getGroupMenuOptions(group: LGraphGroup) {
     console.warn("LGraphCanvas.getGroupMenuOptions is deprecated, use LGraphGroup.getMenuOptions instead")
     return group.getMenuOptions()
   }
