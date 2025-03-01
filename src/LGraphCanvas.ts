@@ -2180,7 +2180,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       // Groups
       const group = graph.getGroupOnPos(x, y)
-      this.selected_group = group
+      this.selected_group = group ?? null
       if (group) {
         if (group.isInResize(x, y)) {
           // Resize group
@@ -2198,7 +2198,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               eMove.canvasY - group.pos[1] - offsetY,
             ]
             // Unless snapping.
-            snapPoint(pos, this.#snapToGrid)
+            if (this.#snapToGrid) snapPoint(pos, this.#snapToGrid)
 
             const resized = group.resize(pos[0], pos[1])
             if (resized) this.dirty_bgcanvas = true
@@ -2313,7 +2313,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             eMove.canvasY - node.pos[1] - offsetY,
           ]
           // Unless snapping.
-          snapPoint(pos, this.#snapToGrid)
+          if (this.#snapToGrid) snapPoint(pos, this.#snapToGrid)
 
           const min = node.computeSize()
           pos[0] = Math.max(min[0], pos[0])
@@ -7381,13 +7381,15 @@ export class LGraphCanvas implements ConnectionColorContext {
     )
     const setDirty = () => this.setDirty(true)
 
-    function inner_option_clicked(v, options) {
+    function inner_option_clicked(v: IContextMenuValue<unknown>, options: IDialogOptions) {
       if (!v) return
 
       if (v.content == "Remove Slot") {
-        if (!node.graph) throw new NullGraphError()
+        if (!node?.graph) throw new NullGraphError()
 
         const info = v.slot
+        if (!info) throw new TypeError("Found-slot info was null when processing context menu.")
+
         node.graph.beforeChange()
         if (info.input) {
           node.removeInput(info.slot)
@@ -7397,9 +7399,11 @@ export class LGraphCanvas implements ConnectionColorContext {
         node.graph.afterChange()
         return
       } else if (v.content == "Disconnect Links") {
-        if (!node.graph) throw new NullGraphError()
+        if (!node?.graph) throw new NullGraphError()
 
         const info = v.slot
+        if (!info) throw new TypeError("Found-slot info was null when processing context menu.")
+
         node.graph.beforeChange()
         if (info.output) {
           node.disconnectOutput(info.slot)
@@ -7409,7 +7413,11 @@ export class LGraphCanvas implements ConnectionColorContext {
         node.graph.afterChange()
         return
       } else if (v.content == "Rename Slot") {
+        if (!node) throw new TypeError("`node` was null when processing the context menu.")
+
         const info = v.slot
+        if (!info) throw new TypeError("Found-slot info was null when processing context menu.")
+
         const slot_info = info.input
           ? node.getInputInfo(info.slot)
           : node.getOutputInfo(info.slot)
@@ -7423,7 +7431,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           if (!node.graph) throw new NullGraphError()
 
           node.graph.beforeChange()
-          if (input.value) {
+          if (input?.value) {
             if (slot_info) {
               slot_info.label = input.value
             }
@@ -7432,7 +7440,9 @@ export class LGraphCanvas implements ConnectionColorContext {
           dialog.close()
           node.graph.afterChange()
         }
-        dialog.querySelector("button").addEventListener("click", inner)
+        dialog.querySelector("button")?.addEventListener("click", inner)
+        if (!input) throw new TypeError("Input element was null when processing context menu.")
+
         input.addEventListener("keydown", function (e) {
           dialog.is_modified = true
           if (e.key == "Escape") {
