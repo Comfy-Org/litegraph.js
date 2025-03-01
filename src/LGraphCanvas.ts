@@ -1673,6 +1673,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       throw "This browser doesn't support Canvas"
     }
 
+    this.ctx = element.getContext("2d")
+
     if (!skip_events) this.bindEvents()
   }
 
