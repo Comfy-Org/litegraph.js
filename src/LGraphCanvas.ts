@@ -7300,49 +7300,47 @@ export class LGraphCanvas implements ConnectionColorContext {
       extra: node,
     }
 
-    if (node) options.title = node.type
-
-    // check if mouse is in input
-    let slot: ReturnType<LGraphNode["getSlotInPosition"]>
     if (node) {
-      slot = node.getSlotInPosition(event.canvasX, event.canvasY)
+      options.title = node.type ?? undefined
       LGraphCanvas.active_node = node
-    }
 
-    if (slot) {
-      // on slot
-      menu_info = []
-      if (node.getSlotMenuOptions) {
-        menu_info = node.getSlotMenuOptions(slot)
+      // check if mouse is in input
+      const slot = node?.getSlotInPosition(event.canvasX, event.canvasY)
+      if (slot) {
+        // on slot
+        menu_info = []
+        if (node.getSlotMenuOptions) {
+          menu_info = node.getSlotMenuOptions(slot)
+        } else {
+          if (slot?.output?.links?.length)
+            menu_info.push({ content: "Disconnect Links", slot: slot })
+
+          const _slot = slot.input || slot.output
+          if (_slot.removable) {
+            menu_info.push(
+              _slot.locked
+                ? "Cannot remove"
+                : { content: "Remove Slot", slot: slot },
+            )
+          }
+          if (!_slot.nameLocked)
+            menu_info.push({ content: "Rename Slot", slot: slot })
+
+          if (node.getExtraSlotMenuOptions) {
+            menu_info.push(...node.getExtraSlotMenuOptions(slot))
+          }
+        }
+        // @ts-expect-error Slot type can be number and has number checks
+        options.title = (slot.input ? slot.input.type : slot.output.type) || "*"
+        if (slot.input && slot.input.type == LiteGraph.ACTION)
+          options.title = "Action"
+
+        if (slot.output && slot.output.type == LiteGraph.EVENT)
+          options.title = "Event"
       } else {
-        if (slot?.output?.links?.length)
-          menu_info.push({ content: "Disconnect Links", slot: slot })
-
-        const _slot = slot.input || slot.output
-        if (_slot.removable) {
-          menu_info.push(
-            _slot.locked
-              ? "Cannot remove"
-              : { content: "Remove Slot", slot: slot },
-          )
-        }
-        if (!_slot.nameLocked)
-          menu_info.push({ content: "Rename Slot", slot: slot })
-
-        if (node.getExtraSlotMenuOptions) {
-          menu_info.push(...node.getExtraSlotMenuOptions(slot))
-        }
+        // on node
+        menu_info = this.getNodeMenuOptions(node)
       }
-      // @ts-expect-error Slot type can be number and has number checks
-      options.title = (slot.input ? slot.input.type : slot.output.type) || "*"
-      if (slot.input && slot.input.type == LiteGraph.ACTION)
-        options.title = "Action"
-
-      if (slot.output && slot.output.type == LiteGraph.EVENT)
-        options.title = "Event"
-    } else if (node) {
-      // on node
-      menu_info = this.getNodeMenuOptions(node)
     } else {
       menu_info = this.getCanvasMenuOptions()
       if (!this.graph) throw new NullGraphError()
