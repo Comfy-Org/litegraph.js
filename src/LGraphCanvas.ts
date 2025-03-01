@@ -6079,7 +6079,9 @@ export class LGraphCanvas implements ConnectionColorContext {
       dialog.innerHTML += "<select class='slot_in_type_filter'><option value=''></option></select>"
       dialog.innerHTML += "<select class='slot_out_type_filter'><option value=''></option></select>"
     }
-    dialog.innerHTML += "<div class='helper'></div>"
+    const helper = document.createElement("div")
+    helper.className = "helper"
+    dialog.append(helper)
 
     if (root_document.fullscreenElement) {
       root_document.fullscreenElement.append(dialog)
@@ -6159,8 +6161,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     // @ts-expect-error Panel?
     that.search_box?.close()
     that.search_box = dialog
-
-    const helper = dialog.querySelector(".helper")
 
     let first = null
     let timeout = null
