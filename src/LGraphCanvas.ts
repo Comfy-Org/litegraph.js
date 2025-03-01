@@ -4080,9 +4080,8 @@ export class LGraphCanvas implements ConnectionColorContext {
   drawFrontCanvas(): void {
     this.dirty_canvas = false
 
-    const ctx = this.ctx
+    const { ctx, canvas } = this
 
-    const canvas = this.canvas
     // @ts-expect-error
     if (ctx.start2D && !this.viewport) {
       // @ts-expect-error
