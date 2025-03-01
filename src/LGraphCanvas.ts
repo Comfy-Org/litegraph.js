@@ -2652,15 +2652,17 @@ export class LGraphCanvas implements ConnectionColorContext {
       return
     }
 
+    const start = this.#dragZoomStart
+    if (!start) throw new TypeError("Drag-zoom state object was null")
     if (!this.graph) throw new NullGraphError()
 
     // calculate delta
-    const deltaY = e.y - this.#dragZoomStart.pos[1]
-    const startScale = this.#dragZoomStart.scale
+    const deltaY = e.y - start.pos[1]
+    const startScale = start.scale
 
     const scale = startScale - deltaY / 100
 
-    this.ds.changeScale(scale, this.#dragZoomStart.pos)
+    this.ds.changeScale(scale, start.pos)
     this.graph.change()
   }
 
