@@ -995,8 +995,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     v: unknown,
     /** Unused - immediately overwritten */
     _options: INodeOutputSlot[],
-    e: unknown,
-    prev_menu: ContextMenu,
+    e: MouseEvent,
+    prev_menu: ContextMenu<INodeSlotContextItem>,
     node: LGraphNode,
   ): boolean | undefined {
     if (!node) return
@@ -1051,7 +1051,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     if (!entries.length) return
 
-    new LiteGraph.ContextMenu(
+    new LiteGraph.ContextMenu<INodeSlotContextItem>(
       entries,
       {
         event: e,
@@ -1465,28 +1465,28 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   static onMenuNodeShapes(
-    value: IContextMenuValue,
-    options: IContextMenuOptions,
+    value: IContextMenuValue<typeof LiteGraph.VALID_SHAPES[number]>,
+    options: IContextMenuOptions<typeof LiteGraph.VALID_SHAPES[number]>,
     e: MouseEvent,
-    menu: ContextMenu,
+    menu: ContextMenu<typeof LiteGraph.VALID_SHAPES[number]>,
     node: LGraphNode,
   ): boolean {
     if (!node) throw "no node passed"
 
-    new LiteGraph.ContextMenu(LiteGraph.VALID_SHAPES, {
+    new LiteGraph.ContextMenu<typeof LiteGraph.VALID_SHAPES[number]>(LiteGraph.VALID_SHAPES, {
       event: e,
       callback: inner_clicked,
       parentMenu: menu,
       node: node,
     })
 
-    function inner_clicked(v) {
+    function inner_clicked(v: typeof LiteGraph.VALID_SHAPES[number]) {
       if (!node) return
       if (!node.graph) throw new NullGraphError()
 
       node.graph.beforeChange()
 
-      const fApplyMultiNode = function (node) {
+      const fApplyMultiNode = function (node: LGraphNode) {
         node.shape = v
       }
 
