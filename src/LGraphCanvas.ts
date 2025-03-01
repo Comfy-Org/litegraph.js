@@ -1308,7 +1308,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
   }
 
-  static getPropertyPrintableValue(value: unknown, values: unknown[] | object): string | undefined {
+  static getPropertyPrintableValue(value: unknown, values: unknown[] | object | undefined): string | undefined {
     if (!values) return String(value)
 
     if (Array.isArray(values)) {
@@ -1919,7 +1919,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @param node The node that the mouse is now over
    * @param e MouseEvent that is triggering this
    */
-  updateMouseOverNodes(node: LGraphNode, e: CanvasMouseEvent): void {
+  updateMouseOverNodes(node: LGraphNode | null, e: CanvasMouseEvent): void {
     if (!this.graph) throw new NullGraphError()
 
     const nodes = this.graph._nodes
