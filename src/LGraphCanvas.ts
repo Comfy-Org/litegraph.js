@@ -1872,7 +1872,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     for (const widget of node.widgets) {
       if (widget.hidden || (widget.advanced && !node.showAdvanced)) continue
 
-      let widgetWidth: number, widgetHeight: number
+      let widgetWidth: number | undefined
+      let widgetHeight: number | undefined
       if (widget.computeSize) {
         ([widgetWidth, widgetHeight] = widget.computeSize(node.size[0]))
       } else if (widget.computeLayoutSize) {
@@ -1884,6 +1885,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       }
 
       if (
+        widgetWidth != null &&
+        widgetHeight != null &&
         widget.last_y !== undefined &&
         x >= 6 &&
         x <= widgetWidth - 12 &&
