@@ -123,15 +123,16 @@ interface ICreateNodeOptions {
   ) => HTMLDivElement | void
 }
 
-interface ICloseableDiv extends HTMLDivElement {
-  close?(): void
+interface ICloseable {
+  close(): void
 }
 
-interface IDialog extends ICloseableDiv {
-  modified?(): void
-  close?(): void
-  is_modified?: boolean
+interface IDialogExtensions extends ICloseable {
+  modified(): void
+  is_modified: boolean
 }
+
+interface IDialog extends HTMLDivElement, IDialogExtensions {}
 
 interface IDialogOptions {
   position?: Point
@@ -5895,18 +5896,21 @@ export class LGraphCanvas implements ConnectionColorContext {
     const that = this
     title = title || ""
 
-    const dialog: IDialog = document.createElement("div")
-    dialog.is_modified = false
-    dialog.className = "graphdialog rounded"
-    dialog.innerHTML = multiline
-      ? "<span class='name'></span> <textarea autofocus class='value'></textarea><button class='rounded'>OK</button>"
-      : "<span class='name'></span> <input autofocus type='text' class='value'/><button class='rounded'>OK</button>"
-    dialog.close = function () {
-      that.prompt_box = null
-      if (dialog.parentNode) {
-        dialog.remove()
-      }
-    }
+    const customProperties = {
+      is_modified: false,
+      className: "graphdialog rounded",
+      innerHTML: multiline
+        ? "<span class='name'></span> <textarea autofocus class='value'></textarea><button class='rounded'>OK</button>"
+        : "<span class='name'></span> <input autofocus type='text' class='value'/><button class='rounded'>OK</button>",
+      close() {
+        that.prompt_box = null
+        if (dialog.parentNode) {
+          dialog.remove()
+        }
+      },
+    } satisfies Partial<IDialog>
+
+    const dialog = Object.assign(document.createElement("div"), customProperties)
 
     const graphcanvas = LGraphCanvas.active_canvas
     const canvas = graphcanvas.canvas
@@ -6686,10 +6690,20 @@ export class LGraphCanvas implements ConnectionColorContext {
       closeOnLeave_checkModified: true,
     }
     options = Object.assign(def_options, options || {})
-    const dialog: IDialog = document.createElement("div")
-    dialog.className = "graphdialog"
-    dialog.innerHTML = html
-    dialog.is_modified = false
+
+    const customProperties = {
+      className: "graphdialog",
+      innerHTML: html,
+      is_modified: false,
+      modified() {
+        this.is_modified = true
+      },
+      close(this: IDialog) {
+        this.remove()
+      },
+    } satisfies Partial<IDialog>
+
+    const dialog: IDialog = Object.assign(document.createElement("div"), customProperties)
 
     const rect = this.canvas.getBoundingClientRect()
     let offsetx = -20
@@ -6736,13 +6750,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           if (!focused) iX.focus()
         }
       }
-    }
-
-    dialog.modified = function () {
-      dialog.is_modified = true
-    }
-    dialog.close = function () {
-      dialog.remove()
     }
 
     let dialogCloseTimer = null
@@ -6965,8 +6972,9 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   closePanels(): void {
-    document.querySelector<ICloseableDiv>("#node-panel")?.close()
-    document.querySelector<ICloseableDiv>("#option-panel")?.close()
+    type MightHaveClose = HTMLDivElement & Partial<ICloseable>
+    document.querySelector<MightHaveClose>("#node-panel")?.close?.()
+    document.querySelector<MightHaveClose>("#option-panel")?.close?.()
   }
 
   showShowNodePanel(node: LGraphNode): void {
