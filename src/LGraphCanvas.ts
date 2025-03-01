@@ -1776,10 +1776,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     canvas.removeEventListener("drop", this._ondrop_callback!)
     canvas.removeEventListener("dragenter", this._doReturnTrue)
 
-    this._mousedown_callback = null
-    this._mousewheel_callback = null
-    this._key_callback = null
-    this._ondrop_callback = null
+    this._mousedown_callback = undefined
+    this._mousewheel_callback = undefined
+    this._key_callback = undefined
+    this._ondrop_callback = undefined
 
     this._events_binded = false
   }
