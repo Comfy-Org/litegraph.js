@@ -6132,13 +6132,12 @@ export class LGraphCanvas implements ConnectionColorContext {
           timeout_close = null
         }
       })
-      LiteGraph.pointerListenerAdd(dialog, "leave", function () {
-        if (prevent_timeout)
-          return
-        timeout_close = setTimeout(function () {
-          // @ts-expect-error Panel?
-          dialog.close()
-        }, typeof options.hide_on_mouse_leave === "number" ? options.hide_on_mouse_leave : 500)
+      dialog.addEventListener("pointerleave", function () {
+        if (prevent_timeout) return
+
+        const hideDelay = options.hide_on_mouse_leave
+        const delay = typeof hideDelay === "number" ? hideDelay : 500
+        timeout_close = setTimeout(dialog.close, delay)
       })
       // if filtering, check focus changed to comboboxes and prevent closing
       if (options.do_type_filter) {
