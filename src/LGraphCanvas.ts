@@ -1195,7 +1195,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   // TODO refactor :: this is used fot title but not for properties!
   static onShowPropertyEditor(
     item: { property: keyof LGraphNode, type: string },
-    options: IContextMenuOptions,
+    options: IContextMenuOptions<string>,
     e: MouseEvent,
     menu: ContextMenu<string>,
     node: LGraphNode,
