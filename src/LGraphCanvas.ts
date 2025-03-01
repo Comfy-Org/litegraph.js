@@ -1709,7 +1709,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       return
     }
 
-    // console.log("pointerevents: bindEvents");
     const canvas = this.canvas
 
     const ref_window = this.getCanvasWindow()
@@ -1718,17 +1717,14 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     this._mousedown_callback = this.processMouseDown.bind(this)
     this._mousewheel_callback = this.processMouseWheel.bind(this)
-    // why mousemove and mouseup were not binded here?
     this._mousemove_callback = this.processMouseMove.bind(this)
     this._mouseup_callback = this.processMouseUp.bind(this)
     this._mouseout_callback = this.processMouseOut.bind(this)
     this._mousecancel_callback = this.processMouseCancel.bind(this)
 
-    // down do not need to store the binded
     canvas.addEventListener("pointerdown", this._mousedown_callback, true)
     canvas.addEventListener("wheel", this._mousewheel_callback, false)
 
-    // CHECK: ??? binded or not
     canvas.addEventListener("pointerup", this._mouseup_callback, true)
     canvas.addEventListener("pointermove", this._mousemove_callback)
     canvas.addEventListener("pointerout", this._mouseout_callback)
@@ -1736,14 +1732,14 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     canvas.addEventListener("contextmenu", this._doNothing)
 
-    // Keyboard ******************
+    // Keyboard
     this._key_callback = this.processKey.bind(this)
 
     canvas.addEventListener("keydown", this._key_callback, true)
-    // in document, otherwise it doesn't fire keyup
+    // keyup event must be bound on the document
     document.addEventListener("keyup", this._key_callback, true)
 
-    // Dropping Stuff over nodes ************************************
+    // Dropping Stuff over nodes
     this._ondrop_callback = this.processDrop.bind(this)
 
     canvas.addEventListener("dragover", this._doNothing, false)
