@@ -92,13 +92,13 @@ interface IShowSearchOptions {
 
 interface ICreateNodeOptions {
   /** input */
-  nodeFrom?: LGraphNode
+  nodeFrom?: LGraphNode | null
   /** input */
-  slotFrom?: number | INodeOutputSlot | INodeInputSlot
+  slotFrom?: number | INodeOutputSlot | INodeInputSlot | null
   /** output */
-  nodeTo?: LGraphNode
+  nodeTo?: LGraphNode | null
   /** output */
-  slotTo?: number | INodeOutputSlot | INodeInputSlot
+  slotTo?: number | INodeOutputSlot | INodeInputSlot | null
   /** pass the event coords */
 
   // FIXME: Should not be optional
@@ -456,7 +456,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   node_over?: LGraphNode
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
-  link_over_widget?: IWidget
+  link_over_widget?: IWidget | null
   link_over_widget_type?: string
 
   dirty_canvas: boolean = true
@@ -487,14 +487,14 @@ export class LGraphCanvas implements ConnectionColorContext {
   block_click?: boolean
   /** @deprecated Panels */
   last_click_position?: Point
-  resizing_node?: LGraphNode
+  resizing_node?: LGraphNode | null
   /** @deprecated See {@link LGraphCanvas.resizingGroup} */
   selected_group_resizing?: boolean
   /** @deprecated See {@link pointer}.{@link CanvasPointer.dragStarted dragStarted} */
   last_mouse_dragging?: boolean
   onMouseDown?: (arg0: CanvasMouseEvent) => void
-  _highlight_pos?: Point
-  _highlight_input?: INodeInputSlot
+  _highlight_pos?: Point | null
+  _highlight_input?: INodeInputSlot | null
   // TODO: Check if panels are used
   /** @deprecated Panels */
   node_panel?: any
@@ -3671,7 +3671,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * Accessibility: anyone using {@link mutli_select} always deselects when clicking empty space.
    */
   processSelect<TPositionable extends Positionable = LGraphNode>(
-    item: TPositionable | null,
+    item: TPositionable | null | undefined,
     e: CanvasMouseEvent,
     sticky: boolean = false,
   ): void {
@@ -7265,7 +7265,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     return group.getMenuOptions()
   }
 
-  processContextMenu(node: LGraphNode, event: CanvasMouseEvent): void {
+  processContextMenu(node: LGraphNode | undefined, event: CanvasMouseEvent): void {
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
 
