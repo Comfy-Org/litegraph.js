@@ -3337,12 +3337,14 @@ export class LGraphCanvas implements ConnectionColorContext {
         serialisable.nodes.push(cloned)
 
         // Links
-        const links = item.inputs
-          ?.map(input => this.graph?._links.get(input?.link)?.asSerialisable())
-          .filter(x => !!x)
+        if (item.inputs) {
+          for (const { link: linkId } of item.inputs) {
+            if (linkId == null) continue
 
-        if (!links) continue
-        serialisable.links.push(...links)
+            const link = this.graph?._links.get(linkId)?.asSerialisable()
+            if (link) serialisable.links.push(link)
+          }
+        }
       } else if (item instanceof LGraphGroup) {
         // Groups
         serialisable.groups.push(item.serialize())
