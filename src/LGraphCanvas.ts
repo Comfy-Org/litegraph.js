@@ -522,11 +522,11 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** The start position of the drag zoom. */
   #dragZoomStart: { pos: Point, scale: number } | null = null
 
-  getMenuOptions?(): IContextMenuValue[]
+  getMenuOptions?(): IContextMenuValue<string>[]
   getExtraMenuOptions?(
     canvas: LGraphCanvas,
-    options: IContextMenuValue[],
-  ): IContextMenuValue[]
+    options: IContextMenuValue<string>[],
+  ): IContextMenuValue<string>[]
   static active_node: LGraphNode
   /** called before modifying the graph */
   onBeforeChange?(graph: LGraph): void
@@ -806,10 +806,10 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   static onMenuAdd(
-    node: LGraphNode,
-    options: IContextMenuOptions,
+    value: unknown,
+    options: unknown,
     e: MouseEvent,
-    prev_menu: ContextMenu<string>,
+    prev_menu?: ContextMenu<string>,
     callback?: (node: LGraphNode | null) => void,
   ): boolean | undefined {
     const canvas = LGraphCanvas.active_canvas
@@ -7114,8 +7114,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
   }
 
-  getCanvasMenuOptions(): IContextMenuValue[] {
-    let options: IContextMenuValue[] = null
+  getCanvasMenuOptions(): IContextMenuValue<string>[] {
+    let options: IContextMenuValue<string>[]
     if (this.getMenuOptions) {
       options = this.getMenuOptions()
     } else {
