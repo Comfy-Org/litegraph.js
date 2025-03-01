@@ -1001,9 +1001,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   ): boolean | undefined {
     if (!node) return
 
-    const that = this
     const canvas = LGraphCanvas.active_canvas
-    const ref_window = canvas.getCanvasWindow()
 
     const options = node.onGetOutputs
       ? node.onGetOutputs()
@@ -1061,15 +1059,13 @@ export class LGraphCanvas implements ConnectionColorContext {
         parentMenu: prev_menu,
         node: node,
       },
-      // @ts-expect-error Unused
-      ref_window,
     )
 
-    function inner_clicked(v: IContextMenuValue<INodeSlotContextItem>, e: any, prev: any) {
+    function inner_clicked(this: ContextMenuDivElement<INodeSlotContextItem>, v: IContextMenuValue<INodeSlotContextItem>, e: any, prev: any) {
       if (!node) return
 
       // TODO: This is a static method, so the below "that" appears broken.
-      if (v.callback) v.callback.call(that, node, v, e, prev)
+      if (v.callback) v.callback.call(this, node, v, e, prev)
 
       if (!v.value) return
 
