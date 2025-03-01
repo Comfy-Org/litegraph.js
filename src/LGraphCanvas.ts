@@ -4079,9 +4079,6 @@ export class LGraphCanvas implements ConnectionColorContext {
   drawFrontCanvas(): void {
     this.dirty_canvas = false
 
-    if (!this.ctx) {
-      this.ctx = this.bgcanvas.getContext("2d")
-    }
     const ctx = this.ctx
     if (!ctx) return
 
