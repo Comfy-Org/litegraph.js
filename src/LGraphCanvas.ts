@@ -1955,7 +1955,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     if (!is_inside) return
 
-    const node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+    const node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes) ?? undefined
 
     this.mouse[0] = x
     this.mouse[1] = y
@@ -2010,7 +2010,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.onMouseDown?.(e)
   }
 
-  #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode) {
+  #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode | undefined) {
     const { pointer, graph } = this
     if (!graph) throw new NullGraphError()
 
@@ -2542,7 +2542,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @param e The pointerdown event
    * @param node The node to process a click event for
    */
-  #processMiddleButton(e: CanvasPointerEvent, node: LGraphNode) {
+  #processMiddleButton(e: CanvasPointerEvent, node: LGraphNode | undefined) {
     const { pointer } = this
 
     if (
