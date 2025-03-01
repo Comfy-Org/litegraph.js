@@ -6072,9 +6072,28 @@ export class LGraphCanvas implements ConnectionColorContext {
     const canvas = graphcanvas.canvas
     const root_document = canvas.ownerDocument || document
 
-    const dialog = document.createElement("div")
+    const input = Object.assign(document.createElement("input"), {
+      autofocus: true,
+      type: "text",
+      className: "value rounded",
+    } satisfies Partial<HTMLInputElement>)
+
+    const dialog = Object.assign(document.createElement("div"), {
+      close(this: HTMLDivElement) {
+        that.search_box = undefined
+        this.blur()
+        canvas.focus()
+        root_document.body.style.overflow = ""
+
+        // important, if canvas loses focus keys wont be captured
+        setTimeout(canvas.focus, 20)
+        dialog.remove()
+      },
+    } satisfies Partial<HTMLDivElement> & ICloseable)
     dialog.className = "litegraph litesearchbox graphdialog rounded"
-    dialog.innerHTML = "<span class='name'>Search</span> <input autofocus type='text' class='value rounded'/>"
+    dialog.innerHTML = "<span class='name'>Search</span> "
+    dialog.append(input)
+
     if (options.do_type_filter) {
       dialog.innerHTML += "<select class='slot_in_type_filter'><option value=''></option></select>"
       dialog.innerHTML += "<select class='slot_out_type_filter'><option value=''></option></select>"
@@ -6096,20 +6115,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (options.do_type_filter) {
       selIn = dialog.querySelector(".slot_in_type_filter")
       selOut = dialog.querySelector(".slot_out_type_filter")
-    }
-
-    // @ts-expect-error Panel?
-    dialog.close = function () {
-      that.search_box = null
-      this.blur()
-      canvas.focus()
-      root_document.body.style.overflow = ""
-
-      // important, if canvas loses focus keys wont be captured
-      setTimeout(function () {
-        that.canvas.focus()
-      }, 20)
-      dialog.remove()
     }
 
     if (this.ds.scale > 1) {
@@ -6166,7 +6171,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     let timeout = null
     let selected = null
 
-    const input = dialog.querySelector("input")
     if (input) {
       input.addEventListener("blur", function () {
         this.focus()
@@ -6180,7 +6184,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           changeSelection(true)
         } else if (e.key == "Escape") {
           // ESC
-          // @ts-expect-error Panel?
           dialog.close()
         } else if (e.key == "Enter") {
           if (selected) {
@@ -6188,7 +6191,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           } else if (first) {
             select(first)
           } else {
-            // @ts-expect-error Panel?
             dialog.close()
           }
         } else {
@@ -6286,7 +6288,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // To avoid out of screen problems
     if (event.layerY > rect.height - 200)
-      // @ts-expect-error
       helper.style.maxHeight = `${rect.height - event.layerY - 20}px`
 
     requestAnimationFrame(function () {
@@ -6373,7 +6374,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
       }
 
-      // @ts-expect-error Panel?
       dialog.close()
     }
 
