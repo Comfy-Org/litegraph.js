@@ -2051,26 +2051,28 @@ export class LGraphCanvas implements ConnectionColorContext {
     // clone node ALT dragging
     if (LiteGraph.alt_drag_do_clone_nodes && e.altKey && !e.ctrlKey && node && this.allow_interaction) {
       const node_data = node.clone()?.serialize()
-      const cloned = LiteGraph.createNode(node_data.type)
-      if (cloned) {
-        cloned.configure(node_data)
-        cloned.pos[0] += 5
-        cloned.pos[1] += 5
+      if (node_data?.type != null) {
+        const cloned = LiteGraph.createNode(node_data.type)
+        if (cloned) {
+          cloned.configure(node_data)
+          cloned.pos[0] += 5
+          cloned.pos[1] += 5
 
-        if (this.allow_dragnodes) {
-          pointer.onDragStart = (pointer) => {
-            graph.add(cloned, false)
-            this.#startDraggingItems(cloned, pointer)
-          }
-          pointer.onDragEnd = e => this.#processDraggedItems(e)
-        } else {
+          if (this.allow_dragnodes) {
+            pointer.onDragStart = (pointer) => {
+              graph.add(cloned, false)
+              this.#startDraggingItems(cloned, pointer)
+            }
+            pointer.onDragEnd = e => this.#processDraggedItems(e)
+          } else {
           // TODO: Check if before/after change are necessary here.
-          graph.beforeChange()
-          graph.add(cloned, false)
-          graph.afterChange()
-        }
+            graph.beforeChange()
+            graph.add(cloned, false)
+            graph.afterChange()
+          }
 
-        return
+          return
+        }
       }
     }
 
