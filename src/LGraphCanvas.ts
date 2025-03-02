@@ -4720,7 +4720,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (this.linkMarkerShape === LinkMarkerShape.Arrow) {
       const transform = ctx.getTransform()
       ctx.translate(pos[0], pos[1])
-      if (Number.isFinite(link._centreAngle)) ctx.rotate(link._centreAngle)
+      // Assertion: Number.isFinite guarantees this is a number.
+      if (Number.isFinite(link._centreAngle)) ctx.rotate(link._centreAngle as number)
       ctx.moveTo(-2, -3)
       ctx.lineTo(+4, 0)
       ctx.lineTo(-2, +3)
