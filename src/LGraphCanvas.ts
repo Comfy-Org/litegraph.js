@@ -442,7 +442,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   visible_area: Rect32
   /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
   renderedPaths: Set<LinkSegment> = new Set()
-  visible_links?: LLink[]
+  visible_links: LLink[]
   connecting_links: ConnectingLink[] | null
   /** The viewport of this canvas.  Tightly coupled with {@link ds}. */
   readonly viewport?: Rect
@@ -551,7 +551,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** called when rendering a tooltip */
   onDrawLinkTooltip?: (
     ctx: CanvasRenderingContext2D,
-    link: LLink,
+    link: LLink | null,
     canvas?: LGraphCanvas,
   ) => boolean
 
