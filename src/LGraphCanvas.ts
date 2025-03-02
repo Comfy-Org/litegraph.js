@@ -4474,6 +4474,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.bgctx = this.bgcanvas.getContext("2d")
     }
     const ctx = this.bgctx
+    if (!ctx) throw new TypeError("Background canvas context was null.")
     // TODO: Remove this
     // @ts-expect-error
     if (ctx.start) ctx.start()
