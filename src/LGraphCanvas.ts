@@ -6078,8 +6078,9 @@ export class LGraphCanvas implements ConnectionColorContext {
       className: "value rounded",
     } satisfies Partial<HTMLInputElement>)
 
-    const dialog = Object.assign(document.createElement("div"), {
-      close(this: HTMLDivElement) {
+    const div = document.createElement("div")
+    const dialog = Object.assign(div, {
+      close(this: typeof div) {
         that.search_box = undefined
         this.blur()
         canvas.focus()
@@ -6141,6 +6142,9 @@ export class LGraphCanvas implements ConnectionColorContext {
       })
       // if filtering, check focus changed to comboboxes and prevent closing
       if (options.do_type_filter) {
+        if (!selIn) throw new TypeError("selIn was null when showing search box")
+        if (!selOut) throw new TypeError("selOut was null when showing search box")
+
         selIn.addEventListener("click", function () {
           prevent_timeout++
         })
@@ -6185,8 +6189,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           // ESC
           dialog.close()
         } else if (e.key == "Enter") {
-          if (selected) {
-            select(unescape(selected.dataset["type"]))
+          if (selected instanceof HTMLElement) {
+            select(unescape(String(selected.dataset.type)))
           } else if (first) {
             select(first)
           } else {
@@ -6286,9 +6290,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     dialog.style.top = `${top}px`
 
     // To avoid out of screen problems
-    if (event.layerY > rect.height - 200)
+    if (event.layerY > rect.height - 200) {
       helper.style.maxHeight = `${rect.height - event.layerY - 20}px`
-
+    }
     requestAnimationFrame(function () {
       input.focus()
     })
@@ -6334,6 +6338,8 @@ export class LGraphCanvas implements ConnectionColorContext {
             }
             if (options.node_from.outputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
+                if (node == null) throw new TypeError("options.slot_from was null when showing search box")
+
                 options.node_from.connectByType(iS, node, options.node_from.outputs[iS].type)
               }
             } else {
@@ -6365,6 +6371,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             }
             if (options.node_to.inputs[iS] !== undefined) {
               if (iS !== false && iS > -1) {
+                if (node == null) throw new TypeError("options.slot_from was null when showing search box")
                 // try connection
                 options.node_to.connectByTypeOutput(iS, node, options.node_to.inputs[iS].type)
               }
@@ -6393,10 +6400,11 @@ export class LGraphCanvas implements ConnectionColorContext {
           : selected.previousSibling
         selected ||= prev
       }
-      if (!selected) return
 
-      selected.classList.add("selected")
-      selected.scrollIntoView({ block: "end", behavior: "smooth" })
+      if (selected instanceof HTMLElement) {
+        selected.classList.add("selected")
+        selected.scrollIntoView({ block: "end", behavior: "smooth" })
+      }
     }
 
     function refreshHelper() {
