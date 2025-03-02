@@ -3749,11 +3749,13 @@ export class LGraphCanvas implements ConnectionColorContext {
     // Highlight links
     if (item.inputs) {
       for (const input of item.inputs) {
+        if (input.link == null) continue
         this.highlighted_links[input.link] = true
       }
     }
     if (item.outputs) {
       for (const id of item.outputs.flatMap(x => x.links)) {
+        if (id == null) continue
         this.highlighted_links[id] = true
       }
     }
@@ -3779,11 +3781,13 @@ export class LGraphCanvas implements ConnectionColorContext {
     // Clear link highlight
     if (item.inputs) {
       for (const input of item.inputs) {
+        if (input.link == null) continue
         delete this.highlighted_links[input.link]
       }
     }
     if (item.outputs) {
       for (const id of item.outputs.flatMap(x => x.links)) {
+        if (id == null) continue
         delete this.highlighted_links[id]
       }
     }
@@ -3878,11 +3882,13 @@ export class LGraphCanvas implements ConnectionColorContext {
       // Highlight links
       if (keepSelected.inputs) {
         for (const input of keepSelected.inputs) {
+          if (input.link == null) continue
           this.highlighted_links[input.link] = true
         }
       }
       if (keepSelected.outputs) {
         for (const id of keepSelected.outputs.flatMap(x => x.links)) {
+          if (id == null) continue
           this.highlighted_links[id] = true
         }
       }
