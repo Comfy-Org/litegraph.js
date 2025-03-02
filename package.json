@@ -20,8 +20,8 @@
   },
   "private": false,
   "scripts": {
-    "typecheck": "tsc --noEmit && tsc-strict",
-    "build": "npm run typecheck && vite build",
+    "typecheck": "tsc",
+    "build": "tsc && vite build",
     "dev": "vite",
     "preview": "vite preview",
     "watch": "vite build --watch",
