@@ -4217,7 +4217,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         // current connection (the one being dragged by the mouse)
         for (const link of this.connecting_links) {
           ctx.lineWidth = this.connections_width
-          let link_color = null
 
           const connInOrOut = link.output || link.input
 
@@ -4231,13 +4230,9 @@ export class LGraphCanvas implements ConnectionColorContext {
           }
           const connShape = connInOrOut?.shape
 
-          switch (connType) {
-          case LiteGraph.EVENT:
-            link_color = LiteGraph.EVENT_LINK_COLOR
-            break
-          default:
-            link_color = LiteGraph.CONNECTING_LINK_COLOR
-          }
+          const link_color = connType === LiteGraph.EVENT
+            ? LiteGraph.EVENT_LINK_COLOR
+            : LiteGraph.CONNECTING_LINK_COLOR
 
           // If not using reroutes, link.afterRerouteId should be undefined.
           const pos = this.graph.reroutes.get(link.afterRerouteId)?.pos ?? link.pos
