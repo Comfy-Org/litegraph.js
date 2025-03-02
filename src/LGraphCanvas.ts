@@ -497,7 +497,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** @deprecated Panels */
   block_click?: boolean
   /** @deprecated Panels */
-  last_click_position?: Point
+  last_click_position?: Point | null
   resizing_node?: LGraphNode | null
   /** @deprecated See {@link LGraphCanvas.resizingGroup} */
   selected_group_resizing?: boolean
@@ -545,7 +545,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   onAfterChange?(graph: LGraph): void
   onClear?: () => void
   /** called after moving a node @deprecated Does not handle multi-node move, and can return the wrong node. */
-  onNodeMoved?: (node_dragged: LGraphNode) => void
+  onNodeMoved?: (node_dragged: LGraphNode | undefined) => void
   /** called if the selection changes */
   onSelectionChange?: (selected: Dictionary<Positionable>) => void
   /** called when rendering a tooltip */
@@ -2878,7 +2878,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const segment = this.#getLinkCentreOnPos(e)
         if (this.over_link_center !== segment) {
           underPointer |= CanvasItem.Link
-          this.over_link_center = segment
+          this.over_link_center = segment ?? null
           this.dirty_bgcanvas = true
         }
 
@@ -3086,7 +3086,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               : {
                 node_to: firstLink.node,
                 slot_from: firstLink.input,
-                type_filter_out: firstLink.input.type,
+                type_filter_out: firstLink.input?.type,
               }
 
             if (e.shiftKey) {
@@ -3403,7 +3403,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /**
    * Pastes the items from the canvas "clipbaord" - a local storage variable.
    */
-  _pasteFromClipboard(options: IPasteFromClipboardOptions = {}): ClipboardPasteResult {
+  _pasteFromClipboard(options: IPasteFromClipboardOptions = {}): ClipboardPasteResult | undefined {
     const {
       connectInputs = false,
       position = this.graph_mouse,
@@ -3706,7 +3706,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    */
   processSelect<TPositionable extends Positionable = LGraphNode>(
     item: TPositionable | null | undefined,
-    e: CanvasMouseEvent,
+    e: CanvasMouseEvent | undefined,
     sticky: boolean = false,
   ): void {
     const addModifier = e?.shiftKey
