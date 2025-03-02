@@ -2794,9 +2794,9 @@ export class LGraphCanvas implements ConnectionColorContext {
             const firstLink = this.connecting_links[0]
 
             // Default: nothing highlighted
-            let highlightPos: Point = null
-            let highlightInput: INodeInputSlot = null
-            let linkOverWidget: IWidget = null
+            let highlightPos: Point | null = null
+            let highlightInput: INodeInputSlot | null = null
+            let linkOverWidget: IWidget | null = null
 
             if (firstLink.node === node) {
               // Cannot connect link from a node to itself
