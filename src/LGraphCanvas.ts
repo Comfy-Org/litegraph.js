@@ -6125,7 +6125,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (options.hide_on_mouse_leave) {
       // FIXME: Remove "any" kludge
       let prevent_timeout: any = false
-      let timeout_close = null
+      let timeout_close: ReturnType<typeof setTimeout> | null = null
       LiteGraph.pointerListenerAdd(dialog, "enter", function () {
         if (timeout_close) {
           clearTimeout(timeout_close)
@@ -6166,9 +6166,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     that.search_box?.close()
     that.search_box = dialog
 
-    let first = null
-    let timeout = null
-    let selected = null
+    let first: string | null = null
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    let selected: ChildNode | null = null
 
     if (input) {
       input.addEventListener("blur", function () {
@@ -6294,7 +6294,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     })
     if (options.show_all_on_open) refreshHelper()
 
-    function select(name) {
+    function select(name: string) {
       if (name) {
         if (that.onSearchBoxSelection) {
           that.onSearchBoxSelection(name, event, graphcanvas)
@@ -6376,7 +6376,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       dialog.close()
     }
 
-    function changeSelection(forward) {
+    function changeSelection(forward: boolean) {
       const prev = selected
       if (!selected) {
         selected = forward
@@ -6615,7 +6615,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       options,
     )
 
-    let input: HTMLInputElement | HTMLSelectElement
+    let input: HTMLInputElement | HTMLSelectElement | null
     if ((type == "enum" || type == "combo") && info.values) {
       input = dialog.querySelector("select")
       input.addEventListener("change", function (e) {
