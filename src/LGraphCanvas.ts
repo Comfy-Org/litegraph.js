@@ -3065,17 +3065,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             }
           }
         } else if (firstLink.input || firstLink.output) {
-          const linkReleaseContext = firstLink.output
-            ? {
-              node_from: firstLink.node,
-              slot_from: firstLink.output,
-              type_filter_in: firstLink.output.type,
-            }
-            : {
-              node_to: firstLink.node,
-              slot_from: firstLink.input,
-              type_filter_out: firstLink.input.type,
-            }
           // For external event only.
           const linkReleaseContextExtended: LinkReleaseContextExtended = {
             links: this.connecting_links,
@@ -3088,6 +3077,18 @@ export class LGraphCanvas implements ConnectionColorContext {
           // No longer in use
           // add menu when releasing link in empty space
           if (LiteGraph.release_link_on_empty_shows_menu) {
+            const linkReleaseContext = firstLink.output
+              ? {
+                node_from: firstLink.node,
+                slot_from: firstLink.output,
+                type_filter_in: firstLink.output.type,
+              }
+              : {
+                node_to: firstLink.node,
+                slot_from: firstLink.input,
+                type_filter_out: firstLink.input.type,
+              }
+
             if (e.shiftKey) {
               if (this.allow_searchbox) {
                 this.showSearchBox(e, linkReleaseContext)
