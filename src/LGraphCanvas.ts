@@ -3616,9 +3616,12 @@ export class LGraphCanvas implements ConnectionColorContext {
       : false
   }
 
-  // called if the graph doesn't have a default drop item behaviour
+  /**
+   * called if the graph doesn't have a default drop item behaviour
+   * @deprecated This relies on the already-broken node_type_by_file_extension
+   */
   checkDropItem(e: CanvasDragEvent): void {
-    if (!e.dataTransfer.files.length) return
+    if (!e.dataTransfer?.files.length) return
 
     const file = e.dataTransfer.files[0]
     const ext = LGraphCanvas.getFileExtension(file.name).toLowerCase()
@@ -3628,6 +3631,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     this.graph.beforeChange()
     const node = LiteGraph.createNode(nodetype.type)
+    if (!node) throw new TypeError("Deprecated checkDropItem")
+
     node.pos = [e.canvasX, e.canvasY]
     this.graph.add(node)
     node.onDropFile?.(file)
