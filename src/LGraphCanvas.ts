@@ -6923,7 +6923,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       options = options || {}
       let str_value = String(value)
       type = type.toLowerCase()
-      if (type == "number") str_value = value.toFixed(3)
+      if (type == "number" && typeof value === "number") str_value = value.toFixed(3)
 
       // FIXME: any kludge
       const elem: HTMLDivElement & { options?: unknown, value?: unknown } = document.createElement("div")
@@ -6945,17 +6945,19 @@ export class LGraphCanvas implements ConnectionColorContext {
       } else if (type == "boolean") {
         elem.classList.add("boolean")
         if (value) elem.classList.add("bool-on")
-        elem.addEventListener("click", function () {
-          const propname = this.dataset["property"]
-          this.value = !this.value
-          this.classList.toggle("bool-on")
-          this.querySelector(".property_value").textContent = this.value
+        elem.addEventListener("click", () => {
+          const propname = elem.dataset["property"]
+          elem.value = !elem.value
+          elem.classList.toggle("bool-on")
+          if (!value_element) throw new TypeError("Property name element was null.")
+
+          value_element.textContent = elem.value
             ? "true"
             : "false"
-          innerChange(propname, this.value)
+          innerChange(propname, elem.value)
         })
       } else if (type == "string" || type == "number") {
-        value_element.setAttribute("contenteditable", true)
+        value_element.setAttribute("contenteditable", "true")
         value_element.addEventListener("keydown", function (e) {
           // allow for multiline
           if (e.code == "Enter" && (type != "string" || !e.shiftKey)) {
@@ -6965,8 +6967,8 @@ export class LGraphCanvas implements ConnectionColorContext {
         })
         value_element.addEventListener("blur", function () {
           let v: string | number | null = this.textContent
-          const propname = this.parentNode.dataset["property"]
-          const proptype = this.parentNode.dataset["type"]
+          const propname = this.parentElement?.dataset["property"]
+          const proptype = this.parentElement?.dataset["type"]
           if (proptype == "number") v = Number(v)
           innerChange(propname, v)
         })
@@ -6976,7 +6978,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         value_element.addEventListener("click", function (event) {
           const values = options.values || []
-          const propname = this.parentNode.dataset["property"]
+          const propname = this.parentElement?.dataset["property"]
           const inner_clicked = (v: string | null) => {
             // node.setProperty(propname,v);
             // graphcanvas.dirty_canvas = true;
@@ -7050,9 +7052,13 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.graph.beforeChange(node)
         switch (name) {
         case "Title":
+          if (typeof value !== "string") throw new TypeError("Attempting to set title to non-string value.")
+
           node.title = value
           break
         case "Mode": {
+          if (typeof value !== "string") throw new TypeError("Attempting to set mode to non-string value.")
+
           const kV = Object.values(LiteGraph.NODE_MODES).indexOf(value)
           if (kV !== -1 && LiteGraph.NODE_MODES[kV]) {
             node.changeMode(kV)
@@ -7062,6 +7068,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           break
         }
         case "Color":
+          if (typeof value !== "string") throw new TypeError("Attempting to set colour to non-string value.")
+
           if (LGraphCanvas.node_colors[value]) {
             node.color = LGraphCanvas.node_colors[value].color
             node.bgcolor = LGraphCanvas.node_colors[value].bgcolor
@@ -7125,7 +7133,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         panel.classList.remove("centered")
         inner_refresh()
       }
-      textarea.value = node.properties[propname]
+      textarea.value = String(node.properties[propname])
       textarea.addEventListener("keydown", function (e: KeyboardEvent) {
         if (e.code == "Enter" && e.ctrlKey) {
           node.setProperty(propname, textarea.value)
