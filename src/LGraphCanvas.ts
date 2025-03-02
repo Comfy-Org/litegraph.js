@@ -101,23 +101,28 @@ interface ICreateNodeOptions {
   slotTo?: number | INodeOutputSlot | INodeInputSlot | null
   /** pass the event coords */
 
-  // FIXME: Should not be optional
-  /** Position of new node */
-  position?: Point
   /** Create the connection from a reroute */
   afterRerouteId?: RerouteId
 
   // FIXME: Should not be optional
   /** choose a nodetype to add, AUTO to set at first good */
   nodeType?: string
+  e?: CanvasMouseEvent
+  allow_searchbox?: boolean
+}
+
+interface ICreateDefaultNodeOptions extends ICreateNodeOptions {
+  /** Position of new node */
+  position: Point
   /** adjust x,y */
   posAdd?: Point
   /** alpha, adjust the position x,y based on the new node size w,h */
   posSizeFix?: Point
-  e?: CanvasMouseEvent
-  allow_searchbox?: boolean
+}
+
+interface HasShowSearchCallback {
   /** See {@link LGraphCanvas.showSearchBox} */
-  showSearchBox?: (
+  showSearchBox: (
     event: MouseEvent,
     options?: IShowSearchOptions,
   ) => HTMLDivElement | void
@@ -5547,17 +5552,22 @@ export class LGraphCanvas implements ConnectionColorContext {
     return false
   }
 
-  createDefaultNodeForSlot(optPass: ICreateNodeOptions): boolean {
-    const opts = Object.assign<ICreateNodeOptions, ICreateNodeOptions>({
+  createDefaultNodeForSlot(optPass: ICreateDefaultNodeOptions): boolean {
+    type DefaultOptions = ICreateDefaultNodeOptions & {
+      posAdd: Point
+      posSizeFix: Point
+    }
+
+    const opts = Object.assign<DefaultOptions, ICreateDefaultNodeOptions>({
       nodeFrom: null,
       slotFrom: null,
       nodeTo: null,
       slotTo: null,
       position: [0, 0],
-      nodeType: null,
+      nodeType: undefined,
       posAdd: [0, 0],
       posSizeFix: [0, 0],
-    }, optPass || {})
+    }, optPass)
     const { afterRerouteId } = opts
 
     const isFrom = opts.nodeFrom && opts.slotFrom !== null
@@ -5573,6 +5583,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
 
     const nodeX = isFrom ? opts.nodeFrom : opts.nodeTo
+    if (!nodeX) throw new TypeError("nodeX was null when creating default node for slot.")
+
     let slotX = isFrom ? opts.slotFrom : opts.slotTo
 
     let iSlotConn: number | false = false
@@ -5582,6 +5594,11 @@ export class LGraphCanvas implements ConnectionColorContext {
       slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
       break
     case "object":
+      if (slotX === null) {
+        console.warn("Cant get slot information", slotX)
+        return false
+      }
+
       // ok slotX
       iSlotConn = isFrom ? nodeX.findOutputSlot(slotX.name) : nodeX.findInputSlot(slotX.name)
       break
@@ -5674,8 +5691,10 @@ export class LGraphCanvas implements ConnectionColorContext {
 
           // connect the two!
           if (isFrom) {
+            if (!opts.nodeFrom) throw new TypeError("createDefaultNodeForSlot - nodeFrom was null")
             opts.nodeFrom.connectByType(iSlotConn, newNode, fromSlotType, { afterRerouteId })
           } else {
+            if (!opts.nodeTo) throw new TypeError("createDefaultNodeForSlot - nodeTo was null")
             opts.nodeTo.connectByTypeOutput(iSlotConn, newNode, fromSlotType, { afterRerouteId })
           }
 
@@ -5693,12 +5712,12 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   showConnectionMenu(optPass: Partial<ICreateNodeOptions & { e: MouseEvent }>): void {
-    const opts = Object.assign<ICreateNodeOptions, ICreateNodeOptions>({
+    const opts = Object.assign<ICreateNodeOptions & HasShowSearchCallback, ICreateNodeOptions>({
       nodeFrom: null,
       slotFrom: null,
       nodeTo: null,
       slotTo: null,
-      e: null,
+      e: undefined,
       allow_searchbox: this.allow_searchbox,
       showSearchBox: this.showSearchBox,
     }, optPass || {})
@@ -5714,6 +5733,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
 
     const nodeX = isFrom ? opts.nodeFrom : opts.nodeTo
+    if (!nodeX) throw new TypeError("nodeX was null when creating default node for slot.")
     let slotX = isFrom ? opts.slotFrom : opts.slotTo
 
     let iSlotConn: number
@@ -5725,6 +5745,11 @@ export class LGraphCanvas implements ConnectionColorContext {
       slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
       break
     case "object":
+      if (slotX === null) {
+        console.warn("Cant get slot information", slotX)
+        return
+      }
+
       // ok slotX
       iSlotConn = isFrom
         ? nodeX.findOutputSlot(slotX.name)
@@ -5776,10 +5801,12 @@ export class LGraphCanvas implements ConnectionColorContext {
       switch (v) {
       case "Add Node":
         LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
+          if (!node) return
+
           if (isFrom) {
-            opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
+            opts.nodeFrom?.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
           } else {
-            opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
+            opts.nodeTo?.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
           }
         })
         break
@@ -5791,13 +5818,14 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
         break
       default: {
-        // check for defaults nodes for this slottype
-
-        that.createDefaultNodeForSlot(Object.assign<ICreateNodeOptions, ICreateNodeOptions>(opts, {
-          position: [opts.e.canvasX, opts.e.canvasY],
+        const customProps = {
+          position: [opts.e?.canvasX ?? 0, opts.e?.canvasY ?? 0],
           nodeType: v,
           afterRerouteId,
-        }))
+        } satisfies Partial<ICreateDefaultNodeOptions>
+
+        const options = Object.assign(opts, customProps)
+        that.createDefaultNodeForSlot(options)
         break
       }
       }
