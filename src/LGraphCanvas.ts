@@ -3468,14 +3468,14 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Nodes
     for (const info of parsed.nodes) {
-      const node = LiteGraph.createNode(info.type)
+      const node = info.type == null ? null : LiteGraph.createNode(info.type)
       if (!node) {
         // failedNodes.push(info)
         continue
       }
 
       nodes.set(info.id, node)
-      info.id = undefined
+      info.id = -1
 
       node.configure(info)
       graph.add(node)
@@ -3494,6 +3494,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Remap reroute parentIds for pasted reroutes
     for (const reroute of reroutes.values()) {
+      if (reroute.parentId == null) continue
+
       const mapped = reroutes.get(reroute.parentId)
       if (mapped) reroute.parentId = mapped.id
     }
@@ -3501,8 +3503,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     // Links
     for (const info of parsed.links) {
       // Find the copied node / reroute ID
-      let outNode = nodes.get(info.origin_id)
-      let afterRerouteId = reroutes.get(info.parentId)?.id
+      let outNode: LGraphNode | null | undefined = nodes.get(info.origin_id)
+      let afterRerouteId: number | undefined
+      if (info.parentId != null) afterRerouteId = reroutes.get(info.parentId)?.id
 
       // If it wasn't copied, use the original graph value
       if (connectInputs && LiteGraph.ctrl_shift_v_paste_connect_unselected_outputs) {
