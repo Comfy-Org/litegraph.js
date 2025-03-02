@@ -3316,7 +3316,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * Draws the node's input and output slots.
    */
   drawSlots(ctx: CanvasRenderingContext2D, options: {
-    connectingLink: ConnectingLink | null
+    connectingLink: ConnectingLink | undefined
     colorContext: ConnectionColorContext
     editorAlpha: number
     lowQuality: boolean
