@@ -3561,7 +3561,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /**
    * process a item drop event on top the canvas
    */
-  processDrop(e: DragEvent): boolean {
+  processDrop(e: DragEvent): boolean | undefined {
     e.preventDefault()
     this.adjustMouseEvent(e)
     const x = e.clientX
@@ -3579,19 +3579,20 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
 
     if (node.onDropFile || node.onDropData) {
-      const files = e.dataTransfer.files
-      if (files && files.length) {
+      const files = e.dataTransfer?.files
+      if (files?.length) {
         for (let i = 0; i < files.length; i++) {
-          const file = e.dataTransfer.files[0]
+          const file = files[0]
           const filename = file.name
           node.onDropFile?.(file)
 
           if (node.onDropData) {
             // prepare reader
             const reader = new FileReader()
-            reader.addEventListener("load", function (event) {
-              const data = event.target.result
-              node.onDropData(data, filename, file)
+            reader.addEventListener("load", (event) => {
+              const data = event.target?.result
+              if (!data) return
+              node.onDropData?.(data, filename, file)
             })
 
             // read data
