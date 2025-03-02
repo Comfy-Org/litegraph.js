@@ -3485,10 +3485,9 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Reroutes
     for (const info of parsed.reroutes) {
-      const { id } = info
-      info.id = undefined
+      const { id, ...rerouteInfo } = info
 
-      const reroute = graph.setReroute(info)
+      const reroute = graph.setReroute(rerouteInfo)
       created.push(reroute)
       reroutes.set(id, reroute)
     }
