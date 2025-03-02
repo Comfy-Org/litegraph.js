@@ -2810,6 +2810,8 @@ export class LGraphCanvas implements ConnectionColorContext {
                     widgetLinkType &&
                     LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)
                   ) {
+                    if (firstLink.output.slot_index == null) throw new TypeError("Connecting link output.slot_index was null.")
+
                     if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
                       linkOverWidget = overWidget
                       this.link_over_widget_type = widgetLinkType
@@ -3430,6 +3432,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     let offsetX = Infinity
     let offsetY = Infinity
     for (const item of [...parsed.nodes, ...parsed.reroutes]) {
+      if (item.pos == null) throw new TypeError("Invalid node encounterd on paste.  `pos` was null.")
+
       if (item.pos[0] < offsetX) offsetX = item.pos[0]
       if (item.pos[1] < offsetY) offsetY = item.pos[1]
     }
