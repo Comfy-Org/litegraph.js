@@ -7525,7 +7525,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
     const easeFunction = easeFunctions[easing] ?? easeFunctions.linear
 
-    let animationId = null
     const startTimestamp = performance.now()
     const startX = this.ds.offset[0]
     const startY = this.ds.offset[1]
@@ -7533,8 +7532,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     const cw = this.canvas.width / window.devicePixelRatio
     const ch = this.canvas.height / window.devicePixelRatio
     let targetScale = startScale
-    let targetX = startX
-    let targetY = startY
 
     if (zoom > 0) {
       const targetScaleX = (zoom * cw) / Math.max(bounds[2], 300)
@@ -7544,8 +7541,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       // Ensure we don't go over the max scale
       targetScale = Math.min(targetScaleX, targetScaleY, this.ds.max_scale)
     }
-    targetX = -bounds[0] - bounds[2] * 0.5 + (cw * 0.5) / targetScale
-    targetY = -bounds[1] - bounds[3] * 0.5 + (ch * 0.5) / targetScale
+    const targetX = -bounds[0] - bounds[2] * 0.5 + (cw * 0.5) / targetScale
+    const targetY = -bounds[1] - bounds[3] * 0.5 + (ch * 0.5) / targetScale
 
     const animate = (timestamp: number) => {
       const elapsed = timestamp - startTimestamp
@@ -7567,7 +7564,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         cancelAnimationFrame(animationId)
       }
     }
-    animationId = requestAnimationFrame(animate)
+    let animationId = requestAnimationFrame(animate)
   }
 
   /**
@@ -7578,7 +7575,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     const items = this.selectedItems.size
       ? Array.from(this.selectedItems)
       : this.positionableItems
-    this.animateToBounds(createBounds(items), options)
+    const bounds = createBounds(items)
+    if (!bounds) throw new TypeError("Attempted to fit to view but could not calculate bounds.")
+
+    this.animateToBounds(bounds, options)
   }
 }
 
