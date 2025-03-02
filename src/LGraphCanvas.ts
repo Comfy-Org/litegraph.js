@@ -6620,7 +6620,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     let input: HTMLInputElement | HTMLSelectElement | null
     if ((type == "enum" || type == "combo") && info.values) {
       input = dialog.querySelector("select")
-      input.addEventListener("change", function (e) {
+      input?.addEventListener("change", function (e) {
         dialog.modified()
         setValue((e.target as HTMLSelectElement)?.value)
       })
@@ -6667,13 +6667,15 @@ export class LGraphCanvas implements ConnectionColorContext {
     input?.focus()
 
     const button = dialog.querySelector("button")
+    if (!button) throw new TypeError("Show edit property value button was null.")
     button.addEventListener("click", inner)
 
     function inner() {
-      setValue(input.value)
+      setValue(input?.value)
     }
+    const dirty = () => this.#dirty()
 
-    function setValue(value: string | number) {
+    function setValue(value: string | number | undefined) {
       if (
         info?.values &&
         typeof info.values === "object" &&
@@ -6696,7 +6698,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       node.onPropertyChanged?.(property, value)
       options.onclose?.()
       dialog.close()
-      this.setDirty(true, true)
+      dirty()
     }
 
     return dialog
