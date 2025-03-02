@@ -6042,10 +6042,10 @@ export class LGraphCanvas implements ConnectionColorContext {
 
   showSearchBox(
     event: MouseEvent,
-    options?: IShowSearchOptions,
+    searchOptions?: IShowSearchOptions,
   ): HTMLDivElement {
     // proposed defaults
-    const def_options: IShowSearchOptions = {
+    const options: IShowSearchOptions = {
       slot_from: null,
       node_from: null,
       node_to: null,
@@ -6064,7 +6064,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       show_all_if_empty: true,
       show_all_on_open: LiteGraph.search_show_all_on_open,
     }
-    options = Object.assign(def_options, options || {})
+    Object.assign(options, searchOptions)
 
     // console.log(options);
     const that = this
@@ -6317,6 +6317,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               iS = options.node_from.findOutputSlot(options.slot_from)
               break
             case "object":
+              if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
+
               iS = options.slot_from.name
                 ? options.node_from.findOutputSlot(options.slot_from.name)
                 : -1
@@ -6346,6 +6348,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               iS = options.node_to.findInputSlot(options.slot_from)
               break
             case "object":
+              if (options.slot_from == null) throw new TypeError("options.slot_from was null when showing search box")
+
               iS = options.slot_from.name
                 ? options.node_to.findInputSlot(options.slot_from.name)
                 : -1
