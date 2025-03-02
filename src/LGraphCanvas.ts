@@ -6437,18 +6437,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           sOut = that.search_box.querySelector(".slot_out_type_filter")
         }
 
-        let filtered = null
-        if (Array.prototype.filter) {
-          // filter supported
-          // types
-          const keys = Object.keys(LiteGraph.registered_node_types)
-          filtered = keys.filter(x => inner_test_filter(x))
-        } else {
-          filtered = []
-          for (const i in LiteGraph.registered_node_types) {
-            if (inner_test_filter(i)) filtered.push(i)
-          }
-        }
+        const keys = Object.keys(LiteGraph.registered_node_types)
+        const filtered = keys.filter(x => inner_test_filter(x))
 
         for (const item of filtered) {
           addResult(item)
