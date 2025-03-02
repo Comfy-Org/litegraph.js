@@ -3864,7 +3864,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (!this.graph) return
 
     const selected = this.selectedItems
-    let wasSelected: Positionable
+    let wasSelected: Positionable | undefined
     for (const sel of selected) {
       if (sel === keepSelected) {
         wasSelected = sel
@@ -5152,9 +5152,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx: CanvasRenderingContext2D,
     a: ReadOnlyPoint,
     b: ReadOnlyPoint,
-    link: LLink,
+    link: LLink | null,
     skip_border: boolean,
-    flow: number,
+    flow: number | null,
     color: CanvasColour,
     start_dir: LinkDirection,
     end_dir: LinkDirection,
