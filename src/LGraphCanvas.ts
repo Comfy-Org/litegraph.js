@@ -3454,7 +3454,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Groups
     for (const info of parsed.groups) {
-      info.id = undefined
+      info.id = -1
 
       const group = new LGraphGroup()
       group.configure(info)
