@@ -6393,7 +6393,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         selected = forward
           ? helper.childNodes[0]
           : helper.childNodes[helper.childNodes.length]
-      } else {
+      } else if (selected instanceof Element) {
         selected.classList.remove("selected")
         selected = forward
           ? selected.nextSibling
@@ -6401,7 +6401,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         selected ||= prev
       }
 
-      if (selected instanceof HTMLElement) {
+      if (selected instanceof Element) {
         selected.classList.add("selected")
         selected.scrollIntoView({ block: "end", behavior: "smooth" })
       }
@@ -6575,7 +6575,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           help.className += ` ${className}`
         }
         help.addEventListener("click", function () {
-          select(unescape(this.dataset["type"]))
+          select(unescape(String(this.dataset.type)))
         })
         helper.append(help)
       }
