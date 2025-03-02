@@ -5547,7 +5547,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     node.drawWidgets(ctx, {
       colorContext: this,
       linkOverWidget: this.link_over_widget,
-      // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
+      // @ts-ignore https://github.com/Comfy-Org/litegraph.js/issues/616
       linkOverWidgetType: this.link_over_widget_type,
       lowQuality: this.low_quality,
       editorAlpha: this.editor_alpha,
