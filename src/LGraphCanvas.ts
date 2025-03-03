@@ -2324,16 +2324,18 @@ export class LGraphCanvas implements ConnectionColorContext {
                   afterRerouteId: link_info.parentId,
                   link: link_info,
                 }
-                this.connecting_links = [connecting]
+                const connectingLinks = [connecting]
+                this.connecting_links = connectingLinks
 
                 pointer.onDragStart = () => {
                   connecting.output = linked_node.outputs[slot]
                 }
                 pointer.onDragEnd = (upEvent) => {
-                  if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
+                  const shouldDisconnect = this.#processConnectingLinks(upEvent, connectingLinks)
+
+                  if (shouldDisconnect && this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
                     node.disconnectInput(i)
                   }
-                  this.#processConnectingLinks(upEvent)
                   connecting.output = linked_node.outputs[slot]
                   this.connecting_links = null
                 }
@@ -2914,7 +2916,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       if (this.connecting_links?.length) {
         // node below mouse
-        this.#processConnectingLinks(e)
+        this.#processConnectingLinks(e, this.connecting_links)
       } else {
         this.dirty_canvas = true
 
@@ -2946,10 +2948,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     return
   }
 
-  #processConnectingLinks(e: CanvasPointerEvent) {
-    const { graph, connecting_links } = this
+  #processConnectingLinks(e: CanvasPointerEvent, connecting_links: ConnectingLink[]): boolean | undefined {
+    const { graph } = this
     if (!graph) throw new NullGraphError()
-    if (!connecting_links) return
 
     const { canvasX: x, canvasY: y } = e
     const node = graph.getNodeOnPos(x, y, this.visible_nodes)
@@ -2960,11 +2961,18 @@ export class LGraphCanvas implements ConnectionColorContext {
         // dragging a connection
         this.#dirty()
 
+        // One should avoid linking things to oneself
+        if (node === link.node) continue
+
         // slot below mouse? connect
         if (link.output) {
           const slot = this.isOverNodeInput(node, x, y)
           if (slot != -1) {
-            link.node.connect(link.slot, node, slot, link.afterRerouteId)
+            // Trying to move link onto itself
+            if (link.link?.target_id === node.id && link.link?.target_slot === slot) return
+
+            const newLink = link.node.connect(link.slot, node, slot, link.afterRerouteId)
+            return newLink !== null
           } else if (this.link_over_widget) {
             this.emitEvent({
               subType: "connectingWidgetLink",
@@ -2976,26 +2984,30 @@ export class LGraphCanvas implements ConnectionColorContext {
           } else {
             // not on top of an input
             // look for a good slot
-            link.node.connectByType(link.slot, node, link.output.type, {
-              afterRerouteId: link.afterRerouteId,
-            })
+            const slotIndex = link.node.findConnectByTypeSlot(true, node, link.output.type)
+            if (slotIndex !== undefined) {
+              // Trying to move link onto itself
+              if (link.link?.target_id === node.id && link.link?.target_slot === slotIndex) return
+
+              const newLink = link.node.connect(link.slot, node, slotIndex, link.afterRerouteId)
+              return newLink !== null
+            }
           }
         } else if (link.input) {
           const slot = this.isOverNodeOutput(node, x, y)
 
-          if (slot != -1) {
+          const newLink = slot != -1
             // this is inverted has output-input nature like
-            node.connect(slot, link.node, link.slot, link.afterRerouteId)
-          } else {
+            ? node.connect(slot, link.node, link.slot, link.afterRerouteId)
             // not on top of an input
             // look for a good slot
-            link.node.connectByTypeOutput(
+            : link.node.connectByTypeOutput(
               link.slot,
               node,
               link.input.type,
               { afterRerouteId: link.afterRerouteId },
             )
-          }
+          return newLink !== null
         }
       }
     } else if (firstLink.input || firstLink.output) {
@@ -3035,6 +3047,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           }
         }
       }
+      return true
     }
   }
 
