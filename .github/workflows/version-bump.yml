@@ -4,14 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: 'Version increment type'
+        description: Version increment type
         required: true
-        default: 'patch'
-        type: 'choice'
-        options:
-          - patch
-          - minor
-          - major
+        default: patch
+        type: choice
+        options: [patch, minor, major]
 
 jobs:
   bump-version:
