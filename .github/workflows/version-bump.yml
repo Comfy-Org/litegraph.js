@@ -1,4 +1,4 @@
-name: Release a new version
+name: Release a New Version
 description: Creates a PR to increment the version. When the PR is merged, it will automatically create a release.
 
 on:

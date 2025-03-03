@@ -1,4 +1,4 @@
-name: Create a release
+name: Create GitHub Release
 description: Automatically creates a release when a PR is merged that both that changes package.json and has the Release label.
 
 on:
