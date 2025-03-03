@@ -6035,12 +6035,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     const canvas = graphcanvas.canvas
     const root_document = canvas.ownerDocument || document
 
-    const input = Object.assign(document.createElement("input"), {
-      autofocus: true,
-      type: "text",
-      className: "value rounded",
-    } satisfies Partial<HTMLInputElement>)
-
     const div = document.createElement("div")
     const dialog = Object.assign(div, {
       close(this: typeof div) {
@@ -6055,9 +6049,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       },
     } satisfies Partial<HTMLDivElement> & ICloseable)
     dialog.className = "litegraph litesearchbox graphdialog rounded"
-    dialog.innerHTML = "<span class='name'>Search</span> "
-    dialog.append(input)
-
+    dialog.innerHTML = "<span class='name'>Search</span> <input autofocus type='text' class='value rounded'/>"
     if (options.do_type_filter) {
       dialog.innerHTML += "<select class='slot_in_type_filter'><option value=''></option></select>"
       dialog.innerHTML += "<select class='slot_out_type_filter'><option value=''></option></select>"
@@ -6136,6 +6128,11 @@ export class LGraphCanvas implements ConnectionColorContext {
     let first: string | null = null
     let timeout: ReturnType<typeof setTimeout> | null = null
     let selected: ChildNode | null = null
+
+    const maybeInput = dialog.querySelector("input")
+    if (!maybeInput) throw new TypeError("Could not create search input box.")
+
+    const input = maybeInput
 
     if (input) {
       input.addEventListener("blur", function () {
