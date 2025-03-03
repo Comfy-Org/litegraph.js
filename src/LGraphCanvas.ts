@@ -885,7 +885,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       )
 
       for (const node of nodes) {
-        if (node.skip_list) return
+        if (node.skip_list) continue
 
         const entry: AddNodeMenu = {
           value: node.type,
