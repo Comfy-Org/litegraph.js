@@ -2902,11 +2902,10 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       const x = e.canvasX
       const y = e.canvasY
-      const node = graph.getNodeOnPos(x, y, this.visible_nodes)
 
       if (this.connecting_links?.length) {
         // node below mouse
-        this.#processConnectingLinks(node, x, y, e, this.connecting_links)
+        this.#processConnectingLinks(graph, x, y, e, this.connecting_links)
       } else {
         this.dirty_canvas = true
 
@@ -2938,8 +2937,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     return
   }
 
-  #processConnectingLinks(node: LGraphNode | null, x: number, y: number, e: PointerEvent & CanvasMouseEvent, connecting_links: ConnectingLink[]) {
+  #processConnectingLinks(graph: LGraph, x: number, y: number, e: PointerEvent & CanvasMouseEvent, connecting_links: ConnectingLink[]) {
+    const node = graph.getNodeOnPos(x, y, this.visible_nodes)
     const firstLink = connecting_links[0]
+
     if (node) {
       for (const link of connecting_links) {
         // dragging a connection
