@@ -38,12 +38,11 @@ export function findFirstNode(items: Iterable<Positionable>): LGraphNode | undef
 }
 
 /** @returns `true` if the provided link ID is currently being dragged. */
-export function isDraggingLink(linkId: LinkId, connectingLinks: ConnectingLink[] | null | undefined): boolean {
-  if (connectingLinks == null) return false
+export function isDraggingLink(linkId: LinkId, connectingLinks: ConnectingLink[] | null | undefined): ConnectingLink | undefined {
+  if (connectingLinks == null) return
 
-  for (const { movingLinkId } of connectingLinks) {
-    if (movingLinkId == null) continue
-    if (linkId === movingLinkId) return true
+  for (const connectingLink of connectingLinks) {
+    if (connectingLink.link == null) continue
+    if (linkId === connectingLink.link.id) return connectingLink
   }
-  return false
 }

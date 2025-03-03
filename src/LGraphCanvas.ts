@@ -2253,7 +2253,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   output: null,
                   pos,
                   direction: LinkDirection.RIGHT,
-                  movingLinkId: link.id,
+                  link,
                 })
               }
 
@@ -2322,7 +2322,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   output: linked_node.outputs[slot],
                   pos: linked_node.getConnectionPos(false, slot),
                   afterRerouteId: link_info.parentId,
-                  movingLinkId: link_info.id,
+                  link: link_info,
                 }
                 this.connecting_links = [connecting]
 
@@ -4897,7 +4897,9 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         const link_id = input.link
         const link = this.graph._links.get(link_id)
-        if (!link || isDraggingLink(link.id, this.connecting_links)) continue
+        if (!link) continue
+
+        const draggingLink = isDraggingLink(link.id, this.connecting_links)
 
         // find link info
         const start_node = this.graph.getNodeById(link.origin_id)
@@ -4962,6 +4964,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               const startPos = prevReroute?.pos ?? start_node_slotpos
               reroute.calculateAngle(this.last_draw_time, this.graph, startPos)
 
+              // Skip the first segment if it is being dragged
+              if (j === 0 && draggingLink?.input) continue
               this.renderLink(
                 ctx,
                 startPos,
@@ -4986,6 +4990,9 @@ export class LGraphCanvas implements ConnectionColorContext {
             startControl = [dist * reroute.cos, dist * reroute.sin]
           }
 
+          // Skip the last segment if it is being dragged
+          if (draggingLink?.output) continue
+
           // Use runtime fallback; TypeScript cannot evaluate this correctly.
           const segmentStartPos = points.at(-2) ?? start_node_slotpos
 
@@ -5002,7 +5009,8 @@ export class LGraphCanvas implements ConnectionColorContext {
             end_dir,
             { startControl },
           )
-        } else {
+        // Skip normal render when link is being dragged
+        } else if (!draggingLink) {
           this.renderLink(
             ctx,
             start_node_slotpos,
