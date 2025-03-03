@@ -2714,7 +2714,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                 // Node background / title under the pointer
                 if (!linkOverWidget) {
                   const targetSlotId = firstLink.node.findConnectByTypeSlot(true, node, firstLink.output.type)
-                  if (targetSlotId !== null && targetSlotId >= 0) {
+                  if (targetSlotId !== undefined && targetSlotId >= 0) {
                     node.getConnectionPos(true, targetSlotId, pos)
                     highlightPos = pos
                     highlightInput = node.inputs[targetSlotId]
@@ -2741,7 +2741,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               if (inputId === -1 && outputId === -1) {
                 const targetSlotId = firstLink.node.findConnectByTypeSlot(false, node, firstLink.input.type)
 
-                if (targetSlotId !== null && targetSlotId >= 0) {
+                if (targetSlotId !== undefined && targetSlotId >= 0) {
                   node.getConnectionPos(false, targetSlotId, pos)
                   highlightPos = pos
                 }
