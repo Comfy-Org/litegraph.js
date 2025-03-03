@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "npm"
 
       - name: Bump version
         id: bump-version
@@ -39,8 +39,8 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PR_GH_TOKEN }}
-          commit-message: '[release] Bump version to ${{ steps.bump-version.outputs.NEW_VERSION }}'
-          title: '${{ steps.bump-version.outputs.NEW_VERSION }}'
+          commit-message: "[release] Bump version to ${{ steps.bump-version.outputs.NEW_VERSION }}"
+          title: ${{ steps.bump-version.outputs.NEW_VERSION }}
           body: |
             Automated version bump to ${{ steps.bump-version.outputs.NEW_VERSION }}
           branch: version-bump-${{ steps.bump-version.outputs.NEW_VERSION }}
