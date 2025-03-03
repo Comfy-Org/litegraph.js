@@ -1,4 +1,5 @@
-import type { Positionable } from "../interfaces"
+import type { ConnectingLink, Positionable } from "../interfaces"
+import type { LinkId } from "@/LLink"
 
 import { LGraphNode } from "@/LGraphNode"
 
@@ -34,4 +35,15 @@ export function findFirstNode(items: Iterable<Positionable>): LGraphNode | undef
   for (const item of items) {
     if (item instanceof LGraphNode) return item
   }
+}
+
+/** @returns `true` if the provided link ID is currently being dragged. */
+export function isDraggingLink(linkId: LinkId, connectingLinks: ConnectingLink[] | null | undefined): boolean {
+  if (connectingLinks == null) return false
+
+  for (const { movingLinkId } of connectingLinks) {
+    if (movingLinkId == null) continue
+    if (linkId === movingLinkId) return true
+  }
+  return false
 }

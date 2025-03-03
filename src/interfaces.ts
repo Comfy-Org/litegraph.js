@@ -290,6 +290,7 @@ export interface ConnectingLink extends IInputOrOutput {
   pos: Point
   direction?: LinkDirection
   afterRerouteId?: RerouteId
+  movingLinkId?: LinkId
 }
 
 interface IContextMenuBase {

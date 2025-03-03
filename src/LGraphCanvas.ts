@@ -69,7 +69,7 @@ import {
   TitleMode,
 } from "./types/globalEnums"
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
-import { findFirstNode, getAllNestedItems } from "./utils/collections"
+import { findFirstNode, getAllNestedItems, isDraggingLink } from "./utils/collections"
 import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
@@ -2253,6 +2253,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   output: null,
                   pos,
                   direction: LinkDirection.RIGHT,
+                  movingLinkId: link.id,
                 })
               }
 
@@ -2321,6 +2322,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   output: linked_node.outputs[slot],
                   pos: linked_node.getConnectionPos(false, slot),
                   afterRerouteId: link_info.parentId,
+                  movingLinkId: link_info.id,
                 }
                 this.connecting_links = [connecting]
 
@@ -4895,7 +4897,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         const link_id = input.link
         const link = this.graph._links.get(link_id)
-        if (!link) continue
+        if (!link || isDraggingLink(link.id, this.connecting_links)) continue
 
         // find link info
         const start_node = this.graph.getNodeById(link.origin_id)
