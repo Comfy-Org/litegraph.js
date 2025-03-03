@@ -2328,10 +2328,10 @@ export class LGraphCanvas implements ConnectionColorContext {
                   connecting.output = linked_node.outputs[slot]
                 }
                 pointer.onDragEnd = (upEvent) => {
-                  this.#processConnectingLinks(upEvent)
                   if (this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
                     node.disconnectInput(i)
                   }
+                  this.#processConnectingLinks(upEvent)
                   connecting.output = linked_node.outputs[slot]
                   this.connecting_links = null
                 }
