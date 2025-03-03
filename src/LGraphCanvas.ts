@@ -6050,7 +6050,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         root_document.body.style.overflow = ""
 
         // important, if canvas loses focus keys wont be captured
-        setTimeout(canvas.focus, 20)
+        setTimeout(() => canvas.focus(), 20)
         dialog.remove()
       },
     } satisfies Partial<HTMLDivElement> & ICloseable)
