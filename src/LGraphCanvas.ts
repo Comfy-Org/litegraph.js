@@ -2957,6 +2957,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     const firstLink = connecting_links[0]
 
     if (node) {
+      let madeNewLink: boolean | undefined
+
       for (const link of connecting_links) {
         // dragging a connection
         this.#dirty()
@@ -2972,7 +2974,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             if (link.link?.target_id === node.id && link.link?.target_slot === slot) return
 
             const newLink = link.node.connect(link.slot, node, slot, link.afterRerouteId)
-            return newLink !== null
+            madeNewLink ||= newLink !== null
           } else if (this.link_over_widget) {
             this.emitEvent({
               subType: "connectingWidgetLink",
@@ -2990,7 +2992,7 @@ export class LGraphCanvas implements ConnectionColorContext {
               if (link.link?.target_id === node.id && link.link?.target_slot === slotIndex) return
 
               const newLink = link.node.connect(link.slot, node, slotIndex, link.afterRerouteId)
-              return newLink !== null
+              madeNewLink ||= newLink !== null
             }
           }
         } else if (link.input) {
@@ -3007,9 +3009,10 @@ export class LGraphCanvas implements ConnectionColorContext {
               link.input.type,
               { afterRerouteId: link.afterRerouteId },
             )
-          return newLink !== null
+          madeNewLink ||= newLink !== null
         }
       }
+      return madeNewLink
     } else if (firstLink.input || firstLink.output) {
       // For external event only.
       const linkReleaseContextExtended: LinkReleaseContextExtended = {
