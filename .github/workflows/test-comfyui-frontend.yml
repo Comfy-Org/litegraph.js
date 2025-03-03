@@ -38,7 +38,7 @@ jobs:
           path: "ComfyUI/custom_nodes/ComfyUI_devtools"
           ref: 080e6d4af809a46852d1c4b7ed85f06e8a3a72be
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install ComfyUI requirements
+      - name: Install requirements
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -84,7 +84,7 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: ComfyUI_frontend
 
-      - name: Run Playwright tests
+      - name: Run Playwright tests (chromium)
         run: npx playwright test --project=chromium
         working-directory: ComfyUI_frontend
 
