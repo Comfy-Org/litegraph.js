@@ -1,4 +1,5 @@
-name: Version Bump
+name: Release a new version
+description: Creates a PR to increment the version. When the PR is merged, it will automatically create a release.
 
 on:
   workflow_dispatch:

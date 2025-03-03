@@ -1,4 +1,5 @@
 name: Create a release
+description: Automatically creates a release when a PR is merged that both that changes package.json and has the Release label.
 
 on:
   pull_request:

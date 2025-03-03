@@ -1,4 +1,4 @@
-name: Tests CI
+name: Unit Test, Lint, and Format
 
 on:
   push:
