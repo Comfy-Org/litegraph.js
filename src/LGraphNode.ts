@@ -2370,7 +2370,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // check targetSlot and check connection types
     if (!LiteGraph.isValidConnection(output.type, input.type)) {
       this.setDirtyCanvas(false, true)
-      if (changed) graph.connectionChange(this)
       return null
     }
 
