@@ -2292,7 +2292,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Allow legacy API support for searching target_slot by string, without mutating the input variables
     let targetIndex: number | null
 
-    const graph = this.graph
+    const { graph } = this
     if (!graph) {
       // could be connected before adding it to a graph
       // due to link ids being associated with graphs
