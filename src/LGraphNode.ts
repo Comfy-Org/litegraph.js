@@ -2364,7 +2364,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let changed = false
 
     const input = target_node.inputs[targetIndex]
-    let link_info: LLink | null = null
     const output = this.outputs[slot]
 
     if (!this.outputs[slot]) return null
@@ -2372,8 +2371,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // check targetSlot and check connection types
     if (!LiteGraph.isValidConnection(output.type, input.type)) {
       this.setDirtyCanvas(false, true)
-      // @ts-expect-error Unused param
-      if (changed) graph.connectionChange(this, link_info)
+      if (changed) graph.connectionChange(this)
       return null
     }
 
@@ -2403,7 +2401,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const nextId = ++graph.state.lastLinkId
 
     // create link class
-    link_info = new LLink(
+    const link_info = new LLink(
       nextId,
       input.type || output.type,
       this.id,
