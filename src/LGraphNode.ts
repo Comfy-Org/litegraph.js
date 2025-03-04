@@ -2365,6 +2365,32 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     if (!output) return null
 
+    if (output.links?.length) {
+      if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
+        graph.beforeChange()
+        // @ts-expect-error Unused param
+        this.disconnectOutput(slot, false, { doProcessChange: false })
+      }
+    }
+
+    const link = this.connectInternal(output, target_node, input, afterRerouteId)
+    return link ?? null
+  }
+
+  connectInternal(
+    output: INodeOutputSlot,
+    target_node: LGraphNode,
+    input: INodeInputSlot,
+    afterRerouteId?: RerouteId,
+  ) {
+    const { graph } = this
+    if (!graph) throw new NullGraphError()
+
+    const slot = this.outputs.indexOf(output)
+    if (slot === -1) return
+    const targetIndex = target_node.inputs.indexOf(input)
+    if (targetIndex === -1) return
+
     // check targetSlot and check connection types
     if (!LiteGraph.isValidConnection(output.type, input.type)) {
       this.setDirtyCanvas(false, true)
@@ -2381,13 +2407,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (target_node.inputs[targetIndex]?.link != null) {
       graph.beforeChange()
       target_node.disconnectInput(targetIndex, true)
-    }
-    if (output.links?.length) {
-      if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
-        graph.beforeChange()
-        // @ts-expect-error Unused param
-        this.disconnectOutput(slot, false, { doProcessChange: false })
-      }
     }
 
     // UUID: LinkIds
