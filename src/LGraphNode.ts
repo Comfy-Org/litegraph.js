@@ -2292,7 +2292,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Allow legacy API support for searching target_slot by string, without mutating the input variables
     let targetIndex: number | null
 
-    const { graph } = this
+    const { graph, outputs } = this
     if (!graph) {
       // could be connected before adding it to a graph
       // due to link ids being associated with graphs
@@ -2307,7 +2307,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (LiteGraph.debug) console.log(`Connect: Error, no slot of name ${slot}`)
         return null
       }
-    } else if (!this.outputs || slot >= this.outputs.length) {
+    } else if (!outputs || slot >= outputs.length) {
       if (LiteGraph.debug) console.log("Connect: Error, slot number not found")
       return null
     }
@@ -2363,7 +2363,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let changed = false
 
     const input = target_node.inputs[targetIndex]
-    const output = this.outputs[slot]
+    const output = outputs[slot]
 
     if (!output) return null
 
