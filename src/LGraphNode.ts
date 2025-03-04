@@ -2409,13 +2409,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       target_node.disconnectInput(targetIndex, true)
     }
 
-    // UUID: LinkIds
-    // const nextId = LiteGraph.use_uuids ? LiteGraph.uuidv4() : ++graph.state.lastLinkId
-    const nextId = ++graph.state.lastLinkId
-
-    // create link class
-    const link_info = new LLink(
-      nextId,
+    const link = new LLink(
+      ++graph.state.lastLinkId,
       input.type || output.type,
       this.id,
       slot,
@@ -2425,26 +2420,26 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     )
 
     // add to graph links list
-    graph._links.set(link_info.id, link_info)
+    graph._links.set(link.id, link)
 
     // connect in output
     output.links ??= []
-    output.links.push(link_info.id)
+    output.links.push(link.id)
     // connect in input
-    target_node.inputs[targetIndex].link = link_info.id
+    target_node.inputs[targetIndex].link = link.id
 
     // Reroutes
-    for (const reroute of LLink.getReroutes(graph, link_info)) {
-      reroute?.linkIds.add(nextId)
+    for (const reroute of LLink.getReroutes(graph, link)) {
+      reroute?.linkIds.add(link.id)
     }
     graph._version++
 
-    // link_info has been created now, so its updated
+    // link has been created now, so its updated
     this.onConnectionsChange?.(
       NodeSlotType.OUTPUT,
       slot,
       true,
-      link_info,
+      link,
       output,
     )
 
@@ -2452,7 +2447,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       NodeSlotType.INPUT,
       targetIndex,
       true,
-      link_info,
+      link,
       input,
     )
 
@@ -2460,7 +2455,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     graph.afterChange()
     graph.connectionChange(this)
 
-    return link_info
+    return link
   }
 
   /**
