@@ -2347,8 +2347,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Allow target node to change slot
     if (target_node.onBeforeConnectInput) {
       // This way node can choose another slot (or make a new one?)
-      const requestedIndex: false | number | null =
-        target_node.onBeforeConnectInput(targetIndex, target_slot)
+      const requestedIndex = target_node.onBeforeConnectInput(targetIndex, target_slot)
       targetIndex = typeof requestedIndex === "number" ? requestedIndex : null
     }
 
