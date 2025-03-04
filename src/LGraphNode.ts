@@ -2366,7 +2366,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const input = target_node.inputs[targetIndex]
     const output = this.outputs[slot]
 
-    if (!this.outputs[slot]) return null
+    if (!output) return null
 
     // check targetSlot and check connection types
     if (!LiteGraph.isValidConnection(output.type, input.type)) {
