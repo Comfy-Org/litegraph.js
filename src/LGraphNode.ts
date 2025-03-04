@@ -2360,8 +2360,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       return null
     }
 
-    let changed = false
-
     const input = target_node.inputs[targetIndex]
     const output = outputs[slot]
 
@@ -2383,14 +2381,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (target_node.inputs[targetIndex]?.link != null) {
       graph.beforeChange()
       target_node.disconnectInput(targetIndex, true)
-      changed = true
     }
     if (output.links?.length) {
       if (output.type === LiteGraph.EVENT && !LiteGraph.allow_multi_output_for_events) {
         graph.beforeChange()
         // @ts-expect-error Unused param
         this.disconnectOutput(slot, false, { doProcessChange: false })
-        changed = true
       }
     }
 
