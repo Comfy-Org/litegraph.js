@@ -2386,8 +2386,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const { graph } = this
     if (!graph) throw new NullGraphError()
 
-    const slot = this.outputs.indexOf(output)
-    if (slot === -1) return
+    const outputIndex = this.outputs.indexOf(output)
+    if (outputIndex === -1) return
     const inputIndex = inputNode.inputs.indexOf(input)
     if (inputIndex === -1) return
 
@@ -2398,9 +2398,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     // Allow nodes to block connection
-    if (inputNode.onConnectInput?.(inputIndex, output.type, output, this, slot) === false)
+    if (inputNode.onConnectInput?.(inputIndex, output.type, output, this, outputIndex) === false)
       return null
-    if (this.onConnectOutput?.(slot, input.type, input, inputNode, inputIndex) === false)
+    if (this.onConnectOutput?.(outputIndex, input.type, input, inputNode, inputIndex) === false)
       return null
 
     // if there is something already plugged there, disconnect
@@ -2413,7 +2413,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ++graph.state.lastLinkId,
       input.type || output.type,
       this.id,
-      slot,
+      outputIndex,
       inputNode.id,
       inputIndex,
       afterRerouteId,
@@ -2437,7 +2437,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // link has been created now, so its updated
     this.onConnectionsChange?.(
       NodeSlotType.OUTPUT,
-      slot,
+      outputIndex,
       true,
       link,
       output,
