@@ -2379,7 +2379,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   connectInternal(
     output: INodeOutputSlot,
-    target_node: LGraphNode,
+    inputNode: LGraphNode,
     input: INodeInputSlot,
     afterRerouteId?: RerouteId,
   ) {
@@ -2388,7 +2388,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     const slot = this.outputs.indexOf(output)
     if (slot === -1) return
-    const targetIndex = target_node.inputs.indexOf(input)
+    const targetIndex = inputNode.inputs.indexOf(input)
     if (targetIndex === -1) return
 
     // check targetSlot and check connection types
@@ -2398,15 +2398,15 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     // Allow nodes to block connection
-    if (target_node.onConnectInput?.(targetIndex, output.type, output, this, slot) === false)
+    if (inputNode.onConnectInput?.(targetIndex, output.type, output, this, slot) === false)
       return null
-    if (this.onConnectOutput?.(slot, input.type, input, target_node, targetIndex) === false)
+    if (this.onConnectOutput?.(slot, input.type, input, inputNode, targetIndex) === false)
       return null
 
     // if there is something already plugged there, disconnect
-    if (target_node.inputs[targetIndex]?.link != null) {
+    if (inputNode.inputs[targetIndex]?.link != null) {
       graph.beforeChange()
-      target_node.disconnectInput(targetIndex, true)
+      inputNode.disconnectInput(targetIndex, true)
     }
 
     const link = new LLink(
@@ -2414,7 +2414,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       input.type || output.type,
       this.id,
       slot,
-      target_node.id,
+      inputNode.id,
       targetIndex,
       afterRerouteId,
     )
@@ -2426,7 +2426,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     output.links ??= []
     output.links.push(link.id)
     // connect in input
-    target_node.inputs[targetIndex].link = link.id
+    inputNode.inputs[targetIndex].link = link.id
 
     // Reroutes
     for (const reroute of LLink.getReroutes(graph, link)) {
@@ -2443,7 +2443,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       output,
     )
 
-    target_node.onConnectionsChange?.(
+    inputNode.onConnectionsChange?.(
       NodeSlotType.INPUT,
       targetIndex,
       true,
