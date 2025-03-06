@@ -4049,10 +4049,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (this.dirty_canvas || force_canvas) {
       this.computeVisibleNodes(undefined, this.visible_nodes)
       // Update visible node IDs
-      this.#visible_node_ids.clear()
-      for (const node of this.visible_nodes) {
-        this.#visible_node_ids.add(node.id)
-      }
+      this.#visible_node_ids = new Set(this.visible_nodes.map(node => node.id))
     }
 
     if (
