@@ -470,7 +470,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * The IDs of the nodes that are currently visible on the canvas. More
    * performant than {@link visible_nodes} for visibility checks.
    */
-  visible_node_ids: Set<NodeId> = new Set()
+  #visible_node_ids: Set<NodeId> = new Set()
   node_over?: LGraphNode
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
@@ -4029,7 +4029,7 @@ export class LGraphCanvas implements ConnectionColorContext {
    * @returns `true` if the node is visible, otherwise `false`
    */
   isNodeVisible(node: LGraphNode): boolean {
-    return this.visible_node_ids.has(node.id)
+    return this.#visible_node_ids.has(node.id)
   }
 
   /**
@@ -4049,9 +4049,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (this.dirty_canvas || force_canvas) {
       this.computeVisibleNodes(undefined, this.visible_nodes)
       // Update visible node IDs
-      this.visible_node_ids.clear()
+      this.#visible_node_ids.clear()
       for (const node of this.visible_nodes) {
-        this.visible_node_ids.add(node.id)
+        this.#visible_node_ids.add(node.id)
       }
     }
 
