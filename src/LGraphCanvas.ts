@@ -467,10 +467,10 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** The nodes that are currently visible on the canvas. */
   visible_nodes: LGraphNode[] = []
   /**
-   * The nodes that are currently visible on the canvas. More performant than
-   * {@link visible_nodes} for visibility checks.
+   * The IDs of the nodes that are currently visible on the canvas. More
+   * performant than {@link visible_nodes} for visibility checks.
    */
-  visible_nodes_set: Set<LGraphNode> = new Set()
+  visible_node_ids: Set<NodeId> = new Set()
   node_over?: LGraphNode
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
@@ -4005,13 +4005,11 @@ export class LGraphCanvas implements ConnectionColorContext {
    * Determines which nodes are visible and populates {@link out} with the results.
    * @param nodes The list of nodes to check - if falsy, all nodes in the graph will be checked
    * @param out Array to write visible nodes into - if falsy, a new array is created instead
-   * @param outSet Set to write visible nodes into
    * @returns Array passed ({@link out}), or a new array containing all visible nodes
    */
-  computeVisibleNodes(nodes?: LGraphNode[], out?: LGraphNode[], outSet?: Set<LGraphNode>): LGraphNode[] {
+  computeVisibleNodes(nodes?: LGraphNode[], out?: LGraphNode[]): LGraphNode[] {
     const visible_nodes = out || []
     visible_nodes.length = 0
-    outSet?.clear()
     if (!this.graph) throw new NullGraphError()
 
     const _nodes = nodes || this.graph._nodes
@@ -4021,9 +4019,17 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (!overlapBounding(this.visible_area, node.renderArea)) continue
 
       visible_nodes.push(node)
-      outSet?.add(node)
     }
     return visible_nodes
+  }
+
+  /**
+   * Checks if a node is visible on the canvas.
+   * @param node The node to check
+   * @returns `true` if the node is visible, otherwise `false`
+   */
+  isNodeVisible(node: LGraphNode): boolean {
+    return this.visible_node_ids.has(node.id)
   }
 
   /**
@@ -4041,7 +4047,12 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Compute node size before drawing links.
     if (this.dirty_canvas || force_canvas) {
-      this.computeVisibleNodes(undefined, this.visible_nodes, this.visible_nodes_set)
+      this.computeVisibleNodes(undefined, this.visible_nodes)
+      // Update visible node IDs
+      this.visible_node_ids.clear()
+      for (const node of this.visible_nodes) {
+        this.visible_node_ids.add(node.id)
+      }
     }
 
     if (
