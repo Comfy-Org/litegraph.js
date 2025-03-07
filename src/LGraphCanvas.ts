@@ -678,7 +678,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     this.current_node = null
     this.node_widget = null
-    this.over_link_center = null
     this.last_mouse_position = [0, 0]
     this.visible_area = this.ds.visible_area
     this.visible_links = []
