@@ -39,6 +39,7 @@ import {
   RenderShape,
   TitleMode,
 } from "./types/globalEnums"
+import { findFreeSlotOfType } from "./utils/collections"
 import { LayoutElement } from "./utils/layout"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
@@ -2216,6 +2217,34 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         : node.findOutputSlotFree(opt)
       if (nonEventSlot >= 0) return nonEventSlot
     }
+  }
+
+  /**
+   * Finds the first free output slot with any of the comma-delimited types in {@link type}.
+   *
+   * If no slots are free, falls back in order to:
+   * - The first free wildcard slot
+   * - The first occupied slot
+   * - The first occupied wildcard slot
+   * @param type The {@link ISlotType type} of slot to find
+   * @returns The index and slot if found, otherwise `undefined`.
+   */
+  findOutputByType(type: ISlotType): { index: number, slot: INodeOutputSlot } | undefined {
+    return findFreeSlotOfType(this.outputs, type)
+  }
+
+  /**
+   * Finds the first free input slot with any of the comma-delimited types in {@link type}.
+   *
+   * If no slots are free, falls back in order to:
+   * - The first free wildcard slot
+   * - The first occupied slot
+   * - The first occupied wildcard slot
+   * @param type The {@link ISlotType type} of slot to find
+   * @returns The index and slot if found, otherwise `undefined`.
+   */
+  findInputByType(type: ISlotType): { index: number, slot: INodeInputSlot } | undefined {
+    return findFreeSlotOfType(this.inputs, type)
   }
 
   /**
