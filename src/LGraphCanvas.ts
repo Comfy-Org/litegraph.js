@@ -441,7 +441,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** used for widgets */
   node_widget?: [LGraphNode, IWidget] | null
   /** The link to draw a tooltip for. */
-  over_link_center: LinkSegment | null
+  over_link_center?: LinkSegment
   last_mouse_position: Point
   /** The visible area of this canvas.  Tightly coupled with {@link ds}. */
   visible_area: Rect32
@@ -2072,7 +2072,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           pointer.finally = () => this.dragging_canvas = false
 
           // clear tooltip
-          this.over_link_center = null
+          this.over_link_center = undefined
           return
         }
       }
@@ -2788,7 +2788,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const segment = this.#getLinkCentreOnPos(e)
         if (this.over_link_center !== segment) {
           underPointer |= CanvasItem.Link
-          this.over_link_center = segment ?? null
+          this.over_link_center = segment
           this.dirty_bgcanvas = true
         }
 
