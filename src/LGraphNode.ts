@@ -1941,7 +1941,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   ): number
   findInputSlotFree<TReturn extends true>(
     optsIn?: FindFreeSlotOptions & { returnObj?: TReturn },
-  ): INodeInputSlot
+  ): INodeInputSlot | -1
   findInputSlotFree(optsIn?: FindFreeSlotOptions) {
     return this.#findFreeSlot(this.inputs, optsIn)
   }
@@ -1956,7 +1956,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   ): number
   findOutputSlotFree<TReturn extends true>(
     optsIn?: FindFreeSlotOptions & { returnObj?: TReturn },
-  ): INodeOutputSlot
+  ): INodeOutputSlot | -1
   findOutputSlotFree(optsIn?: FindFreeSlotOptions) {
     return this.#findFreeSlot(this.outputs, optsIn)
   }
@@ -2067,21 +2067,21 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     returnObj?: TReturn,
     preferFreeSlot?: boolean,
     doNotUseOccupied?: boolean,
-  ): INodeInputSlot
+  ): INodeInputSlot | -1
   findSlotByType<TSlot extends false, TReturn extends true>(
     input: TSlot,
     type: ISlotType,
     returnObj?: TReturn,
     preferFreeSlot?: boolean,
     doNotUseOccupied?: boolean,
-  ): INodeOutputSlot
+  ): INodeOutputSlot | -1
   findSlotByType(
     input: boolean,
     type: ISlotType,
     returnObj?: boolean,
     preferFreeSlot?: boolean,
     doNotUseOccupied?: boolean,
-  ) {
+  ): number | INodeOutputSlot | INodeInputSlot {
     return input
       ? this.#findSlotByType(
         this.inputs,
@@ -2388,8 +2388,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     output: INodeOutputSlot,
     inputNode: LGraphNode,
     input: INodeInputSlot,
-    afterRerouteId?: RerouteId,
-  ) {
+    afterRerouteId: RerouteId | undefined,
+  ): LLink | null | undefined {
     const { graph } = this
     if (!graph) throw new NullGraphError()
 
