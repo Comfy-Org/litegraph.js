@@ -2650,6 +2650,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   /**
+   * @deprecated Use {@link getInputPos} or {@link getOutputPos} instead.
    * returns the center of a connection point in canvas coords
    * @param is_input true if if a input slot, false if it is an output
    * @param slot_number (could be the number of the slot or the string with the name of the slot)
@@ -2699,6 +2700,60 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       (slot_number + 0.7) * LiteGraph.NODE_SLOT_HEIGHT +
       (this.constructor.slot_start_y || 0)
     return out
+  }
+
+  /**
+   * Gets the position of an input slot, in graph co-ordinates.
+   *
+   * This method is preferred over the legacy {@link getConnectionPos} method.
+   * @param slot Input slot index
+   * @returns Position of the input slot
+   */
+  getInputPos(slot: number): Point {
+    const { pos: [nodeX, nodeY], inputs } = this
+
+    if (this.flags.collapsed) {
+      const halfTitle = LiteGraph.NODE_TITLE_HEIGHT * 0.5
+      return [nodeX, nodeY - halfTitle]
+    }
+
+    const inputPos = inputs?.[slot]?.pos
+    if (inputPos) return [nodeX + inputPos[0], nodeY + inputPos[1]]
+
+    // default vertical slots
+    const offsetX = LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    const nodeOffsetY = this.constructor.slot_start_y || 0
+    const slotY = (slot + 0.7) * LiteGraph.NODE_SLOT_HEIGHT
+
+    return [nodeX + offsetX, nodeY + slotY + nodeOffsetY]
+  }
+
+  /**
+   * Gets the position of an output slot, in graph co-ordinates.
+   *
+   * This method is preferred over the legacy {@link getConnectionPos} method.
+   * @param slot Output slot index
+   * @returns Position of the output slot
+   */
+  getOutputPos(slot: number): Point {
+    const { pos: [nodeX, nodeY], outputs, size: [width] } = this
+
+    if (this.flags.collapsed) {
+      const width = this._collapsed_width || LiteGraph.NODE_COLLAPSED_WIDTH
+      const halfTitle = LiteGraph.NODE_TITLE_HEIGHT * 0.5
+      return [nodeX + width, nodeY - halfTitle]
+    }
+
+    const outputPos = outputs?.[slot]?.pos
+    if (outputPos) return outputPos
+
+    // default vertical slots
+    const offsetX = LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    const nodeOffsetY = this.constructor.slot_start_y || 0
+    const slotY = (slot + 0.7) * LiteGraph.NODE_SLOT_HEIGHT
+
+    // TODO: Why +1?
+    return [nodeX + width + 1 - offsetX, nodeY + slotY + nodeOffsetY]
   }
 
   /** @inheritdoc */
