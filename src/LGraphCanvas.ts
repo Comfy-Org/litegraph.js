@@ -4372,10 +4372,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       node.layoutWidgets({ widgetStartY })
       node.layoutWidgetInputSlots()
 
-      const firstDraggedLinkType = this.linkConnector.renderLinks.at(0)?.fromSlot.type
-
       node.drawSlots(ctx, {
-        connectingType: firstDraggedLinkType,
+        connectingLink: this.connecting_links?.[0],
         colorContext: this,
         editorAlpha: this.editor_alpha,
         lowQuality: this.low_quality,

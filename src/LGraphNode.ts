@@ -2,6 +2,7 @@ import type { DragAndScale } from "./DragAndScale"
 import type {
   CanvasColour,
   ColorOption,
+  ConnectingLink,
   Dictionary,
   IColorable,
   IContextMenuValue,
@@ -3419,18 +3420,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * Draws the node's input and output slots.
    */
   drawSlots(ctx: CanvasRenderingContext2D, options: {
-    connectingType: ISlotType | undefined
+    connectingLink: ConnectingLink | undefined
     colorContext: ConnectionColorContext
     editorAlpha: number
     lowQuality: boolean
   }) {
-    const { connectingType, colorContext, editorAlpha, lowQuality } = options
+    const { connectingLink, colorContext, editorAlpha, lowQuality } = options
 
     for (const slot of this.slots) {
       // change opacity of incompatible slots when dragging a connection
       const layoutElement = slot._layoutElement
       const slotInstance = toNodeSlotClass(slot)
-      const isValid = connectingType == null || slotInstance.isValidTarget(connectingType)
+      const isValid = slotInstance.isValidTarget(connectingLink)
       const highlight = isValid && this.#isMouseOverSlot(slot)
       const labelColor = highlight
         ? this.highlightColor
