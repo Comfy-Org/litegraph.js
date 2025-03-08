@@ -479,8 +479,6 @@ export class LGraphCanvas implements ConnectionColorContext {
   node_over?: LGraphNode
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
-  link_over_widget?: IWidget
-  link_over_widget_type?: string
 
   dirty_canvas: boolean = true
   dirty_bgcanvas: boolean = true
@@ -1868,7 +1866,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         otherNode.mouseOver = null
         this._highlight_input = undefined
         this._highlight_pos = undefined
-        this.link_over_widget = undefined
+        this.linkConnector.overWidget = undefined
 
         // Hover transitions
         // TODO: Implement single lerp ease factor for current progress on hover in/out.
@@ -2589,7 +2587,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       e.canvasY,
       this.visible_nodes,
     )
-    const { resizingGroup } = this
+    const { resizingGroup, linkConnector } = this
 
     const dragRect = this.dragging_rectangle
     if (dragRect) {
@@ -2607,7 +2605,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       (this.allow_interaction || (node && node.flags.allow_interaction)) &&
       !this.read_only
     ) {
-      if (this.connecting_links) this.dirty_canvas = true
+      if (linkConnector.isConnecting) this.dirty_canvas = true
 
       // remove mouseover flag
       this.updateMouseOverNodes(node, e)
@@ -2658,7 +2656,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             // Default: nothing highlighted
             let highlightPos: Point | undefined
             let highlightInput: INodeInputSlot | undefined
-            let linkOverWidget: IWidget | undefined
 
             if (firstLink.node === node) {
               // Cannot connect link from a node to itself
@@ -2675,13 +2672,13 @@ export class LGraphCanvas implements ConnectionColorContext {
                     if (firstLink.output.slot_index == null) throw new TypeError("Connecting link output.slot_index was null.")
 
                     if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
-                      linkOverWidget = overWidget
-                      this.link_over_widget_type = widgetLinkType
+                      linkConnector.overWidget = overWidget
+                      linkConnector.overWidgetType = widgetLinkType
                     }
                   }
                 }
                 // Node background / title under the pointer
-                if (!linkOverWidget) {
+                if (!linkConnector.overWidget) {
                   const targetSlotId = firstLink.node.findConnectByTypeSlot(true, node, firstLink.output.type)
                   if (targetSlotId !== undefined && targetSlotId >= 0) {
                     node.getConnectionPos(true, targetSlotId, pos)
@@ -2720,7 +2717,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             }
             this._highlight_pos = highlightPos
             this._highlight_input = highlightInput
-            this.link_over_widget = linkOverWidget
           }
 
           this.dirty_canvas = true
@@ -2935,14 +2931,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
             const newLink = link.node.connect(link.slot, node, slot, link.afterRerouteId)
             madeNewLink ||= newLink !== null
-          } else if (this.link_over_widget) {
-            this.emitEvent({
-              subType: "connectingWidgetLink",
-              link,
-              node,
-              widget: this.link_over_widget,
-            })
-            this.link_over_widget = undefined
           } else {
             // not on top of an input
             // look for a good slot
@@ -5359,10 +5347,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     posY: number,
     ctx: CanvasRenderingContext2D,
   ): void {
+    const { linkConnector } = this
+
     node.drawWidgets(ctx, {
       colorContext: this,
-      linkOverWidget: this.link_over_widget,
-      linkOverWidgetType: this.link_over_widget_type,
+      linkOverWidget: linkConnector.overWidget,
+      linkOverWidgetType: linkConnector.overWidgetType,
       lowQuality: this.low_quality,
       editorAlpha: this.editor_alpha,
     })
