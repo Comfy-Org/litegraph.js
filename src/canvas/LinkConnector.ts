@@ -104,7 +104,7 @@ export class LinkConnector {
     if (!link) return
 
     try {
-      const renderLink = new MovingRenderLink(network, link, "input", fromReroute, LinkDirection.LEFT)
+      const renderLink = new MovingRenderLink(network, link, "input", fromReroute)
 
       const mayContinue = this.events.dispatch("before-move-input", renderLink)
       if (mayContinue === false) return
