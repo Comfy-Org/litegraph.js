@@ -117,6 +117,13 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
       ?.getReroutes() ?? []
   }
 
+  static getFirstReroute(
+    network: LinkNetwork,
+    linkSegment: LinkSegment,
+  ): Reroute | undefined {
+    return LLink.getReroutes(network, linkSegment).at(0)
+  }
+
   /**
    * Finds the reroute in the chain after the provided reroute ID.
    * @param network The network this link belongs to
