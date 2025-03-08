@@ -131,6 +131,9 @@ export interface LinkSegment {
    */
   _centreAngle?: number
 
+  /** Whether the link is currently being moved. @internal */
+  _dragging?: boolean
+
   /** Output node ID */
   readonly origin_id: NodeId | undefined
   /** Output slot index */

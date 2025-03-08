@@ -45,6 +45,9 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
   /** @inheritdoc */
   _centreAngle?: number
 
+  /** @inheritdoc */
+  _dragging?: boolean
+
   #color?: CanvasColour | null
   /** Custom colour for this link only */
   public get color(): CanvasColour | null | undefined {
