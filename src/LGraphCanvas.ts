@@ -1962,7 +1962,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode | undefined) {
-    const { pointer, graph } = this
+    const { pointer, graph, linkConnector } = this
     if (!graph) throw new NullGraphError()
 
     const x = e.canvasX
@@ -2035,33 +2035,16 @@ export class LGraphCanvas implements ConnectionColorContext {
         const reroute = graph.getRerouteOnPos(x, y)
         if (reroute) {
           if (e.shiftKey) {
-            // Connect new link from reroute
-            const linkId = reroute.linkIds.values().next().value
-            if (linkId == null) return
+            linkConnector.dragFromReroute(graph, reroute)
 
-            const link = graph._links.get(linkId)
-            if (!link) return
-
-            const outputNode = graph.getNodeById(link.origin_id)
-            if (!outputNode) return
-
-            const slot = link.origin_slot
-            const connecting: ConnectingLink = {
-              node: outputNode,
-              slot,
-              input: null,
-              pos: outputNode.getConnectionPos(false, slot),
-              afterRerouteId: reroute.id,
-            }
-            this.connecting_links = [connecting]
-            pointer.onDragStart = () => connecting.output = outputNode.outputs[slot]
-            // pointer.finally = () => this.connecting_links = null
+            pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
+            pointer.finally = () => linkConnector.reset(true)
 
             this.dirty_bgcanvas = true
           }
 
           pointer.onClick = () => this.processSelect(reroute, e)
-          if (!pointer.onDragStart) {
+          if (!pointer.onDragEnd) {
             pointer.onDragStart = pointer => this.#startDraggingItems(reroute, pointer, true)
             pointer.onDragEnd = e => this.#processDraggedItems(e)
           }
@@ -2088,22 +2071,10 @@ export class LGraphCanvas implements ConnectionColorContext {
           this.ctx.lineWidth = lineWidth
 
           if (e.shiftKey && !e.altKey) {
-            const slot = linkSegment.origin_slot
-            if (slot == null) return console.warn("Connecting link from corrupt link segment: `slot` null", linkSegment)
-            if (linkSegment.origin_id == null) return console.warn("Connecting link from corrupt link segment: `origin_id` null", linkSegment)
+            linkConnector.dragFromLinkSegment(graph, linkSegment)
 
-            const originNode = graph._nodes_by_id[linkSegment.origin_id]
-
-            const connecting: ConnectingLink = {
-              node: originNode,
-              slot,
-              pos: originNode.getConnectionPos(false, slot),
-            }
-            this.connecting_links = [connecting]
-            if (linkSegment.parentId) connecting.afterRerouteId = linkSegment.parentId
-
-            pointer.onDragStart = () => connecting.output = originNode.outputs[slot]
-            // pointer.finally = () => this.connecting_links = null
+            pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
+            pointer.finally = () => linkConnector.reset(true)
 
             return
           } else if (this.reroutesEnabled && e.altKey && !e.shiftKey) {
@@ -2222,7 +2193,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctrlOrMeta: boolean,
     node: LGraphNode,
   ): void {
-    const { pointer, graph } = this
+    const { pointer, graph, linkConnector } = this
     if (!graph) throw new NullGraphError()
 
     const x = e.canvasX
@@ -2291,46 +2262,19 @@ export class LGraphCanvas implements ConnectionColorContext {
           if (isInRectangle(x, y, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
             // Drag multiple output links
             if (e.shiftKey && output.links?.length) {
-              const connectingLinks: ConnectingLink[] = []
+              linkConnector.moveOutputLink(graph, output)
 
-              for (const linkId of output.links) {
-                const link = graph._links.get(linkId)
-                if (!link) continue
+              pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
+              pointer.finally = () => linkConnector.reset(true)
 
-                const slot = link.target_slot
-                const otherNode = graph._nodes_by_id[link.target_id]
-                const input = otherNode.inputs[slot]
-                const pos = otherNode.getConnectionPos(true, slot)
-                const afterRerouteId = LLink.getReroutes(graph, link).at(-1)?.id
-                const firstRerouteId = LLink.getReroutes(graph, link).at(0)?.id
-
-                connectingLinks.push({
-                  node: otherNode,
-                  slot,
-                  input,
-                  output: null,
-                  pos,
-                  direction: LinkDirection.RIGHT,
-                  afterRerouteId,
-                  firstRerouteId,
-                  link,
-                })
-              }
-
-              this.connecting_links = connectingLinks
               return
             }
 
-            output.slot_index = i
-            this.connecting_links = [
-              {
-                node: node,
-                slot: i,
-                input: null,
-                output: output,
-                pos: link_pos,
-              },
-            ]
+            // New output link
+            linkConnector.dragNewFromOutput(graph, node, output)
+
+            pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
+            pointer.finally = () => linkConnector.reset(true)
 
             if (LiteGraph.shift_click_do_break_link_from) {
               if (e.shiftKey) {
@@ -2360,12 +2304,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             pointer.onClick = () => node.onInputClick?.(i, e)
 
             if (input.link !== null) {
-              // before disconnecting
-              const link_info = graph._links.get(input.link)
-              if (!link_info) throw new TypeError("Input link ID was invalid.")
-
-              const slot = link_info.origin_slot
-              const linked_node = graph._nodes_by_id[link_info.origin_id]
               if (
                 LiteGraph.click_do_break_link_to ||
                 (LiteGraph.ctrl_alt_click_do_break_link &&
@@ -2375,50 +2313,18 @@ export class LGraphCanvas implements ConnectionColorContext {
               ) {
                 node.disconnectInput(i)
               } else if (e.shiftKey || this.allow_reconnect_links) {
-                if (!linked_node) throw new TypeError("linked_node was null")
-
-                const connecting: ConnectingLink = {
-                  node: linked_node,
-                  slot,
-                  output: linked_node.outputs[slot],
-                  pos: linked_node.getConnectionPos(false, slot),
-                  afterRerouteId: link_info.parentId,
-                  link: link_info,
-                }
-                const connectingLinks = [connecting]
-                this.connecting_links = connectingLinks
-
-                pointer.onDragStart = () => {
-                  connecting.output = linked_node.outputs[slot]
-                }
-                pointer.onDragEnd = (upEvent) => {
-                  const shouldDisconnect = this.#processConnectingLinks(upEvent, connectingLinks)
-
-                  if (shouldDisconnect && this.allow_reconnect_links && !LiteGraph.click_do_break_link_to) {
-                    node.disconnectInput(i)
-                  }
-                  connecting.output = linked_node.outputs[slot]
-                  this.connecting_links = null
-                }
-
-                this.dirty_bgcanvas = true
+                linkConnector.moveInputLink(graph, input)
               }
             }
-            if (!pointer.onDragStart) {
-              // Connect from input to output
-              const connecting: ConnectingLink = {
-                node,
-                slot: i,
-                output: null,
-                pos: link_pos,
-              }
-              this.connecting_links = [connecting]
-              pointer.onDragStart = () => connecting.input = input
 
-              this.dirty_bgcanvas = true
+            // Dragging a new link from input to output
+            if (!linkConnector.isConnecting) {
+              linkConnector.dragNewFromInput(graph, node, input)
             }
+            pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
+            pointer.finally = () => linkConnector.reset(true)
+            this.dirty_bgcanvas = true
 
-            // pointer.finally = () => this.connecting_links = null
             return
           }
         }
