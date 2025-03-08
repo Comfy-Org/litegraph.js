@@ -72,7 +72,7 @@ import {
   TitleMode,
 } from "./types/globalEnums"
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
-import { findFirstNode, getAllNestedItems, isDraggingLink } from "./utils/collections"
+import { findFirstNode, getAllNestedItems } from "./utils/collections"
 import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
@@ -4689,8 +4689,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         const link = this.graph._links.get(link_id)
         if (!link) continue
 
-        const draggingLink = isDraggingLink(link.id, this.connecting_links)
-
         // find link info
         const start_node = this.graph.getNodeById(link.origin_id)
         if (start_node == null) continue
@@ -4751,23 +4749,24 @@ export class LGraphCanvas implements ConnectionColorContext {
               reroute.calculateAngle(this.last_draw_time, this.graph, startPos)
 
               // Skip the first segment if it is being dragged
-              if (j === 0 && draggingLink?.input) continue
-              this.renderLink(
-                ctx,
-                startPos,
-                reroute.pos,
-                link,
-                false,
-                0,
-                null,
-                start_dir,
-                end_dir,
-                {
-                  startControl,
-                  endControl: reroute.controlPoint,
-                  reroute,
-                },
-              )
+              if (!reroute._dragging) {
+                this.renderLink(
+                  ctx,
+                  startPos,
+                  reroute.pos,
+                  link,
+                  false,
+                  0,
+                  null,
+                  start_dir,
+                  end_dir,
+                  {
+                    startControl,
+                    endControl: reroute.controlPoint,
+                    reroute,
+                  },
+                )
+              }
             }
 
             // Calculate start control for the next iter control point
@@ -4777,7 +4776,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           }
 
           // Skip the last segment if it is being dragged
-          if (draggingLink?.output) continue
+          if (link._dragging) continue
 
           // Use runtime fallback; TypeScript cannot evaluate this correctly.
           const segmentStartPos = points.at(-2) ?? start_node_slotpos
@@ -4796,7 +4795,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             { startControl },
           )
         // Skip normal render when link is being dragged
-        } else if (!draggingLink) {
+        } else if (!link._dragging) {
           this.renderLink(
             ctx,
             start_node_slotpos,
