@@ -4,6 +4,7 @@ import type { INodeInputSlot, INodeOutputSlot } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
 import type { CanvasPointerEvent } from "@/types/events"
+import type { IWidget } from "@/types/widgets"
 
 import { LinkConnectorEventMap, LinkConnectorEventTarget } from "@/infrastructure/LinkConnectorEventTarget"
 import { LLink } from "@/LLink"
@@ -70,6 +71,11 @@ export class LinkConnector {
   readonly outputLinks: LLink[] = []
 
   readonly hiddenReroutes: Set<Reroute> = new Set()
+
+  /** The widget beneath the pointer, if it is a valid connection target. */
+  overWidget?: IWidget
+  /** The type (returned by downstream callback) for {@link overWidget} */
+  overWidgetType?: string
 
   readonly #setConnectingLinks: (value: ConnectingLink[]) => void
 
@@ -265,14 +271,34 @@ export class LinkConnector {
     const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
     if (!node) return this.dropOnNothing(event)
 
-    const slot = node.getSlotOnPos([canvasX, canvasY])
+    // To output
+    if (connectingTo === "output") {
+      const output = node.getOutputOnPos([canvasX, canvasY])
 
-    if (connectingTo === "output" && slot && "links" in slot) {
-      this.#dropOnOutput(node, slot)
-    } else if (connectingTo === "input" && slot && "link" in slot) {
-      this.#dropOnInput(node, slot)
-    } else {
-      this.dropOnNode(node, event)
+      if (output) {
+        this.#dropOnOutput(node, output)
+      } else {
+        this.dropOnNode(node, event)
+      }
+    // To input
+    } else if (connectingTo === "input") {
+      const input = node.getInputOnPos([canvasX, canvasY])
+
+      // Input slot
+      if (input) {
+        this.#dropOnInput(node, input)
+      } else if (this.overWidget && this.renderLinks[0] instanceof ToInputRenderLink) {
+        // Widget
+        this.events.dispatch("dropped-on-widget", {
+          link: this.renderLinks[0],
+          node,
+          widget: this.overWidget,
+        })
+        this.overWidget = undefined
+      } else {
+        // Node background / title
+        this.dropOnNode(node, event)
+      }
     }
 
     this.events.dispatch("after-drop-links", { renderLinks, event })

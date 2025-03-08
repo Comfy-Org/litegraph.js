@@ -1,6 +1,6 @@
 import type { MovingRenderLink } from "@/canvas/MovingRenderLink"
 import type { RenderLink } from "@/canvas/RenderLink"
-import type { ConnectingLink } from "@/interfaces"
+import type { ToInputRenderLink } from "@/canvas/ToInputRenderLink"
 import type { LGraphNode } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { CanvasPointerEvent } from "@/types/events"
@@ -32,8 +32,8 @@ export interface LinkConnectorEventMap {
   }
   "dropped-on-canvas": CanvasPointerEvent
 
-  "connectingWidgetLink": {
-    link: ConnectingLink
+  "dropped-on-widget": {
+    link: ToInputRenderLink
     node: LGraphNode
     widget: IWidget
   }
