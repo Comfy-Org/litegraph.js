@@ -605,6 +605,54 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     this.ds = new DragAndScale()
     this.pointer = new CanvasPointer(canvas)
+
+    // @deprecated Workaround: Keep until connecting_links is removed.
+    this.linkConnector.events.addEventListener("reset", () => {
+      this.connecting_links = null
+    })
+
+    // Dropped a link on the canvas
+    this.linkConnector.events.addEventListener("dropped-on-canvas", (customEvent) => {
+      if (!this.connecting_links) return
+
+      const e = customEvent.detail
+      this.emitEvent({
+        subType: "empty-release",
+        originalEvent: e,
+        linkReleaseContext: { links: this.connecting_links },
+      })
+
+      const firstLink = this.linkConnector.renderLinks[0]
+
+      // No longer in use
+      // add menu when releasing link in empty space
+      if (LiteGraph.release_link_on_empty_shows_menu) {
+        const linkReleaseContext = this.linkConnector.state.connectingTo === "input"
+          ? {
+            node_from: firstLink.node,
+            slot_from: firstLink.fromSlot,
+            type_filter_in: firstLink.fromSlot.type,
+          }
+          : {
+            node_to: firstLink.node,
+            slot_from: firstLink.fromSlot,
+            type_filter_out: firstLink.fromSlot.type,
+          }
+
+        if ("shiftKey" in e && e.shiftKey) {
+          if (this.allow_searchbox) {
+            this.showSearchBox(e as unknown as MouseEvent, linkReleaseContext)
+          }
+        } else {
+          if (this.linkConnector.state.connectingTo === "input") {
+            this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
+          } else {
+            this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
+          }
+        }
+      }
+    })
+
     // otherwise it generates ugly patterns when scaling down too much
     this.zoom_modify_alpha = true
     // in range (1.01, 2.5). Less than 1 will invert the zoom direction
