@@ -45,7 +45,7 @@ import { strokeShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId, type NodeProperty } from "./LGraphNode"
-import { LinkReleaseContextExtended, LiteGraph } from "./litegraph"
+import { LiteGraph } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import {
   containsRect,
