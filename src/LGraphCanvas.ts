@@ -36,6 +36,8 @@ import type {
 import type { ClipboardItems } from "./types/serialisation"
 import type { IWidget } from "./types/widgets"
 
+import { LinkConnector } from "@/canvas/LinkConnector"
+
 import { isOverNodeInput, isOverNodeOutput } from "./canvas/measureSlots"
 import { CanvasPointer } from "./CanvasPointer"
 import { DragAndScale } from "./DragAndScale"
@@ -448,7 +450,9 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
   renderedPaths: Set<LinkSegment> = new Set()
   visible_links: LLink[]
+  /** @deprecated This array is populated and cleared to support legacy extensions. The contents are ignored by Litegraph. */
   connecting_links: ConnectingLink[] | null
+  linkConnector = new LinkConnector(links => this.connecting_links = links)
   /** The viewport of this canvas.  Tightly coupled with {@link ds}. */
   readonly viewport?: Rect
   autoresize: boolean
