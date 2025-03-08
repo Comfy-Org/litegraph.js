@@ -3256,7 +3256,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   drawWidgets(ctx: CanvasRenderingContext2D, options: {
     colorContext: ConnectionColorContext
     linkOverWidget: IWidget | null | undefined
-    linkOverWidgetType: ISlotType
+    linkOverWidgetType?: ISlotType
     lowQuality?: boolean
     editorAlpha?: number
   }): void {
@@ -3281,6 +3281,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         // Manually draw a slot next to the widget simulating an input
         new NodeInputSlot({
           name: "",
+          // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
           type: linkOverWidgetType,
           link: 0,
           // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
