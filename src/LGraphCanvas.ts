@@ -2650,58 +2650,53 @@ export class LGraphCanvas implements ConnectionColorContext {
           node.mouseOver.overWidget = overWidget
 
           // Check if link is over anything it could connect to - record position of valid target for snap / highlight
-          if (this.connecting_links?.length) {
-            const firstLink = this.connecting_links[0]
+          if (linkConnector.isConnecting) {
+            const firstLink = linkConnector.renderLinks.at(0)
 
             // Default: nothing highlighted
             let highlightPos: Point | undefined
             let highlightInput: INodeInputSlot | undefined
 
-            if (firstLink.node === node) {
-              // Cannot connect link from a node to itself
-            } else if (firstLink.output) {
-              // Connecting from an output to an input
+            if (!firstLink || firstLink.node === node) {
+              // No link / node loopback
+            } else if (linkConnector.state.connectingTo === "input") {
               if (inputId === -1 && outputId === -1) {
                 // Allow support for linking to widgets, handled externally to LiteGraph
                 if (this.getWidgetLinkType && overWidget) {
                   const widgetLinkType = this.getWidgetLinkType(overWidget, node)
                   if (
                     widgetLinkType &&
-                    LiteGraph.isValidConnection(firstLink.output.type, widgetLinkType)
+                    LiteGraph.isValidConnection(linkConnector.renderLinks[0]?.fromSlot.type, widgetLinkType) &&
+                    firstLink.node.isValidWidgetLink?.(firstLink.fromSlotIndex, node, overWidget) !== false
                   ) {
-                    if (firstLink.output.slot_index == null) throw new TypeError("Connecting link output.slot_index was null.")
-
-                    if (firstLink.node.isValidWidgetLink?.(firstLink.output.slot_index, node, overWidget) !== false) {
-                      linkConnector.overWidget = overWidget
-                      linkConnector.overWidgetType = widgetLinkType
-                    }
+                    linkConnector.overWidget = overWidget
+                    linkConnector.overWidgetType = widgetLinkType
                   }
                 }
                 // Node background / title under the pointer
                 if (!linkConnector.overWidget) {
-                  const targetSlotId = firstLink.node.findConnectByTypeSlot(true, node, firstLink.output.type)
-                  if (targetSlotId !== undefined && targetSlotId >= 0) {
-                    node.getConnectionPos(true, targetSlotId, pos)
+                  const result = node.findInputByType(firstLink.fromSlot.type)
+                  if (result) {
+                    highlightInput = result.slot
+                    node.getConnectionPos(true, result.index, pos)
                     highlightPos = pos
-                    highlightInput = node.inputs[targetSlotId]
                   }
                 }
               } else if (
                 inputId != -1 &&
                 node.inputs[inputId] &&
-                LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)
+                LiteGraph.isValidConnection(firstLink.fromSlot.type, node.inputs[inputId].type)
               ) {
                 highlightPos = pos
                 // XXX CHECK THIS
                 highlightInput = node.inputs[inputId]
               }
-            } else if (firstLink.input) {
+            } else if (linkConnector.state.connectingTo === "output") {
               // Connecting from an input to an output
               if (inputId === -1 && outputId === -1) {
-                const targetSlotId = firstLink.node.findConnectByTypeSlot(false, node, firstLink.input.type)
-
-                if (targetSlotId !== undefined && targetSlotId >= 0) {
-                  node.getConnectionPos(false, targetSlotId, pos)
+                const result = node.findOutputByType(firstLink.fromSlot.type)
+                if (result) {
+                  node.getConnectionPos(false, result.index, pos)
                   highlightPos = pos
                 }
               } else {
@@ -2709,7 +2704,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                 if (
                   outputId != -1 &&
                   node.outputs[outputId] &&
-                  LiteGraph.isValidConnection(firstLink.input.type, node.outputs[outputId].type)
+                  LiteGraph.isValidConnection(firstLink.fromSlot.type, node.outputs[outputId].type)
                 ) {
                   highlightPos = pos
                 }
