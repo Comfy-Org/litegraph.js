@@ -417,6 +417,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     value: unknown,
     prev_value?: unknown,
   ): boolean
+  /** Called for each connection that is created, updated, or removed. This includes "restored" connections when deserialising. */
   onConnectionsChange?(
     this: LGraphNode,
     type: ISlotType,
