@@ -81,7 +81,7 @@ export class MovingRenderLink implements RenderLink {
     this.node = this.toType === "input" ? outputNode : inputNode
     this.fromSlot = this.toType === "input" ? outputSlot : inputSlot
     this.fromPos = fromReroute?.pos ?? (this.toType === "input" ? this.outputPos : this.inputPos)
-    this.fromDirection = this.toType === "input" ? LinkDirection.RIGHT : LinkDirection.LEFT
+    this.fromDirection = this.toType === "input" ? LinkDirection.NONE : LinkDirection.LEFT
     this.fromSlotIndex = this.toType === "input" ? outputIndex : inputIndex
   }
 }
