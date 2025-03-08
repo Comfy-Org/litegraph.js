@@ -2736,16 +2736,9 @@ export class LGraphCanvas implements ConnectionColorContext {
                 node.inputs[inputId] &&
                 LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)
               ) {
-                // check if I have a slot below de mouse
-                if (
-                  inputId != -1 &&
-                  node.inputs[inputId] &&
-                  LiteGraph.isValidConnection(firstLink.output.type, node.inputs[inputId].type)
-                ) {
-                  highlightPos = pos
-                  // XXX CHECK THIS
-                  highlightInput = node.inputs[inputId]
-                }
+                highlightPos = pos
+                // XXX CHECK THIS
+                highlightInput = node.inputs[inputId]
               }
             } else if (firstLink.input) {
               // Connecting from an input to an output
