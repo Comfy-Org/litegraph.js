@@ -375,6 +375,13 @@ export class LinkConnector {
 
   dropOnNothing(event: CanvasPointerEvent): void {
     // For external event only.
+    if (this.state.connectingTo === "input") {
+      for (const link of this.renderLinks) {
+        if (link instanceof MovingRenderLink) {
+          link.inputNode.disconnectInput(link.inputIndex, true)
+        }
+      }
+    }
     this.events.dispatch("dropped-on-canvas", event)
     this.reset()
   }
@@ -387,8 +394,6 @@ export class LinkConnector {
         const { outputNode, inputSlot, outputSlot, fromReroute } = link
         // Link is already connected here
         if (inputSlot === input) continue
-
-        link.inputNode.disconnectInput(link.inputIndex, true)
 
         outputNode.connectSlots(outputSlot, node, input, fromReroute?.id)
         this.events.dispatch("input-moved", link)
