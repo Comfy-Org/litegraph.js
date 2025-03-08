@@ -4846,13 +4846,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.globalAlpha = this.editor_alpha
     // for every node
     const nodes = this.graph._nodes
-    for (let n = 0, l = nodes.length; n < l; ++n) {
-      const node = nodes[n]
+    for (const node of nodes) {
       // for every input (we render just inputs because it is easier as every slot can only have one input)
-      if (!node.inputs || !node.inputs.length) continue
+      const { inputs } = node
+      if (!inputs?.length) continue
 
-      for (let i = 0; i < node.inputs.length; ++i) {
-        const input = node.inputs[i]
+      for (const [i, input] of inputs.entries()) {
         if (!input || input.link == null) continue
 
         const link_id = input.link
@@ -4895,14 +4894,10 @@ export class LGraphCanvas implements ConnectionColorContext {
           continue
 
         const start_slot = start_node.outputs[outputId]
-        const end_slot = node.inputs[i]
-        if (!start_slot || !end_slot) continue
-        const start_dir =
-          start_slot.dir ||
-          LinkDirection.RIGHT
-        const end_dir =
-          end_slot.dir ||
-          LinkDirection.LEFT
+        if (!start_slot) continue
+
+        const start_dir = start_slot.dir || LinkDirection.RIGHT
+        const end_dir = input.dir || LinkDirection.LEFT
 
         // Has reroutes
         if (reroutes.length) {
