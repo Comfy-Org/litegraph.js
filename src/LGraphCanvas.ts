@@ -4087,7 +4087,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         ctx.lineWidth = this.connections_width
 
         for (const link of this.connecting_links) {
-
           const connInOrOut = link.output || link.input
 
           const connType = connInOrOut?.type
