@@ -3993,7 +3993,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   drawFrontCanvas(): void {
     this.dirty_canvas = false
 
-    const { ctx, canvas } = this
+    const { ctx, canvas, linkConnector } = this
 
     // @ts-expect-error
     if (ctx.start2D && !this.viewport) {
@@ -4081,33 +4081,21 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.drawConnections(ctx)
       }
 
-      if (this.connecting_links?.length) {
+      if (linkConnector.isConnecting) {
         // current connection (the one being dragged by the mouse)
+        const { renderLinks } = linkConnector
         const highlightPos = this.#getHighlightPosition()
         ctx.lineWidth = this.connections_width
 
-        for (const link of this.connecting_links) {
-          const connInOrOut = link.output || link.input
+        for (const renderLink of renderLinks) {
+          const { fromSlot, fromPos: pos, fromDirection, dragDirection } = renderLink
+          const connShape = fromSlot.shape
+          const connType = fromSlot.type
 
-          const connType = connInOrOut?.type
-          let connDir = connInOrOut?.dir
-          if (connDir == null) {
-            if (link.output)
-              connDir = LinkDirection.RIGHT
-            else
-              connDir = LinkDirection.LEFT
-          }
-          const connShape = connInOrOut?.shape
-
-          const link_color = connType === LiteGraph.EVENT
+          const colour = connType === LiteGraph.EVENT
             ? LiteGraph.EVENT_LINK_COLOR
             : LiteGraph.CONNECTING_LINK_COLOR
 
-          // If not using reroutes, link.afterRerouteId should be undefined.
-          const rerouteIdToConnectTo = link.firstRerouteId ?? link.afterRerouteId
-          const pos = rerouteIdToConnectTo == null
-            ? link.pos
-            : (this.graph.reroutes.get(rerouteIdToConnectTo)?.pos ?? link.pos)
           // the connection being dragged by the mouse
           this.renderLink(
             ctx,
@@ -4116,9 +4104,9 @@ export class LGraphCanvas implements ConnectionColorContext {
             null,
             false,
             null,
-            link_color,
-            connDir,
-            link.direction ?? LinkDirection.CENTER,
+            colour,
+            fromDirection,
+            dragDirection,
           )
 
           ctx.beginPath()
