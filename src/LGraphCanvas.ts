@@ -4083,8 +4083,10 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       if (this.connecting_links?.length) {
         // current connection (the one being dragged by the mouse)
+        const highlightPos = this.#getHighlightPosition()
+        ctx.lineWidth = this.connections_width
+
         for (const link of this.connecting_links) {
-          ctx.lineWidth = this.connections_width
 
           const connInOrOut = link.output || link.input
 
@@ -4107,7 +4109,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           const pos = rerouteIdToConnectTo == null
             ? link.pos
             : (this.graph.reroutes.get(rerouteIdToConnectTo)?.pos ?? link.pos)
-          const highlightPos = this.#getHighlightPosition()
           // the connection being dragged by the mouse
           this.renderLink(
             ctx,
@@ -4144,10 +4145,10 @@ export class LGraphCanvas implements ConnectionColorContext {
             ctx.arc(this.graph_mouse[0], this.graph_mouse[1], 4, 0, Math.PI * 2)
           }
           ctx.fill()
-
-          // Gradient half-border over target node
-          this.#renderSnapHighlight(ctx, highlightPos)
         }
+
+        // Gradient half-border over target node
+        this.#renderSnapHighlight(ctx, highlightPos)
       }
 
       // Area-selection rectangle
