@@ -2870,10 +2870,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       const x = e.canvasX
       const y = e.canvasY
 
-      if (this.connecting_links?.length) {
-        // node below mouse
-        this.#processConnectingLinks(e, this.connecting_links)
-      } else {
+      if (!this.linkConnector.isConnecting) {
         this.dirty_canvas = true
 
         // @ts-expect-error Unused param
@@ -2883,8 +2880,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           y - this.node_capturing_input.pos[1],
         ])
       }
-
-      this.connecting_links = null
     } else if (e.button === 1) {
       // middle button
       this.dirty_canvas = true
