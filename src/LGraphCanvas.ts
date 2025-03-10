@@ -2602,7 +2602,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.ds.offset[1] += delta[1] / this.ds.scale
       this.#dirty()
     } else if (
-      (this.allow_interaction || (node && node.flags.allow_interaction)) &&
+      (this.allow_interaction || node?.flags.allow_interaction) &&
       !this.read_only
     ) {
       if (linkConnector.isConnecting) this.dirty_canvas = true
