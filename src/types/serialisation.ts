@@ -8,10 +8,10 @@ import type {
   Size,
 } from "../interfaces"
 import type { LGraph, LGraphConfig, LGraphState } from "../LGraph"
-import type { IGraphGroupFlags, LGraphGroup } from "../LGraphGroup"
-import type { LGraphNode, NodeId, NodeProperty } from "../LGraphNode"
+import type { IGraphGroupFlags } from "../LGraphGroup"
+import type { NodeId, NodeProperty } from "../LGraphNode"
 import type { LiteGraph } from "../litegraph"
-import type { LinkId, LLink } from "../LLink"
+import type { LinkId, SerialisedLLinkArray } from "../LLink"
 import type { RerouteId } from "../Reroute"
 import type { TWidgetValue } from "../types/widgets"
 import type { RenderShape } from "./globalEnums"
@@ -76,19 +76,15 @@ export interface ISerialisedNode {
  * Original implementation from static litegraph.d.ts
  * Maintained for backwards compat
  */
-export type ISerialisedGraph<
-  TNode = ReturnType<LGraphNode["serialize"]>,
-  TLink = ReturnType<LLink["serialize"]>,
-  TGroup = ReturnType<LGraphGroup["serialize"]>,
-> = {
+export interface ISerialisedGraph {
   last_node_id: NodeId
   last_link_id: number
-  nodes: TNode[]
-  links: TLink[]
-  groups: TGroup[]
+  nodes: ISerialisedNode[]
+  links: SerialisedLLinkArray[]
+  groups: ISerialisedGroup[]
   config: LGraph["config"]
   version: typeof LiteGraph.VERSION
-  extra?: Record<any, any>
+  extra?: Record<string, unknown>
 }
 
 /** Serialised LGraphGroup */
