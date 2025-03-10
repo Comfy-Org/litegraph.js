@@ -313,6 +313,19 @@ export class LinkConnector {
     }
   }
 
+  dropOnNothing(event: CanvasPointerEvent): void {
+    // For external event only.
+    if (this.state.connectingTo === "input") {
+      for (const link of this.renderLinks) {
+        if (link instanceof MovingRenderLink) {
+          link.inputNode.disconnectInput(link.inputIndex, true)
+        }
+      }
+    }
+    this.events.dispatch("dropped-on-canvas", event)
+    this.reset()
+  }
+
   /**
    * Connects the links being dropped onto a node.
    * @param node The node that the links are being dropped on
@@ -377,19 +390,6 @@ export class LinkConnector {
         }
       }
     }
-  }
-
-  dropOnNothing(event: CanvasPointerEvent): void {
-    // For external event only.
-    if (this.state.connectingTo === "input") {
-      for (const link of this.renderLinks) {
-        if (link instanceof MovingRenderLink) {
-          link.inputNode.disconnectInput(link.inputIndex, true)
-        }
-      }
-    }
-    this.events.dispatch("dropped-on-canvas", event)
-    this.reset()
   }
 
   #dropOnInput(node: LGraphNode, input: INodeInputSlot): void {
