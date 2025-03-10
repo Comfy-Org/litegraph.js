@@ -49,9 +49,15 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisableNodeInpu
   }
 }
 
-export function outputAsSerialisable(slot: INodeOutputSlot): ISerialisableNodeOutput {
+export function outputAsSerialisable(slot: INodeOutputSlot & { widget?: IWidget }): ISerialisableNodeOutput {
+  // Output widgets do not exist in Litegraph; this is a temporary downstream workaround.
+  const outputWidget = widget
+    ? { widget: { name: widget.name } }
+    : null
+
   return {
     ...shallowCloneCommonProps(slot),
+    ...outputWidget,
     pos: slot.pos,
     slot_index: slot.slot_index,
     links: slot.links,
