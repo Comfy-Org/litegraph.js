@@ -7,7 +7,7 @@ import type {
   Point,
   Size,
 } from "../interfaces"
-import type { LGraph, LGraphState } from "../LGraph"
+import type { LGraph, LGraphConfig, LGraphState } from "../LGraph"
 import type { IGraphGroupFlags, LGraphGroup } from "../LGraphGroup"
 import type { LGraphNode, NodeId, NodeProperty } from "../LGraphNode"
 import type { LiteGraph } from "../litegraph"
@@ -31,7 +31,7 @@ export interface Serialisable<SerialisableObject> {
 export interface SerialisableGraph {
   /** Schema version.  @remarks Version bump should add to const union, which is used to narrow type during deserialise. */
   version: 0 | 1
-  config: LGraph["config"]
+  config: LGraphConfig
   state: LGraphState
   groups?: ISerialisedGroup[]
   nodes?: ISerialisedNode[]
