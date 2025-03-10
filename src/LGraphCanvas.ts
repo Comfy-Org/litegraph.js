@@ -641,12 +641,10 @@ export class LGraphCanvas implements ConnectionColorContext {
           if (this.allow_searchbox) {
             this.showSearchBox(e as unknown as MouseEvent, linkReleaseContext)
           }
+        } else if (this.linkConnector.state.connectingTo === "input") {
+          this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
         } else {
-          if (this.linkConnector.state.connectingTo === "input") {
-            this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
-          } else {
-            this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
-          }
+          this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.fromSlot, e: e as unknown as CanvasMouseEvent })
         }
       }
     })
