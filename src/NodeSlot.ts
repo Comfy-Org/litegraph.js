@@ -42,8 +42,8 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisedNodeInputS
 
   return {
     ...spreadCommonSlotProps(slot),
-    link: slot.link,
     ...widgetInputProps,
+    link: slot.link,
   }
 }
 
