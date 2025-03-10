@@ -5,8 +5,8 @@ import type { IWidget } from "./types/widgets"
 import { LabelPosition, SlotShape, SlotType } from "./draw"
 import { LiteGraph } from "./litegraph"
 import { LinkDirection, RenderShape } from "./types/globalEnums"
-import { ISerialisedNodeOutputSlot } from "./types/serialisation"
-import { ISerialisedNodeInputSlot } from "./types/serialisation"
+import { ISerialisableNodeOutput } from "./types/serialisation"
+import { ISerialisableNodeInput } from "./types/serialisation"
 
 export interface ConnectionColorContext {
   default_connection_color: {
@@ -30,12 +30,12 @@ interface IDrawOptions {
   highlight?: boolean
 }
 
-export function spreadCommonSlotProps(slot: INodeInputSlot | INodeOutputSlot): ISerialisedNodeInputSlot | ISerialisedNodeOutputSlot {
+export function spreadCommonSlotProps(slot: INodeInputSlot | INodeOutputSlot): ISerialisableNodeInput | ISerialisableNodeOutput {
   const { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type } = slot
   return { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type }
 }
 
-export function inputAsSerialisable(slot: INodeInputSlot): ISerialisedNodeInputSlot {
+export function inputAsSerialisable(slot: INodeInputSlot): ISerialisableNodeInput {
   const widgetInputProps = slot.widget
     ? { widget: { name: slot.widget.name } }
     : { pos: slot.pos }
@@ -47,7 +47,7 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisedNodeInputS
   }
 }
 
-export function outputAsSerialisable(slot: INodeOutputSlot): ISerialisedNodeOutputSlot {
+export function outputAsSerialisable(slot: INodeOutputSlot): ISerialisableNodeOutput {
   return {
     ...spreadCommonSlotProps(slot),
     slot_index: slot.slot_index,
