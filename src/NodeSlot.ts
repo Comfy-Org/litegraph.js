@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetInputSlot, Point } from "./interfaces"
+import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetInputSlot, Point, SharedIntersection } from "./interfaces"
 import type { LinkId } from "./LLink"
 import type { IWidget } from "./types/widgets"
 
@@ -30,7 +30,9 @@ interface IDrawOptions {
   highlight?: boolean
 }
 
-export function spreadCommonSlotProps(slot: INodeInputSlot | INodeOutputSlot): ISerialisableNodeInput | ISerialisableNodeOutput {
+type CommonIoSlotProps = SharedIntersection<ISerialisableNodeInput, ISerialisableNodeOutput>
+
+export function spreadCommonSlotProps(slot: CommonIoSlotProps): CommonIoSlotProps {
   const { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type } = slot
   return { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type }
 }
@@ -50,6 +52,7 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisableNodeInpu
 export function outputAsSerialisable(slot: INodeOutputSlot): ISerialisableNodeOutput {
   return {
     ...spreadCommonSlotProps(slot),
+    pos: slot.pos,
     slot_index: slot.slot_index,
     links: slot.links,
   }
