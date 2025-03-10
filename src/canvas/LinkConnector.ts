@@ -261,15 +261,26 @@ export class LinkConnector {
   dropLinks(locator: ItemLocator, event: CanvasPointerEvent): void {
     if (!this.isConnecting) return this.reset()
 
-    const { renderLinks, state } = this
-    const { connectingTo } = state
-
+    const { renderLinks } = this
     const mayContinue = this.events.dispatch("before-drop-links", { renderLinks, event })
     if (mayContinue === false) return this.reset()
 
     const { canvasX, canvasY } = event
     const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
-    if (!node) return this.dropOnNothing(event)
+    if (node) {
+      this.dropOnNode(node, event)
+    } else {
+      this.dropOnNothing(event)
+    }
+
+    this.events.dispatch("after-drop-links", { renderLinks, event })
+    this.reset()
+  }
+
+  dropOnNode(node: LGraphNode, event: CanvasPointerEvent) {
+    const { renderLinks, state } = this
+    const { connectingTo } = state
+    const { canvasX, canvasY } = event
 
     // To output
     if (connectingTo === "output") {
@@ -278,7 +289,7 @@ export class LinkConnector {
       if (output) {
         this.#dropOnOutput(node, output)
       } else {
-        this.dropOnNode(node, event)
+        this.#dropOnNodeBackground(node, event)
       }
     // To input
     } else if (connectingTo === "input") {
@@ -287,22 +298,19 @@ export class LinkConnector {
       // Input slot
       if (input) {
         this.#dropOnInput(node, input)
-      } else if (this.overWidget && this.renderLinks[0] instanceof ToInputRenderLink) {
+      } else if (this.overWidget && renderLinks[0] instanceof ToInputRenderLink) {
         // Widget
         this.events.dispatch("dropped-on-widget", {
-          link: this.renderLinks[0],
+          link: renderLinks[0],
           node,
           widget: this.overWidget,
         })
         this.overWidget = undefined
       } else {
         // Node background / title
-        this.dropOnNode(node, event)
+        this.#dropOnNodeBackground(node, event)
       }
     }
-
-    this.events.dispatch("after-drop-links", { renderLinks, event })
-    this.reset()
   }
 
   /**
@@ -310,7 +318,7 @@ export class LinkConnector {
    * @param node The node that the links are being dropped on
    * @param event Contains the drop location, in canvas space
    */
-  dropOnNode(node: LGraphNode, event: CanvasPointerEvent): void {
+  #dropOnNodeBackground(node: LGraphNode, event: CanvasPointerEvent): void {
     const { state: { connectingTo } } = this
 
     const mayContinue = this.events.dispatch("dropped-on-node", { node, event })
@@ -328,7 +336,7 @@ export class LinkConnector {
         return
       }
       this.#dropOnOutput(node, output)
-      return this.reset()
+      return
     }
 
     // Dragging input links
@@ -339,7 +347,7 @@ export class LinkConnector {
         return
       }
       this.#dropOnInput(node, input)
-      return this.reset()
+      return
     }
 
     // Dropping new output link
@@ -369,8 +377,6 @@ export class LinkConnector {
         }
       }
     }
-
-    this.reset()
   }
 
   dropOnNothing(event: CanvasPointerEvent): void {
