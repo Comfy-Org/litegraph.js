@@ -37,8 +37,8 @@ export function spreadCommonSlotProps(slot: INodeInputSlot | INodeOutputSlot): I
 
 export function inputAsSerialisable(slot: INodeInputSlot): ISerialisedNodeInputSlot {
   const widgetInputProps = slot.widget
-    ? { pos: slot.pos, widget: { name: slot.widget.name } }
-    : {}
+    ? { widget: { name: slot.widget.name } }
+    : { pos: slot.pos }
 
   return {
     ...spreadCommonSlotProps(slot),
