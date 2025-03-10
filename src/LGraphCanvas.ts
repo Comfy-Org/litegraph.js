@@ -251,20 +251,20 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   #updateCursorStyle() {
-    if (this.state.shouldSetCursor) {
-      let cursor = "default"
-      if (this.state.draggingCanvas) {
-        cursor = "grabbing"
-      } else if (this.state.readOnly) {
-        cursor = "grab"
-      } else if (this.state.hoveringOver & CanvasItem.ResizeSe) {
-        cursor = "se-resize"
-      } else if (this.state.hoveringOver & CanvasItem.Node) {
-        cursor = "crosshair"
-      }
+    if (!this.state.shouldSetCursor) return
 
-      this.canvas.style.cursor = cursor
+    let cursor = "default"
+    if (this.state.draggingCanvas) {
+      cursor = "grabbing"
+    } else if (this.state.readOnly) {
+      cursor = "grab"
+    } else if (this.state.hoveringOver & CanvasItem.ResizeSe) {
+      cursor = "se-resize"
+    } else if (this.state.hoveringOver & CanvasItem.Node) {
+      cursor = "crosshair"
     }
+
+    this.canvas.style.cursor = cursor
   }
 
   // Whether the canvas was previously being dragged prior to pressing space key.
