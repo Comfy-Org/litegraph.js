@@ -32,7 +32,7 @@ interface IDrawOptions {
 
 type CommonIoSlotProps = SharedIntersection<ISerialisableNodeInput, ISerialisableNodeOutput>
 
-export function spreadCommonSlotProps(slot: CommonIoSlotProps): CommonIoSlotProps {
+export function shallowCloneCommonProps(slot: CommonIoSlotProps): CommonIoSlotProps {
   const { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type } = slot
   return { color_off, color_on, dir, label, localized_name, locked, name, nameLocked, removable, shape, type }
 }
@@ -43,7 +43,7 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisableNodeInpu
     : { pos: slot.pos }
 
   return {
-    ...spreadCommonSlotProps(slot),
+    ...shallowCloneCommonProps(slot),
     ...widgetInputProps,
     link: slot.link,
   }
@@ -51,7 +51,7 @@ export function inputAsSerialisable(slot: INodeInputSlot): ISerialisableNodeInpu
 
 export function outputAsSerialisable(slot: INodeOutputSlot): ISerialisableNodeOutput {
   return {
-    ...spreadCommonSlotProps(slot),
+    ...shallowCloneCommonProps(slot),
     pos: slot.pos,
     slot_index: slot.slot_index,
     links: slot.links,
