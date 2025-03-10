@@ -7,7 +7,7 @@ import type {
   Point,
   Size,
 } from "../interfaces"
-import type { LGraph, LGraphConfig, LGraphState } from "../LGraph"
+import type { LGraphConfig, LGraphState } from "../LGraph"
 import type { IGraphGroupFlags } from "../LGraphGroup"
 import type { NodeId, NodeProperty } from "../LGraphNode"
 import type { LiteGraph } from "../litegraph"
@@ -82,7 +82,7 @@ export interface ISerialisedGraph {
   nodes: ISerialisedNode[]
   links: SerialisedLLinkArray[]
   groups: ISerialisedGroup[]
-  config: LGraph["config"]
+  config: LGraphConfig
   version: typeof LiteGraph.VERSION
   extra?: Record<string, unknown>
 }
