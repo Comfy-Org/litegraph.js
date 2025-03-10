@@ -880,7 +880,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   ): boolean | undefined {
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
-    const graph = canvas.graph
+    const { graph } = canvas
     if (!graph) return
 
     inner_onMenuAdded("", prev_menu)
@@ -1037,7 +1037,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         return false
       }
 
-      const graph = node.graph
+      const { graph } = node
       if (!graph) throw new NullGraphError()
 
       graph.beforeChange()
@@ -1465,7 +1465,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     menu: ContextMenu,
     node: LGraphNode,
   ): void {
-    const graph = node.graph
+    const { graph } = node
     if (!graph) throw new NullGraphError()
     graph.beforeChange()
 
@@ -1647,11 +1647,9 @@ export class LGraphCanvas implements ConnectionColorContext {
       return
     }
 
-    const canvas = this.canvas
-
-    const ref_window = this.getCanvasWindow()
+    const { canvas } = this
     // hack used when moving canvas between windows
-    const document = ref_window.document
+    const { document } = this.getCanvasWindow()
 
     this._mousedown_callback = this.processMouseDown.bind(this)
     this._mousewheel_callback = this.processMouseWheel.bind(this)
@@ -2922,7 +2920,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const pos: Point = [e.clientX, e.clientY]
     if (this.viewport && !isPointInRect(pos, this.viewport)) return
 
-    let scale = this.ds.scale
+    let { scale } = this.ds
 
     if (delta > 0) scale *= this.zoom_speed
     else if (delta < 0) scale *= 1 / this.zoom_speed
@@ -3888,7 +3886,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.ds.toCanvasContext(ctx)
 
       // draw nodes
-      const visible_nodes = this.visible_nodes
+      const { visible_nodes } = this
       const drawSnapGuides = this.#snapToGrid && this.isDragging
 
       for (const node of visible_nodes) {
@@ -4298,8 +4296,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const color = node.renderingColor
     const bgcolor = node.renderingBgColor
 
-    const low_quality = this.low_quality
-    const editor_alpha = this.editor_alpha
+    const { low_quality, editor_alpha } = this
     ctx.globalAlpha = editor_alpha
 
     if (this.render_shadows && !low_quality) {
@@ -4422,7 +4419,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.fill()
 
     // @ts-expect-error TODO: Better value typing
-    const data = link.data
+    const { data } = link
     if (data == null) return
 
     // @ts-expect-error TODO: Better value typing
@@ -4489,11 +4486,11 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.fillStyle = LiteGraph.use_legacy_node_error_indicator ? "#F00" : bgcolor
 
     const title_height = LiteGraph.NODE_TITLE_HEIGHT
-    const low_quality = this.low_quality
+    const { low_quality } = this
 
     const { collapsed } = node.flags
     const shape = node.renderingShape
-    const title_mode = node.title_mode
+    const { title_mode } = node
 
     const render_title = title_mode == TitleMode.TRANSPARENT_TITLE || title_mode == TitleMode.NO_TITLE
       ? false
@@ -4656,7 +4653,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const visibleReroutes: Reroute[] = []
 
     const now = LiteGraph.getTime()
-    const visible_area = this.visible_area
+    const { visible_area } = this
     LGraphCanvas.#margin_area[0] = visible_area[0] - 20
     LGraphCanvas.#margin_area[1] = visible_area[1] - 20
     LGraphCanvas.#margin_area[2] = visible_area[2] + 40
@@ -5199,7 +5196,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.strokeStyle = "white"
     ctx.globalAlpha = 0.75
 
-    const visible_nodes = this.visible_nodes
+    const { visible_nodes } = this
     for (const node of visible_nodes) {
       ctx.fillStyle = "black"
       ctx.fillRect(
@@ -5678,7 +5675,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const dialog: PromptDialog = Object.assign(div, customProperties)
 
     const graphcanvas = LGraphCanvas.active_canvas
-    const canvas = graphcanvas.canvas
+    const { canvas } = graphcanvas
     if (!canvas.parentNode) throw new TypeError("canvas element parentNode was null when opening a prompt.")
     canvas.parentNode.append(dialog)
 
@@ -5821,7 +5818,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     // console.log(options);
     const that = this
     const graphcanvas = LGraphCanvas.active_canvas
-    const canvas = graphcanvas.canvas
+    const { canvas } = graphcanvas
     const root_document = canvas.ownerDocument || document
 
     const div = document.createElement("div")
@@ -6333,7 +6330,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     options = options || {}
 
     const info = node.getPropertyInfo(property)
-    const type = info.type
+    const { type } = info
 
     let input_html = ""
 
