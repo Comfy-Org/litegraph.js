@@ -270,7 +270,14 @@ export class LinkConnector {
     if (node) {
       this.dropOnNode(node, event)
     } else {
-      this.dropOnNothing(event)
+      // Get reroute if no node is found
+      const reroute = locator.getRerouteOnPos(canvasX, canvasY)
+      // Drop output->input link on reroute is not impl.
+      if (reroute && this.state.connectingTo === "output") {
+        this.dropOnReroute(reroute, event)
+      } else {
+        this.dropOnNothing(event)
+      }
     }
 
     this.events.dispatch("after-drop-links", { renderLinks, event })
@@ -309,6 +316,41 @@ export class LinkConnector {
       } else {
         // Node background / title
         this.#dropOnNodeBackground(node, event)
+      }
+    }
+  }
+
+  dropOnReroute(reroute: Reroute, event: CanvasPointerEvent): void {
+    const mayContinue = this.events.dispatch("dropped-on-reroute", { reroute, event })
+    if (mayContinue === false) return
+
+    for (const link of this.renderLinks) {
+      if (link.toType !== "output") continue
+
+      const result = reroute.findSourceOutput()
+      if (!result) return
+
+      const { node, output } = result
+
+      if (link instanceof MovingRenderLink) {
+        const { inputNode, inputSlot, outputSlot, fromReroute } = link
+        // Link is already connected here
+        if (outputSlot === output) continue
+
+        // Connect the first reroute of the link being dragged to the reroute being dropped on
+        if (fromReroute) {
+          fromReroute.parentId = reroute.id
+        } else {
+          // If there are no reroutes, directly connect the link
+          link.link.parentId = reroute.id
+        }
+        // Use the last reroute id on the link to retain all reroutes
+        node.connectSlots(output, inputNode, inputSlot, link.link.parentId)
+        this.events.dispatch("output-moved", link)
+      } else {
+        const { node: inputNode, fromSlot } = link
+        const newLink = node.connectSlots(output, inputNode, fromSlot, reroute?.id)
+        this.events.dispatch("link-created", newLink)
       }
     }
   }
