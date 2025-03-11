@@ -5958,7 +5958,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (options.do_type_filter) {
       if (selIn) {
         const aSlots = LiteGraph.slot_types_in
-        // this for object :: Object.keys(aSlots).length;
         const nSlots = aSlots.length
 
         if (
@@ -5967,9 +5966,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         ) {
           options.type_filter_in = "_event_"
         }
-        /* this will filter on * .. but better do it manually in case
-                else if(options.type_filter_in === "" || options.type_filter_in === 0)
-                    options.type_filter_in = "*"; */
         for (let iK = 0; iK < nSlots; iK++) {
           const opt = document.createElement("option")
           opt.value = aSlots[iK]
@@ -5981,11 +5977,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             String(options.type_filter_in).toLowerCase() ==
             String(aSlots[iK]).toLowerCase()
           ) {
-            // selIn.selectedIndex ..
             opt.selected = true
-            // console.log("comparing IN "+options.type_filter_in+" :: "+aSlots[iK]);
-          } else {
-            // console.log("comparing OUT "+options.type_filter_in+" :: "+aSlots[iK]);
           }
         }
         selIn.addEventListener("change", function () {
@@ -5994,7 +5986,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       }
       if (selOut) {
         const aSlots = LiteGraph.slot_types_out
-        // this for object :: Object.keys(aSlots).length;
         const nSlots = aSlots.length
 
         if (
@@ -6003,9 +5994,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         ) {
           options.type_filter_out = "_event_"
         }
-        /* this will filter on * .. but better do it manually in case
-                else if(options.type_filter_out === "" || options.type_filter_out === 0)
-                    options.type_filter_out = "*"; */
         for (let iK = 0; iK < nSlots; iK++) {
           const opt = document.createElement("option")
           opt.value = aSlots[iK]
