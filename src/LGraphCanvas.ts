@@ -2394,11 +2394,9 @@ export class LGraphCanvas implements ConnectionColorContext {
         node,
         canvas: this,
       })
-    } else {
-      if (widget.mouse) {
-        const result = widget.mouse(e, [x, y], node)
-        if (result != null) this.dirty_canvas = result
-      }
+    } else if (widget.mouse) {
+      const result = widget.mouse(e, [x, y], node)
+      if (result != null) this.dirty_canvas = result
     }
 
     // value changed
