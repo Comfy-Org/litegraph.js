@@ -4806,7 +4806,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         rendered.add(link)
 
         // event triggered rendered on top
-        if (link && link._last_time && now - link._last_time < 1000) {
+        if (link?._last_time && now - link._last_time < 1000) {
           const f = 2.0 - (now - link._last_time) * 0.002
           const tmp = ctx.globalAlpha
           ctx.globalAlpha = tmp * f
