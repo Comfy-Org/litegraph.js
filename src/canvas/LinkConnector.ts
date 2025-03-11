@@ -92,7 +92,7 @@ export class LinkConnector {
   }
 
   /** Drag an existing link to a different input. */
-  moveInputLink(network: LinkNetwork, input: INodeInputSlot, fromReroute?: Reroute): void {
+  moveInputLink(network: LinkNetwork, input: INodeInputSlot): void {
     if (this.isConnecting) throw new Error("Already dragging links.")
 
     const { state, inputLinks, renderLinks } = this
@@ -104,7 +104,8 @@ export class LinkConnector {
     if (!link) return
 
     try {
-      const renderLink = new MovingRenderLink(network, link, "input", fromReroute)
+      const reroute = link.parentId != null ? network.reroutes.get(link.parentId) : undefined
+      const renderLink = new MovingRenderLink(network, link, "input", reroute)
 
       const mayContinue = this.events.dispatch("before-move-input", renderLink)
       if (mayContinue === false) return
