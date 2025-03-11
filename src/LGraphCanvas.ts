@@ -7286,6 +7286,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const startTimestamp = performance.now()
     const startX = this.ds.offset[0]
     const startY = this.ds.offset[1]
+    const startX2 = startX - (this.canvas.width / this.ds.scale)
     const startScale = this.ds.scale
     const cw = this.canvas.width / window.devicePixelRatio
     const ch = this.canvas.height / window.devicePixelRatio
@@ -7301,17 +7302,22 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
     const targetX = -bounds[0] - bounds[2] * 0.5 + (cw * 0.5) / targetScale
     const targetY = -bounds[1] - bounds[3] * 0.5 + (ch * 0.5) / targetScale
+    const targetX2 = targetX - (bounds[2] / zoom)
 
     const animate = (timestamp: number) => {
       const elapsed = timestamp - startTimestamp
       const progress = Math.min(elapsed / duration, 1)
       const easedProgress = easeFunction(progress)
 
-      this.ds.offset[0] = startX + (targetX - startX) * easedProgress
-      this.ds.offset[1] = startY + (targetY - startY) * easedProgress
+      const currentX = startX + (targetX - startX) * easedProgress
+      const currentY = startY + (targetY - startY) * easedProgress
+      this.ds.offset[0] = currentX
+      this.ds.offset[1] = currentY
 
       if (zoom > 0) {
-        this.ds.scale = startScale + (targetScale - startScale) * easedProgress
+        const currentX2 = startX2 + ((targetX2 - startX2) * easedProgress)
+        const currentWidth = Math.abs(currentX2 - currentX)
+        this.ds.scale = this.canvas.width / currentWidth
       }
 
       this.setDirty(true, true)
