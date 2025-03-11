@@ -480,7 +480,7 @@ export class LinkConnector {
 
   /** Sets connecting_links, used by some extensions still. */
   #setLegacyLinks(fromSlotIsInput: boolean): void {
-    const links = this.renderLinks.map((link) => {
+    const links = this.renderLinks.map<ConnectingLink>((link) => {
       const input = fromSlotIsInput ? link.fromSlot as INodeInputSlot : null
       const output = fromSlotIsInput ? null : link.fromSlot as INodeOutputSlot
 
@@ -490,6 +490,7 @@ export class LinkConnector {
         input,
         output,
         pos: link.fromPos,
+        after: link.fromReroute?.id,
       }
     })
     this.#setConnectingLinks(links)
