@@ -19,7 +19,7 @@ export class DragAndScale {
   min_scale: number
   enabled: boolean
   last_mouse: Point
-  element?: HTMLCanvasElement
+  element: HTMLCanvasElement
   visible_area: Rect32
   dragging?: boolean
   viewport?: Rect
@@ -42,7 +42,7 @@ export class DragAndScale {
     this.state.scale = value
   }
 
-  constructor(element?: HTMLCanvasElement) {
+  constructor(element: HTMLCanvasElement) {
     this.state = {
       offset: new Float32Array([0, 0]),
       scale: 1,

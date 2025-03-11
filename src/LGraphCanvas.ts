@@ -608,7 +608,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     // throw ("No graph assigned");
     this.background_image = LGraphCanvas.DEFAULT_BACKGROUND_IMAGE
 
-    this.ds = new DragAndScale()
+    this.ds = new DragAndScale(canvas)
     this.pointer = new CanvasPointer(canvas)
 
     // @deprecated Workaround: Keep until connecting_links is removed.
