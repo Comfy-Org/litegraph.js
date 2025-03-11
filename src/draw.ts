@@ -58,20 +58,21 @@ interface IDrawSelectionBoundingOptions {
 export function strokeShape(
   ctx: CanvasRenderingContext2D,
   area: Rect,
-  options: IDrawSelectionBoundingOptions = {},
-): void {
-  // Don't deconstruct in function arguments. If deconstructed in the argument list, the defaults will be evaluated
-  // once when the function is defined, and will not be re-evaluated when the function is called.
-  const {
+  {
     shape = RenderShape.BOX,
-    round_radius = LiteGraph.ROUND_RADIUS,
-    title_height = LiteGraph.NODE_TITLE_HEIGHT,
+    round_radius,
+    title_height,
     title_mode = TitleMode.NORMAL_TITLE,
-    colour = LiteGraph.NODE_BOX_OUTLINE_COLOR,
+    colour,
     padding = 6,
     collapsed = false,
     thickness = 1,
-  } = options
+  }: IDrawSelectionBoundingOptions = {},
+): void {
+  // These param defaults are not compile-time static, and must be re-evaluated at runtime
+  round_radius ??= LiteGraph.ROUND_RADIUS
+  title_height ??= LiteGraph.NODE_TITLE_HEIGHT
+  colour ??= LiteGraph.NODE_BOX_OUTLINE_COLOR
 
   // Adjust area if title is transparent
   if (title_mode === TitleMode.TRANSPARENT_TITLE) {
