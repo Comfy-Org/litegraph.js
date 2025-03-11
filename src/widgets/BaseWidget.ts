@@ -12,7 +12,7 @@ export abstract class BaseWidget implements IBaseWidget {
   label?: string
   type?: TWidgetType
   value?: TWidgetValue
-  y?: number
+  y: number = 0
   last_y?: number
   width?: number
   disabled?: boolean

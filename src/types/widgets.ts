@@ -159,7 +159,7 @@ export interface IBaseWidget {
   /**
    * The starting y position of the widget after layout.
    */
-  y?: number
+  y: number
 
   /**
    * The y position of the widget after drawing (rendering).
