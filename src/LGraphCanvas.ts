@@ -4908,7 +4908,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     /** Reference to {@link reroute._pos} if present, or {@link link._pos} if present.  Caches the centre point of the link. */
     const pos: Point = linkSegment?._pos ?? [0, 0]
 
-    for (let i = 0; i < num_sublines; i += 1) {
+    for (let i = 0; i < num_sublines; i++) {
       const offsety = (i - (num_sublines - 1) * 0.5) * 5
       innerA[0] = a[0]
       innerA[1] = a[1]
