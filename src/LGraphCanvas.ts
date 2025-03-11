@@ -900,9 +900,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       const categories = LiteGraph
         .getNodeTypesCategories(canvas.filter || graph.filter)
-        .filter(function (category) {
-          return category.startsWith(base_category)
-        })
+        .filter(category => category.startsWith(base_category))
       const entries: AddNodeMenu[] = []
 
       for (const category of categories) {
@@ -989,11 +987,8 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     let entries: (IContextMenuValue<INodeSlotContextItem> | null)[] = []
 
-    if (LiteGraph.do_add_triggers_slots) {
-      // canvas.allow_addOutSlot_onExecuted
-      if (node.findOutputSlot("onExecuted") == -1) {
-        entries.push({ content: "On Executed", value: ["onExecuted", LiteGraph.EVENT, { nameLocked: true }], className: "event" })
-      }
+    if (LiteGraph.do_add_triggers_slots && node.findOutputSlot("onExecuted") == -1) {
+      entries.push({ content: "On Executed", value: ["onExecuted", LiteGraph.EVENT, { nameLocked: true }], className: "event" })
     }
     // add callback for modifing the menu elements onMenuNodeOutputs
     const retEntries = node.onMenuNodeOutputs?.(entries)
