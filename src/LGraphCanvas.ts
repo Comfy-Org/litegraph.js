@@ -5986,7 +5986,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       }
       if (selOut) {
         const aSlots = LiteGraph.slot_types_out
-        const nSlots = aSlots.length
 
         if (
           options.type_filter_out == LiteGraph.EVENT ||
@@ -5994,15 +5993,15 @@ export class LGraphCanvas implements ConnectionColorContext {
         ) {
           options.type_filter_out = "_event_"
         }
-        for (let iK = 0; iK < nSlots; iK++) {
+        for (const aSlot of aSlots) {
           const opt = document.createElement("option")
-          opt.value = aSlots[iK]
-          opt.innerHTML = aSlots[iK]
+          opt.value = aSlot
+          opt.innerHTML = aSlot
           selOut.append(opt)
           if (
             options.type_filter_out !== false &&
             String(options.type_filter_out).toLowerCase() ==
-            String(aSlots[iK]).toLowerCase()
+            String(aSlot).toLowerCase()
           ) {
             opt.selected = true
           }
