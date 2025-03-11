@@ -4547,7 +4547,9 @@ export class LGraphCanvas implements ConnectionColorContext {
     const rendered = this.renderedPaths
     rendered.clear()
     if (this.links_render_mode === LinkRenderType.HIDDEN_LINK) return
-    if (!this.graph) throw new NullGraphError()
+
+    const { graph } = this
+    if (!graph) throw new NullGraphError()
 
     const visibleReroutes: Reroute[] = []
 
@@ -4565,7 +4567,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.strokeStyle = "#AAA"
     ctx.globalAlpha = this.editor_alpha
     // for every node
-    const nodes = this.graph._nodes
+    const nodes = graph._nodes
     for (const node of nodes) {
       // for every input (we render just inputs because it is easier as every slot can only have one input)
       const { inputs } = node
@@ -4575,11 +4577,11 @@ export class LGraphCanvas implements ConnectionColorContext {
         if (!input || input.link == null) continue
 
         const link_id = input.link
-        const link = this.graph._links.get(link_id)
+        const link = graph._links.get(link_id)
         if (!link) continue
 
         // find link info
-        const start_node = this.graph.getNodeById(link.origin_id)
+        const start_node = graph.getNodeById(link.origin_id)
         if (start_node == null) continue
 
         const outputId = link.origin_slot
@@ -4590,7 +4592,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const end_node_slotpos = node.getConnectionPos(true, i, LGraphCanvas.#tempB)
 
         // Get all points this link passes through
-        const reroutes = LLink.getReroutes(this.graph, link)
+        const reroutes = LLink.getReroutes(graph, link)
         const points = [
           start_node_slotpos,
           ...reroutes.map(x => x.pos),
@@ -4631,9 +4633,9 @@ export class LGraphCanvas implements ConnectionColorContext {
                 LGraphCanvas.link_type_colors[link.type] ||
                 this.default_link_color
 
-              const prevReroute = reroute.parentId == null ? undefined : this.graph.reroutes.get(reroute.parentId)
+              const prevReroute = reroute.parentId == null ? undefined : graph.reroutes.get(reroute.parentId)
               const startPos = prevReroute?.pos ?? start_node_slotpos
-              reroute.calculateAngle(this.last_draw_time, this.graph, startPos)
+              reroute.calculateAngle(this.last_draw_time, graph, startPos)
 
               // Skip the first segment if it is being dragged
               if (!reroute._dragging) {
