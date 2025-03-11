@@ -6488,7 +6488,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     // acheck for input and use default behaviour: save on enter, close on esc
     if (options.checkForInput) {
       const aI = dialog.querySelectorAll("input")
-      const focused = false
       if (aI) {
         for (const iX of aI) {
           iX.addEventListener("keydown", function (e) {
@@ -6502,7 +6501,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             e.preventDefault()
             e.stopPropagation()
           })
-          if (!focused) iX.focus()
+          iX.focus()
         }
       }
     }
