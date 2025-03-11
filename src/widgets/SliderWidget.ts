@@ -5,7 +5,7 @@ import type { ISliderWidget, IWidgetSliderOptions } from "@/types/widgets"
 
 import { clamp } from "@/litegraph"
 
-import { BaseWidget } from "./BaseWidget"
+import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
 
 export class SliderWidget extends BaseWidget implements ISliderWidget {
   // ISliderWidget properties
@@ -27,18 +27,17 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
    * @param ctx The canvas context
    * @param options The options for drawing the widget
    */
-  override drawWidget(ctx: CanvasRenderingContext2D, options: {
-    y: number
-    width: number
-    show_text?: boolean
-    margin?: number
-  }) {
+  override drawWidget(ctx: CanvasRenderingContext2D, {
+    y,
+    width: widget_width,
+    show_text = true,
+    margin = 15,
+  }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const { y, width: widget_width, show_text = true, margin = 15 } = options
     const H = this.height
 
     // Draw background

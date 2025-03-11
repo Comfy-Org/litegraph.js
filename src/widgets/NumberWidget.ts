@@ -5,7 +5,7 @@ import type { INumericWidget, IWidgetOptions } from "@/types/widgets"
 
 import { getWidgetStep } from "@/utils/widget"
 
-import { BaseWidget } from "./BaseWidget"
+import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
 
 export class NumberWidget extends BaseWidget implements INumericWidget {
   // INumberWidget properties
@@ -24,18 +24,17 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
    * @param ctx The canvas context
    * @param options The options for drawing the widget
    */
-  override drawWidget(ctx: CanvasRenderingContext2D, options: {
-    y: number
-    width: number
-    show_text?: boolean
-    margin?: number
-  }) {
+  override drawWidget(ctx: CanvasRenderingContext2D, {
+    y,
+    width,
+    show_text = true,
+    margin = 15,
+  }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const { y, width, show_text = true, margin = 15 } = options
     const widget_width = width
     const H = this.height
 

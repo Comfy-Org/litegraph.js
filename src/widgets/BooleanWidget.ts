@@ -3,7 +3,7 @@ import type { LGraphNode } from "@/LGraphNode"
 import type { CanvasMouseEvent } from "@/types/events"
 import type { IBooleanWidget } from "@/types/widgets"
 
-import { BaseWidget } from "./BaseWidget"
+import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
 
 export class BooleanWidget extends BaseWidget implements IBooleanWidget {
   // IBooleanWidget properties
@@ -16,13 +16,12 @@ export class BooleanWidget extends BaseWidget implements IBooleanWidget {
     this.value = widget.value
   }
 
-  override drawWidget(ctx: CanvasRenderingContext2D, options: {
-    y: number
-    width: number
-    show_text?: boolean
-    margin?: number
-  }) {
-    const { y, width, show_text = true, margin = 15 } = options
+  override drawWidget(ctx: CanvasRenderingContext2D, {
+    y,
+    width,
+    show_text = true,
+    margin = 15,
+  }: DrawWidgetOptions) {
     const widget_width = width
     const H = this.height
 

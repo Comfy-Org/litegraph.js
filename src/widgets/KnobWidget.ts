@@ -6,7 +6,7 @@ import { clamp } from "@/litegraph"
 import { CanvasMouseEvent } from "@/types/events"
 import { getWidgetStep } from "@/utils/widget"
 
-import { BaseWidget } from "./BaseWidget"
+import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
 
 export class KnobWidget extends BaseWidget implements IKnobWidget {
   declare type: "knob"
@@ -45,20 +45,18 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
 
   drawWidget(
     ctx: CanvasRenderingContext2D,
-    options: {
-      y: number
-      width: number
-      show_text?: boolean
-      margin?: number
-      gradient_stops?: string
-    },
+    {
+      y,
+      width: widget_width,
+      show_text = true,
+      margin = 15,
+    }: DrawWidgetOptions,
   ): void {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const { y, width: widget_width, show_text = true, margin = 15 } = options
     const { gradient_stops = "rgb(14, 182, 201); rgb(0, 216, 72)" } = this.options
     const effective_height = this.computedHeight || this.height
     // Draw background
