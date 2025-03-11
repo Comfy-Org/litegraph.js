@@ -6497,7 +6497,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             } else if (e.key != "Enter") {
               return
             }
-            // set value ?
             e.preventDefault()
             e.stopPropagation()
           })
