@@ -47,7 +47,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
     ctx: CanvasRenderingContext2D,
     {
       y,
-      width: widget_width,
+      width,
       show_text = true,
       margin = 15,
     }: DrawWidgetOptions,
@@ -62,11 +62,11 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
     // Draw background
     const size_modifier =
       Math.min(this.computedHeight || this.height, this.width || 20) / 20 // TODO: replace magic numbers
-    const arc_center = { x: widget_width / 2, y: effective_height / 2 + y }
+    const arc_center = { x: width / 2, y: effective_height / 2 + y }
     ctx.lineWidth =
-      (Math.min(widget_width, effective_height) - margin * size_modifier) / 6
+      (Math.min(width, effective_height) - margin * size_modifier) / 6
     const arc_size =
-      (Math.min(widget_width, effective_height) -
+      (Math.min(width, effective_height) -
         margin * size_modifier -
         ctx.lineWidth) / 2
     {
@@ -186,7 +186,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
       const fixedValue = Number(this.value).toFixed(this.options.precision ?? 3)
       ctx.fillText(
         `${this.label || this.name}\n${fixedValue}`,
-        widget_width * 0.5,
+        width * 0.5,
         y + effective_height * 0.5,
       )
     }

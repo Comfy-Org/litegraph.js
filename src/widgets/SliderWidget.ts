@@ -29,7 +29,7 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
     y,
-    width: widget_width,
+    width,
     show_text = true,
     margin = 15,
   }: DrawWidgetOptions) {
@@ -38,11 +38,11 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const H = this.height
+    const { height } = this
 
     // Draw background
     ctx.fillStyle = this.background_color
-    ctx.fillRect(margin, y, widget_width - margin * 2, H)
+    ctx.fillRect(margin, y, width - margin * 2, height)
 
     // Calculate normalized value
     const range = this.options.max - this.options.min
@@ -51,12 +51,12 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
 
     // Draw slider bar
     ctx.fillStyle = this.options.slider_color ?? "#678"
-    ctx.fillRect(margin, y, nvalue * (widget_width - margin * 2), H)
+    ctx.fillRect(margin, y, nvalue * (width - margin * 2), height)
 
     // Draw outline if not disabled
     if (show_text && !this.disabled) {
       ctx.strokeStyle = this.outline_color
-      ctx.strokeRect(margin, y, widget_width - margin * 2, H)
+      ctx.strokeRect(margin, y, width - margin * 2, height)
     }
 
     // Draw marker if present
@@ -65,10 +65,10 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
       marker_nvalue = clamp(marker_nvalue, 0, 1)
       ctx.fillStyle = this.options.marker_color ?? "#AA9"
       ctx.fillRect(
-        margin + marker_nvalue * (widget_width - margin * 2),
+        margin + marker_nvalue * (width - margin * 2),
         y,
         2,
-        H,
+        height,
       )
     }
 
@@ -79,8 +79,8 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
       const fixedValue = Number(this.value).toFixed(this.options.precision ?? 3)
       ctx.fillText(
         `${this.label || this.name}  ${fixedValue}`,
-        widget_width * 0.5,
-        y + H * 0.7,
+        width * 0.5,
+        y + height * 0.7,
       )
     }
 
