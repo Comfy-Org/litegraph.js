@@ -111,6 +111,10 @@ export class LinkConnector {
       if (mayContinue === false) return
 
       renderLinks.push(renderLink)
+
+      this.listenUntilReset("input-moved", (e) => {
+        e.detail.link.disconnect(network, true)
+      })
     } catch (error) {
       console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
       return
@@ -444,8 +448,8 @@ export class LinkConnector {
         // Link is already connected here
         if (inputSlot === input) continue
 
-        outputNode.connectSlots(outputSlot, node, input, fromReroute?.id)
-        this.events.dispatch("input-moved", link)
+        const newLink = outputNode.connectSlots(outputSlot, node, input, fromReroute?.id)
+        if (newLink) this.events.dispatch("input-moved", link)
       } else {
         const { node: outputNode, fromSlot, fromReroute } = link
         const newLink = outputNode.connectSlots(fromSlot, node, input, fromReroute?.id)
