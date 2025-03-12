@@ -4542,8 +4542,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   drawConnections(ctx: CanvasRenderingContext2D): void {
-    const rendered = this.renderedPaths
-    rendered.clear()
+    this.renderedPaths.clear()
     if (this.links_render_mode === LinkRenderType.HIDDEN_LINK) return
 
     const { graph } = this
@@ -4606,7 +4605,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     now: number,
     inputDirection?: LinkDirection,
   ) {
-    const { graph, renderedPaths: rendered } = this
+    const { graph, renderedPaths } = this
     if (!graph) return
 
     // find link info
@@ -4655,8 +4654,8 @@ export class LGraphCanvas implements ConnectionColorContext {
         const reroute = reroutes[j]
 
         // Only render once
-        if (!rendered.has(reroute)) {
-          rendered.add(reroute)
+        if (!renderedPaths.has(reroute)) {
+          renderedPaths.add(reroute)
           visibleReroutes.push(reroute)
           reroute._colour = link.color ||
             LGraphCanvas.link_type_colors[link.type] ||
@@ -4726,7 +4725,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         end_dir,
       )
     }
-    rendered.add(link)
+    renderedPaths.add(link)
 
     // event triggered rendered on top
     if (link?._last_time && now - link._last_time < 1000) {
