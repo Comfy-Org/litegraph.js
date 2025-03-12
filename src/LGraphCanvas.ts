@@ -4622,15 +4622,12 @@ export class LGraphCanvas implements ConnectionColorContext {
     const { graph, renderedPaths } = this
     if (!graph) return
 
-    const start_node_slotpos = startPos
-    const end_node_slotpos = endPos
-
     // Get all points this link passes through
     const reroutes = LLink.getReroutes(graph, link)
     const points: [Point, ...Point[], Point] = [
-      start_node_slotpos,
+      startPos,
       ...reroutes.map(x => x.pos),
-      end_node_slotpos,
+      endPos,
     ]
 
     // Bounding box of all points (bezier overshoot on long links will be cut)
@@ -4665,14 +4662,14 @@ export class LGraphCanvas implements ConnectionColorContext {
             this.default_link_color
 
           const prevReroute = reroute.parentId == null ? undefined : graph.reroutes.get(reroute.parentId)
-          const startPos = prevReroute?.pos ?? start_node_slotpos
-          reroute.calculateAngle(this.last_draw_time, graph, startPos)
+          const rerouteStartPos = prevReroute?.pos ?? startPos
+          reroute.calculateAngle(this.last_draw_time, graph, rerouteStartPos)
 
           // Skip the first segment if it is being dragged
           if (!reroute._dragging) {
             this.renderLink(
               ctx,
-              startPos,
+              rerouteStartPos,
               reroute.pos,
               link,
               false,
@@ -4690,7 +4687,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
 
         // Calculate start control for the next iter control point
-        const nextPos = reroutes[j + 1]?.pos ?? end_node_slotpos
+        const nextPos = reroutes[j + 1]?.pos ?? endPos
         const dist = Math.min(80, distance(reroute.pos, nextPos) * 0.25)
         startControl = [dist * reroute.cos, dist * reroute.sin]
       }
@@ -4699,13 +4696,13 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (link._dragging) return
 
       // Use runtime fallback; TypeScript cannot evaluate this correctly.
-      const segmentStartPos = points.at(-2) ?? start_node_slotpos
+      const segmentStartPos = points.at(-2) ?? startPos
 
       // Render final link segment
       this.renderLink(
         ctx,
         segmentStartPos,
-        end_node_slotpos,
+        endPos,
         link,
         false,
         0,
@@ -4718,8 +4715,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     } else if (!link._dragging) {
       this.renderLink(
         ctx,
-        start_node_slotpos,
-        end_node_slotpos,
+        startPos,
+        endPos,
         link,
         false,
         0,
@@ -4737,8 +4734,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       ctx.globalAlpha = tmp * f
       this.renderLink(
         ctx,
-        start_node_slotpos,
-        end_node_slotpos,
+        startPos,
+        endPos,
         link,
         true,
         f,
