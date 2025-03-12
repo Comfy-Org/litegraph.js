@@ -179,13 +179,13 @@ export class DragAndScale {
     const easeFunction = easeFunctions[easing] ?? easeFunctions.linear
 
     const startTimestamp = performance.now()
-    const startX = this.offset[0]
-    const startY = this.offset[1]
-    const startX2 = startX - (this.element.width / this.scale)
-    const startY2 = startY - (this.element.height / this.scale)
-    const startScale = this.scale
     const cw = this.element.width / window.devicePixelRatio
     const ch = this.element.height / window.devicePixelRatio
+    const startX = this.offset[0]
+    const startY = this.offset[1]
+    const startX2 = startX - (cw / this.scale)
+    const startY2 = startY - (ch / this.scale)
+    const startScale = this.scale
     let targetScale = startScale
 
     if (zoom > 0) {
@@ -196,10 +196,13 @@ export class DragAndScale {
       // Ensure we don't go over the max scale
       targetScale = Math.min(targetScaleX, targetScaleY, this.max_scale)
     }
-    const targetX = -bounds[0] - bounds[2] * 0.5 + (cw * 0.5) / targetScale
-    const targetY = -bounds[1] - bounds[3] * 0.5 + (ch * 0.5) / targetScale
-    const targetX2 = targetX - (Math.max(bounds[2], 300) / zoom)
-    const targetY2 = targetY - (Math.max(bounds[3], 300) / zoom)
+    const scaledWidth = cw / targetScale
+    const scaledHeight = ch / targetScale
+
+    const targetX = -bounds[0] - (bounds[2] * 0.5) + (scaledWidth * 0.5)
+    const targetY = -bounds[1] - (bounds[3] * 0.5) + (scaledHeight * 0.5)
+    const targetX2 = targetX - scaledWidth
+    const targetY2 = targetY - scaledHeight
 
     const animate = (timestamp: number) => {
       const elapsed = timestamp - startTimestamp
@@ -217,7 +220,7 @@ export class DragAndScale {
         const currentWidth = Math.abs(currentX2 - currentX)
         const currentHeight = Math.abs(currentY2 - currentY)
 
-        this.scale = Math.min(this.element.width / currentWidth, this.element.height / currentHeight)
+        this.scale = Math.min(cw / currentWidth, ch / currentHeight)
       }
 
       setDirty()
