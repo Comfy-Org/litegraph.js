@@ -4579,7 +4579,19 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         const endPos = node.getInputPos(i)
 
-        this.#renderAllLinkSegments(ctx, link, endPos, visibleReroutes, now, input.dir)
+        // find link info
+        const start_node = graph.getNodeById(link.origin_id)
+        if (start_node == null) continue
+
+        const outputId = link.origin_slot
+        const startPos: Point = outputId === -1
+          ? [start_node.pos[0] + 10, start_node.pos[1] + 10]
+          : start_node.getOutputPos(outputId)
+
+        const output = start_node.outputs[outputId]
+        if (!output) continue
+
+        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, output.dir, input.dir)
       }
     }
 
@@ -4600,23 +4612,17 @@ export class LGraphCanvas implements ConnectionColorContext {
   #renderAllLinkSegments(
     ctx: CanvasRenderingContext2D,
     link: LLink,
+    startPos: Point,
     endPos: Point,
     visibleReroutes: Reroute[],
     now: number,
-    inputDirection?: LinkDirection,
+    startDirection?: LinkDirection,
+    endDirection?: LinkDirection,
   ) {
     const { graph, renderedPaths } = this
     if (!graph) return
 
-    // find link info
-    const start_node = graph.getNodeById(link.origin_id)
-    if (start_node == null) return
-
-    const outputId = link.origin_slot
-    const start_node_slotpos: Point = outputId == -1
-      ? [start_node.pos[0] + 10, start_node.pos[1] + 10]
-      : start_node.getOutputPos(outputId)
-
+    const start_node_slotpos = startPos
     const end_node_slotpos = endPos
 
     // Get all points this link passes through
@@ -4639,11 +4645,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (!overlapBounding(LGraphCanvas.#link_bounding, LGraphCanvas.#margin_area))
       return
 
-    const start_slot = start_node.outputs[outputId]
-    if (!start_slot) return
-
-    const start_dir = start_slot.dir || LinkDirection.RIGHT
-    const end_dir = inputDirection || LinkDirection.LEFT
+    const start_dir = startDirection || LinkDirection.RIGHT
+    const end_dir = endDirection || LinkDirection.LEFT
 
     // Has reroutes
     if (reroutes.length) {
