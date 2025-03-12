@@ -449,7 +449,8 @@ export class LGraphCanvas implements ConnectionColorContext {
   visible_area: Rect32
   /** Contains all links and reroutes that were rendered.  Repopulated every render cycle. */
   renderedPaths: Set<LinkSegment> = new Set()
-  visible_links: LLink[]
+  /** @deprecated Replaced by {@link renderedPaths}, but length is set to 0 by some extensions. */
+  visible_links: LLink[] = []
   /** @deprecated This array is populated and cleared to support legacy extensions. The contents are ignored by Litegraph. */
   connecting_links: ConnectingLink[] | null
   linkConnector = new LinkConnector(links => this.connecting_links = links)
@@ -726,7 +727,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     this.node_widget = null
     this.last_mouse_position = [0, 0]
     this.visible_area = this.ds.visible_area
-    this.visible_links = []
     // Explicitly null-checked
     this.connecting_links = null
 
@@ -4078,7 +4078,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       ctx.restore()
       ctx.setTransform(scale, 0, 0, scale, 0, 0)
     }
-    this.visible_links.length = 0
 
     if (this.graph) {
       // apply transformations
@@ -4785,8 +4784,6 @@ export class LGraphCanvas implements ConnectionColorContext {
       num_sublines?: number
     } = {},
   ): void {
-    if (link) this.visible_links.push(link)
-
     const linkColour =
       link != null && this.highlighted_links[link.id]
         ? "#FFF"
