@@ -206,8 +206,8 @@ export class DragAndScale {
       const progress = Math.min(elapsed / duration, 1)
       const easedProgress = easeFunction(progress)
 
-      const currentX = startX + (targetX - startX) * easedProgress
-      const currentY = startY + (targetY - startY) * easedProgress
+      const currentX = startX + ((targetX - startX) * easedProgress)
+      const currentY = startY + ((targetY - startY) * easedProgress)
       this.offset[0] = currentX
       this.offset[1] = currentY
 
