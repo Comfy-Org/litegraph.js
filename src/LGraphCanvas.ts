@@ -206,8 +206,6 @@ export class LGraphCanvas implements ConnectionColorContext {
   static #tmp_area = new Float32Array(4)
   static #margin_area = new Float32Array(4)
   static #link_bounding = new Float32Array(4)
-  static #tempA = new Float32Array(2)
-  static #tempB = new Float32Array(2)
   static #lTempA: Point = new Float32Array(2)
   static #lTempB: Point = new Float32Array(2)
   static #lTempC: Point = new Float32Array(2)
@@ -4580,7 +4578,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const link = graph._links.get(link_id)
         if (!link) continue
 
-        const endPos = node.getConnectionPos(true, i, LGraphCanvas.#tempB)
+        const endPos = node.getInputPos(i)
 
         this.#renderAllLinkSegments(ctx, link, endPos, visibleReroutes, now, input.dir)
       }
@@ -4618,7 +4616,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const outputId = link.origin_slot
     const start_node_slotpos: Point = outputId == -1
       ? [start_node.pos[0] + 10, start_node.pos[1] + 10]
-      : start_node.getConnectionPos(false, outputId, LGraphCanvas.#tempA)
+      : start_node.getOutputPos(outputId)
 
     const end_node_slotpos = endPos
 
