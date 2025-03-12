@@ -1386,12 +1386,12 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
    * Creates the object if it does not exist.
    * @param serialisedReroute See {@link SerialisableReroute}
    */
-  setReroute({ id, parentId, pos, linkIds }: OptionalProps<SerialisableReroute, "id">): Reroute {
+  setReroute({ id, parentId, pos, linkIds, floating }: OptionalProps<SerialisableReroute, "id">): Reroute {
     id ??= ++this.state.lastRerouteId
     if (id > this.state.lastRerouteId) this.state.lastRerouteId = id
 
     const reroute = this.reroutes.get(id) ?? new Reroute(id, this)
-    reroute.update(parentId, pos, linkIds)
+    reroute.update(parentId, pos, linkIds, floating)
     this.reroutes.set(id, reroute)
     return reroute
   }
