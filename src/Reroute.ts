@@ -81,6 +81,9 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** The ID ({@link LLink.id}) of every link using this reroute */
   linkIds: Set<LinkId>
 
+  /** The ID ({@link LLink.id}) of every floating link using this reroute */
+  floatingLinkIds: Set<LinkId>
+
   /** Cached cos */
   cos: number = 0
   sin: number = 0
