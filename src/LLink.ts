@@ -104,7 +104,7 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
   }
 
   /**
-   * Gets all reroutes from the output slot to this segment.  If this segment is a reroute, it will be the last element.
+   * Gets all reroutes from the output slot to this segment.  If this segment is a reroute, it will not be included.
    * @returns An ordered array of all reroutes from the node output to
    * this reroute or the reroute before it.  Otherwise, an empty array.
    */
