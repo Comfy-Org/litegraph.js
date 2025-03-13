@@ -151,8 +151,9 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     floatingLinkIds?: Iterable<LinkId>,
   ) {
     this.#network = new WeakRef(network)
-    this.update(parentId, pos, linkIds)
-    this.linkIds ??= new Set()
+    this.parentId = parentId
+    if (pos) this.pos = pos
+    this.linkIds = new Set(linkIds)
     this.floatingLinkIds = new Set(floatingLinkIds)
   }
 
