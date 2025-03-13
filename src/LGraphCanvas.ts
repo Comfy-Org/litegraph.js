@@ -2254,6 +2254,12 @@ export class LGraphCanvas implements ConnectionColorContext {
               } else if (e.shiftKey || this.allow_reconnect_links) {
                 linkConnector.moveInputLink(graph, input)
               }
+            } else {
+              for (const link of graph.floatingLinks.values()) {
+                if (link.target_id === node.id && link.target_slot === i) {
+                  graph.removeFloatingLink(link)
+                }
+              }
             }
 
             // Dragging a new link from input to output
