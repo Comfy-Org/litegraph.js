@@ -2504,7 +2504,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     // Reroutes
     for (const reroute of LLink.getReroutes(graph, link)) {
-      reroute?.linkIds.add(link.id)
+      reroute.linkIds.add(link.id)
     }
     graph._version++
 
