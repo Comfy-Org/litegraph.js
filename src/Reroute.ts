@@ -282,25 +282,17 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     if (!(lastRenderTime > this.#lastRenderTime)) return
     this.#lastRenderTime = lastRenderTime
 
-    const { links } = network
-    const { linkIds, id } = this
+    const { links, floatingLinks } = network
+    const { id, linkIds, floatingLinkIds, pos: thisPos } = this
+
     const angles: number[] = []
     let sum = 0
-    for (const linkId of linkIds) {
-      const link = links.get(linkId)
-      // Remove the linkId or just ignore?
-      if (!link) continue
 
-      const pos = LLink.findNextReroute(network, link, id)?.pos ??
-        network.getNodeById(link.target_id)
-          ?.getInputPos(link.target_slot)
-      if (!pos) continue
+    // Add all link angles
+    calculateLinks(linkIds, links)
+    calculateLinks(floatingLinkIds, floatingLinks)
 
-      // TODO: Store points/angles, check if changed, skip calcs.
-      const angle = Math.atan2(pos[1] - this.#pos[1], pos[0] - this.#pos[0])
-      angles.push(angle)
-      sum += angle
-    }
+    // Invalid - reset
     if (!angles.length) {
       this.cos = 0
       this.sin = 0
@@ -328,6 +320,23 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     this.sin = sin
     this.controlPoint[0] = dist * -cos
     this.controlPoint[1] = dist * -sin
+
+    /**
+     * Calculates the direction of each link and adds it to the array.
+     * @param linkIds The IDs of the links to calculate
+     * @param links The link container from the link network.
+     */
+    function calculateLinks(linkIds: Iterable<LinkId>, links: ReadonlyMap<LinkId, LLink>) {
+      for (const linkId of linkIds) {
+        const link = links.get(linkId)
+        const pos = getNextPos(network, link, id)
+        if (!pos) continue
+
+        const angle = getDirection(thisPos, pos)
+        angles.push(angle)
+        sum += angle
+      }
+    }
   }
 
   /**
@@ -373,6 +382,30 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       floating,
     }
   }
+}
+
+/**
+ * Retrieves the position of the next reroute in the chain, or the destination input slot on this link.
+ * @param network The network of links
+ * @param link The link representing the current reroute chain
+ * @param id The ID of "this" reroute
+ * @returns The position of the next reroute or the input slot target, otherwise `undefined`.
+ */
+function getNextPos(network: ReadonlyLinkNetwork, link: LLink | undefined, id: RerouteId) {
+  if (!link) return
+
+  const linkPos = LLink.findNextReroute(network, link, id)?.pos
+  if (linkPos) return linkPos
+
+  // Floating link with no input to find
+  if (link.target_id === -1 || link.target_slot === -1) return
+
+  return network.getNodeById(link.target_id)?.getInputPos(link.target_slot)
+}
+
+/** Returns the direction from one point to another in radians. */
+function getDirection(fromPos: Point, toPos: Point) {
+  return Math.atan2(toPos[1] - fromPos[1], toPos[0] - fromPos[0])
 }
 
 function floatingToSerialisable(floating: FloatingRerouteSlot | undefined): FloatingRerouteSlot | undefined {
