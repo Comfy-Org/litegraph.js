@@ -272,7 +272,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
 
       const pos = LLink.findNextReroute(network, link, id)?.pos ??
         network.getNodeById(link.target_id)
-          ?.getConnectionPos(true, link.target_slot, this.#buffer)
+          ?.getInputPos(link.target_slot)
       if (!pos) continue
 
       // TODO: Store points/angles, check if changed, skip calcs.
