@@ -1386,6 +1386,18 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     return link
   }
 
+  removeFloatingLink(link: LLink): void {
+    this.#floatingLinks.delete(link.id)
+
+    const reroutes = LLink.getReroutes(this, link)
+    for (const reroute of reroutes) {
+      reroute.floatingLinkIds.delete(link.id)
+      if (reroute.floatingLinkIds.size === 0) {
+        delete reroute.floating
+      }
+    }
+  }
+
   /**
    * Configures a reroute on the graph where ID is already known (probably deserialisation).
    * Creates the object if it does not exist.

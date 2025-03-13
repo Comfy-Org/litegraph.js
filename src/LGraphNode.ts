@@ -2503,8 +2503,21 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     inputNode.inputs[inputIndex].link = link.id
 
     // Reroutes
-    for (const reroute of LLink.getReroutes(graph, link)) {
+    const reroutes = LLink.getReroutes(graph, link)
+    for (const reroute of reroutes) {
       reroute.linkIds.add(link.id)
+      if (reroute.floating) delete reroute.floating
+    }
+
+    // If this is the terminus of a floating link, remove it
+    const lastReroute = reroutes.at(-1)
+    if (lastReroute) {
+      for (const linkId of lastReroute.floatingLinkIds) {
+        const link = graph.floatingLinks.get(linkId)
+        if (link?.parentId === lastReroute.id) {
+          graph.removeFloatingLink(link)
+        }
+      }
     }
     graph._version++
 
