@@ -3382,13 +3382,17 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
-      slots.push(slot._layoutElement!)
+      if (slot._layoutElement) {
+        slots.push(slot._layoutElement)
+      }
     }
     for (const [i, slot] of this.outputs.entries()) {
       this.layoutSlot(slot, {
         slotIndex: i,
       })
-      slots.push(slot._layoutElement!)
+      if (slot._layoutElement) {
+        slots.push(slot._layoutElement)
+      }
     }
 
     return slots.length ? createBounds(slots, /** padding= */ 0) : null
