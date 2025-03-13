@@ -1373,6 +1373,19 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     this.canvasAction(c => c.setDirty(fg, bg))
   }
 
+  addFloatingLink(link: LLink): LLink {
+    if (link.id === -1) {
+      link.id = ++this.#lastFloatingLinkId
+    }
+    this.#floatingLinks.set(link.id, link)
+
+    const reroutes = LLink.getReroutes(this, link)
+    for (const reroute of reroutes) {
+      reroute.floatingLinkIds.add(link.id)
+    }
+    return link
+  }
+
   /**
    * Configures a reroute on the graph where ID is already known (probably deserialisation).
    * Creates the object if it does not exist.

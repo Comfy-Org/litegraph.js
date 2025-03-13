@@ -124,7 +124,7 @@ export interface ReadonlyLinkNetwork {
 export interface LinkNetwork extends ReadonlyLinkNetwork {
   readonly links: Map<LinkId, LLink>
   readonly reroutes: Map<RerouteId, Reroute>
-  getNodeById(id: NodeId): LGraphNode | null
+  addFloatingLink(link: LLink): LLink
 }
 
 /**
