@@ -883,7 +883,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     // disconnect inputs
     if (inputs) {
       for (const [i, slot] of inputs.entries()) {
-        if (slot.link != null) node.disconnectInput(i)
+        if (slot.link != null) node.disconnectInput(i, true)
       }
     }
 
@@ -1489,7 +1489,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (!link) return
 
     const node = this.getNodeById(link.target_id)
-    node?.disconnectInput(link.target_slot)
+    node?.disconnectInput(link.target_slot, false)
 
     link.disconnect(this)
   }

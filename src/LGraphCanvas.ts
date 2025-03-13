@@ -7133,7 +7133,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         if (info.output) {
           node.disconnectOutput(info.slot)
         } else if (info.input) {
-          node.disconnectInput(info.slot)
+          node.disconnectInput(info.slot, true)
         }
         node.graph.afterChange()
         return

@@ -1471,7 +1471,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * remove an existing input slot
    */
   removeInput(slot: number): void {
-    this.disconnectInput(slot)
+    this.disconnectInput(slot, true)
     const { inputs } = this
     const slot_info = inputs.splice(slot, 1)
 
