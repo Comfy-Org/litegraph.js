@@ -301,7 +301,13 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       angles.push(angle)
       sum += angle
     }
-    if (!angles.length) return
+    if (!angles.length) {
+      this.cos = 0
+      this.sin = 0
+      this.controlPoint[0] = 0
+      this.controlPoint[1] = 0
+      return
+    }
 
     sum /= angles.length
 
