@@ -347,7 +347,10 @@ export class LinkConnector {
                 reroute.remove()
               }
             }
-            const { node: outputNode, fromSlot } = renderLink
+            const { node: outputNode, fromSlot, fromReroute } = renderLink
+            // Set the parentId of the reroute we dropped on, to the reroute we dragged from
+            reroute.parentId = fromReroute?.id
+
             const newLink = outputNode.connectSlots(fromSlot, inputNode, input, resultLink.parentId)
             this.events.dispatch("link-created", newLink)
           }
