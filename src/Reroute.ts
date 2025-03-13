@@ -52,7 +52,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     this.#parentId = value
   }
 
-  /** Set when the reroute has no complete links but is still on the canvas. */
+  /** This property is only defined on the last reroute of a floating reroute chain (closest to input end). */
   floating?: FloatingRerouteSlot
 
   #pos = this.#malloc.subarray(0, 2)
