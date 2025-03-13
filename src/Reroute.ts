@@ -1,5 +1,6 @@
 import type {
   CanvasColour,
+  INodeInputSlot,
   LinkNetwork,
   LinkSegment,
   Point,
@@ -7,7 +8,7 @@ import type {
   ReadonlyLinkNetwork,
   ReadOnlyRect,
 } from "./interfaces"
-import type { NodeId } from "./LGraphNode"
+import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { Serialisable, SerialisableReroute } from "./types/serialisation"
 
 import { type LinkId, LLink } from "./LLink"
@@ -261,6 +262,39 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     }
   }
 
+  /**
+   * Finds the first input slot for links or floating links passing through this reroute.
+   */
+  findTargetInputs(): { node: LGraphNode, input: INodeInputSlot, inputIndex: number, link: LLink }[] | undefined {
+    const network = this.#network.deref()
+    if (!network) return
+
+    const results: {
+      node: LGraphNode
+      input: INodeInputSlot
+      inputIndex: number
+      link: LLink
+    }[] = []
+
+    addAllResults(network, this.linkIds, network.links)
+    addAllResults(network, this.floatingLinkIds, network.floatingLinks)
+
+    return results
+
+    function addAllResults(network: ReadonlyLinkNetwork, linkIds: Iterable<LinkId>, links: ReadonlyMap<LinkId, LLink>) {
+      for (const linkId of linkIds) {
+        const link = links.get(linkId)
+        if (!link) continue
+
+        const node = network.getNodeById(link.target_id)
+        const input = node?.inputs[link.target_slot]
+        if (!input) continue
+
+        results.push({ node, input, inputIndex: link.target_slot, link })
+      }
+    }
+  }
+
   /** @inheritdoc */
   move(deltaX: number, deltaY: number) {
     this.#pos[0] += deltaX
@@ -275,6 +309,13 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     pos[0] = snapTo * Math.round(pos[0] / snapTo)
     pos[1] = snapTo * Math.round(pos[1] / snapTo)
     return true
+  }
+
+  remove() {
+    const network = this.#network.deref()
+    if (!network) return
+
+    network.removeReroute(this.id)
   }
 
   calculateAngle(lastRenderTime: number, network: ReadonlyLinkNetwork, linkStart: Point): void {

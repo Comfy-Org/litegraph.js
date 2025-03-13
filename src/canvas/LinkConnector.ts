@@ -272,7 +272,7 @@ export class LinkConnector {
       // Get reroute if no node is found
       const reroute = locator.getRerouteOnPos(canvasX, canvasY)
       // Drop output->input link on reroute is not impl.
-      if (reroute && this.state.connectingTo === "output") {
+      if (reroute) {
         this.dropOnReroute(reroute, event)
       } else {
         this.dropOnNothing(event)
@@ -322,6 +322,40 @@ export class LinkConnector {
   dropOnReroute(reroute: Reroute, event: CanvasPointerEvent): void {
     const mayContinue = this.events.dispatch("dropped-on-reroute", { reroute, event })
     if (mayContinue === false) return
+
+    if (this.state.connectingTo === "input") {
+      const results = reroute.findTargetInputs()
+      if (!results?.length) return
+
+      for (const { node: inputNode, input, link: resultLink } of results) {
+        for (const renderLink of this.renderLinks) {
+          if (renderLink.toType !== "input") continue
+
+          if (renderLink instanceof MovingRenderLink) {
+            const { outputNode, inputSlot, outputSlot, fromReroute } = renderLink
+            // Link is already connected here
+            if (inputSlot === input) continue
+
+            const newLink = outputNode.connectSlots(outputSlot, inputNode, input, fromReroute?.id)
+            if (newLink) this.events.dispatch("input-moved", renderLink)
+          } else {
+            const reroutes = reroute.getReroutes()
+            if (reroutes === null) throw new Error("Reroute loop detected.")
+
+            if (reroutes) {
+              for (const reroute of reroutes.slice(0, -1)) {
+                reroute.remove()
+              }
+            }
+            const { node: outputNode, fromSlot } = renderLink
+            const newLink = outputNode.connectSlots(fromSlot, inputNode, input, resultLink.parentId)
+            this.events.dispatch("link-created", newLink)
+          }
+        }
+      }
+
+      return
+    }
 
     for (const link of this.renderLinks) {
       if (link.toType !== "output") continue
