@@ -215,13 +215,7 @@ export class LinkConnector {
   dragFromReroute(network: LinkNetwork, reroute: Reroute): void {
     if (this.isConnecting) throw new Error("Already dragging links.")
 
-    const { state } = this
-
-    // Connect new link from reroute
-    const linkId = reroute.linkIds.values().next().value
-    if (linkId == null) return
-
-    const link = network.links.get(linkId)
+    const link = reroute.firstLink ?? reroute.firstFloatingLink
     if (!link) return
 
     const outputNode = network.getNodeById(link.origin_id)
@@ -234,7 +228,7 @@ export class LinkConnector {
     renderLink.fromDirection = LinkDirection.NONE
     this.renderLinks.push(renderLink)
 
-    state.connectingTo = "input"
+    this.state.connectingTo = "input"
   }
 
   dragFromLinkSegment(network: LinkNetwork, linkSegment: LinkSegment): void {
