@@ -166,10 +166,39 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
   /**
    * Disconnects a link and removes it from the graph, cleaning up any reroutes that are no longer used
    * @param network The container (LGraph) where reroutes should be updated
-   * @param keepReroutes If `true`, reroutes will not be garbage collected.
+   * @param keepReroutes If `undefined`, reroutes will be automatically removed if no links remain.
+   * If `input` or `output`, reroutes will not be automatically removed, and retain a connection to the input or output, respectively.
    */
-  disconnect(network: LinkNetwork, keepReroutes?: boolean): void {
+  disconnect(network: LinkNetwork, keepReroutes?: "input" | "output"): void {
     const reroutes = LLink.getReroutes(network, this)
+
+    const lastReroute = reroutes.at(-1)
+    if (lastReroute != null && keepReroutes) {
+      const newLink = LLink.create(this)
+      newLink.id = -1
+
+      if (keepReroutes === "input") {
+        newLink.origin_id = -1
+        newLink.origin_slot = -1
+
+        lastReroute.floating = {
+          nodeId: this.target_id,
+          slot: this.target_slot,
+          slotType: "input",
+        }
+      } else {
+        newLink.target_id = -1
+        newLink.target_slot = -1
+
+        lastReroute.floating = {
+          nodeId: this.origin_id,
+          slot: this.origin_slot,
+          slotType: "output",
+        }
+      }
+
+      network.addFloatingLink(newLink)
+    }
 
     for (const reroute of reroutes) {
       reroute.linkIds.delete(this.id)
