@@ -1542,11 +1542,11 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (!data) return
     if (!keep_old) this.clear()
 
-    const { extra } = data
     let reroutes: SerialisableReroute[] | undefined
 
     // TODO: Determine whether this should this fall back to 0.4.
     if (data.version === 0.4) {
+      const { extra } = data
       // Deprecated - old schema version, links are arrays
       if (Array.isArray(data.links)) {
         for (const linkData of data.links) {
