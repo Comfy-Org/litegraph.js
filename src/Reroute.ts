@@ -348,7 +348,8 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
 
   /** @inheritdoc */
   asSerialisable(): SerialisableReroute {
-    const { id, parentId, pos, linkIds, floating } = this
+    const { id, parentId, pos, linkIds } = this
+    const floating = floatingToSerialisable(this.floating)
     return {
       id,
       parentId,
@@ -357,4 +358,14 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       floating,
     }
   }
+}
+
+function floatingToSerialisable(floating: FloatingRerouteSlot | undefined): FloatingRerouteSlot | undefined {
+  return floating
+    ? {
+      nodeId: floating.nodeId,
+      slot: floating.slot,
+      slotType: floating.slotType,
+    }
+    : undefined
 }
