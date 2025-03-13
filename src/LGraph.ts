@@ -118,7 +118,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
   nodes_executing: boolean[] = []
   nodes_actioning: (string | boolean)[] = []
   nodes_executedAction: string[] = []
-  extra: Record<any, any> = {}
+  extra: Record<string, unknown> = {}
   inputs: Dictionary<IGraphInput> = {}
   outputs: Dictionary<IGraphInput> = {}
 
