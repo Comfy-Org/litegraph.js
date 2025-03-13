@@ -2250,7 +2250,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                   e.altKey &&
                   !e.shiftKey)
               ) {
-                node.disconnectInput(i)
+                node.disconnectInput(i, true)
               } else if (e.shiftKey || this.allow_reconnect_links) {
                 linkConnector.moveInputLink(graph, input)
               }
