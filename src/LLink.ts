@@ -173,7 +173,14 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
     const reroutes = LLink.getReroutes(network, this)
 
     const lastReroute = reroutes.at(-1)
-    if (lastReroute != null && keepReroutes) {
+
+    // When floating from output, 1-to-1 ratio of floating link to final reroute (tree-like)
+    const outputFloating = keepReroutes === "output" &&
+      lastReroute?.linkIds.size === 1 &&
+      lastReroute.floatingLinkIds.size === 0
+
+    // When floating from inputs, the final (input side) reroute may have many floating links
+    if (outputFloating || (keepReroutes === "input" && lastReroute)) {
       const newLink = LLink.create(this)
       newLink.id = -1
 
