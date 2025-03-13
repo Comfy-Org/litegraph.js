@@ -4721,10 +4721,15 @@ export class LGraphCanvas implements ConnectionColorContext {
           }
         }
 
-        // Calculate start control for the next iter control point
-        const nextPos = reroutes[j + 1]?.pos ?? endPos
-        const dist = Math.min(80, distance(reroute.pos, nextPos) * 0.25)
-        startControl = [dist * reroute.cos, dist * reroute.sin]
+        if (!startControl && reroutes.at(-1)?.floating?.slotType === "input") {
+          // Floating link connected to an input
+          startControl = [0, 0] satisfies Point
+        } else {
+          // Calculate start control for the next iter control point
+          const nextPos = reroutes[j + 1]?.pos ?? endPos
+          const dist = Math.min(80, distance(reroute.pos, nextPos) * 0.25)
+          startControl = [dist * reroute.cos, dist * reroute.sin]
+        }
       }
 
       // Skip the last segment if it is being dragged
