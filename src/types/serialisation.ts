@@ -36,6 +36,7 @@ export interface SerialisableGraph {
   groups?: ISerialisedGroup[]
   nodes?: ISerialisedNode[]
   links?: SerialisableLLink[]
+  floatingLinks?: SerialisableLLink[]
   reroutes?: SerialisableReroute[]
   extra?: Dictionary<unknown>
 }
@@ -83,6 +84,7 @@ export interface ISerialisedGraph {
   last_link_id: number
   nodes: ISerialisedNode[]
   links: SerialisedLLinkArray[]
+  floatingLinks?: SerialisableLLink[]
   groups: ISerialisedGroup[]
   config: LGraphConfig
   version: typeof LiteGraph.VERSION
