@@ -1510,8 +1510,8 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     const nodes = nodeList.map(node => node.serialize())
     const groups = this._groups.map(x => x.serialize())
 
-    const links = [...this._links.values()].map(x => x.asSerialisable())
-    const reroutes = [...this.reroutes.values()].map(x => x.asSerialisable())
+    const links = this._links.size ? [...this._links.values()].map(x => x.asSerialisable()) : undefined
+    const reroutes = this.reroutes.size ? [...this.reroutes.values()].map(x => x.asSerialisable()) : undefined
 
     const data: Required<SerialisableGraph> = {
       version: LGraph.serialisedSchemaVersion,
