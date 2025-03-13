@@ -3160,7 +3160,9 @@ export class LGraphCanvas implements ConnectionColorContext {
       reroute.update(reroute.parentId, undefined, ids, reroute.floating)
 
       // Remove any invalid items
-      if (!reroute.validateLinks(graph.links)) graph.removeReroute(reroute.id)
+      if (!reroute.validateLinks(graph.links, graph.floatingLinks)) {
+        graph.removeReroute(reroute.id)
+      }
     }
 
     // Adjust positions
