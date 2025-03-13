@@ -4596,6 +4596,10 @@ export class LGraphCanvas implements ConnectionColorContext {
       }
     }
 
+    if (graph.floatingLinks.size > 0) {
+      this.#renderFloatingLinks(ctx, graph, visibleReroutes, now)
+    }
+
     // Render the reroute circles
     for (const reroute of visibleReroutes) {
       if (
@@ -4608,6 +4612,36 @@ export class LGraphCanvas implements ConnectionColorContext {
       reroute.draw(ctx)
     }
     ctx.globalAlpha = 1
+  }
+
+  #renderFloatingLinks(ctx: CanvasRenderingContext2D, graph: LGraph, visibleReroutes: Reroute[], now: number) {
+    // Floating reroutes
+    for (const link of graph.floatingLinks.values()) {
+      const reroutes = LLink.getReroutes(graph, link)
+      const firstReroute = reroutes[0]
+      const reroute = reroutes.at(-1)
+      if (!firstReroute || !reroute?.floating) continue
+
+      const node = graph.getNodeById(reroute.floating.nodeId)
+      if (!node) continue
+
+      // Input not connected
+      if (reroute.floating.slotType === "input") {
+        const startPos = firstReroute.pos
+        const endPos = node.getInputPos(reroute.floating.slot)
+        const endDirection = node.inputs[reroute.floating.slot]?.dir
+
+        firstReroute._dragging = true
+        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, LinkDirection.CENTER, endDirection)
+      } else {
+        const startPos = node.getOutputPos(reroute.floating.slot)
+        const endPos = reroute.pos
+        const startDirection = node.outputs[reroute.floating.slot]?.dir
+
+        link._dragging = true
+        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, startDirection, LinkDirection.CENTER)
+      }
+    }
   }
 
   #renderAllLinkSegments(
