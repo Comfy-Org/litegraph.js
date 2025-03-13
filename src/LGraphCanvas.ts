@@ -4622,21 +4622,24 @@ export class LGraphCanvas implements ConnectionColorContext {
       const reroute = reroutes.at(-1)
       if (!firstReroute || !reroute?.floating) continue
 
-      const node = graph.getNodeById(reroute.floating.nodeId)
-      if (!node) continue
-
       // Input not connected
       if (reroute.floating.slotType === "input") {
+        const node = graph.getNodeById(link.target_id)
+        if (!node) continue
+
         const startPos = firstReroute.pos
-        const endPos = node.getInputPos(reroute.floating.slot)
-        const endDirection = node.inputs[reroute.floating.slot]?.dir
+        const endPos = node.getInputPos(link.target_slot)
+        const endDirection = node.inputs[link.target_slot]?.dir
 
         firstReroute._dragging = true
         this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, LinkDirection.CENTER, endDirection)
       } else {
-        const startPos = node.getOutputPos(reroute.floating.slot)
+        const node = graph.getNodeById(link.origin_id)
+        if (!node) continue
+
+        const startPos = node.getOutputPos(link.origin_slot)
         const endPos = reroute.pos
-        const startDirection = node.outputs[reroute.floating.slot]?.dir
+        const startDirection = node.outputs[link.origin_slot]?.dir
 
         link._dragging = true
         this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, startDirection, LinkDirection.CENTER)

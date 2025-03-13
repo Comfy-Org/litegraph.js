@@ -17,10 +17,6 @@ export type RerouteId = number
 
 /** The input or output slot that an incomplete reroute link is connected to. */
 export interface FloatingRerouteSlot {
-  /** The ID of the node that the slot belongs to */
-  nodeId: NodeId
-  /** The index of the slot on the node */
-  slot: number
   /** Floating connection to an input or output */
   slotType: "input" | "output"
 }
@@ -378,13 +374,12 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** @inheritdoc */
   asSerialisable(): SerialisableReroute {
     const { id, parentId, pos, linkIds } = this
-    const floating = floatingToSerialisable(this.floating)
     return {
       id,
       parentId,
       pos: [pos[0], pos[1]],
       linkIds: [...linkIds],
-      floating,
+      floating: this.floating ? { slotType: this.floating.slotType } : undefined,
     }
   }
 }
@@ -411,14 +406,4 @@ function getNextPos(network: ReadonlyLinkNetwork, link: LLink | undefined, id: R
 /** Returns the direction from one point to another in radians. */
 function getDirection(fromPos: Point, toPos: Point) {
   return Math.atan2(toPos[1] - fromPos[1], toPos[0] - fromPos[0])
-}
-
-function floatingToSerialisable(floating: FloatingRerouteSlot | undefined): FloatingRerouteSlot | undefined {
-  return floating
-    ? {
-      nodeId: floating.nodeId,
-      slot: floating.slot,
-      slotType: floating.slotType,
-    }
-    : undefined
 }

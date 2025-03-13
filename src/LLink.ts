@@ -181,20 +181,12 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
         newLink.origin_id = -1
         newLink.origin_slot = -1
 
-        lastReroute.floating = {
-          nodeId: this.target_id,
-          slot: this.target_slot,
-          slotType: "input",
-        }
+        lastReroute.floating = { slotType: "input" }
       } else {
         newLink.target_id = -1
         newLink.target_slot = -1
 
-        lastReroute.floating = {
-          nodeId: this.origin_id,
-          slot: this.origin_slot,
-          slotType: "output",
-        }
+        lastReroute.floating = { slotType: "output" }
       }
 
       network.addFloatingLink(newLink)
