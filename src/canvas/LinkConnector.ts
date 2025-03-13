@@ -113,7 +113,7 @@ export class LinkConnector {
       renderLinks.push(renderLink)
 
       this.listenUntilReset("input-moved", (e) => {
-        e.detail.link.disconnect(network, true)
+        e.detail.link.disconnect(network, "output")
       })
     } catch (error) {
       console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
