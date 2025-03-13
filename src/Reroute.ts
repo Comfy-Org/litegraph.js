@@ -67,9 +67,6 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** The ID ({@link LLink.id}) of every link using this reroute */
   linkIds: Set<LinkId>
 
-  /** The averaged angle of every link through this reroute. */
-  otherAngle: number = 0
-
   /** Cached cos */
   cos: number = 0
   sin: number = 0
@@ -95,7 +92,6 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
    * @todo Calculate on change instead.
    */
   #lastRenderTime: number = -Infinity
-  #buffer: Point = this.#malloc.subarray(2, 4)
 
   /** @inheritdoc */
   get origin_id(): NodeId | undefined {
@@ -297,12 +293,10 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     const cos = Math.cos(originDiff)
     const sin = Math.sin(originDiff)
 
-    this.otherAngle = originDiff
     this.cos = cos
     this.sin = sin
     this.controlPoint[0] = dist * -cos
     this.controlPoint[1] = dist * -sin
-    return
   }
 
   /**
