@@ -110,29 +110,34 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
    */
   #lastRenderTime: number = -Infinity
 
-  /** @inheritdoc */
-  get origin_id(): NodeId | undefined {
-    // if (!this.linkIds.size) return this.#network.deref()?.reroutes.get(this.parentId)
-    const nextId = this.linkIds.values().next().value
-    return nextId === undefined
+  get firstLink(): LLink | undefined {
+    const linkId = this.linkIds.values().next().value
+    return linkId === undefined
       ? undefined
       : this.#network
         .deref()
         ?.links
-        .get(nextId)
-        ?.origin_id
+        .get(linkId)
+  }
+
+  get firstFloatingLink(): LLink | undefined {
+    const linkId = this.floatingLinkIds.values().next().value
+    return linkId === undefined
+      ? undefined
+      : this.#network
+        .deref()
+        ?.floatingLinks
+        .get(linkId)
+  }
+
+  /** @inheritdoc */
+  get origin_id(): NodeId | undefined {
+    return this.firstLink?.origin_id
   }
 
   /** @inheritdoc */
   get origin_slot(): number | undefined {
-    const nextId = this.linkIds.values().next().value
-    return nextId === undefined
-      ? undefined
-      : this.#network
-        .deref()
-        ?.links
-        .get(nextId)
-        ?.origin_slot
+    return this.firstLink?.origin_slot
   }
 
   /**
