@@ -347,6 +347,13 @@ export class LinkConnector {
             if (reroutes === null) throw new Error("Reroute loop detected.")
 
             if (reroutes) {
+              for (const r of reroutes) {
+                if (r.id === fromReroute?.id) break
+                if (r.id === reroute.id) {
+                  throw new Error("Cannot connect to reroute that is a parent of the reroute being connected to.")
+                }
+              }
+
               for (const reroute of reroutes.slice(0, -1).reverse()) {
                 if (reroute.id === fromReroute?.id) break
                 reroute.remove()
