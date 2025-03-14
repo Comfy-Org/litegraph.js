@@ -2910,7 +2910,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     if (e.type == "keydown") {
       // TODO: Switch
-      if (e.keyCode === 32) {
+      if (e.key === " ") {
         // space
         this.read_only = true
         if (this._previously_dragging_canvas === null) {
@@ -2918,7 +2918,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
         this.dragging_canvas = this.pointer.isDown
         block_default = true
-      } else if (e.keyCode === 27) {
+      } else if (e.key === "Escape") {
         // esc
         this.node_panel?.close()
         this.options_panel?.close()
@@ -2936,7 +2936,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       } else if (e.keyCode === 86 && (e.metaKey || e.ctrlKey)) {
         // paste
         this.pasteFromClipboard({ connectInputs: e.shiftKey })
-      } else if (e.keyCode === 46 || e.keyCode === 8) {
+      } else if (e.key === "Delete" || e.key === "Backspace") {
         // delete or backspace
         // @ts-expect-error
         if (e.target.localName != "input" && e.target.localName != "textarea") {
@@ -2954,7 +2954,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
       }
     } else if (e.type == "keyup") {
-      if (e.keyCode == 32) {
+      if (e.key === " ") {
         // space
         this.read_only = false
         this.dragging_canvas = (this._previously_dragging_canvas ?? false) && this.pointer.isDown
