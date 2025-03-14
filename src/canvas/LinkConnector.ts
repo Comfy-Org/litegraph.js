@@ -403,7 +403,6 @@ export class LinkConnector {
       }
     }
     this.events.dispatch("dropped-on-canvas", event)
-    this.reset()
   }
 
   /**
