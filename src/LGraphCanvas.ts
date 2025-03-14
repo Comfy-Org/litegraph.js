@@ -3944,9 +3944,12 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     if (!LiteGraph.snap_highlights_node) return
 
+    const { linkConnector } = this
+    const { overWidget } = linkConnector
+
     // Ensure we're mousing over a node and connecting a link
     const node = this.node_over
-    if (!(node && this.linkConnector.isConnecting)) return
+    if (!(node && linkConnector.isConnecting)) return
 
     const { strokeStyle, lineWidth } = ctx
 
@@ -3963,7 +3966,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.roundRect(x, y, width, height, radius)
 
     // TODO: Currently works on LTR slots only.  Add support for other directions.
-    const start = this.linkConnector.state.connectingTo === "output" ? 0 : 1
+    const start = linkConnector.state.connectingTo === "output" ? 0 : 1
     const inverter = start ? -1 : 1
 
     // Radial highlight centred on highlight pos
@@ -3994,8 +3997,6 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.strokeStyle = linearGradient
     ctx.stroke()
 
-    const { linkConnector } = this
-    const { overWidget } = linkConnector
     if (overWidget) {
       const { computedHeight } = overWidget
 
