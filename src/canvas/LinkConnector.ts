@@ -347,7 +347,7 @@ export class LinkConnector {
             if (reroutes === null) throw new Error("Reroute loop detected.")
 
             if (reroutes) {
-              for (const reroute of reroutes.slice(0, -1)) {
+              for (const reroute of reroutes.slice(0, -1).reverse()) {
                 if (reroute.id === fromReroute?.id) break
                 reroute.remove()
               }
