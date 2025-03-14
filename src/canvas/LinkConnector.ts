@@ -341,15 +341,17 @@ export class LinkConnector {
             const newLink = outputNode.connectSlots(outputSlot, inputNode, input, fromReroute?.id)
             if (newLink) this.events.dispatch("input-moved", renderLink)
           } else {
+            const { node: outputNode, fromSlot, fromReroute } = renderLink
+
             const reroutes = reroute.getReroutes()
             if (reroutes === null) throw new Error("Reroute loop detected.")
 
             if (reroutes) {
               for (const reroute of reroutes.slice(0, -1)) {
+                if (reroute.id === fromReroute?.id) break
                 reroute.remove()
               }
             }
-            const { node: outputNode, fromSlot, fromReroute } = renderLink
             // Set the parentId of the reroute we dropped on, to the reroute we dragged from
             reroute.parentId = fromReroute?.id
 
