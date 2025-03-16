@@ -1679,7 +1679,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     // copy all stored fields
     for (const i in data) {
       // links must be accepted
-      if (["nodes", "groups", "links", "state", "reroutes", "floatingLinks"].includes(i)) {
+      if (["nodes", "groups", "links", "state", "reroutes", "floatingLinks", "id"].includes(i)) {
         continue
       }
       // @ts-expect-error #574 Legacy property assignment
