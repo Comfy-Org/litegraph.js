@@ -900,6 +900,13 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       }
     }
 
+    // Floating links
+    for (const link of this.floatingLinks.values()) {
+      if (link.origin_id === node.id || link.target_id === node.id) {
+        this.removeFloatingLink(link)
+      }
+    }
+
     // callback
     node.onRemoved?.()
 
