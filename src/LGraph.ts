@@ -888,15 +888,15 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
     // disconnect inputs
     if (inputs) {
-      for (const [i] of inputs.entries()) {
-        node.disconnectInput(i, true)
+      for (const [i, slot] of inputs.entries()) {
+        if (slot.link != null) node.disconnectInput(i, true)
       }
     }
 
     // disconnect outputs
     if (outputs) {
-      for (const [i] of outputs.entries()) {
-        node.disconnectOutput(i)
+      for (const [i, slot] of outputs.entries()) {
+        if (slot.links?.length) node.disconnectOutput(i)
       }
     }
 
