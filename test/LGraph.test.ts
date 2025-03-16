@@ -40,6 +40,7 @@ describe("LGraph", () => {
       graph.remove(graph.nodes[0])
       expect(graph.nodes.length).toBe(0)
       expect(graph.links.size).toBe(0)
+      expect(graph.reroutes.size).toBe(0)
       expect(graph.floatingLinks.size).toBe(0)
     })
   })
