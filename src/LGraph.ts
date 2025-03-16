@@ -888,15 +888,15 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
 
     // disconnect inputs
     if (inputs) {
-      for (const [i, slot] of inputs.entries()) {
-        if (slot.link != null) node.disconnectInput(i, true)
+      for (const [i] of inputs.entries()) {
+        node.disconnectInput(i, true)
       }
     }
 
     // disconnect outputs
     if (outputs) {
-      for (const [i, slot] of outputs.entries()) {
-        if (slot.links?.length) node.disconnectOutput(i)
+      for (const [i] of outputs.entries()) {
+        node.disconnectOutput(i)
       }
     }
 
@@ -1400,6 +1400,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       reroute.floatingLinkIds.delete(link.id)
       if (reroute.floatingLinkIds.size === 0) {
         delete reroute.floating
+      }
+
+      if (reroute.floatingLinkIds.size === 0 && reroute.linkIds.size === 0) {
+        this.removeReroute(reroute.id)
       }
     }
   }
