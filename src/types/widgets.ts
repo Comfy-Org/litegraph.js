@@ -73,7 +73,14 @@ export interface IBooleanWidget extends IBaseWidget {
 /** Any widget that uses a numeric backing */
 export interface INumericWidget extends IBaseWidget {
   type: "number"
-  value: number
+  value: number | number[] // Allow array of numbers
+  options: IWidgetOptions<number> & {
+    fields?: {
+      labels?: string[] // Labels for each field
+      count?: number // Number of fields (2-4)
+      separator?: string // Optional separator between values
+    }
+  }
 }
 
 export interface ISliderWidget extends IBaseWidget {
