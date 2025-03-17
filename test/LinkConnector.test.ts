@@ -2,7 +2,7 @@ import type { MovingRenderLink } from "@/canvas/MovingRenderLink"
 import type { LinkNetwork } from "@/interfaces"
 import type { ISlotType } from "@/interfaces"
 
-import { describe, expect, vi } from "vitest"
+import { describe, expect, test as baseTest, vi } from "vitest"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
 import { LGraph } from "@/LGraph"
@@ -11,9 +11,17 @@ import { LLink } from "@/LLink"
 import { Reroute } from "@/Reroute"
 import { LinkDirection } from "@/types/globalEnums"
 
-import { test } from "./testExtensions"
+type TestNetwork = LinkNetwork & { add(node: LGraphNode): void }
 
-function createMockNetwork(): LinkNetwork & { add(node: LGraphNode): void } {
+interface TestContext {
+  network: TestNetwork
+  connector: LinkConnector
+  setConnectingLinks: ReturnType<typeof vi.fn>
+  createTestNode: (id: number, slotType?: ISlotType) => LGraphNode
+  createTestLink: (id: number, sourceId: number, targetId: number, slotType?: ISlotType) => LLink
+}
+
+function createNetwork(): TestNetwork {
   const graph = new LGraph()
   const floatingLinks = new Map<number, LLink>()
   return {
@@ -30,11 +38,39 @@ function createMockNetwork(): LinkNetwork & { add(node: LGraphNode): void } {
   }
 }
 
-describe("LinkConnector", () => {
-  test("should initialize with default state", () => {
-    const setConnectingLinks = vi.fn()
-    const connector = new LinkConnector(setConnectingLinks)
+function createTestNode(id: number): LGraphNode {
+  const node = new LGraphNode("test")
+  node.id = id
+  return node
+}
 
+function createTestLink(id: number, sourceId: number, targetId: number, slotType: ISlotType = "number"): LLink {
+  return new LLink(id, slotType, sourceId, 0, targetId, 0)
+}
+
+const test = baseTest.extend<TestContext>({
+  network: async ({}, use) => {
+    const network = createNetwork()
+    await use(network)
+  },
+  setConnectingLinks: async ({}, use: (mock: ReturnType<typeof vi.fn>) => Promise<void>) => {
+    const mock = vi.fn()
+    await use(mock)
+  },
+  connector: async ({ setConnectingLinks }, use) => {
+    const connector = new LinkConnector(setConnectingLinks)
+    await use(connector)
+  },
+  createTestNode: async ({}, use) => {
+    await use(createTestNode)
+  },
+  createTestLink: async ({}, use) => {
+    await use(createTestLink)
+  },
+})
+
+describe("LinkConnector", () => {
+  test("should initialize with default state", ({ connector }) => {
     expect(connector.state).toEqual({
       connectingTo: undefined,
       multi: false,
@@ -47,15 +83,9 @@ describe("LinkConnector", () => {
   })
 
   describe("Moving Input Links", () => {
-    test("should handle moving input links", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
-      const sourceNode = new LGraphNode("test")
-      sourceNode.id = 1
-      const targetNode = new LGraphNode("test")
-      targetNode.id = 2
+    test("should handle moving input links", ({ network, connector, createTestNode }) => {
+      const sourceNode = createTestNode(1)
+      const targetNode = createTestNode(2)
 
       const slotType: ISlotType = "number"
       sourceNode.addOutput("out", slotType)
@@ -75,11 +105,7 @@ describe("LinkConnector", () => {
       expect(link._dragging).toBe(true)
     })
 
-    test("should not move input link if already connecting", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
+    test("should not move input link if already connecting", ({ connector, network }) => {
       connector.state.connectingTo = "input"
 
       expect(() => {
@@ -89,15 +115,9 @@ describe("LinkConnector", () => {
   })
 
   describe("Moving Output Links", () => {
-    test("should handle moving output links", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
-      const sourceNode = new LGraphNode("test")
-      sourceNode.id = 1
-      const targetNode = new LGraphNode("test")
-      targetNode.id = 2
+    test("should handle moving output links", ({ network, connector, createTestNode }) => {
+      const sourceNode = createTestNode(1)
+      const targetNode = createTestNode(2)
 
       const slotType: ISlotType = "number"
       sourceNode.addOutput("out", slotType)
@@ -118,11 +138,7 @@ describe("LinkConnector", () => {
       expect(link._dragging).toBe(true)
     })
 
-    test("should not move output link if already connecting", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
+    test("should not move output link if already connecting", ({ connector, network }) => {
       connector.state.connectingTo = "output"
 
       expect(() => {
@@ -132,13 +148,8 @@ describe("LinkConnector", () => {
   })
 
   describe("Dragging New Links", () => {
-    test("should handle dragging new link from output", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
-      const sourceNode = new LGraphNode("test")
-      sourceNode.id = 1
+    test("should handle dragging new link from output", ({ network, connector, createTestNode }) => {
+      const sourceNode = createTestNode(1)
       const slotType: ISlotType = "number"
       sourceNode.addOutput("out", slotType)
 
@@ -149,13 +160,8 @@ describe("LinkConnector", () => {
       expect(connector.state.draggingExistingLinks).toBe(false)
     })
 
-    test("should handle dragging new link from input", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
-      const targetNode = new LGraphNode("test")
-      targetNode.id = 1
+    test("should handle dragging new link from input", ({ network, connector, createTestNode }) => {
+      const targetNode = createTestNode(1)
       const slotType: ISlotType = "number"
       targetNode.addInput("in", slotType)
 
@@ -168,11 +174,7 @@ describe("LinkConnector", () => {
   })
 
   describe("Reset", () => {
-    test("should reset state and clear links", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
+    test("should reset state and clear links", ({ network, connector }) => {
       connector.state.connectingTo = "input"
       connector.state.multi = true
       connector.state.draggingExistingLinks = true
@@ -203,15 +205,11 @@ describe("LinkConnector", () => {
   })
 
   describe("Event Handling", () => {
-    test("should handle event listeners until reset", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
+    test("should handle event listeners until reset", ({ connector, createTestNode }) => {
       const listener = vi.fn()
-
       connector.listenUntilReset("input-moved", listener)
 
-      const sourceNode = new LGraphNode("test")
-      sourceNode.id = 1
+      const sourceNode = createTestNode(1)
 
       const mockRenderLink = {
         node: sourceNode,
@@ -232,11 +230,7 @@ describe("LinkConnector", () => {
   })
 
   describe("Export", () => {
-    test("should export current state", () => {
-      const setConnectingLinks = vi.fn()
-      const connector = new LinkConnector(setConnectingLinks)
-      const network = createMockNetwork()
-
+    test("should export current state", ({ network, connector }) => {
       connector.state.connectingTo = "input"
       connector.state.multi = true
 
@@ -250,113 +244,6 @@ describe("LinkConnector", () => {
       expect(exported.outputLinks).toEqual(connector.outputLinks)
       expect(exported.renderLinks).toEqual(connector.renderLinks)
       expect(exported.network).toBe(network)
-    })
-  })
-
-  test("LinkConnector", () => {
-    const network = createMockNetwork()
-    const setConnectingLinks = vi.fn()
-    const connector = new LinkConnector(setConnectingLinks)
-
-    test("initializes state", () => {
-      expect(connector.state).toEqual({
-        connectingTo: undefined,
-        multi: false,
-        draggingExistingLinks: false,
-      })
-    })
-
-    test("moves input link", () => {
-      const slotType: ISlotType = "number"
-      const node1 = new LGraphNode("test")
-      const node2 = new LGraphNode("test")
-      node1.id = 1
-      node2.id = 2
-      node1.addOutput("out", slotType)
-      node2.addInput("in", slotType)
-      const link = new LLink(1, slotType, node1.id, 0, node2.id, 0)
-      network.links.set(link.id, link)
-
-      connector.moveInputLink(network, node2.inputs[0])
-      expect(connector.state.connectingTo).toBe("input")
-      expect(connector.state.draggingExistingLinks).toBe(true)
-      expect(connector.inputLinks).toContain(link)
-    })
-
-    test("moves output link", () => {
-      const slotType: ISlotType = "number"
-      const node1 = new LGraphNode("test")
-      const node2 = new LGraphNode("test")
-      node1.id = 1
-      node2.id = 2
-      node1.addOutput("out", slotType)
-      node2.addInput("in", slotType)
-      const link = new LLink(1, slotType, node1.id, 0, node2.id, 0)
-      network.links.set(link.id, link)
-      node1.outputs[0].links = [link.id]
-
-      connector.moveOutputLink(network, node1.outputs[0])
-      expect(connector.state.connectingTo).toBe("output")
-      expect(connector.state.draggingExistingLinks).toBe(true)
-      expect(connector.state.multi).toBe(true)
-      expect(connector.outputLinks).toContain(link)
-    })
-
-    test("drags new link from output", () => {
-      const slotType: ISlotType = "number"
-      const node = new LGraphNode("test")
-      node.id = 1
-      node.addOutput("out", slotType)
-
-      connector.dragNewFromOutput(network, node, node.outputs[0])
-      expect(connector.state.connectingTo).toBe("input")
-      expect(connector.state.draggingExistingLinks).toBe(false)
-    })
-
-    test("resets state", () => {
-      connector.reset()
-      expect(connector.state).toEqual({
-        connectingTo: undefined,
-        multi: false,
-        draggingExistingLinks: false,
-      })
-    })
-
-    test("handles events", () => {
-      const slotType: ISlotType = "number"
-      const node1 = new LGraphNode("test")
-      const node2 = new LGraphNode("test")
-      node1.id = 1
-      node2.id = 2
-      node1.addOutput("out", slotType)
-      node2.addInput("in", slotType)
-
-      // const reroute = new Reroute(1, network, [0, 0], 1, [], [])
-      const link = new LLink(1, slotType, node1.id, 0, node2.id, 0)
-      network.links.set(link.id, link)
-
-      const onBeforeMoveOutput = vi.fn()
-      const onInputMoved = vi.fn()
-
-      connector.events.addEventListener("before-move-output", onBeforeMoveOutput)
-      connector.events.addEventListener("input-moved", onInputMoved)
-
-      connector.moveOutputLink(network, node1.outputs[0])
-      expect(onBeforeMoveOutput).toHaveBeenCalled()
-    })
-
-    test("exports current state", () => {
-      const slotType: ISlotType = "number"
-      const node = new LGraphNode("test")
-      node.id = 1
-      node.addOutput("out", slotType)
-
-      connector.dragNewFromOutput(network, node, node.outputs[0])
-      expect(connector.state).toEqual({
-        connectingTo: "input",
-        multi: false,
-        draggingExistingLinks: false,
-      })
     })
   })
 })
