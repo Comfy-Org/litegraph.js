@@ -102,11 +102,16 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
     // Handle multi-field drawing
     if (this.options?.fields?.count && Array.isArray(this.value)) {
       const count = this.value.length
-      const fieldWidth = (width - margin * 2) / count
+      const outerMargin = 10  // Fixed outer margin
+      const fieldMargin = 2   // Small gap between fields
+      const totalWidth = width - (outerMargin * 2)  // Available width for all fields
+      const fieldWidth = totalWidth / count    // Width per field including margins
       const labels = this.options.fields.labels || []
 
       for (let i = 0; i < count; i++) {
-        const fieldX = margin + (fieldWidth * i)
+        const fieldX = outerMargin + (fieldWidth * i)  // Start from left margin
+        const fieldRectX = fieldX + fieldMargin
+        const fieldRectWidth = fieldWidth - (fieldMargin * 2)
 
         // Draw field background
         ctx.textAlign = "left"
@@ -115,9 +120,9 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
         ctx.beginPath()
 
         if (show_text) {
-          ctx.roundRect(fieldX, y, fieldWidth - margin, height, [height * 0.5])
+          ctx.roundRect(fieldRectX, y, fieldRectWidth, height, [height * 0.5])
         } else {
-          ctx.rect(fieldX, y, fieldWidth - margin, height)
+          ctx.rect(fieldRectX, y, fieldRectWidth, height)
         }
         ctx.fill()
 
@@ -128,22 +133,23 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
             ctx.fillStyle = this.text_color
             // Left arrow
             ctx.beginPath()
-            ctx.moveTo(fieldX + 16, y + 5)
-            ctx.lineTo(fieldX + 6, y + height * 0.5)
-            ctx.lineTo(fieldX + 16, y + height - 5)
+            ctx.moveTo(fieldRectX + 16, y + 5)
+            ctx.lineTo(fieldRectX + 6, y + height * 0.5)
+            ctx.lineTo(fieldRectX + 16, y + height - 5)
             ctx.fill()
             // Right arrow
             ctx.beginPath()
-            ctx.moveTo(fieldX + fieldWidth - margin - 16, y + 5)
-            ctx.lineTo(fieldX + fieldWidth - margin - 6, y + height * 0.5)
-            ctx.lineTo(fieldX + fieldWidth - margin - 16, y + height - 5)
+            ctx.moveTo(fieldRectX + fieldRectWidth - 16, y + 5)
+            ctx.lineTo(fieldRectX + fieldRectWidth - 6, y + height * 0.5)
+            ctx.lineTo(fieldRectX + fieldRectWidth - 16, y + height - 5)
             ctx.fill()
           }
 
           // Draw label
           ctx.fillStyle = this.secondary_text_color
+          ctx.textAlign = "left"
           const label = labels[i] || `${this.label || this.name}${i + 1}`
-          const labelX = fieldX + margin + 5
+          const labelX = fieldRectX + 20
           ctx.fillText(label, labelX, y + height * 0.7)
 
           // Draw value
@@ -153,7 +159,7 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
             Number(this.value[i]).toFixed(
               this.options.precision !== undefined ? this.options.precision : 3,
             ),
-            fieldX + fieldWidth - margin - 20,
+            fieldRectX + fieldRectWidth - 20,
             y + height * 0.7,
           )
         }
