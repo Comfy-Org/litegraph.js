@@ -1,5 +1,5 @@
 import type { RenderLink } from "./RenderLink"
-import type { ConnectingLink, ItemLocator, LinkNetwork, LinkSegment } from "@/interfaces"
+import type { ConnectingLink, ISlotType, ItemLocator, LinkNetwork, LinkSegment } from "@/interfaces"
 import type { INodeInputSlot, INodeOutputSlot } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
@@ -639,24 +639,17 @@ function isValidConnectionToOutput(link: ToOutputRenderLink | MovingRenderLink, 
 /** Validates that a single {@link RenderLink} can be dropped on the specified reroute. */
 function canConnectInputLinkToReroute(link: ToInputRenderLink | MovingRenderLink, input: INodeInputSlot, reroute: Reroute): boolean {
   if (link instanceof MovingRenderLink) {
-    const { inputSlot, outputSlot: { type } } = link
+    const { inputSlot, outputSlot, fromReroute } = link
 
-    // Link is already connected here / type mismatch
-    if (inputSlot === input || !LiteGraph.isValidConnection(type, input.type)) {
+    // Link is already connected here
+    if (inputSlot === input || validate(outputSlot.type, reroute, fromReroute)) {
       return false
     }
   } else {
     const { fromSlot, fromReroute } = link
-    if (
-      // Connect to yourself
-      fromReroute?.id === reroute.id ||
-      // Link would make no changes
-      (fromReroute?.id != null && fromReroute.id === reroute.parentId) ||
-      // Type mismatch
-      !LiteGraph.isValidConnection(fromSlot.type, input.type) ||
-      // Cannot connect from child to parent reroute
-      fromReroute?.getReroutes()?.includes(reroute)
-    ) {
+
+    // Connect to yourself
+    if (fromReroute?.id === reroute.id || validate(fromSlot.type, reroute, fromReroute)) {
       return false
     }
 
@@ -669,4 +662,16 @@ function canConnectInputLinkToReroute(link: ToInputRenderLink | MovingRenderLink
     }
   }
   return true
+
+  /** Checks connection type & rejects infinite loops. */
+  function validate(type: ISlotType, reroute: Reroute, fromReroute?: Reroute): boolean {
+    return Boolean(
+      // Link would make no changes
+      (fromReroute?.id != null && fromReroute.id === reroute.parentId) ||
+      // Type mismatch
+      !LiteGraph.isValidConnection(type, input.type) ||
+      // Cannot connect from child to parent reroute
+      fromReroute?.getReroutes()?.includes(reroute),
+    )
+  }
 }
