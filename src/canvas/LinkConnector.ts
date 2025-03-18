@@ -645,12 +645,13 @@ function canConnectInputLinkToReroute(link: ToInputRenderLink | MovingRenderLink
     }
   } else {
     const { fromSlot, fromReroute } = link
-    if (!LiteGraph.isValidConnection(fromSlot.type, input.type)) return false
     if (
       // Connect to yourself
       fromReroute?.id === reroute.id ||
       // Link would make no changes
       (fromReroute?.id != null && fromReroute.id === reroute.parentId) ||
+      // Type mismatch
+      !LiteGraph.isValidConnection(fromSlot.type, input.type) ||
       // Cannot connect from child to parent reroute
       fromReroute?.getReroutes()?.includes(reroute)
     ) {
