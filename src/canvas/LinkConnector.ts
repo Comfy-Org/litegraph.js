@@ -334,6 +334,7 @@ export class LinkConnector {
       for (const { node: inputNode, input, link: resultLink } of results) {
         for (const renderLink of this.renderLinks) {
           if (renderLink.toType !== "input") continue
+          if (!canConnectInputLinkToReroute(renderLink, input, reroute)) continue
 
           if (renderLink instanceof MovingRenderLink) {
             const { outputNode, outputSlot, fromReroute } = renderLink
@@ -375,6 +376,7 @@ export class LinkConnector {
       if (!result) return
 
       const { node, output } = result
+      if (!isValidConnectionToOutput(link, output)) continue
 
       if (link instanceof MovingRenderLink) {
         const { inputNode, inputSlot, fromReroute } = link
