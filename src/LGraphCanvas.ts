@@ -2667,6 +2667,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           underPointer |= CanvasItem.ResizeSe
         }
       } else {
+        // Reroute
         const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
         if (reroute) {
           underPointer |= CanvasItem.Reroute

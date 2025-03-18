@@ -326,6 +326,7 @@ export class LinkConnector {
     const mayContinue = this.events.dispatch("dropped-on-reroute", { reroute, event })
     if (mayContinue === false) return
 
+    // Connecting to input
     if (this.state.connectingTo === "input") {
       const results = reroute.findTargetInputs()
       if (!results?.length) return
@@ -366,6 +367,7 @@ export class LinkConnector {
       return
     }
 
+    // Connecting to output
     for (const link of this.renderLinks) {
       if (link.toType !== "output") continue
 
