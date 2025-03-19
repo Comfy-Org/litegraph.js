@@ -1652,28 +1652,10 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       reroutes = data.reroutes
     }
 
-    // Floating links
-    if (Array.isArray(data.floatingLinks)) {
-      for (const linkData of data.floatingLinks) {
-        const floatingLink = LLink.create(linkData)
-        this.addFloatingLink(floatingLink)
-
-        if (floatingLink.id > this.#lastFloatingLinkId) this.#lastFloatingLinkId = floatingLink.id
-      }
-    }
-
     // Reroutes
     if (Array.isArray(reroutes)) {
       for (const rerouteData of reroutes) {
         this.setReroute(rerouteData)
-      }
-    }
-
-    // Drop broken reroutes
-    for (const reroute of this.reroutes.values()) {
-      // Drop broken links, and ignore reroutes with no valid links
-      if (!reroute.validateLinks(this._links, this.floatingLinks)) {
-        this.reroutes.delete(reroute.id)
       }
     }
 
@@ -1718,6 +1700,24 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       for (const n_info of nodesData) {
         const node = this.getNodeById(n_info.id)
         node?.configure(n_info)
+      }
+    }
+
+    // Floating links
+    if (Array.isArray(data.floatingLinks)) {
+      for (const linkData of data.floatingLinks) {
+        const floatingLink = LLink.create(linkData)
+        this.addFloatingLink(floatingLink)
+
+        if (floatingLink.id > this.#lastFloatingLinkId) this.#lastFloatingLinkId = floatingLink.id
+      }
+    }
+
+    // Drop broken reroutes
+    for (const reroute of this.reroutes.values()) {
+      // Drop broken links, and ignore reroutes with no valid links
+      if (!reroute.validateLinks(this._links, this.floatingLinks)) {
+        this.reroutes.delete(reroute.id)
       }
     }
 
