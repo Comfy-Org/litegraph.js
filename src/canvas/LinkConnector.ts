@@ -490,6 +490,8 @@ export class LinkConnector {
         if (newLink) this.events.dispatch("input-moved", link)
       } else {
         const { node: outputNode, fromSlot, fromReroute } = link
+        if (node === outputNode) continue
+
         const newLink = outputNode.connectSlots(fromSlot, node, input, fromReroute?.id)
         this.events.dispatch("link-created", newLink)
       }
@@ -510,6 +512,8 @@ export class LinkConnector {
         this.events.dispatch("output-moved", link)
       } else {
         const { node: inputNode, fromSlot, fromReroute } = link
+        if (inputNode) continue
+
         const newLink = node.connectSlots(output, inputNode, fromSlot, fromReroute?.id)
         this.events.dispatch("link-created", newLink)
       }
