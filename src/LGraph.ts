@@ -1656,7 +1656,7 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (Array.isArray(data.floatingLinks)) {
       for (const linkData of data.floatingLinks) {
         const floatingLink = LLink.create(linkData)
-        this.#floatingLinks.set(floatingLink.id, floatingLink)
+        this.addFloatingLink(floatingLink)
 
         if (floatingLink.id > this.#lastFloatingLinkId) this.#lastFloatingLinkId = floatingLink.id
       }
@@ -1666,14 +1666,6 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     if (Array.isArray(reroutes)) {
       for (const rerouteData of reroutes) {
         this.setReroute(rerouteData)
-      }
-    }
-
-    // Cache floating link IDs on reroutes
-    for (const floatingLink of this.floatingLinks.values()) {
-      const reroutes = LLink.getReroutes(this, floatingLink)
-      for (const reroute of reroutes) {
-        reroute.floatingLinkIds.add(floatingLink.id)
       }
     }
 
