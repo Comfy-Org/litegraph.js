@@ -5,6 +5,7 @@ import type { ISlotType } from "@/interfaces"
 import { describe, expect, test as baseTest, vi } from "vitest"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
+import { ToInputRenderLink } from "@/canvas/ToInputRenderLink"
 import { LGraph } from "@/LGraph"
 import { LGraphNode } from "@/LGraphNode"
 import { LLink } from "@/LLink"
@@ -51,20 +52,25 @@ const test = baseTest.extend<TestContext>({
     const connector = new LinkConnector(setConnectingLinks)
     await use(connector)
   },
-  createTestNode: async ({}, use) => {
+  createTestNode: async ({ network }, use) => {
     await use((id: number): LGraphNode => {
       const node = new LGraphNode("test")
       node.id = id
+      network.add(node)
       return node
     })
   },
-  createTestLink: async ({}, use) => {
+  createTestLink: async ({ network }, use) => {
     await use((
       id: number,
       sourceId: number,
       targetId: number,
       slotType: ISlotType = "number",
-    ): LLink => new LLink(id, slotType, sourceId, 0, targetId, 0))
+    ): LLink => {
+      const link = new LLink(id, slotType, sourceId, 0, targetId, 0)
+      network.links.set(link.id, link)
+      return link
+    })
   },
 })
 
@@ -89,8 +95,6 @@ describe("LinkConnector", () => {
       const slotType: ISlotType = "number"
       sourceNode.addOutput("out", slotType)
       targetNode.addInput("in", slotType)
-      network.add(sourceNode)
-      network.add(targetNode)
 
       const link = new LLink(1, slotType, 1, 0, 2, 0)
       network.links.set(link.id, link)
@@ -121,8 +125,6 @@ describe("LinkConnector", () => {
       const slotType: ISlotType = "number"
       sourceNode.addOutput("out", slotType)
       targetNode.addInput("in", slotType)
-      network.add(sourceNode)
-      network.add(targetNode)
 
       const link = new LLink(1, slotType, 1, 0, 2, 0)
       network.links.set(link.id, link)
@@ -169,6 +171,36 @@ describe("LinkConnector", () => {
       expect(connector.state.connectingTo).toBe("output")
       expect(connector.renderLinks.length).toBe(1)
       expect(connector.state.draggingExistingLinks).toBe(false)
+    })
+  })
+
+  describe("Dragging from reroutes", () => {
+    test("should handle dragging from reroutes", ({ network, connector, createTestNode, createTestLink }) => {
+      const originNode = createTestNode(1)
+      const targetNode = createTestNode(2)
+
+      const output = originNode.addOutput("out", "number")
+      targetNode.addInput("in", "number")
+
+      const link = createTestLink(1, 1, 2)
+      const reroute = new Reroute(1, network, [0, 0], undefined, [link.id])
+      network.reroutes.set(reroute.id, reroute)
+      link.parentId = reroute.id
+
+      connector.dragFromReroute(network, reroute)
+
+      expect(connector.state.connectingTo).toBe("input")
+      expect(connector.state.draggingExistingLinks).toBe(false)
+      expect(connector.renderLinks.length).toBe(1)
+
+      const renderLink = connector.renderLinks[0]
+      expect(renderLink instanceof ToInputRenderLink).toBe(true)
+      expect(renderLink.toType).toEqual("input")
+      expect(renderLink.node).toEqual(originNode)
+      expect(renderLink.fromSlot).toEqual(output)
+      expect(renderLink.fromReroute).toEqual(reroute)
+      expect(renderLink.fromDirection).toEqual(LinkDirection.NONE)
+      expect(renderLink.network).toEqual(network)
     })
   })
 
