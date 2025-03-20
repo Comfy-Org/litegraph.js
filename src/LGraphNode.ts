@@ -2690,16 +2690,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const input = this.inputs[slot]
     if (!input) return false
 
+    const { graph } = this
+
     const link_id = this.inputs[slot].link
     if (link_id != null) {
       this.inputs[slot].link = null
 
-      if (!this.graph) throw new NullGraphError()
+      if (!graph) throw new NullGraphError()
 
       // remove other side
-      const link_info = this.graph._links.get(link_id)
+      const link_info = graph._links.get(link_id)
       if (link_info) {
-        const target_node = this.graph.getNodeById(link_info.origin_id)
+        const target_node = graph.getNodeById(link_info.origin_id)
         if (!target_node) return false
 
         const output = target_node.outputs[link_info.origin_slot]
@@ -2714,8 +2716,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           }
         }
 
-        link_info.disconnect(this.graph, keepReroutes ? "output" : undefined)
-        if (this.graph) this.graph._version++
+        link_info.disconnect(graph, keepReroutes ? "output" : undefined)
+        if (graph) graph._version++
 
         this.onConnectionsChange?.(
           NodeSlotType.INPUT,
@@ -2735,7 +2737,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     this.setDirtyCanvas(false, true)
-    this.graph?.connectionChange(this)
+    graph?.connectionChange(this)
     return true
   }
 
