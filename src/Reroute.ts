@@ -11,6 +11,7 @@ import type {
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { Serialisable, SerialisableReroute } from "./types/serialisation"
 
+import { LGraphBadge } from "./LGraphBadge"
 import { type LinkId, LLink } from "./LLink"
 import { distance } from "./measure"
 
@@ -31,6 +32,7 @@ export interface FloatingRerouteSlot {
  */
 export class Reroute implements Positionable, LinkSegment, Serialisable<SerialisableReroute> {
   static radius: number = 10
+  static drawIdBadge: boolean = false
 
   #malloc = new Float32Array(8)
 
@@ -408,6 +410,13 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       ctx.beginPath()
       ctx.arc(pos[0], pos[1], Reroute.radius * 1.2, 0, 2 * Math.PI)
       ctx.stroke()
+    }
+
+    if (Reroute.drawIdBadge) {
+      const idBadge = new LGraphBadge({ text: this.id.toString() })
+      const x = pos[0] - idBadge.getWidth(ctx) * 0.5
+      const y = pos[1] - idBadge.height - Reroute.radius - 2
+      idBadge.draw(ctx, x, y)
     }
   }
 
