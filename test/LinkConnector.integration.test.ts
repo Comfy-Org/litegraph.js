@@ -323,6 +323,9 @@ describe("LinkConnector Integration", () => {
     { targetRerouteId, parentIds, linksBefore, linksAfter, runIntegrityCheck },
     { graph, connector, validateIntegrityNoChanges, getNextLinkIds },
   ) => {
+    const linkCreatedCallback = vi.fn()
+    connector.listenUntilReset("link-created", linkCreatedCallback)
+
     const disconnectedNode = graph.getNodeById(9)!
 
     // Parent reroutes of the target reroute
@@ -350,6 +353,8 @@ describe("LinkConnector Integration", () => {
         expect(reroute.linkIds.size).toBe(linksAfter[index])
       }
     }
+
+    expect(linkCreatedCallback).toHaveBeenCalledTimes(nextLinkIds.length)
 
     if (runIntegrityCheck) {
       validateIntegrityNoChanges()
