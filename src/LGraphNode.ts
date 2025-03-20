@@ -2693,6 +2693,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const { graph } = this
     if (!graph) throw new NullGraphError()
 
+    // Break floating links
+    if (input._floatingLinks?.size) {
+      for (const link of input._floatingLinks) {
+        graph.removeFloatingLink(link)
+      }
+    }
+
     const link_id = this.inputs[slot].link
     if (link_id != null) {
       this.inputs[slot].link = null

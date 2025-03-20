@@ -2246,23 +2246,13 @@ export class LGraphCanvas implements ConnectionColorContext {
               ctrlOrMeta &&
               e.altKey &&
               !e.shiftKey
-            if (input.link !== null) {
+            if (input.link !== null || input._floatingLinks?.size) {
               // Existing link
               if (shouldBreakLink || LiteGraph.click_do_break_link_to) {
                 node.disconnectInput(i, true)
               } else if (e.shiftKey || this.allow_reconnect_links) {
                 linkConnector.moveInputLink(graph, input)
               }
-            } else if (shouldBreakLink) {
-              // Break floating links
-              for (const link of graph.floatingLinks.values()) {
-                if (link.hasTarget(node.id, i)) {
-                  graph.removeFloatingLink(link)
-                }
-              }
-            } else if (e.shiftKey || this.allow_reconnect_links) {
-              // Move floating links
-              linkConnector.moveInputLink(graph, input)
             }
 
             // Dragging a new link from input to output
