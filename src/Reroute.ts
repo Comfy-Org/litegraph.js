@@ -72,6 +72,11 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     return [x - radius, y - radius, 2 * radius, 2 * radius]
   }
 
+  /** The total number of links & floating links using this reroute */
+  get totalLinks(): number {
+    return this.linkIds.size + this.floatingLinkIds.size
+  }
+
   /** @inheritdoc */
   selected?: boolean
 
