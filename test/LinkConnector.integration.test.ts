@@ -48,9 +48,9 @@ const test = baseTest.extend<TestContext>({
   },
 })
 
-describe("LinkConnector", () => {
-  describe("Moving Input Links", () => {
-    test("should handle moving input links", ({ graph, connector }) => {
+describe("LinkConnector Integration", () => {
+  describe("Moving input links", () => {
+    test("Should move input links", ({ graph, connector }) => {
       const nextLinkId = graph.last_link_id + 1
 
       const hasInputNode = graph.getNodeById(2)!
@@ -73,7 +73,7 @@ describe("LinkConnector", () => {
       expect(disconnectedNode.inputs[0].link).toBe(nextLinkId)
     })
 
-    test("should handle connecting from floating reroutes", ({ graph, connector, reroutesBeforeTest }) => {
+    test("Should connect from floating reroutes", ({ graph, connector, reroutesBeforeTest }) => {
       const nextLinkId = graph.last_link_id + 1
 
       const floatingLink = graph.floatingLinks.values().next().value!
@@ -112,7 +112,7 @@ describe("LinkConnector", () => {
       }
     })
 
-    test("should drop floating links when both sides are disconnected", ({ graph, reroutesBeforeTest }) => {
+    test("Should drop floating links when both sides are disconnected", ({ graph, reroutesBeforeTest }) => {
       expect(graph.floatingLinks.size).toBe(1)
 
       const floatingOutNode = graph.getNodeById(1)!
@@ -131,7 +131,19 @@ describe("LinkConnector", () => {
       graph.getNodeById(3)!.disconnectInput(0, false)
       expect(graph.floatingLinks.size).toBe(0)
 
-      expect(graph.reroutes.size).toBe(reroutesBeforeTest.length - 1)
+      // Removed 4 reroutes
+      expect(graph.reroutes.size).toBe(9)
+
+      // All four nodes should have no links
+      for (const nodeId of [1, 2, 3, 9]) {
+        const { inputs: [input], outputs: [output] } = graph.getNodeById(nodeId)!
+
+        expect(input.link).toBeNull()
+        expect(output.links?.length).toBeOneOf([0, undefined])
+
+        expect(input._floatingLinks?.size).toBeOneOf([0, undefined])
+        expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
+      }
     })
   })
 })
