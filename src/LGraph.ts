@@ -269,6 +269,8 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     this.reroutes.clear()
     this.#floatingLinks.clear()
 
+    this.#lastFloatingLinkId = 0
+
     // other scene stuff
     this._groups = []
 
