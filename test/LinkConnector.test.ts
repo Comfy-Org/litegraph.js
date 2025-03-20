@@ -38,16 +38,6 @@ function createNetwork(): TestNetwork {
   }
 }
 
-function createTestNode(id: number): LGraphNode {
-  const node = new LGraphNode("test")
-  node.id = id
-  return node
-}
-
-function createTestLink(id: number, sourceId: number, targetId: number, slotType: ISlotType = "number"): LLink {
-  return new LLink(id, slotType, sourceId, 0, targetId, 0)
-}
-
 const test = baseTest.extend<TestContext>({
   network: async ({}, use) => {
     const network = createNetwork()
@@ -62,10 +52,19 @@ const test = baseTest.extend<TestContext>({
     await use(connector)
   },
   createTestNode: async ({}, use) => {
-    await use(createTestNode)
+    await use((id: number): LGraphNode => {
+      const node = new LGraphNode("test")
+      node.id = id
+      return node
+    })
   },
   createTestLink: async ({}, use) => {
-    await use(createTestLink)
+    await use((
+      id: number,
+      sourceId: number,
+      targetId: number,
+      slotType: ISlotType = "number",
+    ): LLink => new LLink(id, slotType, sourceId, 0, targetId, 0))
   },
 })
 
