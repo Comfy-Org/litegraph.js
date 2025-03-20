@@ -411,6 +411,24 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     }
   }
 
+  drawHighlight(ctx: CanvasRenderingContext2D, colour: CanvasColour): void {
+    const { pos } = this
+
+    const { strokeStyle, lineWidth } = ctx
+    ctx.strokeStyle = strokeStyle
+    ctx.lineWidth = lineWidth
+
+    ctx.strokeStyle = colour
+    ctx.lineWidth = 1
+
+    ctx.beginPath()
+    ctx.arc(pos[0], pos[1], Reroute.radius * 1.5, 0, 2 * Math.PI)
+    ctx.stroke()
+
+    ctx.strokeStyle = strokeStyle
+    ctx.lineWidth = lineWidth
+  }
+
   /** @inheritdoc */
   asSerialisable(): SerialisableReroute {
     const { id, parentId, pos, linkIds } = this
