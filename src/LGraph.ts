@@ -1484,12 +1484,19 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
         continue
       }
 
-      // Remove floating links with no reroutes
+      // A floating link is a unique branch; if there is no parent reroute, or
+      // the parent reroute has any other links, remove this floating link.
       const floatingReroutes = LLink.getReroutes(this, link)
-      if (!(floatingReroutes.length > 0)) {
-        this.#floatingLinks.delete(linkId)
+      const lastReroute = floatingReroutes.at(-1)
+      const secondLastReroute = floatingReroutes.at(-2)
+
+      if (reroute !== lastReroute) {
+        continue
+      } else if (secondLastReroute?.totalLinks !== 1) {
+        this.removeFloatingLink(link)
       } else if (link.parentId === id) {
         link.parentId = parentId
+        secondLastReroute.floating = reroute.floating
       }
     }
 
