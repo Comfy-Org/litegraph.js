@@ -2691,12 +2691,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (!input) return false
 
     const { graph } = this
+    if (!graph) throw new NullGraphError()
 
     const link_id = this.inputs[slot].link
     if (link_id != null) {
       this.inputs[slot].link = null
-
-      if (!graph) throw new NullGraphError()
 
       // remove other side
       const link_info = graph._links.get(link_id)
