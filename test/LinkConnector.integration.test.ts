@@ -213,7 +213,7 @@ describe("LinkConnector Integration", () => {
 
       const floatingLink = graph.floatingLinks.values().next().value!
       expect(floatingLink).toBeInstanceOf(LLink)
-      const floatingReroute = graph.reroutes.get(floatingLink.parentId!)!
+      const floatingReroute = LLink.getReroutes(graph, floatingLink)[0]
 
       const canvasX = floatingReroute.pos[0]
       const canvasY = floatingReroute.pos[1]
