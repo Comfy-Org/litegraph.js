@@ -17,7 +17,6 @@ interface LitegraphFixtures {
   oldSchemaGraph: ISerialisedGraph
   floatingLinkGraph: ISerialisedGraph
   linkedNodesGraph: ISerialisedGraph
-  floatingBranchSerialisedGraph: ISerialisedGraph
   floatingBranchGraph: LGraph
   reroutesComplexGraph: LGraph
 }
@@ -40,9 +39,8 @@ export const test = baseTest.extend<LitegraphFixtures>({
   oldSchemaGraph: structuredClone(oldSchemaGraph),
   floatingLinkGraph: structuredClone(floatingLink as unknown as ISerialisedGraph),
   linkedNodesGraph: structuredClone(linkedNodes as unknown as ISerialisedGraph),
-  floatingBranchSerialisedGraph: structuredClone(floatingBranch as unknown as ISerialisedGraph),
-  floatingBranchGraph: async ({ floatingBranchSerialisedGraph }, use) => {
-    const cloned = structuredClone(floatingBranchSerialisedGraph)
+  floatingBranchGraph: async ({}, use) => {
+    const cloned = structuredClone(floatingBranch as unknown as ISerialisedGraph)
     const graph = new LGraph(cloned)
     await use(graph)
   },
