@@ -2564,15 +2564,19 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       return false
     }
 
-    for (const link of this.graph?.floatingLinks.values() ?? []) {
-      if (link.origin_id === this.id && link.origin_slot === slot) {
-        this.graph?.removeFloatingLink(link)
+    // get output slot
+    const output = this.outputs[slot]
+    if (!output) return false
+
+    if (output._floatingLinks) {
+      for (const link of output._floatingLinks) {
+        if (link.hasOrigin(this.id, slot)) {
+          this.graph?.removeFloatingLink(link)
+        }
       }
     }
 
-    // get output slot
-    const output = this.outputs[slot]
-    if (!output || !output.links || output.links.length == 0) return false
+    if (!output.links || output.links.length == 0) return false
     const { links } = output
 
     // one of the output links in this slot
