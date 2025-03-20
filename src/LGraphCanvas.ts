@@ -2200,7 +2200,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           const link_pos = node.getOutputPos(i)
           if (isInRectangle(x, y, link_pos[0] - 15, link_pos[1] - 10, 30, 20)) {
             // Drag multiple output links
-            if (e.shiftKey && output.links?.length) {
+            if (e.shiftKey && (output.links?.length || output._floatingLinks?.size)) {
               linkConnector.moveOutputLink(graph, output)
 
               pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
@@ -2260,6 +2260,9 @@ export class LGraphCanvas implements ConnectionColorContext {
                   graph.removeFloatingLink(link)
                 }
               }
+            } else if (e.shiftKey || this.allow_reconnect_links) {
+              // Move floating links
+              linkConnector.moveInputLink(graph, input)
             }
 
             // Dragging a new link from input to output
