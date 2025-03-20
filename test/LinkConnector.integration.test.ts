@@ -1,5 +1,3 @@
-import type { ISlotType } from "@/interfaces"
-
 import { describe, expect, vi } from "vitest"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
@@ -14,8 +12,10 @@ interface TestContext {
   graph: LGraph
   connector: LinkConnector
   setConnectingLinks: ReturnType<typeof vi.fn>
-  createTestNode: (id: number, slotType?: ISlotType) => LGraphNode
+  createTestNode: (id: number) => LGraphNode
   reroutesBeforeTest: [rerouteId: RerouteId, reroute: Reroute][]
+  validateIntegrityNoChanges: () => void
+  getNextLinkIds: (linkIds: Set<number>) => number[]
 }
 
 const test = baseTest.extend<TestContext>({
@@ -39,11 +39,31 @@ const test = baseTest.extend<TestContext>({
     await use(connector)
   },
   createTestNode: async ({ graph }, use) => {
-    await use((id: number): LGraphNode => {
+    await use((id): LGraphNode => {
       const node = new LGraphNode("test")
       node.id = id
       graph.add(node)
       return node
+    })
+  },
+
+  validateIntegrityNoChanges: async ({ graph, reroutesBeforeTest }, use) => {
+    await use(() => {
+      expect(graph.floatingLinks.size).toBe(1)
+      expect([...graph.reroutes]).toEqual(reroutesBeforeTest)
+
+      // Only the original reroute should be floating
+      const reroutesExceptOne = [...graph.reroutes.values()].filter(reroute => reroute.id !== 1)
+      for (const reroute of reroutesExceptOne) {
+        expect(reroute.floating).toBeUndefined()
+      }
+    })
+  },
+
+  getNextLinkIds: async ({ graph }, use) => {
+    await use((linkIds) => {
+      const indexes = [...new Array(linkIds.size).keys()]
+      return indexes.map(index => graph.last_link_id + index + 1)
     })
   },
 })
@@ -99,14 +119,11 @@ describe("LinkConnector Integration", () => {
       // New link should have been created
       expect(disconnectedNode.inputs[0].link).toBe(nextLinkId)
 
-      // Floating link / reroute floating property should be cleared
-      expect(floatingReroute.floating).toBeUndefined()
-      expect(graph.floatingLinks.size).toBe(0)
-
       // Check graph integrity
       expect(graph.floatingLinks.size).toBe(0)
       expect([...graph.reroutes]).toEqual(reroutesBeforeTest)
 
+      // All reroute floating property should be cleared
       for (const reroute of graph.reroutes.values()) {
         expect(reroute.floating).toBeUndefined()
       }
@@ -145,5 +162,197 @@ describe("LinkConnector Integration", () => {
         expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
       }
     })
+  })
+
+  describe("Moving output links", () => {
+    test("Should move output links", ({ graph, connector }) => {
+      const nextLinkIds = [graph.last_link_id + 1, graph.last_link_id + 2]
+
+      const hasOutputNode = graph.getNodeById(1)!
+      const disconnectedNode = graph.getNodeById(9)!
+
+      connector.moveOutputLink(graph, hasOutputNode.outputs[0])
+      expect(connector.state.connectingTo).toBe("output")
+      expect(connector.state.draggingExistingLinks).toBe(true)
+      expect(connector.renderLinks.length).toBe(3)
+      expect(connector.outputLinks.length).toBe(2)
+      expect(connector.floatingLinks.length).toBe(1)
+
+      const canvasX = disconnectedNode.pos[0] + disconnectedNode.size[0] / 2
+      const canvasY = disconnectedNode.pos[1] + 16
+      const dropEvent = { canvasX, canvasY } as any
+
+      connector.dropLinks(graph, dropEvent)
+      expect(connector.renderLinks.length).toBe(0)
+      expect(connector.outputLinks.length).toBe(0)
+
+      expect(disconnectedNode.outputs[0].links).toEqual(nextLinkIds)
+    })
+
+    test("Should connect to floating reroutes from outputs", ({ graph, connector, reroutesBeforeTest }) => {
+      const nextLinkIds = [graph.last_link_id + 1, graph.last_link_id + 2]
+
+      const floatingOutNode = graph.getNodeById(1)!
+      floatingOutNode.disconnectOutput(0)
+
+      // Should have lost one reroute
+      expect(graph.reroutes.size).toBe(reroutesBeforeTest.length - 1)
+      expect(graph.reroutes.get(1)).toBeUndefined()
+
+      // The two normal links should now be floating
+      expect(graph.floatingLinks.size).toBe(2)
+
+      const disconnectedNode = graph.getNodeById(9)!
+      connector.dragNewFromOutput(graph, disconnectedNode, disconnectedNode.outputs[0])
+
+      expect(connector.state.connectingTo).toBe("input")
+      expect(connector.state.draggingExistingLinks).toBe(false)
+      expect(connector.renderLinks.length).toBe(1)
+      expect(connector.outputLinks.length).toBe(0)
+      expect(connector.floatingLinks.length).toBe(0)
+
+      const floatingLink = graph.floatingLinks.values().next().value!
+      expect(floatingLink).toBeInstanceOf(LLink)
+      const floatingReroute = graph.reroutes.get(floatingLink.parentId!)!
+
+      const canvasX = floatingReroute.pos[0]
+      const canvasY = floatingReroute.pos[1]
+      const dropEvent = { canvasX, canvasY } as any
+
+      connector.dropLinks(graph, dropEvent)
+      expect(connector.renderLinks.length).toBe(0)
+      expect(connector.outputLinks.length).toBe(0)
+
+      // New link should have been created
+      expect(disconnectedNode.outputs[0].links).toEqual(nextLinkIds)
+
+      // Check graph integrity
+      expect(graph.floatingLinks.size).toBe(0)
+      expect([...graph.reroutes]).toEqual(reroutesBeforeTest.slice(1))
+
+      for (const reroute of graph.reroutes.values()) {
+        expect(reroute.floating).toBeUndefined()
+      }
+    })
+
+    test("Should drop floating links when both sides are disconnected", ({ graph, reroutesBeforeTest }) => {
+      expect(graph.floatingLinks.size).toBe(1)
+
+      graph.getNodeById(2)!.disconnectInput(0, true)
+      expect(graph.floatingLinks.size).toBe(1)
+
+      // Only the original reroute should be floating
+      const reroutesExceptOne = [...graph.reroutes.values()].filter(reroute => reroute.id !== 1)
+      for (const reroute of reroutesExceptOne) {
+        expect(reroute.floating).toBeUndefined()
+      }
+
+      graph.getNodeById(3)!.disconnectInput(0, true)
+      expect([...graph.reroutes]).toEqual(reroutesBeforeTest)
+
+      // The normal link should now be floating
+      expect(graph.floatingLinks.size).toBe(2)
+      expect(graph.reroutes.get(3)!.floating).toEqual({ slotType: "output" })
+
+      const floatingOutNode = graph.getNodeById(1)!
+      floatingOutNode.disconnectOutput(0)
+
+      // Should have lost one reroute
+      expect(graph.reroutes.size).toBe(9)
+      expect(graph.reroutes.get(1)).toBeUndefined()
+
+      // Removed 4 reroutes
+      expect(graph.reroutes.size).toBe(9)
+
+      // All four nodes should have no links
+      for (const nodeId of [1, 2, 3, 9]) {
+        const { inputs: [input], outputs: [output] } = graph.getNodeById(nodeId)!
+
+        expect(input.link).toBeNull()
+        expect(output.links?.length).toBeOneOf([0, undefined])
+
+        expect(input._floatingLinks?.size).toBeOneOf([0, undefined])
+        expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
+      }
+    })
+  })
+
+  type TestData = {
+    /** Drop link on this reroute */
+    targetRerouteId: number
+    /** Parent reroutes of the target reroute */
+    parentIds: number[]
+    /** Number of links before the drop */
+    linksBefore: number[]
+    /** Number of links after the drop */
+    linksAfter: (number | undefined)[]
+    /** Whether to run the integrity check */
+    runIntegrityCheck: boolean
+  }
+
+  test.for<TestData>([
+    {
+      targetRerouteId: 8,
+      parentIds: [13, 10],
+      linksBefore: [3, 4],
+      linksAfter: [1, 2],
+      runIntegrityCheck: true,
+    },
+    {
+      targetRerouteId: 7,
+      parentIds: [6, 8, 13, 10],
+      linksBefore: [2, 2, 3, 4],
+      linksAfter: [undefined, undefined, 1, 2],
+      runIntegrityCheck: false,
+    },
+    {
+      targetRerouteId: 6,
+      parentIds: [8, 13, 10],
+      linksBefore: [2, 3, 4],
+      linksAfter: [undefined, 1, 2],
+      runIntegrityCheck: false,
+    },
+    {
+      targetRerouteId: 13,
+      parentIds: [10],
+      linksBefore: [4],
+      linksAfter: [1],
+      runIntegrityCheck: true,
+    },
+  ])("Should allow reconnect from output to any reroute", (
+    { targetRerouteId, parentIds, linksBefore, linksAfter, runIntegrityCheck },
+    { graph, connector, validateIntegrityNoChanges, getNextLinkIds },
+  ) => {
+    const disconnectedNode = graph.getNodeById(9)!
+
+    // Parent reroutes of the target reroute
+    for (const [index, parentId] of parentIds.entries()) {
+      const reroute = graph.reroutes.get(parentId)!
+      expect(reroute.linkIds.size).toBe(linksBefore[index])
+    }
+
+    connector.dragNewFromOutput(graph, disconnectedNode, disconnectedNode.outputs[0])
+    const targetReroute = graph.reroutes.get(targetRerouteId)!
+    const nextLinkIds = getNextLinkIds(targetReroute.linkIds)
+
+    const dropEvent = { canvasX: targetReroute.pos[0], canvasY: targetReroute.pos[1] } as any
+    connector.dropLinks(graph, dropEvent)
+
+    expect(disconnectedNode.outputs[0].links).toEqual(nextLinkIds)
+    expect([...targetReroute.linkIds.values()]).toEqual(nextLinkIds)
+
+    // Parent reroutes should have lost the links or been removed
+    for (const [index, parentId] of parentIds.entries()) {
+      const reroute = graph.reroutes.get(parentId)!
+      if (linksAfter[index] === undefined) {
+        expect(reroute).toBeUndefined()
+      } else {
+        expect(reroute.linkIds.size).toBe(linksAfter[index])
+      }
+    }
+
+    if (runIntegrityCheck) {
+      validateIntegrityNoChanges()
+    }
   })
 })
