@@ -1,4 +1,4 @@
-import { describe, expect, vi } from "vitest"
+import { afterEach, describe, expect, vi } from "vitest"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
 import { LGraph } from "@/LGraph"
@@ -16,6 +16,7 @@ interface TestContext {
   reroutesBeforeTest: [rerouteId: RerouteId, reroute: Reroute][]
   validateIntegrityNoChanges: () => void
   validateIntegrityFloatingRemoved: () => void
+  validateLinkIntegrity: () => void
   getNextLinkIds: (linkIds: Set<number>, expectedExtraLinks?: number) => number[]
   readonly floatingReroute: Reroute
 }
@@ -73,6 +74,38 @@ const test = baseTest.extend<TestContext>({
     })
   },
 
+  validateLinkIntegrity: async ({ graph, expect }, use) => {
+    await use(() => {
+      for (const reroute of graph.reroutes.values()) {
+        if (reroute.origin_id === undefined) {
+          expect(reroute.linkIds.size).toBe(0)
+          expect(reroute.floatingLinkIds.size).toBeGreaterThan(0)
+        }
+
+        for (const linkId of reroute.linkIds) {
+          const link = graph.links.get(linkId)
+          expect(link).toBeDefined()
+          expect(link!.origin_id).toEqual(reroute.origin_id)
+          expect(link!.origin_slot).toEqual(reroute.origin_slot)
+        }
+        for (const linkId of reroute.floatingLinkIds) {
+          const link = graph.floatingLinks.get(linkId)
+          expect(link).toBeDefined()
+
+          if (link!.target_id === -1) {
+            expect(link!.origin_id).not.toBe(-1)
+            expect(link!.origin_slot).not.toBe(-1)
+            expect(link!.target_slot).toBe(-1)
+          } else {
+            expect(link!.origin_id).toBe(-1)
+            expect(link!.origin_slot).toBe(-1)
+            expect(link!.target_slot).not.toBe(-1)
+          }
+        }
+      }
+    })
+  },
+
   getNextLinkIds: async ({ graph }, use) => {
     await use((linkIds, expectedExtraLinks = 0) => {
       const indexes = [...new Array(linkIds.size + expectedExtraLinks).keys()]
@@ -88,6 +121,10 @@ const test = baseTest.extend<TestContext>({
 })
 
 describe("LinkConnector Integration", () => {
+  afterEach<TestContext>(({ validateLinkIntegrity }) => {
+    validateLinkIntegrity()
+  })
+
   describe("Moving input links", () => {
     test("Should move input links", ({ graph, connector }) => {
       const nextLinkId = graph.last_link_id + 1
