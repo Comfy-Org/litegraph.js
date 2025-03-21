@@ -5584,7 +5584,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     })
 
     // callback
-    function inner_clicked(v: string, options: unknown, e: MouseEvent) {
+    function inner_clicked(v: string | undefined, options: IContextMenuOptions, e: MouseEvent) {
       // console.log("Process showConnectionMenu selection");
       switch (v) {
       case "Add Node":
