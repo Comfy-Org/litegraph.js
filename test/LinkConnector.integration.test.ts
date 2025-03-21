@@ -439,11 +439,11 @@ describe("LinkConnector Integration", () => {
       expect(reroute.linkIds.size).toBe(linksBefore[index])
     }
 
-    connector.dragNewFromOutput(graph, disconnectedNode, disconnectedNode.outputs[0])
     const targetReroute = graph.reroutes.get(targetRerouteId)!
     const nextLinkIds = getNextLinkIds(targetReroute.linkIds)
-
     const dropEvent = { canvasX: targetReroute.pos[0], canvasY: targetReroute.pos[1] } as any
+
+    connector.dragNewFromOutput(graph, disconnectedNode, disconnectedNode.outputs[0])
     connector.dropLinks(graph, dropEvent)
 
     expect(disconnectedNode.outputs[0].links).toEqual(nextLinkIds)
@@ -626,7 +626,6 @@ describe("LinkConnector Integration", () => {
     connector.dropLinks(graph, dropEvent)
 
     expect(listener).not.toHaveBeenCalled()
-
     validateIntegrityNoChanges()
   })
 
