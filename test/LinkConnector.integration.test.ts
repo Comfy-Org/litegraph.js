@@ -132,6 +132,8 @@ describe("LinkConnector Integration", () => {
       const hasInputNode = graph.getNodeById(2)!
       const disconnectedNode = graph.getNodeById(9)!
 
+      const reroutesBefore = LLink.getReroutes(graph, graph.links.get(hasInputNode.inputs[0].link!)!)
+
       connector.moveInputLink(graph, hasInputNode.inputs[0])
       expect(connector.state.connectingTo).toBe("input")
       expect(connector.state.draggingExistingLinks).toBe(true)
@@ -147,6 +149,9 @@ describe("LinkConnector Integration", () => {
       expect(connector.inputLinks.length).toBe(0)
 
       expect(disconnectedNode.inputs[0].link).toBe(nextLinkId)
+
+      const reroutesAfter = LLink.getReroutes(graph, graph.links.get(disconnectedNode.inputs[0].link!)!)
+      expect(reroutesAfter).toEqual(reroutesBefore)
     })
 
     test("Should connect from floating reroutes", ({ graph, connector, reroutesBeforeTest }) => {
@@ -227,6 +232,10 @@ describe("LinkConnector Integration", () => {
       const hasOutputNode = graph.getNodeById(1)!
       const disconnectedNode = graph.getNodeById(9)!
 
+      const reroutesBefore = hasOutputNode.outputs[0].links
+        ?.map(linkId => graph.links.get(linkId)!)
+        .map(link => LLink.getReroutes(graph, link))
+
       connector.moveOutputLink(graph, hasOutputNode.outputs[0])
       expect(connector.state.connectingTo).toBe("output")
       expect(connector.state.draggingExistingLinks).toBe(true)
@@ -243,6 +252,12 @@ describe("LinkConnector Integration", () => {
       expect(connector.outputLinks.length).toBe(0)
 
       expect(disconnectedNode.outputs[0].links).toEqual(nextLinkIds)
+
+      const reroutesAfter = disconnectedNode.outputs[0].links
+        ?.map(linkId => graph.links.get(linkId)!)
+        .map(link => LLink.getReroutes(graph, link))
+
+      expect(reroutesAfter).toEqual(reroutesBefore)
     })
 
     test("Should connect to floating reroutes from outputs", ({ graph, connector, reroutesBeforeTest }) => {
