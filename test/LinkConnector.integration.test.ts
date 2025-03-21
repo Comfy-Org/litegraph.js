@@ -16,7 +16,7 @@ interface TestContext {
   reroutesBeforeTest: [rerouteId: RerouteId, reroute: Reroute][]
   validateIntegrityNoChanges: () => void
   validateIntegrityFloatingRemoved: () => void
-  getNextLinkIds: (linkIds: Set<number>) => number[]
+  getNextLinkIds: (linkIds: Set<number>, expectedExtraLinks?: number) => number[]
   readonly floatingReroute: Reroute
 }
 
@@ -74,8 +74,8 @@ const test = baseTest.extend<TestContext>({
   },
 
   getNextLinkIds: async ({ graph }, use) => {
-    await use((linkIds) => {
-      const indexes = [...new Array(linkIds.size).keys()]
+    await use((linkIds, expectedExtraLinks = 0) => {
+      const indexes = [...new Array(linkIds.size + expectedExtraLinks).keys()]
       return indexes.map(index => graph.last_link_id + index + 1)
     })
   },
@@ -471,12 +471,14 @@ describe("LinkConnector Integration", () => {
     fromRerouteId: number
     /** Drop link on this reroute */
     toRerouteId: number
-    /** Reroutes that should be removed */
+    /** Reroute IDs that should be removed from the resultant reroute chain */
     shouldBeRemoved: number[]
-    /** Link ids that should be removed */
+    /** Reroutes that should have NONE of the link IDs that toReroute has */
     shouldHaveLinkIdsRemoved: number[]
     /** Whether to test floating inputs */
     testFloatingInputs?: true
+    /** Number of expected extra links to be created */
+    expectedExtraLinks?: number
   }
 
   test.for<ReconnectTestData>([
@@ -522,9 +524,18 @@ describe("LinkConnector Integration", () => {
       shouldBeRemoved: [],
       shouldHaveLinkIdsRemoved: [],
       testFloatingInputs: true,
+      expectedExtraLinks: 2,
+    },
+    {
+      fromRerouteId: 2,
+      toRerouteId: 12,
+      shouldBeRemoved: [11],
+      shouldHaveLinkIdsRemoved: [],
+      testFloatingInputs: true,
+      expectedExtraLinks: 1,
     },
   ])("Connecting from reroutes to another reroute should disconnect intermediate reroutes", (
-    { fromRerouteId, toRerouteId, shouldBeRemoved, shouldHaveLinkIdsRemoved, testFloatingInputs },
+    { fromRerouteId, toRerouteId, shouldBeRemoved, shouldHaveLinkIdsRemoved, testFloatingInputs, expectedExtraLinks },
     { graph, connector, getNextLinkIds },
   ) => {
     if (testFloatingInputs) {
@@ -534,30 +545,36 @@ describe("LinkConnector Integration", () => {
 
     const fromReroute = graph.reroutes.get(fromRerouteId)!
     const toReroute = graph.reroutes.get(toRerouteId)!
+    const nextLinkIds = getNextLinkIds(toReroute.linkIds, expectedExtraLinks)
 
-    const parentReroutes = LLink.getReroutes(graph, toReroute)
+    const originalParentChain = LLink.getReroutes(graph, toReroute)
 
     const sortAndJoin = (numbers: Iterable<number>) => [...numbers].sort().join(",")
-    const compareLinkIds = (a: Reroute, b: Reroute) => sortAndJoin(a.linkIds) === sortAndJoin(b.linkIds)
+    const hasIdenticalLinks = (a: Reroute, b: Reroute) =>
+      sortAndJoin(a.linkIds) === sortAndJoin(b.linkIds) &&
+      sortAndJoin(a.floatingLinkIds) === sortAndJoin(b.floatingLinkIds)
 
-    const removedReroutes = parentReroutes.filter(parent => compareLinkIds(parent, toReroute))
-    expect(removedReroutes.map(reroute => reroute.id)).toEqual(shouldBeRemoved)
+    // Sanity check shouldBeRemoved
+    const reroutesWithIdenticalLinkIds = originalParentChain.filter(parent => hasIdenticalLinks(parent, toReroute))
+    expect(reroutesWithIdenticalLinkIds.map(reroute => reroute.id)).toEqual(shouldBeRemoved)
 
     connector.dragFromReroute(graph, fromReroute)
-    const nextLinkIds = getNextLinkIds(toReroute.linkIds)
 
     const dropEvent = { canvasX: toReroute.pos[0], canvasY: toReroute.pos[1] } as any
     connector.dropLinks(graph, dropEvent)
 
+    const newParentChain = LLink.getReroutes(graph, toReroute)
+    for (const rerouteId of shouldBeRemoved) {
+      expect(originalParentChain.map(reroute => reroute.id)).toContain(rerouteId)
+      expect(newParentChain.map(reroute => reroute.id)).not.toContain(rerouteId)
+    }
+
     expect([...toReroute.linkIds.values()]).toEqual(nextLinkIds)
 
     // Parent reroutes should have lost the links or been removed
-    for (const reroute of graph.reroutes.values()) {
-      if (shouldBeRemoved.includes(reroute.id)) {
-        expect(reroute).toBeUndefined()
-      } else {
-        expect(reroute).toBeDefined()
-      }
+    for (const rerouteId of shouldBeRemoved) {
+      const reroute = graph.reroutes.get(rerouteId)!
+      expect(reroute).toBeUndefined()
     }
 
     for (const rerouteId of shouldHaveLinkIdsRemoved) {
