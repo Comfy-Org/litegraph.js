@@ -11,6 +11,7 @@ import { LiteGraph } from "@/litegraph"
 import { LLink } from "@/LLink"
 import { LinkDirection } from "@/types/globalEnums"
 
+import { FloatingRenderLink } from "./FloatingRenderLink"
 import { MovingRenderLink } from "./MovingRenderLink"
 import { ToInputRenderLink } from "./ToInputRenderLink"
 import { ToOutputRenderLink } from "./ToOutputRenderLink"
@@ -33,12 +34,13 @@ export interface LinkConnectorState {
 }
 
 /** Discriminated union to simplify type narrowing. */
-type RenderLinkUnion = MovingRenderLink | ToInputRenderLink | ToOutputRenderLink
+type RenderLinkUnion = MovingRenderLink | FloatingRenderLink | ToInputRenderLink | ToOutputRenderLink
 
 export interface LinkConnectorExport {
   renderLinks: RenderLink[]
   inputLinks: LLink[]
   outputLinks: LLink[]
+  floatingLinks: LLink[]
   state: LinkConnectorState
   network: LinkNetwork
 }
@@ -101,30 +103,50 @@ export class LinkConnector {
     const { state, inputLinks, renderLinks } = this
 
     const linkId = input.link
-    if (linkId == null) return
+    if (linkId == null) {
+      // No link connected, check for a floating link
+      const floatingLink = input._floatingLinks?.values().next().value
+      if (floatingLink?.parentId == null) return
 
-    const link = network.links.get(linkId)
-    if (!link) return
+      try {
+        const reroute = network.reroutes.get(floatingLink.parentId)
+        if (!reroute) throw new Error(`Invalid reroute id: [${floatingLink.parentId}] for floating link id: [${floatingLink.id}].`)
 
-    try {
-      const reroute = link.parentId != null ? network.reroutes.get(link.parentId) : undefined
-      const renderLink = new MovingRenderLink(network, link, "input", reroute)
+        const renderLink = new FloatingRenderLink(network, floatingLink, "input", reroute)
+        const mayContinue = this.events.dispatch("before-move-input", renderLink)
+        if (mayContinue === false) return
 
-      const mayContinue = this.events.dispatch("before-move-input", renderLink)
-      if (mayContinue === false) return
+        renderLinks.push(renderLink)
+      } catch (error) {
+        console.warn(`Could not create render link for link id: [${floatingLink.id}].`, floatingLink, error)
+      }
 
-      renderLinks.push(renderLink)
+      floatingLink._dragging = true
+      this.floatingLinks.push(floatingLink)
+    } else {
+      const link = network.links.get(linkId)
+      if (!link) return
 
-      this.listenUntilReset("input-moved", (e) => {
-        e.detail.link.disconnect(network, "output")
-      })
-    } catch (error) {
-      console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
-      return
+      try {
+        const reroute = network.getReroute(link.parentId)
+        const renderLink = new MovingRenderLink(network, link, "input", reroute)
+
+        const mayContinue = this.events.dispatch("before-move-input", renderLink)
+        if (mayContinue === false) return
+
+        renderLinks.push(renderLink)
+
+        this.listenUntilReset("input-moved", (e) => {
+          e.detail.link.disconnect(network, "output")
+        })
+      } catch (error) {
+        console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
+        return
+      }
+
+      link._dragging = true
+      inputLinks.push(link)
     }
-
-    link._dragging = true
-    inputLinks.push(link)
 
     state.connectingTo = "input"
     state.draggingExistingLinks = true
@@ -137,31 +159,52 @@ export class LinkConnector {
     if (this.isConnecting) throw new Error("Already dragging links.")
 
     const { state, renderLinks } = this
-    if (!output.links?.length) return
 
-    for (const linkId of output.links) {
-      const link = network.links.get(linkId)
-      if (!link) continue
+    // Floating links
+    if (output._floatingLinks?.size) {
+      for (const floatingLink of output._floatingLinks.values()) {
+        try {
+          const reroute = LLink.getFirstReroute(network, floatingLink)
+          if (!reroute) throw new Error(`Invalid reroute id: [${floatingLink.parentId}] for floating link id: [${floatingLink.id}].`)
 
-      const firstReroute = LLink.getFirstReroute(network, link)
-      if (firstReroute) {
-        firstReroute._dragging = true
-        this.hiddenReroutes.add(firstReroute)
-      } else {
-        link._dragging = true
+          const renderLink = new FloatingRenderLink(network, floatingLink, "output", reroute)
+          const mayContinue = this.events.dispatch("before-move-output", renderLink)
+          if (mayContinue === false) continue
+
+          renderLinks.push(renderLink)
+          this.floatingLinks.push(floatingLink)
+        } catch (error) {
+          console.warn(`Could not create render link for link id: [${floatingLink.id}].`, floatingLink, error)
+        }
       }
-      this.outputLinks.push(link)
+    }
 
-      try {
-        const renderLink = new MovingRenderLink(network, link, "output", firstReroute, LinkDirection.RIGHT)
+    // Normal links
+    if (output.links?.length) {
+      for (const linkId of output.links) {
+        const link = network.links.get(linkId)
+        if (!link) continue
 
-        const mayContinue = this.events.dispatch("before-move-output", renderLink)
-        if (mayContinue === false) continue
+        const firstReroute = LLink.getFirstReroute(network, link)
+        if (firstReroute) {
+          firstReroute._dragging = true
+          this.hiddenReroutes.add(firstReroute)
+        } else {
+          link._dragging = true
+        }
+        this.outputLinks.push(link)
 
-        renderLinks.push(renderLink)
-      } catch (error) {
-        console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
-        continue
+        try {
+          const renderLink = new MovingRenderLink(network, link, "output", firstReroute, LinkDirection.RIGHT)
+
+          const mayContinue = this.events.dispatch("before-move-output", renderLink)
+          if (mayContinue === false) continue
+
+          renderLinks.push(renderLink)
+        } catch (error) {
+          console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
+          continue
+        }
       }
     }
 
