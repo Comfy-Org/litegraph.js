@@ -629,4 +629,86 @@ describe("LinkConnector Integration", () => {
 
     validateIntegrityNoChanges()
   })
+
+  const nodeReroutePairs = [
+    { nodeId: 1, rerouteId: 1 },
+    { nodeId: 1, rerouteId: 3 },
+    { nodeId: 1, rerouteId: 4 },
+    { nodeId: 1, rerouteId: 2 },
+    { nodeId: 4, rerouteId: 7 },
+    { nodeId: 4, rerouteId: 6 },
+    { nodeId: 4, rerouteId: 8 },
+    { nodeId: 4, rerouteId: 10 },
+    { nodeId: 4, rerouteId: 12 },
+  ]
+  test.for(nodeReroutePairs)("Should ignore connections from input to same node via reroutes", (
+    { nodeId, rerouteId },
+    { graph, connector, validateIntegrityNoChanges },
+  ) => {
+    const listener = vi.fn()
+    connector.listenUntilReset("link-created", listener)
+
+    const node = graph.getNodeById(nodeId)!
+    const input = node.inputs[0]
+    const reroute = graph.getReroute(rerouteId)!
+    const dropEvent = { canvasX: reroute.pos[0], canvasY: reroute.pos[1] } as any
+
+    connector.dragNewFromInput(graph, node, input)
+    connector.dropLinks(graph, dropEvent)
+
+    expect(listener).not.toHaveBeenCalled()
+    validateIntegrityNoChanges()
+
+    // No links should have the same origin_id and target_id
+    for (const link of graph.links.values()) {
+      expect(link.origin_id).not.toEqual(link.target_id)
+    }
+  })
+
+  test.for(nodeReroutePairs)("Should ignore connections looping back to the origin node from a reroute", (
+    { nodeId, rerouteId },
+    { graph, connector, validateIntegrityNoChanges },
+  ) => {
+    const listener = vi.fn()
+    connector.listenUntilReset("link-created", listener)
+
+    const node = graph.getNodeById(nodeId)!
+    const reroute = graph.getReroute(rerouteId)!
+    const dropEvent = { canvasX: node.pos[0], canvasY: node.pos[1] } as any
+
+    connector.dragFromReroute(graph, reroute)
+    connector.dropLinks(graph, dropEvent)
+
+    expect(listener).not.toHaveBeenCalled()
+    validateIntegrityNoChanges()
+
+    // No links should have the same origin_id and target_id
+    for (const link of graph.links.values()) {
+      expect(link.origin_id).not.toEqual(link.target_id)
+    }
+  })
+
+  test.for(nodeReroutePairs)("Should ignore connections looping back to the origin node input from a reroute", (
+    { nodeId, rerouteId },
+    { graph, connector, validateIntegrityNoChanges },
+  ) => {
+    const listener = vi.fn()
+    connector.listenUntilReset("link-created", listener)
+
+    const node = graph.getNodeById(nodeId)!
+    const reroute = graph.getReroute(rerouteId)!
+    const inputPos = node.getInputPos(0)
+    const dropOnInputEvent = { canvasX: inputPos[0], canvasY: inputPos[1] } as any
+
+    connector.dragFromReroute(graph, reroute)
+    connector.dropLinks(graph, dropOnInputEvent)
+
+    expect(listener).not.toHaveBeenCalled()
+    validateIntegrityNoChanges()
+
+    // No links should have the same origin_id and target_id
+    for (const link of graph.links.values()) {
+      expect(link.origin_id).not.toEqual(link.target_id)
+    }
+  })
 })
