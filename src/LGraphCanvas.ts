@@ -5292,8 +5292,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     const node_left = graph.getNodeById(origin_id)
     const fromType = node_left?.outputs?.[origin_slot]?.type
 
-    const options = ["Add Node", null, "Delete", null]
-    options.splice(1, 0, "Add Reroute")
+    const options = ["Add Node", "Add Reroute", null, "Delete", null]
 
     const menu = new LiteGraph.ContextMenu<string>(options, {
       event: e,
