@@ -424,6 +424,27 @@ describe("LinkConnector Integration", () => {
       linksAfter: [1],
       runIntegrityCheck: true,
     },
+    {
+      targetRerouteId: 4,
+      parentIds: [],
+      linksBefore: [],
+      linksAfter: [],
+      runIntegrityCheck: true,
+    },
+    {
+      targetRerouteId: 2,
+      parentIds: [4],
+      linksBefore: [2],
+      linksAfter: [undefined],
+      runIntegrityCheck: false,
+    },
+    {
+      targetRerouteId: 3,
+      parentIds: [2, 4],
+      linksBefore: [2, 2],
+      linksAfter: [0, 0],
+      runIntegrityCheck: true,
+    },
   ])("Should allow reconnect from output to any reroute", (
     { targetRerouteId, parentIds, linksBefore, linksAfter, runIntegrityCheck },
     { graph, connector, validateIntegrityNoChanges, getNextLinkIds },
