@@ -331,6 +331,21 @@ describe("LinkConnector Integration", () => {
         expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
       }
     })
+
+    test("Should support moving multiple output links to a floating reroute", ({ graph, connector, floatingReroute, validateIntegrityFloatingRemoved }) => {
+      const manyOutputsNode = graph.getNodeById(4)!
+      const canvasX = floatingReroute.pos[0]
+      const canvasY = floatingReroute.pos[1]
+      const floatingRerouteEvent = { canvasX, canvasY } as any
+
+      connector.moveOutputLink(graph, manyOutputsNode.outputs[0])
+      connector.dropLinks(graph, floatingRerouteEvent)
+
+      expect(manyOutputsNode.outputs[0].links).toEqual([])
+      expect(floatingReroute.linkIds.size).toBe(4)
+
+      validateIntegrityFloatingRemoved()
+    })
   })
 
   describe("Floating links", () => {
