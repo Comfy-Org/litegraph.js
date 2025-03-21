@@ -9,41 +9,39 @@ import { ToInputRenderLink } from "@/canvas/ToInputRenderLink"
 import { LGraph } from "@/LGraph"
 import { LGraphNode } from "@/LGraphNode"
 import { LLink } from "@/LLink"
-import { Reroute } from "@/Reroute"
+import { Reroute, type RerouteId } from "@/Reroute"
 import { LinkDirection } from "@/types/globalEnums"
 
-type TestNetwork = LinkNetwork & { add(node: LGraphNode): void }
-
 interface TestContext {
-  network: TestNetwork
+  network: LinkNetwork & { add(node: LGraphNode): void }
   connector: LinkConnector
   setConnectingLinks: ReturnType<typeof vi.fn>
   createTestNode: (id: number, slotType?: ISlotType) => LGraphNode
   createTestLink: (id: number, sourceId: number, targetId: number, slotType?: ISlotType) => LLink
 }
 
-function createNetwork(): TestNetwork {
-  const graph = new LGraph()
-  const floatingLinks = new Map<number, LLink>()
-  return {
-    links: new Map<number, LLink>(),
-    reroutes: new Map<number, Reroute>(),
-    floatingLinks,
-    getNodeById: (id: number) => graph.getNodeById(id),
-    addFloatingLink: (link: LLink) => {
-      floatingLinks.set(link.id, link)
-      return link
-    },
-    removeReroute: () => true,
-    add: (node: LGraphNode) => graph.add(node),
-  }
-}
-
 const test = baseTest.extend<TestContext>({
   network: async ({}, use) => {
-    const network = createNetwork()
-    await use(network)
+    const graph = new LGraph()
+    const floatingLinks = new Map<number, LLink>()
+    const reroutes = new Map<number, Reroute>()
+
+    await use({
+      links: new Map<number, LLink>(),
+      reroutes,
+      floatingLinks,
+      getNodeById: (id: number) => graph.getNodeById(id),
+      addFloatingLink: (link: LLink) => {
+        floatingLinks.set(link.id, link)
+        return link
+      },
+      removeFloatingLink: (link: LLink) => floatingLinks.delete(link.id),
+      getReroute: ((id: RerouteId | null | undefined) => id == null ? undefined : reroutes.get(id)) as LinkNetwork["getReroute"],
+      removeReroute: (id: number) => reroutes.delete(id),
+      add: (node: LGraphNode) => graph.add(node),
+    })
   },
+
   setConnectingLinks: async ({}, use: (mock: ReturnType<typeof vi.fn>) => Promise<void>) => {
     const mock = vi.fn()
     await use(mock)
@@ -52,6 +50,7 @@ const test = baseTest.extend<TestContext>({
     const connector = new LinkConnector(setConnectingLinks)
     await use(connector)
   },
+
   createTestNode: async ({ network }, use) => {
     await use((id: number): LGraphNode => {
       const node = new LGraphNode("test")
