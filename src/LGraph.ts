@@ -1,6 +1,8 @@
 import type {
   Dictionary,
   IContextMenuValue,
+  INodeOutputSlot,
+  INodeSlot,
   LinkNetwork,
   LinkSegment,
   MethodNames,
@@ -25,6 +27,7 @@ import { LiteGraph } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { isSortaInsideOctagon } from "./measure"
+import { isINodeInputSlot } from "./NodeSlot"
 import { Reroute, RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { LGraphEventMode } from "./types/globalEnums"
@@ -1467,6 +1470,45 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
       }
     }
 
+    return reroute
+  }
+
+  /**
+   * Creates a new floating reroute on the graph.
+   * @param pos Position in graph space
+   * @param options Options
+   */
+  createFloatingReroute(
+    pos: Point,
+    options: {
+      node: LGraphNode
+      slot: INodeSlot
+    },
+  ): Reroute {
+    const { node, slot } = options
+    const floatingLink = this.addFloatingLink(
+      LLink.create({
+        id: -1,
+        type: slot.type,
+        ...(isINodeInputSlot(slot)
+          ? {
+            origin_id: -1,
+            origin_slot: -1,
+            target_id: node.id,
+            target_slot: node.inputs.indexOf(slot),
+          }
+          : {
+            origin_id: node.id,
+            origin_slot: node.outputs.indexOf(slot as INodeOutputSlot),
+            target_id: -1,
+            target_slot: -1,
+          }),
+      }),
+    )
+
+    const reroute = this.createReroute(pos, floatingLink)
+    reroute.floatingLinkIds.add(floatingLink.id)
+    reroute.floating = { slotType: "input" }
     return reroute
   }
 

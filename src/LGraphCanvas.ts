@@ -77,7 +77,7 @@ import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 interface IShowSearchOptions {
   node_to?: LGraphNode | null
   node_from?: LGraphNode | null
-  slot_from: number | INodeOutputSlot | INodeInputSlot | null | undefined
+  slot_from: INodeSlot | null
   type_filter_in?: ISlotType
   type_filter_out?: ISlotType | false
 
@@ -109,6 +109,7 @@ interface ICreateNodeOptions {
   nodeType?: string
   e?: CanvasMouseEvent
   allow_searchbox?: boolean
+  allow_reroute?: boolean
 }
 
 interface ICreateDefaultNodeOptions extends ICreateNodeOptions {
@@ -5508,6 +5509,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       slotTo: null,
       e: undefined,
       allow_searchbox: this.allow_searchbox,
+      allow_reroute: true,
       showSearchBox: this.showSearchBox,
     }, optPass || {})
     const that = this
@@ -5523,37 +5525,43 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     const nodeX = isFrom ? opts.nodeFrom : opts.nodeTo
     if (!nodeX) throw new TypeError("nodeX was null when creating default node for slot.")
-    let slotX = isFrom ? opts.slotFrom : opts.slotTo
+    const slotXRaw = isFrom ? opts.slotFrom : opts.slotTo
+    let slotX: INodeSlot
 
     let iSlotConn: number
-    switch (typeof slotX) {
+    switch (typeof slotXRaw) {
     case "string":
       iSlotConn = isFrom
-        ? nodeX.findOutputSlot(slotX, false)
-        : nodeX.findInputSlot(slotX, false)
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+        ? nodeX.findOutputSlot(slotXRaw, false)
+        : nodeX.findInputSlot(slotXRaw, false)
+      slotX = isFrom ? nodeX.outputs[slotXRaw] : nodeX.inputs[slotXRaw]
       break
     case "object":
-      if (slotX === null) {
-        console.warn("Cant get slot information", slotX)
+      if (slotXRaw === null) {
+        console.warn("Cant get slot information", slotXRaw)
         return
       }
 
       // ok slotX
       iSlotConn = isFrom
-        ? nodeX.findOutputSlot(slotX.name)
-        : nodeX.findInputSlot(slotX.name)
+        ? nodeX.findOutputSlot(slotXRaw.name)
+        : nodeX.findInputSlot(slotXRaw.name)
+      slotX = slotXRaw
       break
     case "number":
-      iSlotConn = slotX
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+      iSlotConn = slotXRaw
+      slotX = isFrom ? nodeX.outputs[slotXRaw] : nodeX.inputs[slotXRaw]
       break
     default:
-      console.warn("Cant get slot information", slotX)
+      console.warn("Cant get slot information", slotXRaw)
       return
     }
 
     const options = ["Add Node", null]
+
+    if (opts.allow_reroute) {
+      options.push("Reroute", null)
+    }
 
     if (opts.allow_searchbox) {
       options.push("Search", null)
@@ -5586,7 +5594,6 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // callback
     function inner_clicked(v: string, options: unknown, e: MouseEvent) {
-      // console.log("Process showConnectionMenu selection");
       switch (v) {
       case "Add Node":
         LGraphCanvas.onMenuAdd(null, null, e, menu, function (node) {
@@ -5606,6 +5613,18 @@ export class LGraphCanvas implements ConnectionColorContext {
           opts.showSearchBox(e, { node_to: opts.nodeTo, slot_from: slotX, type_filter_out: fromSlotType })
         }
         break
+      case "Reroute": {
+        if (!that.graph) throw new NullGraphError()
+
+        const node = opts.nodeFrom ?? opts.nodeTo
+        if (!node) throw new TypeError("node was null when creating floating reroute.")
+
+        that.graph.createFloatingReroute(
+          [opts.e?.canvasX ?? 0, opts.e?.canvasY ?? 0],
+          { node, slot: slotX },
+        )
+        break
+      }
       default: {
         const customProps = {
           position: [opts.e?.canvasX ?? 0, opts.e?.canvasY ?? 0],
