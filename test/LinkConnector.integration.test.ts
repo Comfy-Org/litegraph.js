@@ -325,6 +325,63 @@ describe("LinkConnector Integration", () => {
     })
   })
 
+  test("Should drop floating links when both sides are disconnected", ({ graph, connector, reroutesBeforeTest, validateIntegrityNoChanges }) => {
+    const floatingOutNode = graph.getNodeById(1)!
+    connector.moveOutputLink(graph, floatingOutNode.outputs[0])
+
+    const manyOutputsNode = graph.getNodeById(4)!
+    const dropEvent = { canvasX: manyOutputsNode.pos[0], canvasY: manyOutputsNode.pos[1] } as any
+    connector.dropLinks(graph, dropEvent)
+
+    const output = manyOutputsNode.outputs[0]
+    expect(output.links!.length).toBe(6)
+    expect(output._floatingLinks!.size).toBe(1)
+
+    validateIntegrityNoChanges()
+
+    // Move again
+    connector.moveOutputLink(graph, manyOutputsNode.outputs[0])
+
+    const disconnectedNode = graph.getNodeById(9)!
+    dropEvent.canvasX = disconnectedNode.pos[0]
+    dropEvent.canvasY = disconnectedNode.pos[1]
+    connector.dropLinks(graph, dropEvent)
+
+    const newOutput = disconnectedNode.outputs[0]
+    expect(newOutput.links!.length).toBe(6)
+    expect(newOutput._floatingLinks!.size).toBe(1)
+
+    validateIntegrityNoChanges()
+
+    disconnectedNode.disconnectOutput(0)
+
+    expect(newOutput._floatingLinks!.size).toBe(0)
+    expect(graph.floatingLinks.size).toBe(6)
+
+    // The final reroutes should all be floating
+    for (const reroute of graph.reroutes.values()) {
+      if ([3, 7, 15, 12].includes(reroute.id)) {
+        expect(reroute.floating).toEqual({ slotType: "input" })
+      } else {
+        expect(reroute.floating).toBeUndefined()
+      }
+    }
+
+    // Removed one reroute
+    expect(graph.reroutes.size).toBe(reroutesBeforeTest.length - 1)
+
+    // Original nodes should have no links
+    for (const nodeId of [1, 4]) {
+      const { inputs: [input], outputs: [output] } = graph.getNodeById(nodeId)!
+
+      expect(input.link).toBeNull()
+      expect(output.links?.length).toBeOneOf([0, undefined])
+
+      expect(input._floatingLinks?.size).toBeOneOf([0, undefined])
+      expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
+    }
+  })
+
   type TestData = {
     /** Drop link on this reroute */
     targetRerouteId: number
@@ -406,63 +463,6 @@ describe("LinkConnector Integration", () => {
 
     if (runIntegrityCheck) {
       validateIntegrityNoChanges()
-    }
-  })
-
-  test("Should drop floating links when both sides are disconnected", ({ graph, connector, reroutesBeforeTest, validateIntegrityNoChanges }) => {
-    const floatingOutNode = graph.getNodeById(1)!
-    connector.moveOutputLink(graph, floatingOutNode.outputs[0])
-
-    const manyOutputsNode = graph.getNodeById(4)!
-    const dropEvent = { canvasX: manyOutputsNode.pos[0], canvasY: manyOutputsNode.pos[1] } as any
-    connector.dropLinks(graph, dropEvent)
-
-    const output = manyOutputsNode.outputs[0]
-    expect(output.links!.length).toBe(6)
-    expect(output._floatingLinks!.size).toBe(1)
-
-    validateIntegrityNoChanges()
-
-    // Move again
-    connector.moveOutputLink(graph, manyOutputsNode.outputs[0])
-
-    const disconnectedNode = graph.getNodeById(9)!
-    dropEvent.canvasX = disconnectedNode.pos[0]
-    dropEvent.canvasY = disconnectedNode.pos[1]
-    connector.dropLinks(graph, dropEvent)
-
-    const newOutput = disconnectedNode.outputs[0]
-    expect(newOutput.links!.length).toBe(6)
-    expect(newOutput._floatingLinks!.size).toBe(1)
-
-    validateIntegrityNoChanges()
-
-    disconnectedNode.disconnectOutput(0)
-
-    expect(newOutput._floatingLinks!.size).toBe(0)
-    expect(graph.floatingLinks.size).toBe(6)
-
-    // The final reroutes should all be floating
-    for (const reroute of graph.reroutes.values()) {
-      if ([3, 7, 15, 12].includes(reroute.id)) {
-        expect(reroute.floating).toEqual({ slotType: "input" })
-      } else {
-        expect(reroute.floating).toBeUndefined()
-      }
-    }
-
-    // Removed one reroute
-    expect(graph.reroutes.size).toBe(reroutesBeforeTest.length - 1)
-
-    // Original nodes should have no links
-    for (const nodeId of [1, 4]) {
-      const { inputs: [input], outputs: [output] } = graph.getNodeById(nodeId)!
-
-      expect(input.link).toBeNull()
-      expect(output.links?.length).toBeOneOf([0, undefined])
-
-      expect(input._floatingLinks?.size).toBeOneOf([0, undefined])
-      expect(output._floatingLinks?.size).toBeOneOf([0, undefined])
     }
   })
 
