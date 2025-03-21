@@ -534,7 +534,7 @@ describe("LinkConnector Integration", () => {
       testFloatingInputs: true,
       expectedExtraLinks: 1,
     },
-  ])("Connecting from reroutes to another reroute should disconnect intermediate reroutes", (
+  ])("Should allow connecting from reroutes to another reroute", (
     { fromRerouteId, toRerouteId, shouldBeRemoved, shouldHaveLinkIdsRemoved, testFloatingInputs, expectedExtraLinks },
     { graph, connector, getNextLinkIds },
   ) => {
