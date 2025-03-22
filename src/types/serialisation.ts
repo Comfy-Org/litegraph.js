@@ -29,10 +29,13 @@ export interface Serialisable<SerialisableObject> {
   asSerialisable(): SerialisableObject
 }
 
-export interface SerialisableGraph {
+export interface BaseExportedGraph {
   /** Unique graph ID.  Automatically generated if not provided. */
   id: UUID
   revision: number
+}
+
+export interface SerialisableGraph extends BaseExportedGraph {
   /** Schema version.  @remarks Version bump should add to const union, which is used to narrow type during deserialise. */
   version: 0 | 1
   config: LGraphConfig
@@ -83,9 +86,7 @@ export interface ISerialisedNode {
  * Original implementation from static litegraph.d.ts
  * Maintained for backwards compat
  */
-export interface ISerialisedGraph {
-  id: UUID
-  revision: number
+export interface ISerialisedGraph extends BaseExportedGraph {
   last_node_id: NodeId
   last_link_id: number
   nodes: ISerialisedNode[]
