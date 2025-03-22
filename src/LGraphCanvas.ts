@@ -4653,7 +4653,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const endDirection = node.inputs[link.target_slot]?.dir
 
         firstReroute._dragging = true
-        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, LinkDirection.CENTER, endDirection)
+        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, LinkDirection.CENTER, endDirection, true)
       } else {
         const node = graph.getNodeById(link.origin_id)
         if (!node) continue
@@ -4663,7 +4663,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         const startDirection = node.outputs[link.origin_slot]?.dir
 
         link._dragging = true
-        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, startDirection, LinkDirection.CENTER)
+        this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, startDirection, LinkDirection.CENTER, true)
       }
     }
     ctx.globalAlpha = globalAlpha
@@ -4678,6 +4678,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     now: number,
     startDirection?: LinkDirection,
     endDirection?: LinkDirection,
+    disabled: boolean = false,
   ) {
     const { graph, renderedPaths } = this
     if (!graph) return
@@ -4741,6 +4742,7 @@ export class LGraphCanvas implements ConnectionColorContext {
                 startControl,
                 endControl: reroute.controlPoint,
                 reroute,
+                disabled,
               },
             )
           }
@@ -4774,7 +4776,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         null,
         start_dir,
         end_dir,
-        { startControl },
+        { startControl, disabled },
       )
       // Skip normal render when link is being dragged
     } else if (!link._dragging) {
@@ -4839,6 +4841,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       endControl,
       reroute,
       num_sublines = 1,
+      disabled = false,
     }: {
       /** When defined, render data will be saved to this reroute instead of the {@link link}. */
       reroute?: Reroute
@@ -4848,6 +4851,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       endControl?: ReadOnlyPoint
       /** Number of sublines (useful to represent vec3 or rgb) @todo If implemented, refactor calculations out of the loop */
       num_sublines?: number
+      /** Whether this is a floating link segment */
+      disabled?: boolean
     } = {},
   ): void {
     const linkColour =
@@ -5081,6 +5086,14 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.linkMarkerShape === LinkMarkerShape.Circle
       ) {
         ctx.arc(pos[0], pos[1], 5, 0, Math.PI * 2)
+      }
+      if (disabled) {
+        const { fillStyle, globalAlpha } = ctx
+        ctx.fillStyle = this._pattern ?? "#797979"
+        ctx.globalAlpha = 0.75
+        ctx.fill()
+        ctx.globalAlpha = globalAlpha
+        ctx.fillStyle = fillStyle
       }
       ctx.fill()
     }
