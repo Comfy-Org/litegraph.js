@@ -3319,7 +3319,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       for (const outLink of outLinks) {
         const outNode = graph.getNodeById(outLink.target_id)
-        if (!outNode) return
+        if (!outNode) continue
 
         const result = inNode.connect(
           inLink.origin_slot,
