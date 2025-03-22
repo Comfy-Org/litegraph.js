@@ -2671,7 +2671,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       // all the links in this output slot
       for (const link_id of links) {
         const link_info = graph._links.get(link_id)
-        // bug: it happens sometimes
         if (!link_info) continue
 
         const target = graph.getNodeById(link_info.target_id)
