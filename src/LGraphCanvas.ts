@@ -4617,7 +4617,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.#renderFloatingLinks(ctx, graph, visibleReroutes, now)
     }
 
-    // Render the reroute circles
+    // Render reroutes, ordered by number of non-floating links
+    visibleReroutes.sort((a, b) => a.linkIds.size - b.linkIds.size)
     for (const reroute of visibleReroutes) {
       if (
         this.#snapToGrid &&
