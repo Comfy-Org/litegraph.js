@@ -2636,37 +2636,36 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       for (const [i, link_id] of links.entries()) {
         const link_info = graph._links.get(link_id)
+        if (link_info?.target_id != target.id) continue
 
         // is the link we are searching for...
-        if (link_info?.target_id == target.id) {
-          // remove here
-          links.splice(i, 1)
-          const input = target.inputs[link_info.target_slot]
-          // remove there
-          input.link = null
+        // remove here
+        links.splice(i, 1)
+        const input = target.inputs[link_info.target_slot]
+        // remove there
+        input.link = null
 
-          // remove the link from the links pool
-          link_info.disconnect(graph, "input")
-          graph._version++
+        // remove the link from the links pool
+        link_info.disconnect(graph, "input")
+        graph._version++
 
-          // link_info hasn't been modified so its ok
-          target.onConnectionsChange?.(
-            NodeSlotType.INPUT,
-            link_info.target_slot,
-            false,
-            link_info,
-            input,
-          )
-          this.onConnectionsChange?.(
-            NodeSlotType.OUTPUT,
-            slot,
-            false,
-            link_info,
-            output,
-          )
+        // link_info hasn't been modified so its ok
+        target.onConnectionsChange?.(
+          NodeSlotType.INPUT,
+          link_info.target_slot,
+          false,
+          link_info,
+          input,
+        )
+        this.onConnectionsChange?.(
+          NodeSlotType.OUTPUT,
+          slot,
+          false,
+          link_info,
+          output,
+        )
 
-          break
-        }
+        break
       }
     } else {
       // all the links in this output slot
