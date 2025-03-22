@@ -2547,7 +2547,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return link
   }
 
-  connectFloatingReroute(pos: Point, slot: INodeInputSlot | INodeOutputSlot): Reroute {
+  connectFloatingReroute(pos: Point, slot: INodeInputSlot | INodeOutputSlot, afterRerouteId?: RerouteId): Reroute {
     const { graph, id } = this
     if (!graph) throw new NullGraphError()
 
@@ -2563,9 +2563,15 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       outputIndex,
       inputIndex === -1 ? -1 : id,
       inputIndex,
+      afterRerouteId,
     )
     const slotType = outputIndex === -1 ? "input" : "output"
-    const reroute = graph.setReroute({ pos, linkIds: [], floating: { slotType } })
+    const reroute = graph.setReroute({
+      pos,
+      parentId: afterRerouteId,
+      linkIds: [],
+      floating: { slotType },
+    })
 
     link.parentId = reroute.id
     graph.addFloatingLink(link)
