@@ -33,12 +33,12 @@ export interface BaseExportedGraph {
   /** Unique graph ID.  Automatically generated if not provided. */
   id: UUID
   revision: number
+  config: LGraphConfig
 }
 
 export interface SerialisableGraph extends BaseExportedGraph {
   /** Schema version.  @remarks Version bump should add to const union, which is used to narrow type during deserialise. */
   version: 0 | 1
-  config: LGraphConfig
   state: LGraphState
   groups?: ISerialisedGroup[]
   nodes?: ISerialisedNode[]
@@ -93,7 +93,6 @@ export interface ISerialisedGraph extends BaseExportedGraph {
   links: SerialisedLLinkArray[]
   floatingLinks?: SerialisableLLink[]
   groups: ISerialisedGroup[]
-  config: LGraphConfig
   version: typeof LiteGraph.VERSION
   extra?: Dictionary<unknown> & {
     reroutes?: SerialisableReroute[]
