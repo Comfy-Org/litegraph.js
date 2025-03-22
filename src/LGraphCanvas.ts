@@ -3878,11 +3878,11 @@ export class LGraphCanvas implements ConnectionColorContext {
       }
 
       // on top of link center
-      if (this.over_link_center && this.render_link_tooltip)
+      if (!this.isDragging && this.over_link_center && this.render_link_tooltip) {
         this.drawLinkTooltip(ctx, this.over_link_center)
-      // to remove
-      else
+      } else {
         this.onDrawLinkTooltip?.(ctx, null)
+      }
 
       // custom info
       this.onDrawForeground?.(ctx, this.visible_area)
