@@ -5067,7 +5067,6 @@ export class LGraphCanvas implements ConnectionColorContext {
         ctx.moveTo(-3.2, -5)
         ctx.lineTo(+7, 0)
         ctx.lineTo(-3.2, +5)
-        ctx.fill()
         ctx.setTransform(transform)
       } else if (
         this.linkMarkerShape == null ||
