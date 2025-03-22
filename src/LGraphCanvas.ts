@@ -522,7 +522,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** @deprecated Panels */
   options_panel?: any
   _bg_img?: HTMLImageElement
-  _pattern?: CanvasPattern | null
+  _pattern?: CanvasPattern
   _pattern_img?: HTMLImageElement
   // TODO: This looks like another panel thing
   prompt_box?: PromptDialog | null
@@ -4141,7 +4141,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         let pattern = this._pattern
         if (pattern == null && this._bg_img.width > 0) {
-          pattern = ctx.createPattern(this._bg_img, "repeat")
+          pattern = ctx.createPattern(this._bg_img, "repeat") ?? undefined
           this._pattern_img = this._bg_img
           this._pattern = pattern
         }
