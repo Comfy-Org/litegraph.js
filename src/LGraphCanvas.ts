@@ -4626,12 +4626,16 @@ export class LGraphCanvas implements ConnectionColorContext {
       ) {
         this.drawSnapGuide(ctx, reroute, RenderShape.CIRCLE)
       }
-      reroute.draw(ctx)
+      reroute.draw(ctx, this._pattern)
     }
     ctx.globalAlpha = 1
   }
 
   #renderFloatingLinks(ctx: CanvasRenderingContext2D, graph: LGraph, visibleReroutes: Reroute[], now: number) {
+    // Render floating links with 3/4 current alpha
+    const { globalAlpha } = ctx
+    ctx.globalAlpha = globalAlpha * 0.33
+
     // Floating reroutes
     for (const link of graph.floatingLinks.values()) {
       const reroutes = LLink.getReroutes(graph, link)
@@ -4662,6 +4666,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, startDirection, LinkDirection.CENTER)
       }
     }
+    ctx.globalAlpha = globalAlpha
   }
 
   #renderAllLinkSegments(
