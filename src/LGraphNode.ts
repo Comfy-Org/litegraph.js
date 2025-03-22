@@ -856,8 +856,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (links) {
       for (const id of links) {
         const link = this.graph._links.get(id)
-        if (!link) continue
-        link.type = type
+        if (link) link.type = type
       }
     }
   }
@@ -1417,9 +1416,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (!this.graph) throw new NullGraphError()
 
         const link = this.graph._links.get(linkId)
-        if (!link) continue
-
-        link.origin_slot--
+        if (link) link.origin_slot--
       }
     }
 
@@ -1483,9 +1480,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       if (!this.graph) throw new NullGraphError()
       const link = this.graph._links.get(input.link)
-      if (!link) continue
-
-      link.target_slot--
+      if (link) link.target_slot--
     }
     this.onInputRemoved?.(slot, slot_info[0])
     this.setDirtyCanvas(true, true)
