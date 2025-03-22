@@ -4743,7 +4743,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
         if (!startControl && reroutes.at(-1)?.floating?.slotType === "input") {
           // Floating link connected to an input
-          startControl = [0, 0] satisfies Point
+          startControl = [0, 0]
         } else {
           // Calculate start control for the next iter control point
           const nextPos = reroutes[j + 1]?.pos ?? endPos
