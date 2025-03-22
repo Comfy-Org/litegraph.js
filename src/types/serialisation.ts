@@ -56,7 +56,7 @@ export type ISerialisableNodeOutput = Omit<INodeOutputSlot, "_layoutElement" | "
 export interface ISerialisedNode {
   title?: string
   id: NodeId
-  type?: string
+  type: string
   pos: Point
   size: Size
   flags: INodeFlags
