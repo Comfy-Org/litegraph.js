@@ -190,9 +190,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   locked?: boolean
 
-  // Execution order, automatically computed during run
-  order?: number
-  mode?: LGraphEventMode
+  /** Execution order, automatically computed during run @see {@link LGraph.computeExecutionOrder} */
+  order: number = 0
+  mode: LGraphEventMode = LGraphEventMode.ALWAYS
   last_serialization?: ISerialisedNode
   serialize_widgets?: boolean
   /**

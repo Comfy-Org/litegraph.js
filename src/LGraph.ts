@@ -659,7 +659,6 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
     }
 
     ancestors.sort(function (a, b) {
-      // @ts-expect-error deprecated
       return a.order - b.order
     })
     return ancestors
