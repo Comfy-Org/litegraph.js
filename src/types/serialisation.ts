@@ -3,6 +3,7 @@ import type {
   INodeFlags,
   INodeInputSlot,
   INodeOutputSlot,
+  INodeSlot,
   ISlotType,
   Point,
   Size,
@@ -34,6 +35,13 @@ export interface BaseExportedGraph {
   id: UUID
   revision: number
   config: LGraphConfig
+  /** Details of the appearance and location of subgraphs shown in this graph. Similar to */
+  subgraphs?: ExportedSubgraphInstance[]
+  /** Definitions of re-usable objects that are referenced elsewhere in this exported graph. */
+  definitions?: {
+    /** The base definition of subgraphs used in this workflow. That is, what you see when you open / edit a subgraph. */
+    subgraphs?: Record<UUID, ExportedSubgraph>[]
+  }
 }
 
 export interface SerialisableGraph extends BaseExportedGraph {
@@ -82,6 +90,18 @@ export interface ISerialisedNode {
   widgets_values?: TWidgetValue[]
 }
 
+/** Properties of nodes that are used by subgraph instances. */
+type NodeSubgraphSharedProps = Omit<ISerialisedNode, "type" | "outputs" | "inputs" | "properties" | "showAdvanced" | "widgets_values">
+
+/** A single instance of a subgraph; where it is used on a graph, any customisation to shape / colour etc. */
+export interface ExportedSubgraphInstance extends NodeSubgraphSharedProps {
+  /**
+   * The ID of the actual subgraph definition.
+   * @see {@link ExportedSubgraph.subgraphs}
+   */
+  subgraphId: UUID
+}
+
 /**
  * Original implementation from static litegraph.d.ts
  * Maintained for backwards compat
@@ -97,6 +117,40 @@ export interface ISerialisedGraph extends BaseExportedGraph {
   extra?: Dictionary<unknown> & {
     reroutes?: SerialisableReroute[]
   }
+}
+
+/**
+ * Defines a subgraph and its contents.
+ * Can be referenced multiple times in a schema.
+ */
+export interface ExportedSubgraph extends ISerialisedGraph {
+  /** The display name of the subgraph. */
+  name: string
+  /** Ordered list of inputs to the subgraph itself. Similar to a reroute, with the input side in the graph, and the output side in the subgraph. */
+  inputs: SubgraphIO[]
+  /** Ordered list of outputs from the subgraph itself. Similar to a reroute, with the input side in the subgraph, and the output side in the graph. */
+  outputs: SubgraphIO[]
+  /** A list of node widgets displayed in the parent graph, on the subgraph object. */
+  widgets: ExposedWidget[]
+}
+
+/** Properties shared by subgraph and node I/O slots. */
+type SubgraphIOShared = Omit<INodeSlot, "nameLocked" | "locked" | "removable" | "_layoutElement" | "_floatingLinks">
+
+/** Subgraph I/O slots */
+export interface SubgraphIO extends SubgraphIOShared {
+  /** Slot ID (internal; never changes once instantiated). */
+  id: UUID
+  /** The data type this slot uses. Unlike nodes, this does not support legacy numeric types. */
+  type: string
+}
+
+/** A reference to a node widget shown in the parent graph */
+export interface ExposedWidget {
+  /** The ID of the node (inside the subgraph) that the widget belongs to. */
+  id: NodeId
+  /** The name of the widget to show in the parent graph. */
+  name: string
 }
 
 /** Serialised LGraphGroup */
