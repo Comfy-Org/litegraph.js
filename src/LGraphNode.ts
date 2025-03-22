@@ -2556,16 +2556,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const outputIndex = this.outputs.indexOf(slot as INodeOutputSlot)
     if (inputIndex === -1 && outputIndex === -1) throw new Error("Invalid slot")
 
-    const link = new LLink(
-      -1,
-      slot.type,
-      outputIndex === -1 ? -1 : id,
-      outputIndex,
-      inputIndex === -1 ? -1 : id,
-      inputIndex,
-      afterRerouteId,
-    )
     const slotType = outputIndex === -1 ? "input" : "output"
+
     const reroute = graph.setReroute({
       pos,
       parentId: afterRerouteId,
@@ -2573,8 +2565,33 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       floating: { slotType },
     })
 
+    const parentReroute = graph.getReroute(afterRerouteId)
+    const fromLastFloatingReroute = parentReroute?.floating?.slotType === "output"
+
+    // Adding from an ouput, or a floating reroute that is NOT the tip of an existing floating chain
+    if (afterRerouteId == null || !fromLastFloatingReroute) {
+      const link = new LLink(
+        -1,
+        slot.type,
+        outputIndex === -1 ? -1 : id,
+        outputIndex,
+        inputIndex === -1 ? -1 : id,
+        inputIndex,
+      )
+      link.parentId = reroute.id
+      graph.addFloatingLink(link)
+      return reroute
+    }
+
+    // Adding a new floating reroute from the tip of a floating chain.
+    if (!parentReroute) throw new Error("[connectFloatingReroute] Parent reroute not found")
+
+    const link = parentReroute.getFloatingLinks("output")?.[0]
+    if (!link) throw new Error("[connectFloatingReroute] Floating link not found")
+
+    reroute.floatingLinkIds.add(link.id)
     link.parentId = reroute.id
-    graph.addFloatingLink(link)
+    delete parentReroute.floating
     return reroute
   }
 
