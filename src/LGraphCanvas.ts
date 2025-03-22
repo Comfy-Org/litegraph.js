@@ -5016,9 +5016,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     if (
       this.ds.scale >= 0.6 &&
       this.highquality_render &&
-      linkSegment &&
-      // TODO: Re-assess this usage - likely a workaround that linkSegment truthy check resolves
-      endDir != LinkDirection.CENTER
+      linkSegment
     ) {
       // render arrow
       if (this.render_connection_arrows) {
