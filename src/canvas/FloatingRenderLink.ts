@@ -96,11 +96,11 @@ export class FloatingRenderLink implements RenderLink {
     this.fromPos = fromReroute.pos
   }
 
-  canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): true {
+  canConnectToInput(): true {
     return true
   }
 
-  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): true {
+  canConnectToOutput(): true {
     return true
   }
 
