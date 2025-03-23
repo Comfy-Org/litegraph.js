@@ -17,7 +17,7 @@ export class MovingOutputLink extends MovingLinkBase {
   readonly fromDirection: LinkDirection
   readonly fromSlotIndex: number
 
-  constructor(network: LinkNetwork, link: LLink, fromReroute?: Reroute, dragDirection: LinkDirection = LinkDirection.RIGHT) {
+  constructor(network: LinkNetwork, link: LLink, fromReroute?: Reroute, dragDirection: LinkDirection = LinkDirection.CENTER) {
     super(network, link, "output", fromReroute, dragDirection)
 
     this.node = this.inputNode
