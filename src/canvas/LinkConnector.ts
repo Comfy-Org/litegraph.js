@@ -10,7 +10,6 @@ import { LinkConnectorEventMap, LinkConnectorEventTarget } from "@/infrastructur
 import { LLink } from "@/LLink"
 import { LinkDirection } from "@/types/globalEnums"
 
-import { getNodeOutputOnPos } from "./measureSlots"
 import { MovingRenderLink } from "./MovingRenderLink"
 import { ToInputRenderLink } from "./ToInputRenderLink"
 import { ToOutputRenderLink } from "./ToOutputRenderLink"
@@ -242,10 +241,10 @@ export class LinkConnector {
     const node = network.getNodeById(linkSegment.origin_id)
     if (!node) return
 
-    const slot = getNodeOutputOnPos(node, linkSegment._pos[0], linkSegment._pos[1])?.output
+    const slot = node.outputs.at(linkSegment.origin_slot)
     if (!slot) return
 
-    const reroute = linkSegment.parentId ? network.reroutes.get(linkSegment.parentId) : undefined
+    const reroute = network.getReroute(linkSegment.parentId)
     if (!reroute) return
 
     const renderLink = new ToInputRenderLink(network, node, slot, reroute)
@@ -253,6 +252,8 @@ export class LinkConnector {
     this.renderLinks.push(renderLink)
 
     state.connectingTo = "input"
+
+    this.#setLegacyLinks(false)
   }
 
   /**
