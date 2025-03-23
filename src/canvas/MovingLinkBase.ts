@@ -10,7 +10,8 @@ import { LinkDirection } from "@/types/globalEnums"
 /**
  * Represents an existing link that is currently being dragged by the user from one slot to another.
  *
- * This is a heavier, but short-lived convenience data structure. All refs to MovingRenderLinks should be discarded on drop.
+ * This is a heavier, but short-lived convenience data structure.
+ * All refs to {@link MovingInputLink} and {@link MovingOutputLink} should be discarded on drop.
  * @remarks
  * At time of writing, Litegraph is using several different styles and methods to handle link dragging.
  *
