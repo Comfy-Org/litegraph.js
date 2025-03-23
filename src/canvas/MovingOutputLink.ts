@@ -1,6 +1,6 @@
-import type { LinkNetwork, Point } from "@/interfaces"
+import type { LinkConnectorEventTarget } from "@/infrastructure/LinkConnectorEventTarget"
+import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
-import type { INodeInputSlot } from "@/litegraph"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
 
@@ -25,5 +25,61 @@ export class MovingOutputLink extends MovingLinkBase {
     this.fromPos = fromReroute?.pos ?? this.inputPos
     this.fromDirection = LinkDirection.LEFT
     this.fromSlotIndex = this.inputIndex
+  }
+
+  canConnectToInput(): false {
+    return false
+  }
+
+  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): this is this {
+    return outputNode.canConnectTo(this.node, this.inputSlot, output)
+  }
+
+  canConnectToReroute(reroute: Reroute): boolean {
+    return reroute.origin_id !== this.outputNode.id
+  }
+
+  connectToInput(): never {
+    throw new Error("MovingOutputLink cannot connect to an input.")
+  }
+
+  connectToOutput(outputNode: LGraphNode, output: INodeOutputSlot, events: LinkConnectorEventTarget): LLink | null | undefined {
+    if (output === this.outputSlot) return
+
+    const link = outputNode.connectSlots(output, this.inputNode, this.inputSlot, this.link.parentId)
+    if (link) events.dispatch("output-moved", this)
+    return link
+  }
+
+  connectToRerouteInput(): never {
+    throw new Error("MovingOutputLink cannot connect to an input.")
+  }
+
+  connectToRerouteOutput(
+    reroute: Reroute,
+    outputNode: LGraphNode,
+    output: INodeOutputSlot,
+    events: LinkConnectorEventTarget,
+  ): void {
+    // Moving output side of links
+    const { inputNode, inputSlot, fromReroute } = this
+
+    // Creating a new link removes floating prop - check before connecting
+    const floatingTerminus = reroute?.floating?.slotType === "output"
+
+    // Connect the first reroute of the link being dragged to the reroute being dropped on
+    if (fromReroute) {
+      fromReroute.parentId = reroute.id
+    } else {
+      // If there are no reroutes, directly connect the link
+      this.link.parentId = reroute.id
+    }
+    // Use the last reroute id on the link to retain all reroutes
+    outputNode.connectSlots(output, inputNode, inputSlot, this.link.parentId)
+
+    // Connecting from the final reroute of a floating reroute chain
+    if (floatingTerminus) reroute.removeAllFloatingLinks()
+
+    events.dispatch("output-moved", this)
   }
 }
