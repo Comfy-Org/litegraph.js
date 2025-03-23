@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: lts/0.10.10
 
       - uses: actions/setup-node@v3
         with:
