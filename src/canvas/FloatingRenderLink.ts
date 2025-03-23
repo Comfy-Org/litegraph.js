@@ -118,6 +118,8 @@ export class FloatingRenderLink implements RenderLink {
     floatingLink.target_id = node.id
     floatingLink.target_slot = node.inputs.indexOf(input)
 
+    node.disconnectInput(node.inputs.indexOf(input))
+
     this.fromSlot._floatingLinks?.delete(floatingLink)
     input._floatingLinks ??= new Set()
     input._floatingLinks.add(floatingLink)
