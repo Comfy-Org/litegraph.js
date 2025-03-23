@@ -1,5 +1,5 @@
 import type { RenderLink } from "./RenderLink"
-import type { ConnectingLink, ISlotType, ItemLocator, LinkNetwork, LinkSegment } from "@/interfaces"
+import type { ConnectingLink, ItemLocator, LinkNetwork, LinkSegment } from "@/interfaces"
 import type { INodeInputSlot, INodeOutputSlot } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
@@ -7,7 +7,6 @@ import type { CanvasPointerEvent } from "@/types/events"
 import type { IWidget } from "@/types/widgets"
 
 import { LinkConnectorEventMap, LinkConnectorEventTarget } from "@/infrastructure/LinkConnectorEventTarget"
-import { LiteGraph } from "@/litegraph"
 import { LLink } from "@/LLink"
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -548,7 +547,7 @@ export class LinkConnector {
       for (const renderLink of this.renderLinks) {
         if (renderLink.toType !== "output") continue
         if (!renderLink.canConnectToReroute(reroute)) continue
-        if (isValidConnectionToOutput(renderLink, node, output)) return true
+        if (renderLink.canConnectToOutput(node, output)) return true
       }
     }
 
@@ -633,36 +632,21 @@ export class LinkConnector {
   }
 }
 
-function isValidConnectionToOutput(link: ToOutputRenderLink | MovingRenderLink | FloatingRenderLink, outputNode: LGraphNode, output: INodeOutputSlot): boolean {
-  const { node: fromNode } = link
-
-  // Node cannot connect to itself
-  if (fromNode === outputNode) return false
-
-  if (link instanceof MovingRenderLink) {
-    const { inputSlot: { type } } = link
-
-    // Link is already connected here / type mismatch
-    if (!LiteGraph.isValidConnection(type, output.type)) {
-      return false
-    }
-  } else {
-    const { fromSlot: { type } } = link
-    if (!LiteGraph.isValidConnection(type, output.type)) return false
-  }
-  return true
-}
-
 /** Validates that a single {@link RenderLink} can be dropped on the specified reroute. */
-function canConnectInputLinkToReroute(link: ToInputRenderLink | MovingRenderLink | FloatingRenderLink, inputNode: LGraphNode, input: INodeInputSlot, reroute: Reroute): boolean {
-  const { node: fromNode, fromSlot, fromReroute } = link
+function canConnectInputLinkToReroute(
+  link: ToInputRenderLink | MovingRenderLink | FloatingRenderLink,
+  inputNode: LGraphNode,
+  input: INodeInputSlot,
+  reroute: Reroute,
+): boolean {
+  const { fromReroute } = link
 
   if (
-    // Node cannot connect to itself
-    fromNode === inputNode ||
+    !link.canConnectToInput(inputNode, input) ||
     // Would result in no change
     fromReroute?.id === reroute.id ||
-    isInvalid(fromSlot.type, reroute, fromReroute)
+    // Cannot connect from child to parent reroute
+    fromReroute?.getReroutes()?.includes(reroute)
   ) {
     return false
   }
@@ -677,14 +661,4 @@ function canConnectInputLinkToReroute(link: ToInputRenderLink | MovingRenderLink
     }
   }
   return true
-
-  /** Checks connection type & rejects infinite loops. */
-  function isInvalid(type: ISlotType, reroute: Reroute, fromReroute?: Reroute): boolean {
-    return Boolean(
-      // Type mismatch
-      !LiteGraph.isValidConnection(type, input.type) ||
-      // Cannot connect from child to parent reroute
-      fromReroute?.getReroutes()?.includes(reroute),
-    )
-  }
 }
