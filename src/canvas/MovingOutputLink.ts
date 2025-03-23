@@ -31,7 +31,7 @@ export class MovingOutputLink extends MovingLinkBase {
     return false
   }
 
-  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): this is this {
+  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): boolean {
     return outputNode.canConnectTo(this.node, this.inputSlot, output)
   }
 

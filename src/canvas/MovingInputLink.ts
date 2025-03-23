@@ -27,7 +27,7 @@ export class MovingInputLink extends MovingLinkBase {
     this.fromSlotIndex = this.outputIndex
   }
 
-  canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): this is this {
+  canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): boolean {
     return this.node.canConnectTo(inputNode, input, this.outputSlot)
   }
 
