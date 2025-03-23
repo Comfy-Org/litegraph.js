@@ -1,8 +1,6 @@
 import type { RenderLink } from "./RenderLink"
 import type { LinkConnectorEventTarget } from "@/infrastructure/LinkConnectorEventTarget"
-import type { INodeOutputSlot, LinkNetwork } from "@/interfaces"
-import type { INodeInputSlot } from "@/interfaces"
-import type { Point } from "@/interfaces"
+import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/interfaces"
 import type { LGraphNode, NodeId } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
@@ -19,12 +17,13 @@ import { LinkDirection } from "@/types/globalEnums"
  * Once the library has undergone more substantial changes to the way links are managed,
  * many properties of this class will be superfluous and removable.
  */
-export class MovingRenderLink implements RenderLink {
-  readonly node: LGraphNode
-  readonly fromSlot: INodeOutputSlot | INodeInputSlot
-  readonly fromPos: Point
-  readonly fromDirection: LinkDirection
-  readonly fromSlotIndex: number
+
+export abstract class MovingLinkBase implements RenderLink {
+  abstract readonly node: LGraphNode
+  abstract readonly fromSlot: INodeOutputSlot | INodeInputSlot
+  abstract readonly fromPos: Point
+  abstract readonly fromDirection: LinkDirection
+  abstract readonly fromSlotIndex: number
 
   readonly outputNodeId: NodeId
   readonly outputNode: LGraphNode
@@ -77,13 +76,6 @@ export class MovingRenderLink implements RenderLink {
     this.inputSlot = inputSlot
     this.inputIndex = inputIndex
     this.inputPos = inputNode.getInputPos(inputIndex)
-
-    // RenderLink props
-    this.node = this.toType === "input" ? outputNode : inputNode
-    this.fromSlot = this.toType === "input" ? outputSlot : inputSlot
-    this.fromPos = fromReroute?.pos ?? (this.toType === "input" ? this.outputPos : this.inputPos)
-    this.fromDirection = this.toType === "input" ? LinkDirection.NONE : LinkDirection.LEFT
-    this.fromSlotIndex = this.toType === "input" ? outputIndex : inputIndex
   }
 
   canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): this is this {
