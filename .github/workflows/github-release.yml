@@ -8,8 +8,6 @@ on:
       - main
       - master
       - "lts/*"
-    paths:
-      - "package.json"
 
 jobs:
   create-release:
@@ -41,7 +39,7 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          make_latest: "true"
+          make_latest: "false"
 
   publish:
     runs-on: ubuntu-latest
@@ -50,6 +48,8 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'Release')
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: lts/0.10.10
 
       - uses: actions/setup-node@v3
         with:
