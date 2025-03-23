@@ -338,6 +338,9 @@ export class LinkConnector {
     const { connectingTo } = state
     const { canvasX, canvasY } = event
 
+    // Do nothing if every connection would loop back
+    if (renderLinks.every(link => link.node === node)) return
+
     // To output
     if (connectingTo === "output") {
       const output = node.getOutputOnPos([canvasX, canvasY])
@@ -437,7 +440,7 @@ export class LinkConnector {
       if (!result) continue
 
       const { node, output } = result
-      if (!isValidConnectionToOutput(link, node, output)) continue
+      if (!link.canConnectToOutput(node, output)) continue
 
       link.connectToRerouteOutput(reroute, node, output, this.events)
     }
@@ -468,7 +471,7 @@ export class LinkConnector {
 
     // Assume all links are the same type, disallow loopback
     const firstLink = this.renderLinks[0]
-    if (!firstLink || firstLink.node === node) return
+    if (!firstLink) return
 
     // Use a single type check before looping; ensures all dropped links go to the same slot
     if (connectingTo === "output") {
@@ -479,9 +482,7 @@ export class LinkConnector {
         return
       }
 
-      for (const link of this.renderLinks) {
-        link.connectToOutput(node, output, this.events)
-      }
+      this.#dropOnOutput(node, output)
     } else if (connectingTo === "input") {
       // Dropping new input link
       const input = node.findInputByType(firstLink.fromSlot.type)?.slot
@@ -490,15 +491,13 @@ export class LinkConnector {
         return
       }
 
-      for (const link of this.renderLinks) {
-        link.connectToInput(node, input, this.events)
-      }
+      this.#dropOnInput(node, input)
     }
   }
 
   #dropOnInput(node: LGraphNode, input: INodeInputSlot): void {
     for (const link of this.renderLinks) {
-      if (link.toType !== "input") continue
+      if (!link.canConnectToInput(node, input)) continue
 
       link.connectToInput(node, input, this.events)
     }
@@ -506,10 +505,22 @@ export class LinkConnector {
 
   #dropOnOutput(node: LGraphNode, output: INodeOutputSlot): void {
     for (const link of this.renderLinks) {
-      if (link.toType !== "output") continue
+      if (!link.canConnectToOutput(node, output)) {
+        if (link instanceof MovingRenderLink && link.link.parentId !== undefined) {
+          // Reconnect link without reroutes
+          link.outputNode.connectSlots(link.outputSlot, link.inputNode, link.inputSlot, undefined!)
+        }
+        continue
+      }
 
       link.connectToOutput(node, output, this.events)
     }
+  }
+
+  isNodeValidDrop(node: LGraphNode): boolean {
+    return this.state.connectingTo === "output"
+      ? node.outputs.some(output => this.renderLinks.some(link => link.canConnectToOutput(node, output)))
+      : node.inputs.some(input => this.renderLinks.some(link => link.canConnectToInput(node, input)))
   }
 
   /**
