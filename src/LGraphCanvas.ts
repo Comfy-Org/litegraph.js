@@ -4739,8 +4739,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               false,
               0,
               null,
-              start_dir,
-              end_dir,
+              startControl === undefined ? start_dir : LinkDirection.CENTER,
+              LinkDirection.CENTER,
               {
                 startControl,
                 endControl: reroute.controlPoint,
@@ -4777,7 +4777,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         false,
         0,
         null,
-        start_dir,
+        LinkDirection.CENTER,
         end_dir,
         { startControl, disabled },
       )
