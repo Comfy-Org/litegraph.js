@@ -165,6 +165,6 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
         : 0)
 
     if (delta && (x > -3 && x < width + 3)) return
-    this.setValue(this.value + delta * getWidgetStep(this.options), { e, node, canvas })
+    this.setValue(this.value + (e.deltaX ?? 0) * getWidgetStep(this.options), { e, node, canvas })
   }
 }
