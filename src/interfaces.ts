@@ -311,7 +311,7 @@ export interface INodeFlags {
  * This is set by the ComfyUI_frontend logic. See
  * https://github.com/Comfy-Org/ComfyUI_frontend/blob/b80e0e1a3c74040f328c4e344326c969c97f67e0/src/extensions/core/widgetInputs.ts#L659
  */
-export interface WidgetLocator {
+export interface IWidgetLocator {
   name: string
   [key: string | symbol]: unknown
 }
@@ -319,11 +319,11 @@ export interface WidgetLocator {
 export interface INodeInputSlot extends INodeSlot {
   link: LinkId | null
   _layoutElement?: LayoutElement<INodeInputSlot>
-  widget?: WidgetLocator
+  widget?: IWidgetLocator
 }
 
 export interface IWidgetInputSlot extends INodeInputSlot {
-  widget: WidgetLocator
+  widget: IWidgetLocator
 }
 
 export interface INodeOutputSlot extends INodeSlot {
