@@ -3365,15 +3365,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   drawWidgets(ctx: CanvasRenderingContext2D, options: {
-    colorContext: ConnectionColorContext
-    linkOverWidget: IWidget | null | undefined
-    linkOverWidgetType?: ISlotType
     lowQuality?: boolean
     editorAlpha?: number
   }): void {
     if (!this.widgets) return
 
-    const { colorContext, linkOverWidget, linkOverWidgetType, lowQuality = false, editorAlpha = 1 } = options
+    const { lowQuality = false, editorAlpha = 1 } = options
 
     const width = this.size[0]
     const widgets = this.widgets
@@ -3387,16 +3384,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (w.hidden || (w.advanced && !this.showAdvanced)) continue
       const y = w.y
       const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
-
-      if (w === linkOverWidget) {
-        // Manually draw a slot next to the widget simulating an input
-        new NodeInputSlot({
-          name: "",
-          // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
-          type: linkOverWidgetType,
-          link: 0,
-        }).draw(ctx, { pos: [10, y + 10], colorContext })
-      }
 
       w.last_y = y
       ctx.strokeStyle = outline_color

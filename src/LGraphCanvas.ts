@@ -5204,12 +5204,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     posY: number,
     ctx: CanvasRenderingContext2D,
   ): void {
-    const { linkConnector } = this
-
     node.drawWidgets(ctx, {
-      colorContext: this,
-      linkOverWidget: linkConnector.overWidget,
-      linkOverWidgetType: linkConnector.overWidgetType,
       lowQuality: this.low_quality,
       editorAlpha: this.editor_alpha,
     })
