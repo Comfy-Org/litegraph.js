@@ -153,16 +153,19 @@ export interface IBaseWidget {
   /**
    * The computed height of the widget. Used by customized node resize logic.
    * See scripts/domWidget.ts for more details.
+   * [Computed] This property is computed by the node.
    */
   computedHeight?: number
 
   /**
    * The starting y position of the widget after layout.
+   * [Computed] This property is computed by the node.
    */
   y: number
 
   /**
    * The y position of the widget after drawing (rendering).
+   * [Computed] This property is computed by the node.
    * @deprecated There is no longer dynamic y adjustment on rendering anymore.
    * Use {@link IBaseWidget.y} instead.
    */
