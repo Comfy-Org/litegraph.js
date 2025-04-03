@@ -1585,7 +1585,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let widgets_height = 0
     if (this.widgets?.length) {
       for (const widget of this.widgets) {
-        if (widget.hidden || (widget.advanced && !this.showAdvanced)) continue
+        if (!this.isWidgetVisible(widget)) continue
 
         let widget_height = 0
         if (widget.computeSize) {
@@ -1930,8 +1930,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     for (const widget of widgets) {
       if (
         (widget.disabled && !includeDisabled) ||
-        widget.hidden ||
-        (widget.advanced && !this.showAdvanced)
+        !this.isWidgetVisible(widget)
       ) {
         continue
       }
@@ -3364,6 +3363,20 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
   }
 
+  /**
+   * Returns `true` if the widget is visible, otherwise `false`.
+   */
+  isWidgetVisible(widget: IWidget): boolean {
+    const isHidden = (
+      this.collapsed ||
+      widget.hidden ||
+      (widget.advanced && !this.showAdvanced) ||
+      // Hide widget if the value is passed from socket connection.
+      this.getSlotFromWidget(widget)?.link != null
+    )
+    return !isHidden
+  }
+
   drawWidgets(ctx: CanvasRenderingContext2D, options: {
     lowQuality?: boolean
     editorAlpha?: number
@@ -3381,11 +3394,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const margin = 15
 
     for (const w of widgets) {
-      // Hide widget if the value is passed from socket connection.
-      const associatedSlot = this.getSlotFromWidget(w)
-      const associatedSlotConnected = associatedSlot?.link != null
+      if (!this.isWidgetVisible(w)) continue
 
-      if (w.hidden || (w.advanced && !this.showAdvanced) || associatedSlotConnected) continue
       const y = w.y
       const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
