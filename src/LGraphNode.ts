@@ -3381,7 +3381,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const margin = 15
 
     for (const w of widgets) {
-      if (w.hidden || (w.advanced && !this.showAdvanced)) continue
+      // Hide widget if the value is passed from socket connection.
+      const associatedSlot = this.getSlotFromWidget(w)
+      const associatedSlotConnected = associatedSlot?.link != null
+
+      if (w.hidden || (w.advanced && !this.showAdvanced) || associatedSlotConnected) continue
       const y = w.y
       const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
@@ -3509,6 +3513,21 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   #isMouseOverSlot(slot: INodeSlot): boolean {
     return this.#getMouseOverSlot(slot) === slot
+  }
+
+  /**
+   * Returns the input slot that is associated with the given widget.
+   */
+  getSlotFromWidget(widget: IWidget): INodeInputSlot | undefined {
+    return this.inputs.find(slot => isWidgetInputSlot(slot) && slot.widget.name === widget.name)
+  }
+
+  /**
+   * Returns the widget that is associated with the given input slot.
+   */
+  getWidgetFromSlot(slot: INodeInputSlot): IWidget | undefined {
+    if (!isWidgetInputSlot(slot)) return
+    return this.widgets?.find(w => w.name === slot.widget.name)
   }
 
   /**
