@@ -214,7 +214,7 @@ export abstract class NodeSlot implements INodeSlot {
     if (!lowQuality && doStroke) ctx.stroke()
 
     // render slot label
-    const hideLabel = lowQuality || (isWidgetInputSlot(this) && !this.isConnected())
+    const hideLabel = lowQuality || isWidgetInputSlot(this)
     if (!hideLabel) {
       const text = this.renderingLabel
       if (text) {

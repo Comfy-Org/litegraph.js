@@ -1929,7 +1929,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     for (const widget of widgets) {
       if (
-        (widget.disabled && !includeDisabled) ||
+        (widget.computedDisabled && !includeDisabled) ||
         !this.isWidgetVisible(widget)
       ) {
         continue
@@ -3370,9 +3370,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const isHidden = (
       this.collapsed ||
       widget.hidden ||
-      (widget.advanced && !this.showAdvanced) ||
-      // Hide widget if the value is passed from socket connection.
-      this.getSlotFromWidget(widget)?.link != null
+      (widget.advanced && !this.showAdvanced)
     )
     return !isHidden
   }
@@ -3400,10 +3398,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
       w.last_y = y
+      // Disable widget if it is disabled or if the value is passed from socket connection.
+      w.computedDisabled = w.disabled || this.getSlotFromWidget(w)?.link != null
+
       ctx.strokeStyle = outline_color
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
-      if (w.disabled) ctx.globalAlpha *= 0.5
+      if (w.computedDisabled) ctx.globalAlpha *= 0.5
       const widget_width = w.width || width
 
       const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[w.type]
