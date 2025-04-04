@@ -3526,6 +3526,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this.#getMouseOverSlot(slot) === slot
   }
 
+  #isMouseOverWidget(widget: IWidget): boolean {
+    return this.mouseOver?.overWidget === widget
+  }
+
   /**
    * Returns the input slot that is associated with the given widget.
    */
@@ -3561,7 +3565,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const labelColor = highlight
         ? this.highlightColor
         : LiteGraph.NODE_TEXT_COLOR
-      ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
+
+      // Show slot if it's not a widget input slot
+      // or if it's a widget input slot and satisfies one of the following:
+      // - the mouse is over the widget
+      // - the slot is valid during link drop
+      // - the slot is connected
+      const showSlot = !isWidgetInputSlot(slot) ||
+        this.#isMouseOverWidget(this.getWidgetFromSlot(slot)!) ||
+        (fromSlot && slotInstance.isValidTarget(fromSlot)) ||
+        slot.link != null
+
+      ctx.globalAlpha = showSlot ? (isValid ? editorAlpha : 0.4 * editorAlpha) : 0
 
       slotInstance.draw(ctx, {
         pos: layoutElement?.center ?? [0, 0],
