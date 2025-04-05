@@ -1880,7 +1880,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       if (node) this.processSelect(node, e, true)
 
       // Show context menu for the node or group under the pointer
-      this.processContextMenu(node, e)
+      pointer.onClick = () => this.processContextMenu(node, e)
     }
 
     this.last_mouse = [x, y]
