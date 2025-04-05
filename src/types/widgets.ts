@@ -174,12 +174,13 @@ export interface IBaseWidget {
   width?: number
   /**
    * Whether the widget is disabled. Disabled widgets are rendered at half opacity.
-   * Overrides {@link IBaseWidget.computedDisabled}.
+   * See also {@link IBaseWidget.computedDisabled}.
    */
   disabled?: boolean
 
   /**
-   * The disabled state used for rendering based on default rendering logic.
+   * The disabled state used for rendering based on various conditions including
+   * {@link IBaseWidget.disabled}.
    * @readonly [Computed] This property is computed by the node.
    */
   computedDisabled?: boolean
