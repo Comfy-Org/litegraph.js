@@ -392,7 +392,7 @@ export class LinkConnector {
       const originalReroutes = maybeReroutes.slice(0, -1).reverse()
 
       // From reroute to reroute
-      if (this.renderLinks.length === 1 && renderLink instanceof ToInputRenderLink) {
+      if (renderLink instanceof ToInputRenderLink) {
         const { node, fromSlotIndex, fromReroute } = renderLink
         const floatingOutLinks = reroute.getFloatingLinks("output")
         const floatingInLinks = reroute.getFloatingLinks("input")
