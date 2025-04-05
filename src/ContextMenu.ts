@@ -343,8 +343,6 @@ export class ContextMenu<TValue = unknown> {
     const evt = document.createEvent("CustomEvent")
     evt.initCustomEvent(event_name, true, true, params)
     if (element.dispatchEvent) element.dispatchEvent(evt)
-    // @ts-expect-error
-    else if (element.__events) element.__events.dispatchEvent(evt)
     // else nothing seems binded here so nothing to do
     return evt
   }
