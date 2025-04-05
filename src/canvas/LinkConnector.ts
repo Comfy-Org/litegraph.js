@@ -393,9 +393,11 @@ export class LinkConnector {
 
       // From reroute to reroute
       if (renderLink instanceof ToInputRenderLink) {
-        const { node, fromSlotIndex, fromReroute } = renderLink
+        const { node, fromSlot, fromSlotIndex, fromReroute } = renderLink
         const floatingOutLinks = reroute.getFloatingLinks("output")
         const floatingInLinks = reroute.getFloatingLinks("input")
+
+        reroute.setFloatingLinkOrigin(node, fromSlot, fromSlotIndex)
 
         // Clean floating link IDs from reroutes about to be removed from the chain
         if (floatingOutLinks && floatingInLinks) {
