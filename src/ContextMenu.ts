@@ -75,22 +75,13 @@ export class ContextMenu<TValue = unknown> {
     }, 100)
 
     // this prevents the default context browser menu to open in case this menu was created when pressing right button
-    root.addEventListener(
-      "pointerup",
-      function (e) {
-        // console.log("pointerevents: ContextMenu up root prevent");
-        e.preventDefault()
-        return true
-      },
-      true,
-    )
+    root.addEventListener("pointerup", e => e.preventDefault(), true)
+
+    // Right button
     root.addEventListener(
       "contextmenu",
-      function (e) {
-        // right button
-        if (e.button != 2) return false
-        e.preventDefault()
-        return false
+      (e) => {
+        if (e.button === 2) e.preventDefault()
       },
       true,
     )
@@ -98,11 +89,9 @@ export class ContextMenu<TValue = unknown> {
     root.addEventListener(
       "pointerdown",
       (e) => {
-        // console.log("pointerevents: ContextMenu down");
         if (e.button == 2) {
           this.close()
           e.preventDefault()
-          return true
         }
       },
       true,
