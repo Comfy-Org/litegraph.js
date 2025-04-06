@@ -18,6 +18,8 @@ export class ContextMenu<TValue = unknown> {
   current_submenu?: ContextMenu<TValue>
   lock?: boolean
 
+  controller: AbortController = new AbortController()
+
   /**
    * @todo Interface for values requires functionality change - currently accepts
    * an array of strings, functions, objects, nulls, or undefined.
@@ -73,6 +75,18 @@ export class ContextMenu<TValue = unknown> {
       root.style.pointerEvents = "auto"
     // delay so the mouse up event is not caught by this element
     }, 100)
+
+    // Close the context menu when a click occurs outside this context menu or its submenus
+    const { signal } = this.controller
+    const eventOptions = { capture: true, signal }
+
+    if (!this.parentMenu) {
+      document.addEventListener("pointerdown", (e) => {
+        if (e.target instanceof Node && !this.containsNode(e.target)) {
+          this.close()
+        }
+      }, eventOptions)
+    }
 
     // this prevents the default context browser menu to open in case this menu was created when pressing right button
     root.addEventListener("pointerup", e => e.preventDefault(), true)
@@ -166,6 +180,19 @@ export class ContextMenu<TValue = unknown> {
     if (LiteGraph.context_menu_scaling && options.scale) {
       root.style.transform = `scale(${Math.round(options.scale * 4) * 0.25})`
     }
+  }
+
+  /**
+   * Checks if {@link node} is inside this context menu or any of its submenus
+   * @param node The {@link Node} to check
+   * @param visited A set of visited menus to avoid circular references
+   * @returns `true` if {@link node} is inside this context menu or any of its submenus
+   */
+  containsNode(node: Node, visited: Set<this> = new Set()): boolean {
+    if (visited.has(this)) return false
+    visited.add(this)
+
+    return this.current_submenu?.containsNode(node, visited) || this.root.contains(node)
   }
 
   addItem(
@@ -304,6 +331,7 @@ export class ContextMenu<TValue = unknown> {
   }
 
   close(e?: MouseEvent, ignore_parent_menu?: boolean): void {
+    this.controller.abort()
     this.root.remove()
     if (this.parentMenu && !ignore_parent_menu) {
       this.parentMenu.lock = false
