@@ -1877,7 +1877,13 @@ export class LGraphCanvas implements ConnectionColorContext {
       // Right / aux button
 
       // Sticky select - won't remove single nodes
-      if (node) this.processSelect(node, e, true)
+      if (node) {
+        this.processSelect(node, e, true)
+      } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
+        // Reroutes
+        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
+        if (reroute) this.processSelect(reroute, e, true)
+      }
 
       // Show context menu for the node or group under the pointer
       pointer.onClick = () => this.processContextMenu(node, e)
