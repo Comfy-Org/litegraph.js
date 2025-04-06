@@ -7102,7 +7102,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         if (node.getSlotMenuOptions) {
           menu_info = node.getSlotMenuOptions(slot)
         } else {
-          if (slot?.output?.links?.length)
+          if (slot.output?.links?.length)
             menu_info.push({ content: "Disconnect Links", slot })
 
           const _slot = slot.input || slot.output
