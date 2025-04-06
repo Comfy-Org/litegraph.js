@@ -555,7 +555,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   onClear?: () => void
   /** called after moving a node @deprecated Does not handle multi-node move, and can return the wrong node. */
   onNodeMoved?: (node_dragged: LGraphNode | undefined) => void
-  /** called if the selection changes */
+  /** @deprecated Called with the deprecated {@link selected_nodes} when the selection changes. Replacement not yet impl. */
   onSelectionChange?: (selected: Dictionary<Positionable>) => void
   /** called when rendering a tooltip */
   onDrawLinkTooltip?: (
