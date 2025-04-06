@@ -258,7 +258,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       ?.findNextReroute(withParentId, visited)
   }
 
-  findSourceOutput(): { node: LGraphNode, output: INodeOutputSlot, outputIndex: number, link: LLink } | undefined {
+  findSourceOutput(): { node: LGraphNode, output: INodeOutputSlot } | undefined {
     const link = this.firstLink ?? this.firstFloatingLink
     if (!link) return
 
@@ -268,22 +268,19 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     return {
       node,
       output: node.outputs[link.origin_slot],
-      outputIndex: link.origin_slot,
-      link,
     }
   }
 
   /**
-   * Finds the inputs and nodes for links or floating links passing through this reroute.
+   * Finds the inputs and nodes of (floating) links passing through this reroute.
    */
-  findTargetInputs(): { node: LGraphNode, input: INodeInputSlot, inputIndex: number, link: LLink }[] | undefined {
+  findTargetInputs(): { node: LGraphNode, input: INodeInputSlot, link: LLink }[] | undefined {
     const network = this.#network.deref()
     if (!network) return
 
     const results: {
       node: LGraphNode
       input: INodeInputSlot
-      inputIndex: number
       link: LLink
     }[] = []
 
@@ -305,7 +302,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
         const input = node?.inputs[link.target_slot]
         if (!input) continue
 
-        results.push({ node, input, inputIndex: link.target_slot, link })
+        results.push({ node, input, link })
       }
     }
   }
