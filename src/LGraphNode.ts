@@ -2946,7 +2946,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     const outputPos = outputs?.[slot]?.pos
-    if (outputPos) return outputPos
+    if (outputPos) return [nodeX + outputPos[0], nodeY + outputPos[1]]
 
     // default vertical slots
     const offsetX = LiteGraph.NODE_SLOT_HEIGHT * 0.5
