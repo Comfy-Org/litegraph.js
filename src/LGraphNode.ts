@@ -142,6 +142,13 @@ export interface LGraphNode {
   constructor: LGraphNodeConstructor
 }
 
+type DrawSlotsOptions = {
+  fromSlot?: INodeInputSlot | INodeOutputSlot
+  colorContext: ConnectionColorContext
+  editorAlpha: number
+  lowQuality: boolean
+}
+
 /**
  * Base Class for all the node type classes
  * @param {string} name a name for the node
@@ -3561,14 +3568,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Draws the node's input and output slots.
    */
-  drawSlots(ctx: CanvasRenderingContext2D, options: {
-    fromSlot?: INodeInputSlot | INodeOutputSlot
-    colorContext: ConnectionColorContext
-    editorAlpha: number
-    lowQuality: boolean
-  }) {
-    const { fromSlot, colorContext, editorAlpha, lowQuality } = options
-
+  drawSlots(ctx: CanvasRenderingContext2D, {
+    fromSlot,
+    colorContext,
+    editorAlpha,
+    lowQuality,
+  }: DrawSlotsOptions) {
     for (const slot of this.slots) {
       // change opacity of incompatible slots when dragging a connection
       const layoutElement = slot._layoutElement
