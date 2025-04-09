@@ -46,6 +46,8 @@ import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
+// #region Types
+
 export type NodeId = number | string
 
 export type NodeProperty = string | number | boolean | object
@@ -167,6 +169,8 @@ supported callbacks:
 export interface LGraphNode {
   constructor: LGraphNodeConstructor
 }
+
+// #endregion Types
 
 /**
  * Base Class for all the node type classes
