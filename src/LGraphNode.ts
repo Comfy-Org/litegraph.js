@@ -3490,10 +3490,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return [...this.inputs, ...this.outputs]
   }
 
-  #measureSlot(slot: INodeSlot, options: {
-    slotIndex: number
-  }): LayoutElement<INodeSlot> {
-    const { slotIndex } = options
+  #measureSlot(slot: INodeSlot, { slotIndex }: { slotIndex: number }): LayoutElement<INodeSlot> {
     const isInput = isINodeInputSlot(slot)
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
 
