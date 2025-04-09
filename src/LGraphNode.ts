@@ -111,6 +111,13 @@ interface DrawTitleTextOptions {
   title_height?: number
 }
 
+interface DrawTitleBoxOptions {
+  scale: number
+  title_height?: number
+  low_quality?: boolean
+  box_size?: number
+}
+
 /*
 title: string
 pos: [x,y]
@@ -3184,19 +3191,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * when clicked toggles the node's collapsed state. The term `title box` comes
    * from the original LiteGraph implementation.
    */
-  drawTitleBox(ctx: CanvasRenderingContext2D, options: {
-    scale: number
-    low_quality?: boolean
-    title_height?: number
-    box_size?: number
-  }): void {
-    const {
-      scale,
-      low_quality = false,
-      title_height = LiteGraph.NODE_TITLE_HEIGHT,
-      box_size = 10,
-    } = options
-
+  drawTitleBox(ctx: CanvasRenderingContext2D, {
+    scale,
+    low_quality = false,
+    title_height = LiteGraph.NODE_TITLE_HEIGHT,
+    box_size = 10,
+  }: DrawTitleBoxOptions): void {
     const size = this.renderingSize
     const shape = this.renderingShape
 
