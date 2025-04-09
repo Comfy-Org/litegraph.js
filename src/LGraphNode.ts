@@ -3492,7 +3492,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   #measureSlot(slot: INodeSlot, options: {
     slotIndex: number
-  }): void {
+  }): LayoutElement<INodeSlot> {
     const { slotIndex } = options
     const isInput = isINodeInputSlot(slot)
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
@@ -3506,31 +3506,24 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         LiteGraph.NODE_SLOT_HEIGHT,
       ],
     })
+    return slot._layoutElement
   }
 
   #measureSlots(): ReadOnlyRect | null {
     const slots: LayoutElement<INodeSlot>[] = []
 
-    for (const [i, slot] of this.inputs.entries()) {
+    for (const [slotIndex, slot] of this.inputs.entries()) {
       // Unrecognized nodes (Nodes with error) has inputs but no widgets. Treat
       // converted inputs as normal inputs.
       /** Widget input slots are handled in {@link layoutWidgetInputSlots} */
       if (this.widgets?.length && isWidgetInputSlot(slot)) continue
 
-      this.#measureSlot(slot, {
-        slotIndex: i,
-      })
-      if (slot._layoutElement) {
-        slots.push(slot._layoutElement)
-      }
+      const layoutElement = this.#measureSlot(slot, { slotIndex })
+      slots.push(layoutElement)
     }
-    for (const [i, slot] of this.outputs.entries()) {
-      this.#measureSlot(slot, {
-        slotIndex: i,
-      })
-      if (slot._layoutElement) {
-        slots.push(slot._layoutElement)
-      }
+    for (const [slotIndex, slot] of this.outputs.entries()) {
+      const layoutElement = this.#measureSlot(slot, { slotIndex })
+      slots.push(layoutElement)
     }
 
     return slots.length ? createBounds(slots, /** padding= */ 0) : null
