@@ -258,6 +258,10 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       ?.findNextReroute(withParentId, visited)
   }
 
+  /**
+   * Finds the output node and output slot of the first link passing through this reroute.
+   * @returns The output node and output slot of the first link passing through this reroute, or `undefined` if no link is found.
+   */
   findSourceOutput(): { node: LGraphNode, output: INodeOutputSlot } | undefined {
     const link = this.firstLink ?? this.firstFloatingLink
     if (!link) return
@@ -273,6 +277,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
 
   /**
    * Finds the inputs and nodes of (floating) links passing through this reroute.
+   * @returns An array of objects containing the node and input slot of each link passing through this reroute.
    */
   findTargetInputs(): { node: LGraphNode, input: INodeInputSlot, link: LLink }[] | undefined {
     const network = this.#network.deref()
