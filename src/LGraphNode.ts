@@ -142,7 +142,7 @@ export interface LGraphNode {
   constructor: LGraphNodeConstructor
 }
 
-type DrawSlotsOptions = {
+interface DrawSlotsOptions {
   fromSlot?: INodeInputSlot | INodeOutputSlot
   colorContext: ConnectionColorContext
   editorAlpha: number
