@@ -86,6 +86,24 @@ export interface FindFreeSlotOptions {
   returnObj?: boolean
 }
 
+interface DrawSlotsOptions {
+  fromSlot?: INodeInputSlot | INodeOutputSlot
+  colorContext: ConnectionColorContext
+  editorAlpha: number
+  lowQuality: boolean
+}
+
+interface DrawWidgetsOptions {
+  lowQuality?: boolean
+  editorAlpha?: number
+}
+
+interface DrawTitleBarBackgroundOptions {
+  scale: number
+  title_height?: number
+  low_quality?: boolean
+}
+
 /*
 title: string
 pos: [x,y]
@@ -140,24 +158,6 @@ supported callbacks:
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface LGraphNode {
   constructor: LGraphNodeConstructor
-}
-
-interface DrawSlotsOptions {
-  fromSlot?: INodeInputSlot | INodeOutputSlot
-  colorContext: ConnectionColorContext
-  editorAlpha: number
-  lowQuality: boolean
-}
-
-interface DrawWidgetsOptions {
-  lowQuality?: boolean
-  editorAlpha?: number
-}
-
-interface DrawTitleBarBackgroundOptions {
-  scale: number
-  title_height?: number
-  low_quality?: boolean
 }
 
 /**
