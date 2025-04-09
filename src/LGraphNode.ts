@@ -98,23 +98,17 @@ interface DrawWidgetsOptions {
   editorAlpha?: number
 }
 
-interface DrawTitleBarBackgroundOptions {
+interface DrawTitleOptions {
   scale: number
   title_height?: number
   low_quality?: boolean
 }
 
-interface DrawTitleTextOptions {
-  scale: number
+interface DrawTitleTextOptions extends DrawTitleOptions {
   default_title_color: string
-  low_quality?: boolean
-  title_height?: number
 }
 
-interface DrawTitleBoxOptions {
-  scale: number
-  title_height?: number
-  low_quality?: boolean
+interface DrawTitleBoxOptions extends DrawTitleOptions {
   box_size?: number
 }
 
@@ -3148,7 +3142,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     scale,
     title_height = LiteGraph.NODE_TITLE_HEIGHT,
     low_quality = false,
-  }: DrawTitleBarBackgroundOptions): void {
+  }: DrawTitleOptions): void {
     const fgcolor = this.renderingColor
     const shape = this.renderingShape
     const size = this.renderingSize
