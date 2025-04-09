@@ -104,6 +104,13 @@ interface DrawTitleBarBackgroundOptions {
   low_quality?: boolean
 }
 
+interface DrawTitleTextOptions {
+  scale: number
+  default_title_color: string
+  low_quality?: boolean
+  title_height?: number
+}
+
 /*
 title: string
 pos: [x,y]
@@ -3256,19 +3263,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Renders the node's title text.
    */
-  drawTitleText(ctx: CanvasRenderingContext2D, options: {
-    scale: number
-    default_title_color: string
-    low_quality?: boolean
-    title_height?: number
-  }): void {
-    const {
-      scale,
-      default_title_color,
-      low_quality = false,
-      title_height = LiteGraph.NODE_TITLE_HEIGHT,
-    } = options
-
+  drawTitleText(ctx: CanvasRenderingContext2D, {
+    scale,
+    default_title_color,
+    low_quality = false,
+    title_height = LiteGraph.NODE_TITLE_HEIGHT,
+  }: DrawTitleTextOptions): void {
     const size = this.renderingSize
     const selected = this.selected
 
