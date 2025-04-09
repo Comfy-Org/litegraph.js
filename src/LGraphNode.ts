@@ -149,6 +149,17 @@ type DrawSlotsOptions = {
   lowQuality: boolean
 }
 
+interface DrawWidgetsOptions {
+  lowQuality?: boolean
+  editorAlpha?: number
+}
+
+interface DrawTitleBarBackgroundOptions {
+  scale: number
+  title_height?: number
+  low_quality?: boolean
+}
+
 /**
  * Base Class for all the node type classes
  * @param {string} name a name for the node
@@ -3119,17 +3130,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Renders the node's title bar background
    */
-  drawTitleBarBackground(ctx: CanvasRenderingContext2D, options: {
-    scale: number
-    title_height?: number
-    low_quality?: boolean
-  }): void {
-    const {
-      scale,
-      title_height = LiteGraph.NODE_TITLE_HEIGHT,
-      low_quality = false,
-    } = options
-
+  drawTitleBarBackground(ctx: CanvasRenderingContext2D, {
+    scale,
+    title_height = LiteGraph.NODE_TITLE_HEIGHT,
+    low_quality = false,
+  }: DrawTitleBarBackgroundOptions): void {
     const fgcolor = this.renderingColor
     const shape = this.renderingShape
     const size = this.renderingSize
@@ -3405,13 +3410,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return !isHidden
   }
 
-  drawWidgets(ctx: CanvasRenderingContext2D, options: {
-    lowQuality?: boolean
-    editorAlpha?: number
-  }): void {
+  drawWidgets(ctx: CanvasRenderingContext2D, {
+    lowQuality = false,
+    editorAlpha = 1,
+  }: DrawWidgetsOptions): void {
     if (!this.widgets) return
-
-    const { lowQuality = false, editorAlpha = 1 } = options
 
     const width = this.size[0]
     const widgets = this.widgets
