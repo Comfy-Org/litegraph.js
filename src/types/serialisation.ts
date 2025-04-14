@@ -99,7 +99,7 @@ export interface ExportedSubgraphInstance extends NodeSubgraphSharedProps {
    * The ID of the actual subgraph definition.
    * @see {@link ExportedSubgraph.subgraphs}
    */
-  subgraphId: UUID
+  type: UUID
 }
 
 /**
