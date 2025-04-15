@@ -11,6 +11,12 @@ export interface LGraphBadgeOptions {
   padding?: number
   height?: number
   cornerRadius?: number
+  iconUnicode?: string
+  iconFontFamily?: string
+  iconColor?: string
+  iconBgColor?: string
+  iconFontSize?: number
+  verticalOffset?: number
 }
 
 export class LGraphBadge {
@@ -21,6 +27,12 @@ export class LGraphBadge {
   padding: number
   height: number
   cornerRadius: number
+  iconUnicode?: string
+  iconFontFamily: string
+  iconColor?: string
+  iconBgColor?: string
+  iconFontSize?: number
+  verticalOffset?: number
 
   constructor({
     text,
@@ -30,6 +42,12 @@ export class LGraphBadge {
     padding = 6,
     height = 20,
     cornerRadius = 5,
+    iconUnicode,
+    iconFontFamily = "PrimeIcons",
+    iconColor,
+    iconBgColor,
+    iconFontSize,
+    verticalOffset = 0,
   }: LGraphBadgeOptions) {
     this.text = text
     this.fgColor = fgColor
@@ -38,20 +56,30 @@ export class LGraphBadge {
     this.padding = padding
     this.height = height
     this.cornerRadius = cornerRadius
+    this.iconUnicode = iconUnicode
+    this.iconFontFamily = iconFontFamily
+    this.iconColor = iconColor
+    this.iconBgColor = iconBgColor
+    this.iconFontSize = iconFontSize ?? fontSize
+    this.verticalOffset = verticalOffset
   }
 
   get visible() {
-    return this.text.length > 0
+    return this.text.length > 0 || !!this.iconUnicode
   }
 
   getWidth(ctx: CanvasRenderingContext2D) {
     if (!this.visible) return 0
-
     const { font } = ctx
+    let iconWidth = 0
+    if (this.iconUnicode) {
+      ctx.font = `${this.iconFontSize}px '${this.iconFontFamily}'`
+      iconWidth = ctx.measureText(this.iconUnicode).width + this.padding
+    }
     ctx.font = `${this.fontSize}px sans-serif`
     const textWidth = ctx.measureText(this.text).width
     ctx.font = font
-    return textWidth + this.padding * 2
+    return iconWidth + textWidth + this.padding * 2
   }
 
   draw(
@@ -77,13 +105,40 @@ export class LGraphBadge {
     }
     ctx.fill()
 
+    let drawX = x + badgeX + this.padding
+    const centerY = y + this.height / 2 + (this.verticalOffset ?? 0)
+
+    // Draw icon if present
+    if (this.iconUnicode) {
+      ctx.save()
+      ctx.font = `${this.iconFontSize}px '${this.iconFontFamily}'`
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'center'
+      const iconRadius = (this.iconFontSize ?? 0) / 2 + 2
+      // Draw icon background circle if iconBgColor is set
+      if (this.iconBgColor) {
+        ctx.beginPath()
+        ctx.arc(drawX + iconRadius, centerY, iconRadius, 0, 2 * Math.PI)
+        ctx.fillStyle = this.iconBgColor
+        ctx.fill()
+      }
+      // Draw icon
+      if (this.iconColor) ctx.fillStyle = this.iconColor
+      ctx.fillText(this.iconUnicode, drawX + iconRadius, centerY)
+      ctx.restore()
+      drawX += iconRadius * 2 + this.padding / 2
+    }
+
     // Draw badge text
-    ctx.fillStyle = this.fgColor
-    ctx.fillText(
-      this.text,
-      x + badgeX + this.padding,
-      y + this.height - this.padding,
-    )
+    if (this.text) {
+      ctx.save()
+      ctx.font = `${this.fontSize}px sans-serif`
+      ctx.fillStyle = this.fgColor
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'left'
+      ctx.fillText(this.text, drawX, centerY + 1)
+      ctx.restore()
+    }
 
     ctx.fillStyle = fillStyle
   }
