@@ -112,8 +112,8 @@ export class LGraphBadge {
     if (this.iconUnicode) {
       ctx.save()
       ctx.font = `${this.iconFontSize}px '${this.iconFontFamily}'`
-      ctx.textBaseline = 'middle'
-      ctx.textAlign = 'center'
+      ctx.textBaseline = "middle"
+      ctx.textAlign = "center"
       const iconRadius = (this.iconFontSize ?? 0) / 2 + 2
       // Draw icon background circle if iconBgColor is set
       if (this.iconBgColor) {
@@ -134,8 +134,8 @@ export class LGraphBadge {
       ctx.save()
       ctx.font = `${this.fontSize}px sans-serif`
       ctx.fillStyle = this.fgColor
-      ctx.textBaseline = 'middle'
-      ctx.textAlign = 'left'
+      ctx.textBaseline = "middle"
+      ctx.textAlign = "left"
       ctx.fillText(this.text, drawX, centerY + 1)
       ctx.restore()
     }

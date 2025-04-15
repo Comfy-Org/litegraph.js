@@ -27,6 +27,8 @@ import type { ISerialisedNode } from "./types/serialisation"
 import type { IBaseWidget, IWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
+import { BADGE_CONFIGS } from "./constants/badges"
+import { PRIME_ICONS_FONT_FAMILY, PRIME_ICONS_UNICODES } from "./constants/fonts"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
@@ -45,8 +47,6 @@ import { LayoutElement } from "./utils/layout"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
-import { PRIME_ICONS_FONT_FAMILY, PRIME_ICONS_UNICODES } from "./constants/fonts"
-import { BADGE_CONFIGS } from "./constants/badges"
 
 // #region Types
 
@@ -3319,10 +3319,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         )
         if (this.constructor.nodeData?.credits_cost) {
           const badgeHeight = 20
-          const iconFontSize = 10;
-          const fontSize = iconFontSize + 2;
+          const iconFontSize = 10
+          const fontSize = iconFontSize + 2
 
-          const badgeConfig = BADGE_CONFIGS.credits;
+          const badgeConfig = BADGE_CONFIGS.credits
           const badge = new LGraphBadge({
             fontSize,
             iconFontSize,
@@ -3336,12 +3336,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
             iconFontFamily: PRIME_ICONS_FONT_FAMILY,
             iconColor: badgeConfig.iconColor,
             iconBgColor: badgeConfig.iconBg,
-          });
+          })
 
-          const badgeX = this.size[0] - badge.getWidth(ctx) - 8;
-          const titleBaseline = LiteGraph.NODE_TITLE_TEXT_Y - title_height - 10;
-          const badgeY = titleBaseline - badgeHeight / 2 + fontSize * 0.35;
-          badge.draw(ctx, badgeX, badgeY);
+          const badgeX = this.size[0] - badge.getWidth(ctx) - 8
+          const titleBaseline = LiteGraph.NODE_TITLE_TEXT_Y - title_height - 10
+          const badgeY = titleBaseline - badgeHeight / 2 + fontSize * 0.35
+          badge.draw(ctx, badgeX, badgeY)
         }
       }
     }
