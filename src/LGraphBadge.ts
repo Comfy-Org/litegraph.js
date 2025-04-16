@@ -95,6 +95,7 @@ export class LGraphBadge {
     if (ctx.roundRect) {
       ctx.roundRect(x + badgeX, y, badgeWidth, this.height, this.cornerRadius)
     } else {
+      // Fallback for browsers that don't support roundRect
       ctx.rect(x + badgeX, y, badgeWidth, this.height)
     }
     ctx.fill()
