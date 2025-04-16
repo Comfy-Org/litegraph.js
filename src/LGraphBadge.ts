@@ -1,3 +1,5 @@
+import { LGraphIcon, LGraphIconOptions } from './LGraphIcon';
+
 export enum BadgePosition {
   TopLeft = "top-left",
   TopRight = "top-right",
@@ -11,11 +13,7 @@ export interface LGraphBadgeOptions {
   padding?: number
   height?: number
   cornerRadius?: number
-  iconUnicode?: string
-  iconFontFamily?: string
-  iconColor?: string
-  iconBgColor?: string
-  iconFontSize?: number
+  iconOptions?: LGraphIconOptions
   verticalOffset?: number
   xOffset?: number
   yOffset?: number
@@ -29,11 +27,7 @@ export class LGraphBadge {
   padding: number
   height: number
   cornerRadius: number
-  iconUnicode?: string
-  iconFontFamily: string
-  iconColor?: string
-  iconBgColor?: string
-  iconFontSize?: number
+  icon?: LGraphIcon
   verticalOffset?: number
   xOffset: number
   yOffset: number
@@ -46,11 +40,7 @@ export class LGraphBadge {
     padding = 6,
     height = 20,
     cornerRadius = 5,
-    iconUnicode,
-    iconFontFamily = "PrimeIcons",
-    iconColor,
-    iconBgColor,
-    iconFontSize,
+    iconOptions,
     verticalOffset = 0,
     xOffset = 0,
     yOffset = 0,
@@ -62,32 +52,30 @@ export class LGraphBadge {
     this.padding = padding
     this.height = height
     this.cornerRadius = cornerRadius
-    this.iconUnicode = iconUnicode
-    this.iconFontFamily = iconFontFamily
-    this.iconColor = iconColor
-    this.iconBgColor = iconBgColor
-    this.iconFontSize = iconFontSize ?? fontSize
+    if (iconOptions) {
+      this.icon = new LGraphIcon(iconOptions);
+    }
     this.verticalOffset = verticalOffset
     this.xOffset = xOffset
     this.yOffset = yOffset
   }
 
   get visible() {
-    return this.text.length > 0 || !!this.iconUnicode
+    return this.text.length > 0 || !!this.icon
   }
 
   getWidth(ctx: CanvasRenderingContext2D) {
     if (!this.visible) return 0
     const { font } = ctx
     let iconWidth = 0
-    if (this.iconUnicode) {
-      ctx.font = `${this.iconFontSize}px '${this.iconFontFamily}'`
-      iconWidth = ctx.measureText(this.iconUnicode).width + this.padding
+    if (this.icon) {
+      ctx.font = `${this.icon.fontSize}px '${this.icon.fontFamily}'`;
+      iconWidth = ctx.measureText(this.icon.unicode).width + this.padding;
     }
-    ctx.font = `${this.fontSize}px sans-serif`
-    const textWidth = ctx.measureText(this.text).width
-    ctx.font = font
-    return iconWidth + textWidth + this.padding * 2
+    ctx.font = `${this.fontSize}px sans-serif`;
+    const textWidth = this.text ? ctx.measureText(this.text).width : 0;
+    ctx.font = font;
+    return iconWidth + textWidth + this.padding * 2;
   }
 
   draw(
@@ -111,7 +99,6 @@ export class LGraphBadge {
     if (ctx.roundRect) {
       ctx.roundRect(x + badgeX, y, badgeWidth, this.height, this.cornerRadius)
     } else {
-      // Fallback for browsers that don't support roundRect
       ctx.rect(x + badgeX, y, badgeWidth, this.height)
     }
     ctx.fill()
@@ -120,24 +107,9 @@ export class LGraphBadge {
     const centerY = y + this.height / 2 + (this.verticalOffset ?? 0)
 
     // Draw icon if present
-    if (this.iconUnicode) {
-      ctx.save()
-      ctx.font = `${this.iconFontSize}px '${this.iconFontFamily}'`
-      ctx.textBaseline = "middle"
-      ctx.textAlign = "center"
-      const iconRadius = (this.iconFontSize ?? 0) / 2 + 2
-      // Draw icon background circle if iconBgColor is set
-      if (this.iconBgColor) {
-        ctx.beginPath()
-        ctx.arc(drawX + iconRadius, centerY, iconRadius, 0, 2 * Math.PI)
-        ctx.fillStyle = this.iconBgColor
-        ctx.fill()
-      }
-      // Draw icon
-      if (this.iconColor) ctx.fillStyle = this.iconColor
-      ctx.fillText(this.iconUnicode, drawX + iconRadius, centerY)
-      ctx.restore()
-      drawX += iconRadius * 2 + this.padding / 2
+    if (this.icon) {
+      this.icon.draw(ctx, drawX, centerY);
+      drawX += this.icon.fontSize + this.padding / 2 + 4;
     }
 
     // Draw badge text
