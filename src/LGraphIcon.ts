@@ -46,7 +46,6 @@ export class LGraphIcon {
     ctx.font = `${this.fontSize}px '${this.fontFamily}'`
     ctx.textBaseline = "middle"
     ctx.textAlign = "center"
-    const iconWidth = ctx.measureText(this.unicode).width
     const iconRadius = this.fontSize / 2 + this.circlePadding
     // Draw icon background circle if bgColor is set
     if (this.bgColor) {
