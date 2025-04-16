@@ -84,7 +84,6 @@ export class LGraphBadge {
     x += this.xOffset
     y += this.yOffset
 
-    const { fillStyle } = ctx
     ctx.font = `${this.fontSize}px sans-serif`
     const badgeWidth = this.getWidth(ctx)
     const badgeX = 0
