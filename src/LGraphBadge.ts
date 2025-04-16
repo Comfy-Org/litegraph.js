@@ -1,4 +1,4 @@
-import { LGraphIcon, LGraphIconOptions } from './LGraphIcon';
+import { LGraphIcon, LGraphIconOptions } from "./LGraphIcon"
 
 export enum BadgePosition {
   TopLeft = "top-left",
@@ -53,7 +53,7 @@ export class LGraphBadge {
     this.height = height
     this.cornerRadius = cornerRadius
     if (iconOptions) {
-      this.icon = new LGraphIcon(iconOptions);
+      this.icon = new LGraphIcon(iconOptions)
     }
     this.verticalOffset = verticalOffset
     this.xOffset = xOffset
@@ -69,13 +69,13 @@ export class LGraphBadge {
     const { font } = ctx
     let iconWidth = 0
     if (this.icon) {
-      ctx.font = `${this.icon.fontSize}px '${this.icon.fontFamily}'`;
-      iconWidth = ctx.measureText(this.icon.unicode).width + this.padding;
+      ctx.font = `${this.icon.fontSize}px '${this.icon.fontFamily}'`
+      iconWidth = ctx.measureText(this.icon.unicode).width + this.padding
     }
-    ctx.font = `${this.fontSize}px sans-serif`;
-    const textWidth = this.text ? ctx.measureText(this.text).width : 0;
-    ctx.font = font;
-    return iconWidth + textWidth + this.padding * 2;
+    ctx.font = `${this.fontSize}px sans-serif`
+    const textWidth = this.text ? ctx.measureText(this.text).width : 0
+    ctx.font = font
+    return iconWidth + textWidth + this.padding * 2
   }
 
   draw(
@@ -108,8 +108,8 @@ export class LGraphBadge {
 
     // Draw icon if present
     if (this.icon) {
-      this.icon.draw(ctx, drawX, centerY);
-      drawX += this.icon.fontSize + this.padding / 2 + 4;
+      this.icon.draw(ctx, drawX, centerY)
+      drawX += this.icon.fontSize + this.padding / 2 + 4
     }
 
     // Draw badge text
