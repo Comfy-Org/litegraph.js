@@ -14,7 +14,6 @@ export interface LGraphBadgeOptions {
   height?: number
   cornerRadius?: number
   iconOptions?: LGraphIconOptions
-  verticalOffset?: number
   xOffset?: number
   yOffset?: number
 }
@@ -28,7 +27,6 @@ export class LGraphBadge {
   height: number
   cornerRadius: number
   icon?: LGraphIcon
-  verticalOffset?: number
   xOffset: number
   yOffset: number
 
@@ -41,7 +39,6 @@ export class LGraphBadge {
     height = 20,
     cornerRadius = 5,
     iconOptions,
-    verticalOffset = 0,
     xOffset = 0,
     yOffset = 0,
   }: LGraphBadgeOptions) {
@@ -55,7 +52,6 @@ export class LGraphBadge {
     if (iconOptions) {
       this.icon = new LGraphIcon(iconOptions)
     }
-    this.verticalOffset = verticalOffset
     this.xOffset = xOffset
     this.yOffset = yOffset
   }
@@ -104,7 +100,7 @@ export class LGraphBadge {
     ctx.fill()
 
     let drawX = x + badgeX + this.padding
-    const centerY = y + this.height / 2 + (this.verticalOffset ?? 0)
+    const centerY = y + this.height / 2
 
     // Draw icon if present
     if (this.icon) {
