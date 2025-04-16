@@ -119,7 +119,5 @@ export class LGraphBadge {
       ctx.fillText(this.text, drawX, centerY + 1)
       ctx.restore()
     }
-
-    ctx.fillStyle = fillStyle
   }
 }
