@@ -17,6 +17,8 @@ export interface LGraphBadgeOptions {
   iconBgColor?: string
   iconFontSize?: number
   verticalOffset?: number
+  xOffset?: number
+  yOffset?: number
 }
 
 export class LGraphBadge {
@@ -33,6 +35,8 @@ export class LGraphBadge {
   iconBgColor?: string
   iconFontSize?: number
   verticalOffset?: number
+  xOffset: number
+  yOffset: number
 
   constructor({
     text,
@@ -48,6 +52,8 @@ export class LGraphBadge {
     iconBgColor,
     iconFontSize,
     verticalOffset = 0,
+    xOffset = 0,
+    yOffset = 0,
   }: LGraphBadgeOptions) {
     this.text = text
     this.fgColor = fgColor
@@ -62,6 +68,8 @@ export class LGraphBadge {
     this.iconBgColor = iconBgColor
     this.iconFontSize = iconFontSize ?? fontSize
     this.verticalOffset = verticalOffset
+    this.xOffset = xOffset
+    this.yOffset = yOffset
   }
 
   get visible() {
@@ -88,6 +96,9 @@ export class LGraphBadge {
     y: number,
   ): void {
     if (!this.visible) return
+
+    x += this.xOffset
+    y += this.yOffset
 
     const { fillStyle } = ctx
     ctx.font = `${this.fontSize}px sans-serif`

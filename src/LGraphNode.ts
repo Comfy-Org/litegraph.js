@@ -27,8 +27,6 @@ import type { ISerialisedNode } from "./types/serialisation"
 import type { IBaseWidget, IWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
-import { BADGE_CONFIGS } from "./constants/badges"
-import { PRIME_ICONS_FONT_FAMILY, PRIME_ICONS_UNICODES } from "./constants/fonts"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
@@ -3317,32 +3315,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           title_height,
           LiteGraph.NODE_TITLE_TEXT_Y - title_height,
         )
-        if (this.constructor.nodeData?.credits_cost) {
-          const badgeHeight = 20
-          const iconFontSize = 10
-          const fontSize = iconFontSize + 2
-
-          const badgeConfig = BADGE_CONFIGS.credits
-          const badge = new LGraphBadge({
-            fontSize,
-            iconFontSize,
-            text: String(this.constructor.nodeData.credits_cost),
-            fgColor: badgeConfig.badgeText,
-            bgColor: badgeConfig.badgeBg,
-            padding: 6,
-            height: badgeHeight,
-            cornerRadius: 6,
-            iconUnicode: PRIME_ICONS_UNICODES[badgeConfig.icon],
-            iconFontFamily: PRIME_ICONS_FONT_FAMILY,
-            iconColor: badgeConfig.iconColor,
-            iconBgColor: badgeConfig.iconBg,
-          })
-
-          const badgeX = this.size[0] - badge.getWidth(ctx) - 8
-          const titleBaseline = LiteGraph.NODE_TITLE_TEXT_Y - title_height - 10
-          const badgeY = titleBaseline - badgeHeight / 2 + fontSize * 0.35
-          badge.draw(ctx, badgeX, badgeY)
-        }
       }
     }
   }
