@@ -42,7 +42,9 @@ export class LGraphIcon {
   draw(ctx: CanvasRenderingContext2D, x: number, y: number) {
     x += this.xOffset
     y += this.yOffset
-    ctx.save()
+
+    const { font, textBaseline, textAlign, fillStyle } = ctx
+
     ctx.font = `${this.fontSize}px '${this.fontFamily}'`
     ctx.textBaseline = "middle"
     ctx.textAlign = "center"
@@ -57,6 +59,10 @@ export class LGraphIcon {
     // Draw icon
     ctx.fillStyle = this.color
     ctx.fillText(this.unicode, x + iconRadius, y)
-    ctx.restore()
+
+    ctx.font = font
+    ctx.textBaseline = textBaseline
+    ctx.textAlign = textAlign
+    ctx.fillStyle = fillStyle
   }
 }
