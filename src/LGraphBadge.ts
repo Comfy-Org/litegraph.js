@@ -112,7 +112,6 @@ export class LGraphBadge {
 
     // Draw badge text
     if (this.text) {
-      ctx.font = `${this.fontSize}px sans-serif`
       ctx.fillStyle = this.fgColor
       ctx.textBaseline = "middle"
       ctx.textAlign = "left"
