@@ -84,6 +84,11 @@ export class LGraphBadge {
     x += this.xOffset
     y += this.yOffset
 
+    const originalFont = ctx.font
+    const originalFillStyle = ctx.fillStyle
+    const originalTextBaseline = ctx.textBaseline
+    const originalTextAlign = ctx.textAlign
+
     ctx.font = `${this.fontSize}px sans-serif`
     const badgeWidth = this.getWidth(ctx)
     const badgeX = 0
@@ -110,13 +115,16 @@ export class LGraphBadge {
 
     // Draw badge text
     if (this.text) {
-      ctx.save()
       ctx.font = `${this.fontSize}px sans-serif`
       ctx.fillStyle = this.fgColor
       ctx.textBaseline = "middle"
       ctx.textAlign = "left"
       ctx.fillText(this.text, drawX, centerY + 1)
-      ctx.restore()
     }
+
+    ctx.font = originalFont
+    ctx.fillStyle = originalFillStyle
+    ctx.textBaseline = originalTextBaseline
+    ctx.textAlign = originalTextAlign
   }
 }
