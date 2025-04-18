@@ -211,7 +211,7 @@ export class LinkConnector {
       }
     }
 
-    if (renderLinks.length === 0) return this.reset()
+    if (renderLinks.length === 0) return
 
     state.draggingExistingLinks = true
     state.multi = true
@@ -309,11 +309,11 @@ export class LinkConnector {
    * @param event Contains the drop location, in canvas space
    */
   dropLinks(locator: ItemLocator, event: CanvasPointerEvent): void {
-    if (!this.isConnecting) return this.reset()
+    if (!this.isConnecting) return
 
     const { renderLinks } = this
     const mayContinue = this.events.dispatch("before-drop-links", { renderLinks, event })
-    if (mayContinue === false) return this.reset()
+    if (mayContinue === false) return
 
     const { canvasX, canvasY } = event
     const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
@@ -331,7 +331,6 @@ export class LinkConnector {
     }
 
     this.events.dispatch("after-drop-links", { renderLinks, event })
-    this.reset()
   }
 
   dropOnNode(node: LGraphNode, event: CanvasPointerEvent) {
