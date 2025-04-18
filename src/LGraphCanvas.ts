@@ -2918,6 +2918,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         // esc
         if (this.linkConnector.isConnecting) {
           this.linkConnector.reset()
+          this.#dirty()
           e.preventDefault()
           return
         }
