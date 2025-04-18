@@ -309,7 +309,10 @@ export class LinkConnector {
    * @param event Contains the drop location, in canvas space
    */
   dropLinks(locator: ItemLocator, event: CanvasPointerEvent): void {
-    if (!this.isConnecting) return
+    if (!this.isConnecting) {
+      console.warn("Attempted to drop links when not connecting to anything.")
+      return
+    }
 
     const { renderLinks } = this
     const mayContinue = this.events.dispatch("before-drop-links", { renderLinks, event })
