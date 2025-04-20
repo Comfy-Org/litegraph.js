@@ -3489,7 +3489,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       slots.push(layoutElement)
     }
 
-    return slots.length ? createBounds(slots, /** padding= */ 0) : null
+    return slots.length ? createBounds(slots, 0) : null
   }
 
   #getMouseOverSlot(slot: INodeSlot): INodeSlot | null {
