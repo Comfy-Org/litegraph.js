@@ -1472,7 +1472,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   addInput(name: string, type: ISlotType, extra_info?: Partial<INodeInputSlot>): INodeInputSlot {
     type = type || 0
-    const input: INodeInputSlot = new NodeInputSlot({ name: name, type: type, link: null })
+    const input = new NodeInputSlot({ name: name, type: type, link: null })
     if (extra_info) Object.assign(input, extra_info)
 
     this.inputs ||= []
