@@ -69,12 +69,6 @@ export class ContextMenu<TValue = unknown> {
     root.className = classes
     root.style.minWidth = "100"
     root.style.minHeight = "100"
-    // TODO: Fix use of timer in place of events
-    root.style.pointerEvents = "none"
-    setTimeout(function () {
-      root.style.pointerEvents = "auto"
-    // delay so the mouse up event is not caught by this element
-    }, 100)
 
     // Close the context menu when a click occurs outside this context menu or its submenus
     const { signal } = this.controller
