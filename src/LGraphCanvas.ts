@@ -3849,8 +3849,6 @@ export class LGraphCanvas implements ConnectionColorContext {
           ctx.beginPath()
           if (connType === LiteGraph.EVENT || connShape === RenderShape.BOX) {
             ctx.rect(pos[0] - 6 + 0.5, pos[1] - 5 + 0.5, 14, 10)
-            ctx.fill()
-            ctx.beginPath()
             ctx.rect(
               highlightPos[0] - 6 + 0.5,
               highlightPos[1] - 5 + 0.5,
@@ -3864,8 +3862,6 @@ export class LGraphCanvas implements ConnectionColorContext {
             ctx.closePath()
           } else {
             ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2)
-            ctx.fill()
-            ctx.beginPath()
             ctx.arc(highlightPos[0], highlightPos[1], 4, 0, Math.PI * 2)
           }
           ctx.fill()
