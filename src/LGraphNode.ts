@@ -2878,10 +2878,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @internal The inputs that are not positioned with absolute coordinates.
    */
   get #defaultVerticalInputs() {
-    return this.inputs.filter((slot: INodeInputSlot) => !(
-      slot.pos ||
-      (this.widgets?.length && isWidgetInputSlot(slot))
-    ))
+    return this.inputs.filter(
+      slot => !slot.pos && !(this.widgets?.length && isWidgetInputSlot(slot)),
+    )
   }
 
   /**
