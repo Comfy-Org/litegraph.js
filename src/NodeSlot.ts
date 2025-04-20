@@ -67,12 +67,9 @@ export function outputAsSerialisable(slot: INodeOutputSlot & { widget?: IWidget 
 export function toNodeSlotClass(slot: INodeInputSlot | INodeOutputSlot): NodeInputSlot | NodeOutputSlot {
   if (slot instanceof NodeInputSlot || slot instanceof NodeOutputSlot) return slot
 
-  if (isINodeInputSlot(slot)) {
-    return new NodeInputSlot(slot)
-  } else if (isINodeOutputSlot(slot)) {
-    return new NodeOutputSlot(slot)
-  }
-  throw new Error("Invalid slot type")
+  return "link" in slot
+    ? new NodeInputSlot(slot)
+    : new NodeOutputSlot(slot)
 }
 
 /**
