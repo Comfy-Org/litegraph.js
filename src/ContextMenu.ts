@@ -337,6 +337,7 @@ export class ContextMenu<TValue = unknown> {
     this.current_submenu?.close(e, true)
   }
 
+  /** @deprecated Likely unused, however code search was inconclusive (too many results to check by hand). */
   // this code is used to trigger events easily (used in the context menu mouseleave
   static trigger(
     element: HTMLDivElement,
@@ -363,6 +364,7 @@ export class ContextMenu<TValue = unknown> {
       : this.options.event
   }
 
+  /** @deprecated Unused. */
   static isCursorOverElement(
     event: MouseEvent,
     element: HTMLDivElement,
