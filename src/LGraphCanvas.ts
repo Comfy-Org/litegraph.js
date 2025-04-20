@@ -939,6 +939,8 @@ export class LGraphCanvas implements ConnectionColorContext {
               if (!first_event) throw new TypeError("Context menu event was null. This should not occure in normal usage.")
               node.pos = canvas.convertEventToCanvasOffset(first_event)
               canvas.graph.add(node)
+            } else {
+              console.warn("Failed to create node of type:", value.value)
             }
 
             callback?.(node)
