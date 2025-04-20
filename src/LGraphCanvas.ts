@@ -3956,10 +3956,10 @@ export class LGraphCanvas implements ConnectionColorContext {
     }
     ctx.fill()
 
-    if (!LiteGraph.snap_highlights_node) return
-
     const { linkConnector } = this
     const { overReroute, overWidget } = linkConnector
+    if (!LiteGraph.snap_highlights_node || !linkConnector.isConnecting) return
+
     // Reroute highlight
     if (overReroute) {
       const { globalAlpha } = ctx
@@ -3970,7 +3970,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     // Ensure we're mousing over a node and connecting a link
     const node = this.node_over
-    if (!(node && linkConnector.isConnecting)) return
+    if (!node) return
 
     const { strokeStyle, lineWidth } = ctx
 
