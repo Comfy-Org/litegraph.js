@@ -148,6 +148,18 @@ export function overlapBounding(a: ReadOnlyRect, b: ReadOnlyRect): boolean {
 }
 
 /**
+ * Returns the centre of a rectangle.
+ * @param rect The rectangle, as `x, y, width, height`
+ * @returns The centre of the rectangle, as `x, y`
+ */
+export function getCentre(rect: ReadOnlyRect): Point {
+  return [
+    rect[0] + (rect[2] * 0.5),
+    rect[1] + (rect[3] * 0.5),
+  ]
+}
+
+/**
  * Determines if rectangle {@link a} contains the centre point of rectangle {@link b}.
  * @param a Container rectangle A as `x, y, width, height`
  * @param b Sub-rectangle B as `x, y, width, height`
