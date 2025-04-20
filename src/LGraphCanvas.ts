@@ -3852,8 +3852,8 @@ export class LGraphCanvas implements ConnectionColorContext {
             ctx.fill()
             ctx.beginPath()
             ctx.rect(
-              this.graph_mouse[0] - 6 + 0.5,
-              this.graph_mouse[1] - 5 + 0.5,
+              highlightPos[0] - 6 + 0.5,
+              highlightPos[1] - 5 + 0.5,
               14,
               10,
             )
@@ -3866,7 +3866,7 @@ export class LGraphCanvas implements ConnectionColorContext {
             ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2)
             ctx.fill()
             ctx.beginPath()
-            ctx.arc(this.graph_mouse[0], this.graph_mouse[1], 4, 0, Math.PI * 2)
+            ctx.arc(highlightPos[0], highlightPos[1], 4, 0, Math.PI * 2)
           }
           ctx.fill()
         }
