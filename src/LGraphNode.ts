@@ -1,7 +1,6 @@
 import type { DragAndScale } from "./DragAndScale"
 import type { IDrawBoundingOptions } from "./draw"
 import type {
-  CanvasColour,
   ColorOption,
   Dictionary,
   IColorable,
@@ -3447,10 +3446,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
   }
 
-  get highlightColor(): CanvasColour {
-    return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
-  }
-
   get slots(): (INodeInputSlot | INodeOutputSlot)[] {
     return [...this.inputs, ...this.outputs]
   }
@@ -3534,9 +3529,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       // change opacity of incompatible slots when dragging a connection
       const isValid = !fromSlot || isValidTarget
       const highlight = isValid && isMouseOverSlot
-      const labelColor = highlight
-        ? this.highlightColor
-        : LiteGraph.NODE_TEXT_COLOR
 
       // Show slot if it's not a widget input slot
       // or if it's a widget input slot and satisfies one of the following:
@@ -3553,7 +3545,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       slotInstance.draw(ctx, {
         colorContext,
-        labelColor,
         lowQuality,
         highlight,
       })

@@ -21,7 +21,6 @@ export interface ConnectionColorContext {
 
 interface IDrawOptions {
   colorContext: ConnectionColorContext
-  labelColor?: CanvasColour
   labelPosition?: LabelPosition
   lowQuality?: boolean
   doStroke?: boolean
@@ -97,6 +96,10 @@ export abstract class NodeSlot implements INodeSlot {
   hasErrors?: boolean
   boundingRect: Rect
 
+  get highlightColor(): CanvasColour {
+    return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
+  }
+
   constructor(slot: OptionalProps<INodeSlot, "boundingRect">) {
     Object.assign(this, slot)
     this.name = slot.name
@@ -142,7 +145,6 @@ export abstract class NodeSlot implements INodeSlot {
     ctx: CanvasRenderingContext2D,
     {
       colorContext,
-      labelColor = "#AAA",
       labelPosition = LabelPosition.Right,
       lowQuality = false,
       highlight = false,
@@ -153,6 +155,10 @@ export abstract class NodeSlot implements INodeSlot {
     const originalFillStyle = ctx.fillStyle
     const originalStrokeStyle = ctx.strokeStyle
     const originalLineWidth = ctx.lineWidth
+
+    const labelColor = highlight
+      ? this.highlightColor
+      : LiteGraph.NODE_TEXT_COLOR
 
     const pos = getCentre(this.boundingRect)
     const slot_type = this.type
