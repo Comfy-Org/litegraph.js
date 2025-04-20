@@ -65,6 +65,8 @@ export function outputAsSerialisable(slot: INodeOutputSlot & { widget?: IWidget 
 }
 
 export function toNodeSlotClass(slot: INodeInputSlot | INodeOutputSlot): NodeInputSlot | NodeOutputSlot {
+  if (slot instanceof NodeInputSlot || slot instanceof NodeOutputSlot) return slot
+
   if (isINodeInputSlot(slot)) {
     return new NodeInputSlot(slot)
   } else if (isINodeOutputSlot(slot)) {
