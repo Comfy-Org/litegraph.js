@@ -30,6 +30,22 @@ export type SharedIntersection<T1, T2> = {
 
 export type CanvasColour = string | CanvasGradient | CanvasPattern
 
+/**
+ * Any object that has a {@link boundingRect}.
+ */
+export interface HasBoundingRect {
+  /**
+   * A rectangle that represents the outer edges of the item.
+   *
+   * Used for various calculations, such as overlap, selective rendering, and click checks.
+   * For most items, this is cached position & size as `x, y, width, height`.
+   * Some items (such as nodes) may extend above and/or to the left of their {@link pos}.
+   * @readonly
+   * @see {@link move}
+   */
+  readonly boundingRect: ReadOnlyRect
+}
+
 /** An object containing a set of child objects */
 export interface Parent<TChild> {
   /** All objects owned by the parent object. */
@@ -41,7 +57,7 @@ export interface Parent<TChild> {
  *
  * May contain other {@link Positionable} objects.
  */
-export interface Positionable extends Parent<Positionable> {
+export interface Positionable extends Parent<Positionable>, HasBoundingRect {
   readonly id: NodeId | RerouteId | number
   /** Position in graph coordinates.  Default: 0,0 */
   readonly pos: Point
@@ -67,17 +83,6 @@ export interface Positionable extends Parent<Positionable> {
    * @returns `true` if it moved, or `false` if the snap was rejected (e.g. `pinned`)
    */
   snapToGrid(snapTo: number): boolean
-
-  /**
-   * A rectangle that represents the outer edges of the item.
-   *
-   * Used for various calculations, such as overlap, selective rendering, and click checks.
-   * For most items, this is cached position & size as `x, y, width, height`.
-   * Some items (such as nodes) may extend above and/or to the left of their {@link pos}.
-   * @readonly
-   * @see {@link move}
-   */
-  readonly boundingRect: ReadOnlyRect
 
   /** Called whenever the item is selected */
   onSelected?(): void
