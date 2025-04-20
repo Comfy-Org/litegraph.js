@@ -32,7 +32,7 @@ import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { LLink } from "./LLink"
-import { createBounds, getCentre, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
+import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { ConnectionColorContext, inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, NodeInputSlot, NodeOutputSlot, outputAsSerialisable, toNodeSlotClass } from "./NodeSlot"
 import {
   LGraphEventMode,
@@ -3552,7 +3552,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ctx.globalAlpha = showSlot ? (isValid ? editorAlpha : 0.4 * editorAlpha) : 0
 
       slotInstance.draw(ctx, {
-        pos: getCentre(slotInstance.boundingRect),
         colorContext,
         labelColor,
         lowQuality,

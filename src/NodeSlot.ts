@@ -4,6 +4,7 @@ import type { IWidget } from "./types/widgets"
 
 import { LabelPosition, SlotShape, SlotType } from "./draw"
 import { LiteGraph } from "./litegraph"
+import { getCentre } from "./measure"
 import { LinkDirection, RenderShape } from "./types/globalEnums"
 import { ISerialisableNodeInput, ISerialisableNodeOutput } from "./types/serialisation"
 
@@ -19,7 +20,6 @@ export interface ConnectionColorContext {
 }
 
 interface IDrawOptions {
-  pos: Point
   colorContext: ConnectionColorContext
   labelColor?: CanvasColour
   labelPosition?: LabelPosition
@@ -141,7 +141,6 @@ export abstract class NodeSlot implements INodeSlot {
   draw(
     ctx: CanvasRenderingContext2D,
     {
-      pos,
       colorContext,
       labelColor = "#AAA",
       labelPosition = LabelPosition.Right,
@@ -155,6 +154,7 @@ export abstract class NodeSlot implements INodeSlot {
     const originalStrokeStyle = ctx.strokeStyle
     const originalLineWidth = ctx.lineWidth
 
+    const pos = getCentre(this.boundingRect)
     const slot_type = this.type
     const slot_shape = (
       slot_type === SlotType.Array ? SlotShape.Grid : this.shape
