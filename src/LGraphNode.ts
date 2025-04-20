@@ -32,7 +32,7 @@ import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { type LGraphNodeConstructor, LiteGraph } from "./litegraph"
 import { LLink } from "./LLink"
-import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
+import { createBounds, getCentre, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { ConnectionColorContext, inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, NodeInputSlot, NodeOutputSlot, outputAsSerialisable, toNodeSlotClass } from "./NodeSlot"
 import {
   LGraphEventMode,
@@ -41,7 +41,6 @@ import {
   TitleMode,
 } from "./types/globalEnums"
 import { findFreeSlotOfType } from "./utils/collections"
-import { LayoutElement } from "./utils/layout"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
@@ -3456,23 +3455,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return [...this.inputs, ...this.outputs]
   }
 
-  #measureSlot(slot: INodeSlot, slotIndex: number): LayoutElement {
+  #measureSlot(slot: INodeSlot, slotIndex: number): void {
     const isInput = isINodeInputSlot(slot)
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
 
-    slot._layoutElement = new LayoutElement({
-      boundingRect: [
-        pos[0] - this.pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5,
-        pos[1] - this.pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5,
-        LiteGraph.NODE_SLOT_HEIGHT,
-        LiteGraph.NODE_SLOT_HEIGHT,
-      ],
-    })
-    return slot._layoutElement
+    slot.boundingRect[0] = pos[0] - this.pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    slot.boundingRect[1] = pos[1] - this.pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    slot.boundingRect[2] = LiteGraph.NODE_SLOT_HEIGHT
+    slot.boundingRect[3] = LiteGraph.NODE_SLOT_HEIGHT
   }
 
   #measureSlots(): ReadOnlyRect | null {
-    const slots: LayoutElement[] = []
+    const slots: INodeSlot[] = []
 
     for (const [slotIndex, slot] of this.inputs.entries()) {
       // Unrecognized nodes (Nodes with error) has inputs but no widgets. Treat
@@ -3480,12 +3474,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       /** Widget input slots are handled in {@link layoutWidgetInputSlots} */
       if (this.widgets?.length && isWidgetInputSlot(slot)) continue
 
-      const layoutElement = this.#measureSlot(slot, slotIndex)
-      slots.push(layoutElement)
+      this.#measureSlot(slot, slotIndex)
+      slots.push(slot)
     }
     for (const [slotIndex, slot] of this.outputs.entries()) {
-      const layoutElement = this.#measureSlot(slot, slotIndex)
-      slots.push(layoutElement)
+      this.#measureSlot(slot, slotIndex)
+      slots.push(slot)
     }
 
     return slots.length ? createBounds(slots, 0) : null
@@ -3533,7 +3527,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     lowQuality,
   }: DrawSlotsOptions) {
     for (const slot of this.slots) {
-      const layoutElement = slot._layoutElement
       const slotInstance = toNodeSlotClass(slot)
       const isValidTarget = fromSlot && slotInstance.isValidTarget(fromSlot)
       const isMouseOverSlot = this.#isMouseOverSlot(slot)
@@ -3559,7 +3552,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ctx.globalAlpha = showSlot ? (isValid ? editorAlpha : 0.4 * editorAlpha) : 0
 
       slotInstance.draw(ctx, {
-        pos: layoutElement?.center ?? [0, 0],
+        pos: getCentre(slotInstance.boundingRect),
         colorContext,
         labelColor,
         lowQuality,

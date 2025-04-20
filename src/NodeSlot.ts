@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetInputSlot, IWidgetLocator, Point, SharedIntersection } from "./interfaces"
+import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetInputSlot, IWidgetLocator, OptionalProps, Point, Rect, SharedIntersection } from "./interfaces"
 import type { LinkId } from "./LLink"
 import type { IWidget } from "./types/widgets"
 
@@ -95,11 +95,13 @@ export abstract class NodeSlot implements INodeSlot {
   pos?: Point
   widget?: IWidgetLocator
   hasErrors?: boolean
+  boundingRect: Rect
 
-  constructor(slot: INodeSlot) {
+  constructor(slot: OptionalProps<INodeSlot, "boundingRect">) {
     Object.assign(this, slot)
     this.name = slot.name
     this.type = slot.type
+    this.boundingRect = slot.boundingRect ?? [0, 0, 0, 0]
   }
 
   /**
@@ -289,7 +291,7 @@ export function isINodeInputSlot(slot: INodeSlot): slot is INodeInputSlot {
 export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
   link: LinkId | null
 
-  constructor(slot: INodeInputSlot) {
+  constructor(slot: OptionalProps<INodeInputSlot, "boundingRect">) {
     super(slot)
     this.link = slot.link
   }
@@ -325,7 +327,7 @@ export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
   _data?: unknown
   slot_index?: number
 
-  constructor(slot: INodeOutputSlot) {
+  constructor(slot: OptionalProps<INodeOutputSlot, "boundingRect">) {
     super(slot)
     this.links = slot.links
     this._data = slot._data

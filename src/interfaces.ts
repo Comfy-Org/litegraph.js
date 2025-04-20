@@ -3,7 +3,6 @@ import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
-import type { LayoutElement } from "./utils/layout"
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -261,7 +260,7 @@ export interface IOptionalSlotData<TSlot extends INodeInputSlot | INodeOutputSlo
  */
 export type ISlotType = number | string
 
-export interface INodeSlot {
+export interface INodeSlot extends HasBoundingRect {
   /**
    * The name of the slot in English.
    * Will be included in the serialized data.
@@ -289,11 +288,8 @@ export interface INodeSlot {
   locked?: boolean
   nameLocked?: boolean
   pos?: Point
-  /**
-   * A layout element that is used internally to position the slot.
-   * Set by {@link LGraphNode.#layoutSlots}.
-   */
-  _layoutElement?: LayoutElement
+  /** @remarks Automatically calculated; not included in serialisation. */
+  boundingRect: Rect
   /**
    * A list of floating link IDs that are connected to this slot.
    * This is calculated at runtime; it is **not** serialized.
@@ -327,7 +323,6 @@ export interface IWidgetLocator {
 
 export interface INodeInputSlot extends INodeSlot {
   link: LinkId | null
-  _layoutElement?: LayoutElement
   widget?: IWidgetLocator
 }
 
@@ -339,7 +334,6 @@ export interface INodeOutputSlot extends INodeSlot {
   links: LinkId[] | null
   _data?: unknown
   slot_index?: number
-  _layoutElement?: LayoutElement
 }
 
 /** Links */
