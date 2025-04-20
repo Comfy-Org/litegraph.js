@@ -75,7 +75,7 @@ export function toNodeSlotClass(slot: INodeInputSlot | INodeOutputSlot): NodeInp
  * Whether this slot is an input slot and attached to a widget.
  * @param slot The slot to check.
  */
-export function isWidgetInputSlot(slot: INodeSlot): slot is IWidgetInputSlot {
+export function isWidgetInputSlot(slot: INodeInputSlot): slot is IWidgetInputSlot {
   return isINodeInputSlot(slot) && !!slot.widget
 }
 
@@ -99,6 +99,8 @@ export abstract class NodeSlot implements INodeSlot {
   get highlightColor(): CanvasColour {
     return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
   }
+
+  abstract get isWidgetInputSlot(): boolean
 
   constructor(slot: OptionalProps<INodeSlot, "boundingRect">) {
     Object.assign(this, slot)
@@ -218,7 +220,7 @@ export abstract class NodeSlot implements INodeSlot {
     if (!lowQuality && doStroke) ctx.stroke()
 
     // render slot label
-    const hideLabel = lowQuality || isWidgetInputSlot(this)
+    const hideLabel = lowQuality || this.isWidgetInputSlot
     if (!hideLabel) {
       const text = this.renderingLabel
       if (text) {
@@ -297,6 +299,10 @@ export function isINodeInputSlot(slot: INodeSlot): slot is INodeInputSlot {
 export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
   link: LinkId | null
 
+  get isWidgetInputSlot(): boolean {
+    return !!this.widget
+  }
+
   constructor(slot: OptionalProps<INodeInputSlot, "boundingRect">) {
     super(slot)
     this.link = slot.link
@@ -332,6 +338,10 @@ export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
   links: LinkId[] | null
   _data?: unknown
   slot_index?: number
+
+  get isWidgetInputSlot(): false {
+    return false
+  }
 
   constructor(slot: OptionalProps<INodeOutputSlot, "boundingRect">) {
     super(slot)
