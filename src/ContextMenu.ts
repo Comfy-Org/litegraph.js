@@ -89,7 +89,7 @@ export class ContextMenu<TValue = unknown> {
     }
 
     // this prevents the default context browser menu to open in case this menu was created when pressing right button
-    root.addEventListener("pointerup", e => e.preventDefault(), true)
+    root.addEventListener("pointerup", e => e.preventDefault(), eventOptions)
 
     // Right button
     root.addEventListener(
@@ -97,7 +97,7 @@ export class ContextMenu<TValue = unknown> {
       (e) => {
         if (e.button === 2) e.preventDefault()
       },
-      true,
+      eventOptions,
     )
 
     root.addEventListener(
@@ -108,7 +108,7 @@ export class ContextMenu<TValue = unknown> {
           e.preventDefault()
         }
       },
-      true,
+      eventOptions,
     )
 
     this.root = root
@@ -135,11 +135,9 @@ export class ContextMenu<TValue = unknown> {
       this.addItem(name, value, options)
     }
 
-    root.addEventListener("pointerenter", function () {
-      if (root.closing_timer) {
-        clearTimeout(root.closing_timer)
-      }
-    })
+    root.addEventListener("pointerenter", () => {
+      if (root.closing_timer) clearTimeout(root.closing_timer)
+    }, eventOptions)
 
     // insert before checking position
     const ownerDocument = (options.event?.target as Node | null | undefined)?.ownerDocument
