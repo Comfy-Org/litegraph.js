@@ -3657,7 +3657,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     for (const [i, slot] of this.inputs.entries()) {
       if (!isWidgetInputSlot(slot)) continue
 
-      slotByWidgetName.set(slot.widget?.name, { ...slot, index: i })
+      slotByWidgetName.set(slot.widget.name, { ...slot, index: i })
     }
     if (!slotByWidgetName.size) return
 
