@@ -129,10 +129,6 @@ export class ContextMenu<TValue = unknown> {
       this.addItem(name, value, options)
     }
 
-    root.addEventListener("pointerenter", () => {
-      if (root.closing_timer) clearTimeout(root.closing_timer)
-    }, eventOptions)
-
     // insert before checking position
     const ownerDocument = (options.event?.target as Node | null | undefined)?.ownerDocument
     const root_document = ownerDocument || document
@@ -339,8 +335,6 @@ export class ContextMenu<TValue = unknown> {
       }
     }
     this.current_submenu?.close(e, true)
-
-    if (this.root.closing_timer) clearTimeout(this.root.closing_timer)
   }
 
   // this code is used to trigger events easily (used in the context menu mouseleave
