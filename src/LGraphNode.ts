@@ -3452,7 +3452,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
   }
 
-  get slots(): INodeSlot[] {
+  get slots(): (INodeInputSlot | INodeOutputSlot)[] {
     return [...this.inputs, ...this.outputs]
   }
 
