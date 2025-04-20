@@ -3533,11 +3533,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     lowQuality,
   }: DrawSlotsOptions) {
     for (const slot of this.slots) {
-      // change opacity of incompatible slots when dragging a connection
       const layoutElement = slot._layoutElement
       const slotInstance = toNodeSlotClass(slot)
-      const isValid = !fromSlot || slotInstance.isValidTarget(fromSlot)
-      const highlight = isValid && this.#isMouseOverSlot(slot)
+      const isValidTarget = fromSlot && slotInstance.isValidTarget(fromSlot)
+      const isMouseOverSlot = this.#isMouseOverSlot(slot)
+
+      // change opacity of incompatible slots when dragging a connection
+      const isValid = !fromSlot || isValidTarget
+      const highlight = isValid && isMouseOverSlot
       const labelColor = highlight
         ? this.highlightColor
         : LiteGraph.NODE_TEXT_COLOR
@@ -3547,10 +3550,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       // - the mouse is over the widget
       // - the slot is valid during link drop
       // - the slot is connected
-      const showSlot = !isWidgetInputSlot(slot) ||
-        this.#isMouseOverSlot(slot) ||
+      const showSlot = isMouseOverSlot ||
+        isValidTarget ||
+        !isWidgetInputSlot(slot) ||
         this.#isMouseOverWidget(this.getWidgetFromSlot(slot)!) ||
-        (fromSlot && slotInstance.isValidTarget(fromSlot)) ||
         slotInstance.isConnected()
 
       ctx.globalAlpha = showSlot ? (isValid ? editorAlpha : 0.4 * editorAlpha) : 0
