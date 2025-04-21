@@ -24,7 +24,7 @@ export interface IWidgetOptions<TValue = unknown> extends Record<string, unknown
   multiline?: boolean
   // TODO: Confirm this
   property?: string
-  /** An input socket should not be created for this widget. */
+  /** If `true`, an input socket will not be created for this widget. */
   socketless?: boolean
 
   values?: TValue[]
