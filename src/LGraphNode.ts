@@ -3493,7 +3493,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this.#getMouseOverSlot(slot) === slot
   }
 
-  #isMouseOverWidget(widget: IWidget): boolean {
+  #isMouseOverWidget(widget: IWidget | undefined): boolean {
+    if (!widget) return false
     return this.mouseOver?.overWidget === widget
   }
 
@@ -3539,7 +3540,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         isMouseOverSlot ||
         isValidTarget ||
         !slotInstance.isWidgetInputSlot ||
-        this.#isMouseOverWidget(this.getWidgetFromSlot(slotInstance)!) ||
+        this.#isMouseOverWidget(this.getWidgetFromSlot(slotInstance)) ||
         slotInstance.isConnected()
       ) {
         ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
