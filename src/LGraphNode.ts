@@ -1560,11 +1560,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
 
-    size[0] = Math.max(input_width + output_width + 10, title_width)
-    size[0] = Math.max(size[0], LiteGraph.NODE_WIDTH)
-    if (this.widgets?.length)
-      size[0] = Math.max(size[0], LiteGraph.NODE_WIDTH * 1.5)
+    const minWidth = LiteGraph.NODE_WIDTH * (this.widgets?.length ? 1.5 : 1)
+    const slotsWidth = input_width + output_width + 10
 
+    size[0] = Math.max(slotsWidth, title_width, minWidth)
     size[1] = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
 
     let widgets_height = 0
