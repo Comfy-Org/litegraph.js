@@ -1,10 +1,11 @@
-import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetLocator, OptionalProps, Point, Rect } from "./interfaces"
+import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetLocator, OptionalProps, Point, Rect } from "@/interfaces"
 
-import { LabelPosition, SlotShape, SlotType } from "./draw"
-import { LiteGraph } from "./litegraph"
-import { getCentre } from "./measure"
-import { NodeInputSlot } from "./node/NodeInputSlot"
-import { LinkDirection, RenderShape } from "./types/globalEnums"
+import { LabelPosition, SlotShape, SlotType } from "@/draw"
+import { LiteGraph } from "@/litegraph"
+import { getCentre } from "@/measure"
+import { LinkDirection, RenderShape } from "@/types/globalEnums"
+
+import { NodeInputSlot } from "./NodeInputSlot"
 
 export interface ConnectionColorContext {
   default_connection_color: {

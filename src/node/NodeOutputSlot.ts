@@ -3,7 +3,7 @@ import type { LinkId } from "@/LLink"
 
 import { LabelPosition } from "@/draw"
 import { LiteGraph } from "@/litegraph"
-import { type IDrawOptions, NodeSlot } from "@/NodeSlot"
+import { type IDrawOptions, NodeSlot } from "@/node/NodeSlot"
 
 export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
   links: LinkId[] | null

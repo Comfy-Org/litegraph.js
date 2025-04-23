@@ -26,7 +26,7 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { ConnectionColorContext } from "./NodeSlot"
+import type { ConnectionColorContext } from "./node/NodeSlot"
 import type {
   CanvasEventDetail,
   CanvasMouseEvent,

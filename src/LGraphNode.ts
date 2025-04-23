@@ -20,7 +20,7 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { ConnectionColorContext } from "./NodeSlot"
+import type { ConnectionColorContext } from "./node/NodeSlot"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { CanvasMouseEvent } from "./types/events"
 import type { ISerialisedNode } from "./types/serialisation"
