@@ -13,7 +13,14 @@ export interface DrawWidgetOptions {
 }
 
 export abstract class BaseWidget implements IBaseWidget {
+  /** From node edge to widget edge */
   static margin = 15
+  /** From widget edge to tip of arrow button */
+  static arrowMargin = 6
+  /** Arrow button width */
+  static arrowWidth = 10
+  /** Absolute minimum display width of widget values */
+  static minValueWidth = 42
 
   linkedWidgets?: IWidget[]
   name: string
