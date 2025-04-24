@@ -1543,14 +1543,18 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const padRight = padLeft * 0.33
     const title_width = padLeft + compute_text_size(this.title, this.titleFontStyle) + padRight
     let input_width = 0
+    let widgetWidth = 0
     let output_width = 0
 
     if (inputs) {
       for (const input of inputs) {
         const text = input.label || input.localized_name || input.name || ""
         const text_width = compute_text_size(text, this.innerFontStyle)
-        if (input_width < text_width)
-          input_width = text_width
+        if (isWidgetInputSlot(input)) {
+          if (text_width > widgetWidth) widgetWidth = text_width
+        } else {
+          if (text_width > input_width) input_width = text_width
+        }
       }
     }
 
@@ -1564,11 +1568,19 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     const minWidth = LiteGraph.NODE_WIDTH * (widgets?.length ? 1.5 : 1)
-    const slotsWidth = input_width + output_width + 10
+    // Text + slot width + centre padding
+    const centrePadding = input_width && output_width ? 5 : 0
+    const slotsWidth = input_width + output_width + (2 * LiteGraph.NODE_SLOT_HEIGHT) + centrePadding
 
-    size[0] = Math.max(slotsWidth, title_width, minWidth)
+    // Total distance from edge of node to the inner edge of the widget 'previous' arrow button
+    const widgetMargin = BaseWidget.margin + BaseWidget.arrowMargin + BaseWidget.arrowWidth
+    const widgetPadding = BaseWidget.minValueWidth + (2 * widgetMargin)
+    if (widgetWidth) widgetWidth += widgetPadding
+
+    size[0] = Math.max(slotsWidth, widgetWidth, title_width, minWidth)
     size[1] = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
 
+    // Get widget height & expand size if necessary
     let widgets_height = 0
     if (widgets?.length) {
       for (const widget of widgets) {
@@ -1578,7 +1590,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         if (widget.computeSize) {
           widget_height += widget.computeSize(size[0])[1]
         } else if (widget.computeLayoutSize) {
-          widget_height += widget.computeLayoutSize(this).minHeight
+          // Expand widget width if necessary
+          const { minHeight, minWidth } = widget.computeLayoutSize(this)
+          const widgetWidth = minWidth + widgetPadding
+          if (widgetWidth > size[0]) size[0] = widgetWidth
+
+          widget_height += minHeight
         } else {
           widget_height += LiteGraph.NODE_WIDGET_HEIGHT
         }
