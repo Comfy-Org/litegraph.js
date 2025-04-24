@@ -1539,14 +1539,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // although it should be graphcanvas.inner_text_font size
     const font_size = LiteGraph.NODE_TEXT_SIZE
 
-    const title_width = compute_text_size(this.title)
+    const title_width = compute_text_size(this.title, this.titleFontStyle)
     let input_width = 0
     let output_width = 0
 
     if (inputs) {
       for (const input of inputs) {
         const text = input.label || input.localized_name || input.name || ""
-        const text_width = compute_text_size(text)
+        const text_width = compute_text_size(text, this.innerFontStyle)
         if (input_width < text_width)
           input_width = text_width
       }
@@ -1555,7 +1555,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (outputs) {
       for (const output of outputs) {
         const text = output.label || output.localized_name || output.name || ""
-        const text_width = compute_text_size(text)
+        const text_width = compute_text_size(text, this.innerFontStyle)
         if (output_width < text_width)
           output_width = text_width
       }
@@ -1593,10 +1593,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     else
       size[1] += widgets_height
 
-    function compute_text_size(text: string) {
-      return text
-        ? font_size * text.length * 0.6
-        : 0
+    function compute_text_size(text: string, fontStyle: string) {
+      return LGraphCanvas._measureText?.(text, fontStyle) ??
+        font_size * (text?.length ?? 0) * 0.6
     }
 
     if (this.constructor.min_height && size[1] < this.constructor.min_height) {

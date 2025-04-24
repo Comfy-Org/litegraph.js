@@ -242,6 +242,11 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   /**
+   * @internal Exclusively a workaround for design limitation in {@link LGraphNode.computeSize}.
+   */
+  static _measureText?: (text: string, fontStyle?: string) => number
+
+  /**
    * The state of this canvas, e.g. whether it is being dragged, or read-only.
    *
    * Implemented as a POCO that can be proxied without side-effects.
@@ -742,6 +747,17 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     this.setCanvas(canvas, options.skip_events)
     this.clear()
+
+    LGraphCanvas._measureText = (text: string, fontStyle = this.inner_text_font) => {
+      const { ctx } = this
+      const { font } = ctx
+      try {
+        ctx.font = fontStyle
+        return ctx.measureText(text).width
+      } finally {
+        ctx.font = font
+      }
+    }
 
     if (!options.skip_render) {
       this.startRendering()
