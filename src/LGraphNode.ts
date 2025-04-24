@@ -1551,6 +1551,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         const text = input.label || input.localized_name || input.name || ""
         const text_width = compute_text_size(text, this.innerFontStyle)
         if (isWidgetInputSlot(input)) {
+          const widget = this.getWidgetFromSlot(input)
+          if (widget && !this.isWidgetVisible(widget)) continue
+
           if (text_width > widgetWidth) widgetWidth = text_width
         } else {
           if (text_width > input_width) input_width = text_width
