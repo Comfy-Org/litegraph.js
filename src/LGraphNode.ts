@@ -1529,7 +1529,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const ctorSize = this.constructor.size
     if (ctorSize) return [ctorSize[0], ctorSize[1]]
 
-    const { inputs, outputs } = this
+    const { inputs, outputs, widgets } = this
     let rows = Math.max(
       inputs ? inputs.filter(input => !isWidgetInputSlot(input)).length : 1,
       outputs ? outputs.length : 1,
@@ -1563,15 +1563,15 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
 
-    const minWidth = LiteGraph.NODE_WIDTH * (this.widgets?.length ? 1.5 : 1)
+    const minWidth = LiteGraph.NODE_WIDTH * (widgets?.length ? 1.5 : 1)
     const slotsWidth = input_width + output_width + 10
 
     size[0] = Math.max(slotsWidth, title_width, minWidth)
     size[1] = (this.constructor.slot_start_y || 0) + rows * LiteGraph.NODE_SLOT_HEIGHT
 
     let widgets_height = 0
-    if (this.widgets?.length) {
-      for (const widget of this.widgets) {
+    if (widgets?.length) {
+      for (const widget of widgets) {
         if (!this.isWidgetVisible(widget)) continue
 
         let widget_height = 0
