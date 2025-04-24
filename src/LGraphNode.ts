@@ -1539,7 +1539,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // although it should be graphcanvas.inner_text_font size
     const font_size = LiteGraph.NODE_TEXT_SIZE
 
-    const title_width = compute_text_size(this.title, this.titleFontStyle)
+    const padLeft = LiteGraph.NODE_TITLE_HEIGHT
+    const padRight = padLeft * 0.33
+    const title_width = padLeft + compute_text_size(this.title, this.titleFontStyle) + padRight
     let input_width = 0
     let output_width = 0
 
