@@ -45,6 +45,7 @@ import {
 import { findFreeSlotOfType } from "./utils/collections"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
+import { BaseWidget } from "./widgets/BaseWidget"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
 // #region Types
@@ -3373,7 +3374,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const show_text = !lowQuality
     ctx.save()
     ctx.globalAlpha = editorAlpha
-    const margin = 15
+    const { margin } = BaseWidget
 
     for (const w of widgets) {
       if (!this.isWidgetVisible(w)) continue

@@ -72,6 +72,7 @@ import {
 import { alignNodes, distributeNodes, getBoundaryNodes } from "./utils/arrange"
 import { findFirstNode, getAllNestedItems } from "./utils/collections"
 import { toClass } from "./utils/type"
+import { BaseWidget } from "./widgets/BaseWidget"
 import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
 
 interface IShowSearchOptions {
@@ -4041,7 +4042,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       } else {
         // Regular widget, probably
         ctx.roundRect(
-          nodeX + 15,
+          nodeX + BaseWidget.margin,
           nodeY + overWidget.y,
           overWidget.width ?? area[2],
           height,

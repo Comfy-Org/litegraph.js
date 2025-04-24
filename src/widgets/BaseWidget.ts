@@ -13,6 +13,8 @@ export interface DrawWidgetOptions {
 }
 
 export abstract class BaseWidget implements IBaseWidget {
+  static margin = 15
+
   linkedWidgets?: IWidget[]
   name: string
   options: IWidgetOptions<unknown>
