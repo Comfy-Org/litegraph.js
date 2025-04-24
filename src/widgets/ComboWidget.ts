@@ -51,24 +51,7 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
     if (show_text) {
       if (!this.computedDisabled) {
         ctx.stroke()
-
-        const { arrowMargin, arrowWidth } = BaseWidget
-        const arrowTipX = margin + arrowMargin
-        const arrowInnerX = arrowTipX + arrowWidth
-
-        // Draw left arrow
-        ctx.fillStyle = this.text_color
-        ctx.beginPath()
-        ctx.moveTo(arrowInnerX, y + 5)
-        ctx.lineTo(arrowTipX, y + height * 0.5)
-        ctx.lineTo(arrowInnerX, y + height - 5)
-        ctx.fill()
-        // Draw right arrow
-        ctx.beginPath()
-        ctx.moveTo(width - arrowInnerX, y + 5)
-        ctx.lineTo(width - arrowTipX, y + height * 0.5)
-        ctx.lineTo(width - arrowInnerX, y + height - 5)
-        ctx.fill()
+        this.drawArrowButtons(ctx, margin, y, width)
       }
 
       // Draw label
