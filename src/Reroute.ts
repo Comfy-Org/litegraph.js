@@ -533,9 +533,6 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     const { pos } = this
 
     const { strokeStyle, lineWidth } = ctx
-    ctx.strokeStyle = strokeStyle
-    ctx.lineWidth = lineWidth
-
     ctx.strokeStyle = colour
     ctx.lineWidth = 1
 
