@@ -1,4 +1,4 @@
-import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetLocator, OptionalProps, Point, Rect } from "@/interfaces"
+import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetLocator, OptionalProps, Point, ReadOnlyPoint, Rect } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 
 import { LabelPosition, SlotShape, SlotType } from "@/draw"
@@ -45,7 +45,7 @@ export abstract class NodeSlot implements INodeSlot {
   readonly boundingRect: Rect
 
   /** The offset from the parent node to the centre point of this slot. */
-  get #renderingCentreOffset(): Point {
+  get #centreOffset(): ReadOnlyPoint {
     const nodePos = this.node.pos
     const { boundingRect } = this
 
@@ -132,7 +132,7 @@ export abstract class NodeSlot implements INodeSlot {
       ? this.highlightColor
       : LiteGraph.NODE_TEXT_COLOR
 
-    const pos = this.#renderingCentreOffset
+    const pos = this.#centreOffset
     const slot_type = this.type
     const slot_shape = (
       slot_type === SlotType.Array ? SlotShape.Grid : this.shape
