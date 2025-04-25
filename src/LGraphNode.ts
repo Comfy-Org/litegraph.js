@@ -3434,8 +3434,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   drawCollapsedSlots(ctx: CanvasRenderingContext2D): void {
     // if collapsed
-    let input_slot: INodeInputSlot | null = null
-    let output_slot: INodeOutputSlot | null = null
+    let input_slot: NodeInputSlot | undefined
+    let output_slot: NodeOutputSlot | undefined
 
     // get first connected slot to render
     for (const slot of this.inputs ?? []) {
