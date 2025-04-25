@@ -3438,14 +3438,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let output_slot: NodeOutputSlot | undefined
 
     // get first connected slot to render
-    for (const slot of this.#concreteInputs ?? []) {
+    for (const slot of this.#concreteInputs) {
       if (slot.link == null) {
         continue
       }
       input_slot = slot
       break
     }
-    for (const slot of this.#concreteOutputs ?? []) {
+    for (const slot of this.#concreteOutputs) {
       if (!slot.links || !slot.links.length) {
         continue
       }
