@@ -3438,14 +3438,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     let output_slot: NodeOutputSlot | undefined
 
     // get first connected slot to render
-    for (const slot of this.inputs ?? []) {
+    for (const slot of this.#concreteInputs ?? []) {
       if (slot.link == null) {
         continue
       }
       input_slot = slot
       break
     }
-    for (const slot of this.outputs ?? []) {
+    for (const slot of this.#concreteOutputs ?? []) {
       if (!slot.links || !slot.links.length) {
         continue
       }
@@ -3456,7 +3456,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (input_slot) {
       const x = 0
       const y = LiteGraph.NODE_TITLE_HEIGHT * -0.5
-      toClass(NodeInputSlot, input_slot).drawCollapsed(ctx, {
+      input_slot.drawCollapsed(ctx, {
         pos: [x, y],
       })
     }
@@ -3464,7 +3464,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (output_slot) {
       const x = this._collapsed_width ?? LiteGraph.NODE_COLLAPSED_WIDTH
       const y = LiteGraph.NODE_TITLE_HEIGHT * -0.5
-      toClass(NodeOutputSlot, output_slot).drawCollapsed(ctx, {
+      output_slot.drawCollapsed(ctx, {
         pos: [x, y],
       })
     }
