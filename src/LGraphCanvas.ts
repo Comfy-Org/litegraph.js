@@ -3951,7 +3951,7 @@ export class LGraphCanvas implements ConnectionColorContext {
   /** Get the target snap / highlight point in graph space */
   #getHighlightPosition(): ReadOnlyPoint {
     return LiteGraph.snaps_for_comfy
-      ? this._highlight_pos ?? this.graph_mouse
+      ? this.linkConnector.state.snapLinksPos ?? this._highlight_pos ?? this.graph_mouse
       : this.graph_mouse
   }
 
@@ -3964,7 +3964,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx: CanvasRenderingContext2D,
     highlightPos: ReadOnlyPoint,
   ): void {
-    if (!this._highlight_pos) return
+    if (!this._highlight_pos && !this.linkConnector.state.snapLinksPos) return
 
     ctx.fillStyle = "#ffcc00"
     ctx.beginPath()
