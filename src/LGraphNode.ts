@@ -701,7 +701,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     this.inputs ??= []
-    this.inputs = this.inputs.map(input => toClass(NodeInputSlot, input))
+    this.inputs = this.inputs.map(input => toClass(NodeInputSlot, input, this))
     for (const [i, input] of this.inputs.entries()) {
       const link = this.graph && input.link != null
         ? this.graph._links.get(input.link)
@@ -711,7 +711,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     this.outputs ??= []
-    this.outputs = this.outputs.map(output => toClass(NodeOutputSlot, output))
+    this.outputs = this.outputs.map(output => toClass(NodeOutputSlot, output, this))
     for (const [i, output] of this.outputs.entries()) {
       if (!output.links) continue
 
@@ -1428,7 +1428,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     type: ISlotType,
     extra_info?: Partial<INodeOutputSlot>,
   ): INodeOutputSlot {
-    const output = new NodeOutputSlot({ name, type, links: null })
+    const output = new NodeOutputSlot({ name, type, links: null }, this)
     if (extra_info) Object.assign(output, extra_info)
 
     this.outputs ||= []
@@ -1474,7 +1474,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   addInput(name: string, type: ISlotType, extra_info?: Partial<INodeInputSlot>): INodeInputSlot {
     type = type || 0
-    const input = new NodeInputSlot({ name: name, type: type, link: null })
+    const input = new NodeInputSlot({ name: name, type: type, link: null }, this)
     if (extra_info) Object.assign(input, extra_info)
 
     this.inputs ||= []
@@ -3690,8 +3690,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * have been removed from the ecosystem.
    */
   _setConcreteSlots(): void {
-    this.#concreteInputs = this.inputs.map(slot => toClass(NodeInputSlot, slot))
-    this.#concreteOutputs = this.outputs.map(slot => toClass(NodeOutputSlot, slot))
+    this.#concreteInputs = this.inputs.map(slot => toClass(NodeInputSlot, slot, this))
+    this.#concreteOutputs = this.outputs.map(slot => toClass(NodeOutputSlot, slot, this))
   }
 
   /**

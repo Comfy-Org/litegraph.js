@@ -1,4 +1,5 @@
 import type { CanvasColour, Dictionary, INodeInputSlot, INodeOutputSlot, INodeSlot, ISlotType, IWidgetLocator, OptionalProps, Point, Rect } from "@/interfaces"
+import type { LGraphNode } from "@/LGraphNode"
 
 import { LabelPosition, SlotShape, SlotType } from "@/draw"
 import { LiteGraph } from "@/litegraph"
@@ -43,17 +44,23 @@ export abstract class NodeSlot implements INodeSlot {
   hasErrors?: boolean
   boundingRect: Rect
 
+  #node: LGraphNode
+  get node(): LGraphNode {
+    return this.#node
+  }
+
   get highlightColor(): CanvasColour {
     return LiteGraph.NODE_TEXT_HIGHLIGHT_COLOR ?? LiteGraph.NODE_SELECTED_TITLE_COLOR ?? LiteGraph.NODE_TEXT_COLOR
   }
 
   abstract get isWidgetInputSlot(): boolean
 
-  constructor(slot: OptionalProps<INodeSlot, "boundingRect">) {
+  constructor(slot: OptionalProps<INodeSlot, "boundingRect">, node: LGraphNode) {
     Object.assign(this, slot)
     this.name = slot.name
     this.type = slot.type
     this.boundingRect = slot.boundingRect ?? [0, 0, 0, 0]
+    this.#node = node
   }
 
   /**
