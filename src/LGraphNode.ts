@@ -3477,8 +3477,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   #measureSlot(slot: NodeInputSlot | NodeOutputSlot, slotIndex: number, isInput: boolean): void {
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
 
-    slot.boundingRect[0] = pos[0] - this.pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
-    slot.boundingRect[1] = pos[1] - this.pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    slot.boundingRect[0] = pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
+    slot.boundingRect[1] = pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
     slot.boundingRect[2] = LiteGraph.NODE_SLOT_HEIGHT
     slot.boundingRect[3] = LiteGraph.NODE_SLOT_HEIGHT
   }
@@ -3699,7 +3699,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   arrange(): void {
     const slotsBounds = this.#measureSlots()
-    const widgetStartY = slotsBounds ? slotsBounds[1] + slotsBounds[3] : 0
+    const widgetStartY = slotsBounds ? slotsBounds[1] + slotsBounds[3] - this.pos[1] : 0
     this.#arrangeWidgets(widgetStartY)
     this.#arrangeWidgetInputSlots()
   }

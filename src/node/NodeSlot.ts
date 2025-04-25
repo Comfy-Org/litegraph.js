@@ -44,6 +44,19 @@ export abstract class NodeSlot implements INodeSlot {
   hasErrors?: boolean
   readonly boundingRect: Rect
 
+  /** The offset from the parent node to the centre point of this slot. */
+  get #relativeCentre(): Point {
+    const nodePos = this.node.pos
+    const { boundingRect } = this
+
+    return getCentre([
+      boundingRect[0] - nodePos[0],
+      boundingRect[1] - nodePos[1],
+      boundingRect[2],
+      boundingRect[3],
+    ])
+  }
+
   #node: LGraphNode
   get node(): LGraphNode {
     return this.#node
@@ -116,7 +129,7 @@ export abstract class NodeSlot implements INodeSlot {
       ? this.highlightColor
       : LiteGraph.NODE_TEXT_COLOR
 
-    const pos = getCentre(this.boundingRect)
+    const pos = this.#relativeCentre
     const slot_type = this.type
     const slot_shape = (
       slot_type === SlotType.Array ? SlotShape.Grid : this.shape
