@@ -3479,7 +3479,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     slot.boundingRect[0] = pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
     slot.boundingRect[1] = pos[1] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
-    slot.boundingRect[2] = LiteGraph.NODE_SLOT_HEIGHT
+    slot.boundingRect[2] = slot.isWidgetInputSlot ? BaseWidget.margin : LiteGraph.NODE_SLOT_HEIGHT
     slot.boundingRect[3] = LiteGraph.NODE_SLOT_HEIGHT
   }
 
