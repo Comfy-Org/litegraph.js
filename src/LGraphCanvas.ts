@@ -488,6 +488,8 @@ export class LGraphCanvas implements ConnectionColorContext {
   node_capturing_input?: LGraphNode | null
   highlighted_links: Dictionary<boolean> = {}
 
+  #visibleReroutes: Set<Reroute> = new Set()
+
   dirty_canvas: boolean = true
   dirty_bgcanvas: boolean = true
   /** A map of nodes that require selective-redraw */
@@ -1907,7 +1909,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.processSelect(node, e, true)
       } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
         // Reroutes
-        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
+        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
         if (reroute) {
           if (e.altKey) {
             pointer.onClick = (upEvent) => {
@@ -1970,7 +1972,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       pointer.onClick = (eUp) => {
         // Click, not drag
         const clickedItem = node ??
-          graph.getRerouteOnPos(eUp.canvasX, eUp.canvasY) ??
+          graph.getRerouteOnPos(eUp.canvasX, eUp.canvasY, this.#visibleReroutes) ??
           graph.getGroupTitlebarOnPos(eUp.canvasX, eUp.canvasY)
         this.processSelect(clickedItem, eUp)
       }
@@ -2020,7 +2022,7 @@ export class LGraphCanvas implements ConnectionColorContext {
     } else {
       // Reroutes
       if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
-        const reroute = graph.getRerouteOnPos(x, y)
+        const reroute = graph.getRerouteOnPos(x, y, this.#visibleReroutes)
         if (reroute) {
           if (e.shiftKey) {
             linkConnector.dragFromReroute(graph, reroute)
@@ -2691,7 +2693,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
       } else {
         // Reroute
-        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY)
+        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
         if (reroute) {
           underPointer |= CanvasItem.Reroute
           linkConnector.overReroute = reroute
@@ -4645,9 +4647,14 @@ export class LGraphCanvas implements ConnectionColorContext {
       this.#renderFloatingLinks(ctx, graph, visibleReroutes, now)
     }
 
+    const rerouteSet = this.#visibleReroutes
+    rerouteSet.clear()
+
     // Render reroutes, ordered by number of non-floating links
     visibleReroutes.sort((a, b) => a.linkIds.size - b.linkIds.size)
     for (const reroute of visibleReroutes) {
+      rerouteSet.add(reroute)
+
       if (
         this.#snapToGrid &&
         this.isDragging &&
@@ -7143,7 +7150,7 @@ export class LGraphCanvas implements ConnectionColorContext {
 
       // Check for reroutes
       if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
-        const reroute = this.graph.getRerouteOnPos(event.canvasX, event.canvasY)
+        const reroute = this.graph.getRerouteOnPos(event.canvasX, event.canvasY, this.#visibleReroutes)
         if (reroute) {
           menu_info.unshift({
             content: "Delete Reroute",

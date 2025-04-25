@@ -1001,8 +1001,8 @@ export class LGraph implements LinkNetwork, Serialisable<SerialisableGraph> {
    * @param y Y co-ordinate in graph space
    * @returns The first reroute under the given co-ordinates, or undefined
    */
-  getRerouteOnPos(x: number, y: number): Reroute | undefined {
-    for (const reroute of this.reroutes.values()) {
+  getRerouteOnPos(x: number, y: number, reroutes?: Iterable<Reroute>): Reroute | undefined {
+    for (const reroute of reroutes ?? this.reroutes.values()) {
       const { pos } = reroute
 
       if (isSortaInsideOctagon(x - pos[0], y - pos[1], 2 * Reroute.radius))
