@@ -35,7 +35,7 @@ import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { NodeInputSlot } from "./node/NodeInputSlot"
 import { NodeOutputSlot } from "./node/NodeOutputSlot"
-import { inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, outputAsSerialisable, toNodeSlotClass } from "./node/slotUtils"
+import { inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, outputAsSerialisable } from "./node/slotUtils"
 import {
   LGraphEventMode,
   NodeSlotType,
@@ -210,6 +210,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   type: string = ""
   inputs: INodeInputSlot[] = []
   outputs: INodeOutputSlot[] = []
+
+  #concreteInputs: NodeInputSlot[] = []
+  #concreteOutputs: NodeOutputSlot[] = []
+
   // Not used
   connections: unknown[] = []
   properties: Dictionary<NodeProperty | undefined> = {}
@@ -3470,8 +3474,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return [...this.inputs, ...this.outputs]
   }
 
-  #measureSlot(slot: INodeSlot, slotIndex: number): void {
-    const isInput = isINodeInputSlot(slot)
+  #measureSlot(slot: NodeInputSlot | NodeOutputSlot, slotIndex: number): void {
+    const isInput = slot instanceof NodeInputSlot
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
 
     slot.boundingRect[0] = pos[0] - this.pos[0] - LiteGraph.NODE_SLOT_HEIGHT * 0.5
@@ -3481,9 +3485,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   #measureSlots(): ReadOnlyRect | null {
-    const slots: INodeSlot[] = []
+    const slots: (NodeInputSlot | NodeOutputSlot)[] = []
 
-    for (const [slotIndex, slot] of this.inputs.entries()) {
+    for (const [slotIndex, slot] of this.#concreteInputs.entries()) {
       // Unrecognized nodes (Nodes with error) has inputs but no widgets. Treat
       // converted inputs as normal inputs.
       /** Widget input slots are handled in {@link layoutWidgetInputSlots} */
@@ -3492,7 +3496,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       this.#measureSlot(slot, slotIndex)
       slots.push(slot)
     }
-    for (const [slotIndex, slot] of this.outputs.entries()) {
+    for (const [slotIndex, slot] of this.#concreteOutputs.entries()) {
       this.#measureSlot(slot, slotIndex)
       slots.push(slot)
     }
@@ -3542,9 +3546,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     editorAlpha,
     lowQuality,
   }: DrawSlotsOptions) {
-    for (const slot of this.slots) {
-      const slotInstance = toNodeSlotClass(slot)
-      const isValidTarget = fromSlot && slotInstance.isValidTarget(fromSlot)
+    for (const slot of [...this.#concreteInputs, ...this.#concreteOutputs]) {
+      const isValidTarget = fromSlot && slot.isValidTarget(fromSlot)
       const isMouseOverSlot = this.#isMouseOverSlot(slot)
 
       // change opacity of incompatible slots when dragging a connection
@@ -3559,12 +3562,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (
         isMouseOverSlot ||
         isValidTarget ||
-        !slotInstance.isWidgetInputSlot ||
-        this.#isMouseOverWidget(this.getWidgetFromSlot(slotInstance)) ||
-        slotInstance.isConnected()
+        !slot.isWidgetInputSlot ||
+        this.#isMouseOverWidget(this.getWidgetFromSlot(slot)) ||
+        slot.isConnected()
       ) {
         ctx.globalAlpha = isValid ? editorAlpha : 0.4 * editorAlpha
-        slotInstance.draw(ctx, {
+        slot.draw(ctx, {
           colorContext,
           lowQuality,
           highlight,
@@ -3673,11 +3676,23 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const slot = slotByWidgetName.get(widget.name)
       if (!slot) continue
 
-      const actualSlot = this.inputs[slot.index]
+      const actualSlot = this.#concreteInputs[slot.index]
       const offset = LiteGraph.NODE_SLOT_HEIGHT * 0.5
       actualSlot.pos = [offset, widget.y + offset]
       this.#measureSlot(actualSlot, slot.index)
     }
+  }
+
+  /**
+   * @internal Sets the internal concrete slot arrays, ensuring they are instances of
+   * {@link NodeInputSlot} or {@link NodeOutputSlot}.
+   *
+   * A temporary workaround until duck-typed inputs and outputs
+   * have been removed from the ecosystem.
+   */
+  _setConcreteSlots(): void {
+    this.#concreteInputs = this.inputs.map(slot => toClass(NodeInputSlot, slot))
+    this.#concreteOutputs = this.outputs.map(slot => toClass(NodeOutputSlot, slot))
   }
 
   /**
