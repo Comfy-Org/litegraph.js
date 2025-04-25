@@ -42,7 +42,7 @@ export abstract class NodeSlot implements INodeSlot {
   pos?: Point
   widget?: IWidgetLocator
   hasErrors?: boolean
-  boundingRect: Rect
+  readonly boundingRect: Rect
 
   #node: LGraphNode
   get node(): LGraphNode {
