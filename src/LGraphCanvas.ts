@@ -4317,8 +4317,8 @@ export class LGraphCanvas implements ConnectionColorContext {
     ctx.font = this.inner_text_font
 
     // render inputs and outputs
+    node._setConcreteSlots()
     if (!node.collapsed) {
-      node._setConcreteSlots()
       node.arrange()
       node.drawSlots(ctx, {
         fromSlot: this.linkConnector.renderLinks[0]?.fromSlot,
