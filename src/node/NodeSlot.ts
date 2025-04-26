@@ -49,6 +49,9 @@ export abstract class NodeSlot implements INodeSlot {
     ])
   }
 
+  /** The center point of this slot when the node is collapsed. */
+  abstract get collapsedPos(): ReadOnlyPoint
+
   #node: LGraphNode
   get node(): LGraphNode {
     return this.#node
@@ -204,8 +207,8 @@ export abstract class NodeSlot implements INodeSlot {
     ctx.lineWidth = originalLineWidth
   }
 
-  drawCollapsed(ctx: CanvasRenderingContext2D, options: { pos: Point }) {
-    const [x, y] = options.pos
+  drawCollapsed(ctx: CanvasRenderingContext2D) {
+    const [x, y] = this.collapsedPos
 
     // Save original styles
     const { fillStyle } = ctx
