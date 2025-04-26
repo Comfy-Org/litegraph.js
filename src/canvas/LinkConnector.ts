@@ -15,6 +15,7 @@ import { MovingInputLink } from "./MovingInputLink"
 import { MovingLinkBase } from "./MovingLinkBase"
 import { MovingOutputLink } from "./MovingOutputLink"
 import { ToInputRenderLink } from "./ToInputRenderLink"
+import { ToOutputFromRerouteLink } from "./ToOutputFromRerouteLink"
 import { ToOutputRenderLink } from "./ToOutputRenderLink"
 
 /**
@@ -292,6 +293,41 @@ export class LinkConnector {
     this.state.connectingTo = "input"
 
     this.#setLegacyLinks(false)
+  }
+
+  /**
+   * Drags a new link from a reroute to an output slot.
+   * @param network The network that the link being connected belongs to
+   * @param reroute The reroute that the link is being dragged from
+   */
+  dragFromRerouteToOutput(network: LinkNetwork, reroute: Reroute): void {
+    if (this.isConnecting) throw new Error("Already dragging links.")
+
+    const link = reroute.firstLink ?? reroute.firstFloatingLink
+    if (!link) {
+      console.warn("No link found for reroute.")
+      return
+    }
+
+    const inputNode = network.getNodeById(link.target_id)
+    if (!inputNode) {
+      console.warn("No input node found for link.", link)
+      return
+    }
+
+    const inputSlot = inputNode.inputs.at(link.target_slot)
+    if (!inputSlot) {
+      console.warn("No input slot found for link.", link)
+      return
+    }
+
+    const renderLink = new ToOutputFromRerouteLink(network, inputNode, inputSlot, reroute, this)
+    renderLink.fromDirection = LinkDirection.LEFT
+    this.renderLinks.push(renderLink)
+
+    this.state.connectingTo = "output"
+
+    this.#setLegacyLinks(true)
   }
 
   dragFromLinkSegment(network: LinkNetwork, linkSegment: LinkSegment): void {
