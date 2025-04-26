@@ -387,39 +387,7 @@ export class LinkConnector {
       if (this.renderLinks.length !== 1) throw new Error(`Attempted to connect ${this.renderLinks.length} input links to a reroute.`)
 
       const renderLink = this.renderLinks[0]
-
-      const results = reroute.findTargetInputs()
-      if (!results?.length) return
-
-      const maybeReroutes = reroute.getReroutes()
-      if (maybeReroutes === null) throw new Error("Reroute loop detected.")
-
-      const originalReroutes = maybeReroutes.slice(0, -1).reverse()
-
-      // From reroute to reroute
-      if (renderLink instanceof ToInputRenderLink) {
-        const { node, fromSlot, fromSlotIndex, fromReroute } = renderLink
-
-        reroute.setFloatingLinkOrigin(node, fromSlot, fromSlotIndex)
-
-        // Clean floating link IDs from reroutes about to be removed from the chain
-        if (fromReroute != null) {
-          for (const originalReroute of originalReroutes) {
-            if (originalReroute.id === fromReroute.id) break
-
-            for (const linkId of reroute.floatingLinkIds) {
-              originalReroute.floatingLinkIds.delete(linkId)
-            }
-          }
-        }
-      }
-
-      // Filter before any connections are re-created
-      const filtered = results.filter(result => renderLink.toType === "input" && canConnectInputLinkToReroute(renderLink, result.node, result.input, reroute))
-
-      for (const result of filtered) {
-        renderLink.connectToRerouteInput(reroute, result, this.events, originalReroutes)
-      }
+      this._connectOutputToReroute(reroute, renderLink)
 
       return
     }
@@ -436,6 +404,44 @@ export class LinkConnector {
 
       link.connectToRerouteOutput(reroute, node, output, this.events)
     }
+  }
+
+  /** @internal Temporary workaround - requires refactor. */
+  _connectOutputToReroute(reroute: Reroute, renderLink: RenderLinkUnion): void {
+    const results = reroute.findTargetInputs()
+    if (!results?.length) return
+
+    const maybeReroutes = reroute.getReroutes()
+    if (maybeReroutes === null) throw new Error("Reroute loop detected.")
+
+    const originalReroutes = maybeReroutes.slice(0, -1).reverse()
+
+    // From reroute to reroute
+    if (renderLink instanceof ToInputRenderLink) {
+      const { node, fromSlot, fromSlotIndex, fromReroute } = renderLink
+
+      reroute.setFloatingLinkOrigin(node, fromSlot, fromSlotIndex)
+
+      // Clean floating link IDs from reroutes about to be removed from the chain
+      if (fromReroute != null) {
+        for (const originalReroute of originalReroutes) {
+          if (originalReroute.id === fromReroute.id) break
+
+          for (const linkId of reroute.floatingLinkIds) {
+            originalReroute.floatingLinkIds.delete(linkId)
+          }
+        }
+      }
+    }
+
+    // Filter before any connections are re-created
+    const filtered = results.filter(result => renderLink.toType === "input" && canConnectInputLinkToReroute(renderLink, result.node, result.input, reroute))
+
+    for (const result of filtered) {
+      renderLink.connectToRerouteInput(reroute, result, this.events, originalReroutes)
+    }
+
+    return
   }
 
   dropOnNothing(event: CanvasPointerEvent): void {
