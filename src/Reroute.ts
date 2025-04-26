@@ -14,7 +14,7 @@ import type { Serialisable, SerialisableReroute } from "./types/serialisation"
 
 import { LGraphBadge } from "./LGraphBadge"
 import { type LinkId, LLink } from "./LLink"
-import { distance } from "./measure"
+import { distance, isPointInRect } from "./measure"
 
 export type RerouteId = number
 
@@ -36,6 +36,12 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** Maximum distance from reroutes to their bezier curve control points. */
   static maxSplineOffset: number = 80
   static drawIdBadge: boolean = false
+  static slotRadius: number = 5
+  /** Distance from reroute centre to slot centre. */
+  static get slotOffset(): number {
+    const gap = Reroute.slotRadius * 0.33
+    return Reroute.radius + gap + Reroute.slotRadius
+  }
 
   #malloc = new Float32Array(8)
 
@@ -79,6 +85,18 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     const { radius } = Reroute
     const [x, y] = this.#pos
     return [x - radius, y - radius, 2 * radius, 2 * radius]
+  }
+
+  /**
+   * Slightly over-sized rectangle, guaranteed to contain the entire surface area for hover detection.
+   * Eliminates most hover positions using an extremely cheap check.
+   */
+  get #hoverArea(): ReadOnlyRect {
+    const xOffset = 2 * Reroute.slotOffset
+    const yOffset = 2 * Math.max(Reroute.radius, Reroute.slotRadius)
+
+    const [x, y] = this.#pos
+    return [x - xOffset, y - yOffset, 2 * xOffset, 2 * yOffset]
   }
 
   /** The total number of links & floating links using this reroute */
@@ -125,6 +143,9 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
    * @todo Calculate on change instead.
    */
   #lastRenderTime: number = -Infinity
+
+  #inputSlot = new RerouteSlot(this, true)
+  #outputSlot = new RerouteSlot(this, false)
 
   get firstLink(): LLink | undefined {
     const linkId = this.linkIds.values().next().value
@@ -532,6 +553,10 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     }
 
     ctx.globalAlpha = globalAlpha
+
+    // Draw slots (if visible)
+    this.#inputSlot.draw(ctx)
+    this.#outputSlot.draw(ctx)
   }
 
   drawHighlight(ctx: CanvasRenderingContext2D, colour: CanvasColour): void {
@@ -549,6 +574,54 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     ctx.lineWidth = lineWidth
   }
 
+  /**
+   * Updates visibility of the input and output slots, based on the position of the pointer.
+   * @param pos The position of the pointer.
+   * @returns `true` if any changes require a redraw.
+   */
+  updateVisibility(pos: Point): boolean {
+    const input = this.#inputSlot
+    const output = this.#outputSlot
+    input.dirty = false
+    output.dirty = false
+
+    // Check if even in the vicinity
+    if (isPointInRect(pos, this.#hoverArea)) {
+      if (this.#contains(pos)) {
+        input.showOutline = true
+        output.showOutline = true
+        input.hovering = false
+        output.hovering = false
+      } else {
+        input.update(pos)
+        output.update(pos)
+      }
+    } else {
+      this.hideSlots()
+    }
+
+    return input.dirty || output.dirty
+  }
+
+  /** Prevents rendering of the input and output slots. */
+  hideSlots() {
+    this.#inputSlot.hide()
+    this.#outputSlot.hide()
+  }
+
+  /**
+   * Precisely determines if {@link pos} is inside this reroute.
+   * @param pos The position to check (canvas space)
+   * @returns `true` if {@link pos} is within the reroute's radius.
+   */
+  containsPoint(pos: Point): boolean {
+    return isPointInRect(pos, this.#hoverArea) && this.#contains(pos)
+  }
+
+  #contains(pos: Point): boolean {
+    return distance(this.pos, pos) <= Reroute.radius
+  }
+
   /** @inheritdoc */
   asSerialisable(): SerialisableReroute {
     const { id, parentId, pos, linkIds } = this
@@ -558,6 +631,99 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       pos: [pos[0], pos[1]],
       linkIds: [...linkIds],
       floating: this.floating ? { slotType: this.floating.slotType } : undefined,
+    }
+  }
+}
+
+/**
+ * Represents a slot on a reroute.
+ * @private Designed for internal use within this module.
+ */
+class RerouteSlot {
+  /** The reroute that the slot belongs to. */
+  readonly #reroute: Reroute
+
+  readonly #offsetMultiplier: 1 | -1
+  /** Centre point of this slot. */
+  get pos(): Point {
+    const [x, y] = this.#reroute.pos
+    return [x + Reroute.slotOffset * this.#offsetMultiplier, y]
+  }
+
+  /** Whether any changes require a redraw. */
+  dirty: boolean = false
+
+  #hovering = false
+  /** Whether the pointer is hovering over the slot itself. */
+  get hovering() {
+    return this.#hovering
+  }
+
+  set hovering(value) {
+    if (!Object.is(this.#hovering, value)) {
+      this.#hovering = value
+      this.dirty = true
+    }
+  }
+
+  #showOutline = false
+  /** Whether the slot outline / faint background is visible. */
+  get showOutline() {
+    return this.#showOutline
+  }
+
+  set showOutline(value) {
+    if (!Object.is(this.#showOutline, value)) {
+      this.#showOutline = value
+      this.dirty = true
+    }
+  }
+
+  constructor(reroute: Reroute, isInput: boolean) {
+    this.#reroute = reroute
+    this.#offsetMultiplier = isInput ? -1 : 1
+  }
+
+  /**
+   * Updates the slot's visibility based on the position of the pointer.
+   * @param pos The position of the pointer.
+   */
+  update(pos: Point) {
+    const dist = distance(this.pos, pos)
+    this.hovering = dist <= 2 * Reroute.slotRadius
+    this.showOutline = dist <= 5 * Reroute.slotRadius
+  }
+
+  /** Hides the slot. */
+  hide() {
+    this.hovering = false
+    this.showOutline = false
+  }
+
+  /**
+   * Draws the slot on the canvas.
+   * @param ctx The canvas context to draw on.
+   */
+  draw(ctx: CanvasRenderingContext2D): void {
+    const { fillStyle, strokeStyle, lineWidth } = ctx
+    const { showOutline, hovering, pos: [x, y] } = this
+    if (!showOutline) return
+
+    try {
+      ctx.fillStyle = hovering
+        ? this.#reroute.colour
+        : "rgba(127,127,127,0.3)"
+      ctx.strokeStyle = "rgb(0,0,0,0.5)"
+      ctx.lineWidth = 1
+
+      ctx.beginPath()
+      ctx.arc(x, y, Reroute.slotRadius, 0, 2 * Math.PI)
+      ctx.fill()
+      ctx.stroke()
+    } finally {
+      ctx.fillStyle = fillStyle
+      ctx.strokeStyle = strokeStyle
+      ctx.lineWidth = lineWidth
     }
   }
 }

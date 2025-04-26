@@ -2614,6 +2614,7 @@ export class LGraphCanvas implements ConnectionColorContext {
           this.node_over = node
           this.dirty_canvas = true
 
+          for (const reroute of this.#visibleReroutes) reroute.hideSlots()
           node.onMouseEnter?.(e)
         }
 
@@ -2692,19 +2693,8 @@ export class LGraphCanvas implements ConnectionColorContext {
           underPointer |= CanvasItem.ResizeSe
         }
       } else {
-        // Reroute
-        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
-        if (reroute) {
-          underPointer |= CanvasItem.Reroute
-          linkConnector.overReroute = reroute
-
-          if (linkConnector.isConnecting && linkConnector.isRerouteValidDrop(reroute)) {
-            this._highlight_pos = reroute.pos
-          }
-        } else {
-          this._highlight_pos &&= undefined
-          linkConnector.overReroute &&= undefined
-        }
+        // Reroutes
+        if (this.#updateReroutes()) underPointer |= CanvasItem.Reroute
 
         // Not over a node
         const segment = this.#getLinkCentreOnPos(e)
@@ -2760,6 +2750,38 @@ export class LGraphCanvas implements ConnectionColorContext {
 
     e.preventDefault()
     return
+  }
+
+  /**
+   * Updates the hover state of all visible reroutes.
+   * @returns `true` if a reroute is under the pointer, otherwise `undefined`.
+   */
+  #updateReroutes(): true | undefined {
+    const { graph, pointer, linkConnector } = this
+    if (!graph) throw new NullGraphError()
+
+    // Update reroute hover state
+    if (!pointer.isDown) {
+      let anyChanges = false
+      for (const reroute of this.#visibleReroutes) {
+        anyChanges ||= reroute.updateVisibility(this.graph_mouse)
+      }
+      if (anyChanges) this.dirty_bgcanvas = true
+    } else if (linkConnector.isConnecting) {
+      // Highlight the reroute that the mouse is over
+      for (const reroute of this.#visibleReroutes) {
+        if (reroute.containsPoint(this.graph_mouse)) {
+          if (linkConnector.isRerouteValidDrop(reroute)) {
+            linkConnector.overReroute = reroute
+            this._highlight_pos = reroute.pos
+          }
+
+          return true
+        }
+      }
+    }
+    this._highlight_pos &&= undefined
+    linkConnector.overReroute &&= undefined
   }
 
   /**
