@@ -272,6 +272,10 @@ export class LGraphCanvas implements ConnectionColorContext {
       cursor = "se-resize"
     } else if (this.state.hoveringOver & CanvasItem.Node) {
       cursor = "crosshair"
+    } else if (this.state.hoveringOver & CanvasItem.Reroute) {
+      cursor = "grab"
+    } else if (this.state.hoveringOver & CanvasItem.RerouteSlot) {
+      cursor = "crosshair"
     }
 
     this.canvas.style.cursor = cursor
@@ -2694,7 +2698,7 @@ export class LGraphCanvas implements ConnectionColorContext {
         }
       } else {
         // Reroutes
-        if (this.#updateReroutes()) underPointer |= CanvasItem.Reroute
+        underPointer = this.#updateReroutes(underPointer)
 
         // Not over a node
         const segment = this.#getLinkCentreOnPos(e)
@@ -2753,10 +2757,10 @@ export class LGraphCanvas implements ConnectionColorContext {
   }
 
   /**
-   * Updates the hover state of all visible reroutes.
-   * @returns `true` if a reroute is under the pointer, otherwise `undefined`.
+   * Updates the hover / snap state of all visible reroutes.
+   * @returns The original value of {@link underPointer}, with any found reroute items added.
    */
-  #updateReroutes(): true | undefined {
+  #updateReroutes(underPointer: CanvasItem): CanvasItem {
     const { graph, pointer, linkConnector } = this
     if (!graph) throw new NullGraphError()
 
@@ -2765,6 +2769,8 @@ export class LGraphCanvas implements ConnectionColorContext {
       let anyChanges = false
       for (const reroute of this.#visibleReroutes) {
         anyChanges ||= reroute.updateVisibility(this.graph_mouse)
+
+        if (reroute.isSlotHovered) underPointer |= CanvasItem.RerouteSlot
       }
       if (anyChanges) this.dirty_bgcanvas = true
     } else if (linkConnector.isConnecting) {
@@ -2776,12 +2782,14 @@ export class LGraphCanvas implements ConnectionColorContext {
             this._highlight_pos = reroute.pos
           }
 
-          return true
+          return underPointer |= CanvasItem.RerouteSlot
         }
       }
     }
+
     this._highlight_pos &&= undefined
     linkConnector.overReroute &&= undefined
+    return underPointer
   }
 
   /**
