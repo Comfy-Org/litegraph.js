@@ -204,6 +204,23 @@ export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
   }
 
   /**
+   * Resolves a list of link IDs to the link, node, and slot objects.
+   * Discards invalid link IDs.
+   * @param linkIds An iterable of link {@link id}s to resolve
+   * @param network The link network to search
+   * @returns An array of resolved connections.  If a link is not found, it is not included in the array.
+   * @see {@link LLink.resolve}
+   */
+  static resolveMany(linkIds: Iterable<LinkId>, network: BasicReadonlyNetwork): ResolvedConnection[] {
+    const resolved: ResolvedConnection[] = []
+    for (const id of linkIds) {
+      const r = network.getLink(id)?.resolve(network)
+      if (r) resolved.push(r)
+    }
+    return resolved
+  }
+
+  /**
    * Resolves the primitive ID values stored in the link to the referenced objects.
    * @param network The link network to search
    * @returns An object containing the input and output nodes, as well as the input and output slots.
