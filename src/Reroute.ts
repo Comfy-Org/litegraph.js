@@ -148,7 +148,15 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   #outputSlot = new RerouteSlot(this, false)
 
   get isSlotHovered(): boolean {
-    return this.#inputSlot.hovering || this.#outputSlot.hovering
+    return this.isInputHovered || this.isOutputHovered
+  }
+
+  get isInputHovered(): boolean {
+    return this.#inputSlot.hovering
+  }
+
+  get isOutputHovered(): boolean {
+    return this.#outputSlot.hovering
   }
 
   get firstLink(): LLink | undefined {

@@ -2026,20 +2026,30 @@ export class LGraphCanvas implements ConnectionColorContext {
     } else {
       // Reroutes
       if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
-        const reroute = graph.getRerouteOnPos(x, y, this.#visibleReroutes)
-        if (reroute) {
-          if (e.shiftKey) {
+        for (const reroute of this.#visibleReroutes) {
+          const overReroute = reroute.containsPoint([x, y])
+          if (!reroute.isSlotHovered && !overReroute) continue
+
+          if (overReroute) {
+            pointer.onClick = () => this.processSelect(reroute, e)
+            if (!e.shiftKey) {
+              pointer.onDragStart = pointer => this.#startDraggingItems(reroute, pointer, true)
+              pointer.onDragEnd = e => this.#processDraggedItems(e)
+            }
+          }
+
+          if (reroute.isOutputHovered || (overReroute && e.shiftKey)) {
             linkConnector.dragFromReroute(graph, reroute)
             this.#linkConnectorDrop()
-
-            this.dirty_bgcanvas = true
           }
 
-          pointer.onClick = () => this.processSelect(reroute, e)
-          if (!pointer.onDragEnd) {
-            pointer.onDragStart = pointer => this.#startDraggingItems(reroute, pointer, true)
-            pointer.onDragEnd = e => this.#processDraggedItems(e)
+          if (reroute.isInputHovered) {
+            linkConnector.dragFromRerouteToOutput(graph, reroute)
+            this.#linkConnectorDrop()
           }
+
+          reroute.hideSlots()
+          this.dirty_bgcanvas = true
           return
         }
       }
