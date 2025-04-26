@@ -115,6 +115,11 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
   /** Colour of the first link that rendered this reroute */
   _colour?: CanvasColour
 
+  /** Colour of the first link that rendered this reroute */
+  get colour(): CanvasColour {
+    return this._colour ?? "#18184d"
+  }
+
   /**
    * Used to ensure reroute angles are only executed once per frame.
    * @todo Calculate on change instead.
@@ -499,7 +504,7 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
       ctx.globalAlpha = globalAlpha * 0.33
     }
 
-    ctx.fillStyle = this._colour ?? "#18184d"
+    ctx.fillStyle = this.colour
     ctx.lineWidth = Reroute.radius * 0.1
     ctx.strokeStyle = "rgb(0,0,0,0.5)"
     ctx.fill()
