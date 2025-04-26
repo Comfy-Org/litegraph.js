@@ -597,17 +597,19 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     input.dirty = false
     output.dirty = false
 
+    const { firstFloatingLink } = this
+    const hasLink = !!this.firstLink
+
+    const showInput = hasLink || firstFloatingLink?.isFloatingOutput
+    const showOutput = hasLink || firstFloatingLink?.isFloatingInput
+    const showEither = showInput || showOutput
+
     // Check if even in the vicinity
-    if (isPointInRect(pos, this.#hoverArea)) {
-      if (this.#contains(pos)) {
-        input.showOutline = true
-        output.showOutline = true
-        input.hovering = false
-        output.hovering = false
-      } else {
-        input.update(pos)
-        output.update(pos)
-      }
+    if (showEither && isPointInRect(pos, this.#hoverArea)) {
+      const outlineOnly = this.#contains(pos)
+
+      if (showInput) input.update(pos, outlineOnly)
+      if (showOutput) output.update(pos, outlineOnly)
     } else {
       this.hideSlots()
     }
@@ -699,11 +701,17 @@ class RerouteSlot {
   /**
    * Updates the slot's visibility based on the position of the pointer.
    * @param pos The position of the pointer.
+   * @param outlineOnly If `true`, slot will display with the faded outline only ({@link showOutline}).
    */
-  update(pos: Point) {
-    const dist = distance(this.pos, pos)
-    this.hovering = dist <= 2 * Reroute.slotRadius
-    this.showOutline = dist <= 5 * Reroute.slotRadius
+  update(pos: Point, outlineOnly?: boolean) {
+    if (outlineOnly) {
+      this.hovering = false
+      this.showOutline = true
+    } else {
+      const dist = distance(this.pos, pos)
+      this.hovering = dist <= 2 * Reroute.slotRadius
+      this.showOutline = dist <= 5 * Reroute.slotRadius
+    }
   }
 
   /** Hides the slot. */
