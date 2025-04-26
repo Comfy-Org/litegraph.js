@@ -20,7 +20,11 @@ export class ToOutputFromRerouteLink extends ToOutputRenderLink {
     super(network, node, fromSlot, fromReroute)
   }
 
-  connectToOutput(node: LGraphNode, output: INodeOutputSlot) {
+  override canConnectToReroute(): false {
+    return false
+  }
+
+  override connectToOutput(node: LGraphNode, output: INodeOutputSlot) {
     const nuRenderLink = new ToInputRenderLink(this.network, node, output)
     this.linkConnector._connectOutputToReroute(this.fromReroute, nuRenderLink)
   }
