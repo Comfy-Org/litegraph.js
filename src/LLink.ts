@@ -20,7 +20,7 @@ export type SerialisedLLinkArray = [
   type: ISlotType,
 ]
 
-type BasicReadonlyNetwork = Pick<ReadonlyLinkNetwork, "getNodeById" | "links" | "floatingLinks">
+type BasicReadonlyNetwork = Pick<ReadonlyLinkNetwork, "getNodeById" | "links" | "getLink">
 
 // this is the class in charge of storing link information
 export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
