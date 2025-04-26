@@ -2628,7 +2628,10 @@ export class LGraphCanvas implements ConnectionColorContext {
           this.node_over = node
           this.dirty_canvas = true
 
-          for (const reroute of this.#visibleReroutes) reroute.hideSlots()
+          for (const reroute of this.#visibleReroutes) {
+            reroute.hideSlots()
+            this.dirty_bgcanvas = true
+          }
           node.onMouseEnter?.(e)
         }
 
