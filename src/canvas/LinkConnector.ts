@@ -268,13 +268,22 @@ export class LinkConnector {
     if (this.isConnecting) throw new Error("Already dragging links.")
 
     const link = reroute.firstLink ?? reroute.firstFloatingLink
-    if (!link) return
+    if (!link) {
+      console.warn("No link found for reroute.")
+      return
+    }
 
     const outputNode = network.getNodeById(link.origin_id)
-    if (!outputNode) return
+    if (!outputNode) {
+      console.warn("No output node found for link.", link)
+      return
+    }
 
     const outputSlot = outputNode.outputs.at(link.origin_slot)
-    if (!outputSlot) return
+    if (!outputSlot) {
+      console.warn("No output slot found for link.", link)
+      return
+    }
 
     const renderLink = new ToInputRenderLink(network, outputNode, outputSlot, reroute)
     renderLink.fromDirection = LinkDirection.NONE
