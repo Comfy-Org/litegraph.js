@@ -4703,6 +4703,9 @@ export class LGraphCanvas implements ConnectionColorContext {
         this.drawSnapGuide(ctx, reroute, RenderShape.CIRCLE)
       }
       reroute.draw(ctx, this._pattern)
+
+      // Never draw slots when the pointer is down
+      if (!this.pointer.isDown) reroute.drawSlots(ctx)
     }
     ctx.globalAlpha = 1
   }

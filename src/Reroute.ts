@@ -565,8 +565,13 @@ export class Reroute implements Positionable, LinkSegment, Serialisable<Serialis
     }
 
     ctx.globalAlpha = globalAlpha
+  }
 
-    // Draw slots (if visible)
+  /**
+   * Draws the input and output slots on the canvas, if the slots are visible.
+   * @param ctx The canvas context to draw on.
+   */
+  drawSlots(ctx: CanvasRenderingContext2D): void {
     this.#inputSlot.draw(ctx)
     this.#outputSlot.draw(ctx)
   }
