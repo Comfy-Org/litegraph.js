@@ -27,7 +27,6 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { ConnectionColorContext } from "./node/NodeSlot"
 import type {
   CanvasEventDetail,
   CanvasMouseEvent,
@@ -202,7 +201,7 @@ interface ICreatePanelOptions {
  * This class is in charge of rendering one graph inside a canvas. And provides all the interaction required.
  * Valid callbacks are: onNodeSelected, onNodeDeselected, onShowNodePanel, onNodeDblClicked
  */
-export class LGraphCanvas implements ConnectionColorContext {
+export class LGraphCanvas {
   // Optimised buffers used during rendering
   static #temp = new Float32Array(4)
   static #temp_vec2 = new Float32Array(2)
@@ -4381,7 +4380,7 @@ export class LGraphCanvas implements ConnectionColorContext {
       node.arrange()
       node.drawSlots(ctx, {
         fromSlot: this.linkConnector.renderLinks[0]?.fromSlot,
-        colorContext: this,
+        colorContext: this.colourGetter,
         editorAlpha: this.editor_alpha,
         lowQuality: this.low_quality,
       })
