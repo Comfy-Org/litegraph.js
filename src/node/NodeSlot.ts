@@ -208,7 +208,7 @@ export abstract class NodeSlot implements INodeSlot {
     const [x, y] = options.pos
 
     // Save original styles
-    const originalFillStyle = ctx.fillStyle
+    const { fillStyle } = ctx
 
     ctx.fillStyle = "#686"
     ctx.beginPath()
@@ -234,6 +234,6 @@ export abstract class NodeSlot implements INodeSlot {
     ctx.fill()
 
     // Restore original styles
-    ctx.fillStyle = originalFillStyle
+    ctx.fillStyle = fillStyle
   }
 }
