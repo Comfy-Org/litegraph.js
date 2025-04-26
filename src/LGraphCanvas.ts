@@ -4,6 +4,7 @@ import type {
   ColorOption,
   ConnectingLink,
   ContextMenuDivElement,
+  DefaultConnectionColors,
   Dictionary,
   Direction,
   IBoundaryNodes,
@@ -399,6 +400,18 @@ export class LGraphCanvas implements ConnectionColorContext {
 
   default_connection_color_byType: Dictionary<CanvasColour>
   default_connection_color_byTypeOff: Dictionary<CanvasColour>
+
+  /** Gets link colours. Extremely basic impl. until the legacy object dictionaries are removed. */
+  colourGetter: DefaultConnectionColors = {
+    getConnectedColor: (type: string) =>
+      this.default_connection_color_byType[type] ||
+      this.default_connection_color.output_on,
+    getDisconnectedColor: (type: string) =>
+      this.default_connection_color_byTypeOff[type] ||
+      this.default_connection_color_byType[type] ||
+      this.default_connection_color.output_off,
+  }
+
   highquality_render: boolean
   use_gradients: boolean
   editor_alpha: number
