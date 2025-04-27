@@ -88,6 +88,10 @@ export abstract class BaseWidget implements IBaseWidget {
     return LiteGraph.WIDGET_SECONDARY_TEXT_COLOR
   }
 
+  get disabledTextColor() {
+    return LiteGraph.WIDGET_DISABLED_TEXT_COLOR
+  }
+
   /**
    * Draws the widget
    * @param ctx The canvas context
