@@ -16,6 +16,14 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
     this.value = widget.value
   }
 
+  #getValues(): string[] | undefined {
+    const { values } = this.options
+    return typeof values === "function"
+      // @ts-expect-error handle () => string[] type that is not typed in IWidgetOptions
+      ? values(this, node)
+      : values
+  }
+
   /**
    * Draws the widget
    * @param ctx The canvas context
@@ -130,11 +138,8 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
         : 0)
 
     // Get values
-    let values = this.options.values
-    if (typeof values === "function") {
-      // @ts-expect-error handle () => string[] type that is not typed in IWidgetOptions
-      values = values(this, node)
-    }
+    const values = this.#getValues()
+
     // @ts-expect-error Record<string, string> is not typed in IWidgetOptions
     const values_list = Array.isArray(values) ? values : Object.keys(values)
 
