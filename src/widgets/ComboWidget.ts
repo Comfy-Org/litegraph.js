@@ -140,10 +140,9 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
 
     // Handle left/right arrow clicks
     if (delta) {
-      let index = -1
       // avoids double click event
       canvas.last_mouseclick = 0
-      index = typeof values === "object"
+      let index = typeof values === "object"
         ? values_list.indexOf(String(this.value)) + delta
         // @ts-expect-error handle non-string values
         : values_list.indexOf(this.value) + delta
