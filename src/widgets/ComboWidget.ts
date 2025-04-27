@@ -1,6 +1,6 @@
 import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
 
-import { LiteGraph } from "@/litegraph"
+import { clamp, LiteGraph } from "@/litegraph"
 
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
@@ -142,13 +142,13 @@ export class ComboWidget extends BaseWidget implements IComboWidget {
     if (delta) {
       // avoids double click event
       canvas.last_mouseclick = 0
-      let index = typeof values === "object"
+
+      const foundIndex = typeof values === "object"
         ? values_list.indexOf(String(this.value)) + delta
         // @ts-expect-error handle non-string values
         : values_list.indexOf(this.value) + delta
 
-      if (index >= values_list.length) index = values_list.length - 1
-      if (index < 0) index = 0
+      const index = clamp(foundIndex, 0, values_list.length - 1)
 
       this.setValue(
         Array.isArray(values)
