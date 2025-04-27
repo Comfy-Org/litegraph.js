@@ -101,28 +101,6 @@ export abstract class BaseWidget implements IBaseWidget {
    */
   abstract drawWidget(ctx: CanvasRenderingContext2D, options: DrawWidgetOptions): void
 
-  drawArrowButtons(ctx: CanvasRenderingContext2D, margin: number, y: number, width: number) {
-    const { height } = this
-    const { arrowMargin, arrowWidth } = BaseWidget
-    const arrowTipX = margin + arrowMargin
-    const arrowInnerX = arrowTipX + arrowWidth
-
-    // Draw left arrow
-    ctx.fillStyle = this.text_color
-    ctx.beginPath()
-    ctx.moveTo(arrowInnerX, y + 5)
-    ctx.lineTo(arrowTipX, y + height * 0.5)
-    ctx.lineTo(arrowInnerX, y + height - 5)
-    ctx.fill()
-
-    // Draw right arrow
-    ctx.beginPath()
-    ctx.moveTo(width - arrowInnerX, y + 5)
-    ctx.lineTo(width - arrowTipX, y + height * 0.5)
-    ctx.lineTo(width - arrowInnerX, y + height - 5)
-    ctx.fill()
-  }
-
   /**
    * Handles the click event for the widget
    * @param options The options for handling the click event
