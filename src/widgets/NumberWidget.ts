@@ -126,8 +126,7 @@ export class NumberWidget extends BaseWidget implements INumericWidget {
    * Handles drag events for the number widget
    * @param options The options for handling the drag event
    */
-  override onDrag(options: WidgetEventOptions) {
-    const { e, node, canvas } = options
+  override onDrag({ e, node, canvas }: WidgetEventOptions) {
     const width = this.width || node.width
     const x = e.canvasX - node.pos[0]
     const delta = x < 40
