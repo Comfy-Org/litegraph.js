@@ -3436,13 +3436,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     // Render the first connected slot only.
     for (const slot of this.#concreteInputs) {
       if (slot.link != null) {
-        slot?.drawCollapsed(ctx)
+        slot.drawCollapsed(ctx)
         break
       }
     }
     for (const slot of this.#concreteOutputs) {
       if (slot.links?.length) {
-        slot?.drawCollapsed(ctx)
+        slot.drawCollapsed(ctx)
         break
       }
     }
