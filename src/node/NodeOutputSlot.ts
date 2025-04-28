@@ -36,7 +36,7 @@ export class NodeOutputSlot extends NodeSlot implements INodeOutputSlot {
     return "link" in fromSlot && LiteGraph.isValidConnection(this.type, fromSlot.type)
   }
 
-  override isConnected(): boolean {
+  override get isConnected(): boolean {
     return this.links != null && this.links.length > 0
   }
 

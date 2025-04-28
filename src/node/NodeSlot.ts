@@ -84,10 +84,10 @@ export abstract class NodeSlot implements INodeSlot {
     return this.label || this.localized_name || this.name || ""
   }
 
-  abstract isConnected(): boolean
+  abstract get isConnected(): boolean
 
   renderingColor(colorContext: DefaultConnectionColors): CanvasColour {
-    return this.isConnected()
+    return this.isConnected
       ? this.color_on || colorContext.getConnectedColor(this.type)
       : this.color_off || colorContext.getDisconnectedColor(this.type)
   }

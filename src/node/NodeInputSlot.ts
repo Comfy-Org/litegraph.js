@@ -22,7 +22,7 @@ export class NodeInputSlot extends NodeSlot implements INodeInputSlot {
     this.link = slot.link
   }
 
-  override isConnected(): boolean {
+  override get isConnected(): boolean {
     return this.link != null
   }
 
