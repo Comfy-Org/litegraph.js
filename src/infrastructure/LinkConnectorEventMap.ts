@@ -9,8 +9,6 @@ import type { Reroute } from "@/Reroute"
 import type { CanvasPointerEvent } from "@/types/events"
 import type { IWidget } from "@/types/widgets"
 
-import { CustomEventTarget } from "./CustomEventTarget"
-
 export interface LinkConnectorEventMap {
   "reset": boolean
 
@@ -47,5 +45,3 @@ export interface LinkConnectorEventMap {
     widget: IWidget
   }
 }
-
-export class LinkConnectorEventTarget extends CustomEventTarget<LinkConnectorEventMap> {}

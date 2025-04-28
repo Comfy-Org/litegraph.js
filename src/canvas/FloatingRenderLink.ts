@@ -1,6 +1,6 @@
 import type { RenderLink } from "./RenderLink"
 import type { CustomEventTarget } from "@/infrastructure/CustomEventTarget"
-import type { LinkConnectorEventMap } from "@/infrastructure/LinkConnectorEventTarget"
+import type { LinkConnectorEventMap } from "@/infrastructure/LinkConnectorEventMap"
 import type { INodeOutputSlot, LinkNetwork } from "@/interfaces"
 import type { INodeInputSlot } from "@/interfaces"
 import type { Point } from "@/interfaces"
