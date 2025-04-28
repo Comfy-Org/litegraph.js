@@ -3441,7 +3441,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       }
     }
     for (const slot of this.#concreteOutputs) {
-      if (!slot.links || !slot.links.length) {
+      if (slot.links?.length) {
         slot?.drawCollapsed(ctx)
         break
       }
