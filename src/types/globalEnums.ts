@@ -90,3 +90,47 @@ export enum EaseFunction {
   EASE_OUT_QUAD = "easeOutQuad",
   EASE_IN_OUT_QUAD = "easeInOutQuad",
 }
+
+/** Bit flags used to indicate what the pointer is currently hovering over. */
+export enum Alignment {
+  /** No items / none */
+  None = 0,
+  /** Top */
+  Top = 1,
+  /** Bottom */
+  Bottom = 1 << 1,
+  /** Vertical middle */
+  Middle = 1 << 2,
+  /** Left */
+  Left = 1 << 3,
+  /** Right */
+  Right = 1 << 4,
+  /** Horizontal centre */
+  Centre = 1 << 5,
+  /** Left side, vertically centred */
+  MidLeft = Left | Middle,
+  /** Right side, vertically centred */
+  MidRight = Right | Middle,
+  /** Top left */
+  TopLeft = Top | Left,
+  /** Top right */
+  TopRight = Top | Right,
+  /** Bottom left */
+  BottomLeft = Bottom | Left,
+  /** Bottom right */
+  BottomRight = Bottom | Right,
+  /** Top side, horizontally centred */
+  TopCentre = Top | Centre,
+  /** Bottom side, horizontally centred */
+  BottomCentre = Bottom | Centre,
+}
+
+/**
+ * Checks if the bitwise {@link flag} is set in the {@link flagSet}.
+ * @param flagSet The unknown set of flags - will be checked for the presence of {@link flag}
+ * @param flag The flag to check for
+ * @returns `true` if the flag is set, `false` otherwise.
+ */
+export function hasFlag(flagSet: number, flag: number): boolean {
+  return (flagSet & flag) === flag
+}
