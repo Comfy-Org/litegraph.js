@@ -3033,10 +3033,8 @@ export class LGraphCanvas {
       }
 
       // TODO
-      if (this.selected_nodes) {
-        for (const i in this.selected_nodes) {
-          this.selected_nodes[i].onKeyDown?.(e)
-        }
+      for (const node of Object.values(this.selected_nodes)) {
+        node.onKeyDown?.(e)
       }
     } else if (e.type == "keyup") {
       if (e.key === " ") {
@@ -3046,10 +3044,8 @@ export class LGraphCanvas {
         this._previously_dragging_canvas = null
       }
 
-      if (this.selected_nodes) {
-        for (const i in this.selected_nodes) {
-          this.selected_nodes[i].onKeyUp?.(e)
-        }
+      for (const node of Object.values(this.selected_nodes)) {
+        node.onKeyUp?.(e)
       }
     }
 
