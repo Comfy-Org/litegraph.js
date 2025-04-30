@@ -3309,7 +3309,7 @@ export class LGraphCanvas {
     dragRect[3] = h
 
     // Select nodes - any part of the node is in the select area
-    const isSelected: Positionable[] = []
+    const isSelected = new Set<Positionable>()
     const notSelected: Positionable[] = []
 
     for (const nodeX of graph._nodes) {
@@ -3344,7 +3344,7 @@ export class LGraphCanvas {
     } else {
       // Replace selection
       for (const item of selectedItems.values()) {
-        if (!isSelected.includes(item)) this.deselect(item)
+        if (!isSelected.has(item)) this.deselect(item)
       }
       for (const item of notSelected) this.select(item)
     }
@@ -3352,7 +3352,7 @@ export class LGraphCanvas {
 
     function addPositionable(item: Positionable): void {
       if (!item.selected || !selectedItems.has(item)) notSelected.push(item)
-      else isSelected.push(item)
+      else isSelected.add(item)
     }
   }
 
