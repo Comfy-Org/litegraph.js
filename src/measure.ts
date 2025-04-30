@@ -6,7 +6,7 @@ import type {
   Rect,
 } from "./interfaces"
 
-import { LinkDirection } from "./types/globalEnums"
+import { Alignment, hasFlag, LinkDirection } from "./types/globalEnums"
 
 /**
  * Calculates the distance between two points (2D vector)
@@ -371,4 +371,90 @@ export function snapPoint(pos: Point | Rect, snapTo: number): boolean {
 
 export function clamp(value: number, min: number, max: number): number {
   return value < min ? min : (value > max ? max : value)
+}
+
+/**
+ * Aligns a {@link Rect} relative to the edges or centre of a {@link container} rectangle.
+ *
+ * With no {@link inset}, the element will be placed on the interior of the {@link container},
+ * with their edges lined up on the {@link anchors}.  A positive {@link inset} moves the element towards the centre,
+ * negative will push it outside the {@link container}.
+ * @param rect The bounding rect of the element to align.
+ * If using the element's pos/size backing store, this function will move the element.
+ * @param anchors The direction(s) to anchor the element to
+ * @param container The rectangle inside which to align the element
+ * @param inset Relative offset from each {@link anchors} edge, with positive always leading to the centre, as an `[x, y]` point
+ * @returns The original {@link rect}, modified in place.
+ */
+export function alignToContainer(
+  rect: Rect,
+  anchors: Alignment,
+  container: ReadOnlyRect,
+  inset: ReadOnlyPoint = [0, 0],
+): Rect {
+  if (hasFlag(anchors, Alignment.Left)) {
+    // Left
+    rect[0] = container[0] + inset[0]
+  } else if (hasFlag(anchors, Alignment.Right)) {
+    // Right
+    rect[0] = container[0] + container[2] - inset[0] - rect[2]
+  } else if (hasFlag(anchors, Alignment.Centre)) {
+    // Horizontal centre
+    rect[0] = container[0] + (container[2] * 0.5) - (rect[2] * 0.5)
+  }
+
+  if (hasFlag(anchors, Alignment.Top)) {
+    // Top
+    rect[1] = container[1] + inset[1]
+  } else if (hasFlag(anchors, Alignment.Bottom)) {
+    // Bottom
+    rect[1] = container[1] + container[3] - inset[1] - rect[3]
+  } else if (hasFlag(anchors, Alignment.Middle)) {
+    // Vertical middle
+    rect[1] = container[1] + (container[3] * 0.5) - (rect[3] * 0.5)
+  }
+  return rect
+}
+
+/**
+ * Aligns a {@link Rect} relative to the edges or centre of {@link other}.
+ *
+ * With no {@link outset}, the element will be placed on the exterior of the {@link other},
+ * with their edges lined up on the {@link anchors}.  A positive {@link outset} moves the element away from the {@link other},
+ * negative will push it inside the {@link other}.
+ * @param rect The bounding rect of the element to align.
+ * If using the element's pos/size backing store, this function will move the element.
+ * @param anchors The direction(s) to anchor the element to
+ * @param other The rectangle inside which to align the element
+ * @param outset Relative offset from each {@link anchors} edge, with positive always moving away from the centre of the {@link other}, as an `[x, y]` point
+ * @returns The original {@link rect}, modified in place.
+ */
+export function alignOutsideContainer(
+  rect: Rect,
+  anchors: Alignment,
+  other: ReadOnlyRect,
+  outset: ReadOnlyPoint = [0, 0],
+): Rect {
+  if (hasFlag(anchors, Alignment.Left)) {
+    // Left
+    rect[0] = other[0] - outset[0] - rect[2]
+  } else if (hasFlag(anchors, Alignment.Right)) {
+    // Right
+    rect[0] = other[0] + other[2] + outset[0]
+  } else if (hasFlag(anchors, Alignment.Centre)) {
+    // Horizontal centre
+    rect[0] = other[0] + (other[2] * 0.5) - (rect[2] * 0.5)
+  }
+
+  if (hasFlag(anchors, Alignment.Top)) {
+    // Top
+    rect[1] = other[1] - outset[1] - rect[3]
+  } else if (hasFlag(anchors, Alignment.Bottom)) {
+    // Bottom
+    rect[1] = other[1] + other[3] + outset[1]
+  } else if (hasFlag(anchors, Alignment.Middle)) {
+    // Vertical middle
+    rect[1] = other[1] + (other[3] * 0.5) - (rect[3] * 0.5)
+  }
+  return rect
 }
