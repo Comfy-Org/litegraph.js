@@ -3032,8 +3032,6 @@ export class LGraphCanvas {
         }
       }
 
-      // collapse
-      // ...
       // TODO
       if (this.selected_nodes) {
         for (const i in this.selected_nodes) {
