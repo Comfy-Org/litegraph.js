@@ -2981,7 +2981,9 @@ export class LGraphCanvas {
    */
   processKey(e: KeyboardEvent): void {
     this.#shiftDown = e.shiftKey
-    if (!this.graph) return
+
+    const { graph } = this
+    if (!graph) return
 
     let block_default = false
     // @ts-expect-error
@@ -3054,12 +3056,11 @@ export class LGraphCanvas {
     }
 
     // TODO: Do we need to remeasure and recalculate everything on every key down/up?
-    this.graph.change()
+    graph.change()
 
     if (block_default) {
       e.preventDefault()
       e.stopImmediatePropagation()
-      return
     }
   }
 
