@@ -2979,7 +2979,7 @@ export class LGraphCanvas {
   /**
    * process a key event
    */
-  processKey(e: KeyboardEvent): boolean | null | undefined {
+  processKey(e: KeyboardEvent): void {
     this.#shiftDown = e.shiftKey
     if (!this.graph) return
 
@@ -3059,7 +3059,7 @@ export class LGraphCanvas {
     if (block_default) {
       e.preventDefault()
       e.stopImmediatePropagation()
-      return false
+      return
     }
   }
 
