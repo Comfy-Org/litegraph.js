@@ -21,6 +21,7 @@ export abstract class SlotBase implements INodeSlot {
   _floatingLinks?: Set<LLink>
   hasErrors?: boolean
 
+  /** The centre point of the slot. */
   abstract pos?: Point
   readonly boundingRect: Rect
 
