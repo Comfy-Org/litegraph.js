@@ -1,3 +1,4 @@
+import type { LGraphNode } from "@/LGraphNode"
 import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
 
 import { clamp, LiteGraph } from "@/litegraph"
@@ -24,13 +25,13 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
     this.value = widget.value
   }
 
-  #getValues(): Values {
+  #getValues(node: LGraphNode): Values {
     const { values } = this.options
     if (values == null) throw new Error("[ComboWidget]: values is required")
 
     return typeof values === "function"
-      // @ts-expect-error handle () => string[] type that is not typed in IWidgetOptions
-      ? values(this, node)
+      // Assertion: legacy duck-typed
+      ? (values as (widget: ComboWidget, node: LGraphNode) => string[])(this, node)
       : values
   }
 
@@ -65,7 +66,7 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
   }
 
   #tryChangeValue(delta: number, options: WidgetEventOptions): void {
-    const values = this.#getValues()
+    const values = this.#getValues(options.node)
     const indexedValues = toArray(values)
 
     // avoids double click event
@@ -195,7 +196,7 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
     if (x > width - 40) return this.incrementValue({ e, node, canvas })
 
     // Otherwise, show dropdown menu
-    const values = this.#getValues()
+    const values = this.#getValues(node)
     const values_list = toArray(values)
 
     // Handle center click - show dropdown menu
