@@ -1,6 +1,7 @@
 import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
 
 import { clamp, LiteGraph } from "@/litegraph"
+import { warnDeprecated } from "@/utils/feedback"
 
 import { BaseSteppedWidget } from "./BaseSteppedWidget"
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
@@ -189,6 +190,11 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
   override onClick({ e, node, canvas }: WidgetEventOptions) {
     const x = e.canvasX - node.pos[0]
     const width = this.width || node.size[0]
+
+    // Deprecated functionality (warning as of v0.14.5)
+    if (typeof this.options.values === "function") {
+      warnDeprecated("Using a function for values is deprecated. Use an array of unique values instead.")
+    }
 
     // Determine if clicked on left/right arrows
     if (x < 40) return this.decrementValue({ e, node, canvas })
