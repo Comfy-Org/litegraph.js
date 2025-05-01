@@ -41,8 +41,8 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
    */
   #valueIsAt(index: number): boolean {
     const { values } = this.options
-    // If using legacy duck-typed method, just return true
-    if (typeof values === "function") return true
+    // If using legacy duck-typed method, false is the most permissive return value
+    if (typeof values === "function") return false
 
     const valuesArray = toArray(values)
     return this.value === valuesArray.at(index)
