@@ -6,7 +6,8 @@ import { clamp, LiteGraph } from "@/litegraph"
 import { BaseSteppedWidget } from "./BaseSteppedWidget"
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
-type Values = string[] | Record<string, string>
+/** This is used as an (invalid) assertion to resolve issues with legacy duck-typed values. */
+type Values = string[] | Record<string, string> | ((widget: ComboWidget, node: LGraphNode) => string[])
 
 function toArray(values: Values): string[] {
   return Array.isArray(values) ? values : Object.keys(values)
@@ -30,8 +31,7 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
     if (values == null) throw new Error("[ComboWidget]: values is required")
 
     return typeof values === "function"
-      // Assertion: legacy duck-typed
-      ? (values as (widget: ComboWidget, node: LGraphNode) => string[])(this, node)
+      ? values(this, node)
       : values
   }
 
