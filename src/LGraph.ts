@@ -155,6 +155,10 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     return this
   }
 
+  get isRootGraph(): boolean {
+    return this.rootGraph === this
+  }
+
   /** @deprecated See {@link state}.{@link LGraphState.lastNodeId lastNodeId} */
   get last_node_id() {
     return this.state.lastNodeId
