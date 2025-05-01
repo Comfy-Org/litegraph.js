@@ -37,24 +37,35 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
 
   /**
    * Checks if the value is {@link Array.at at} the given index in the combo list.
-   * @param index The index to check against
+   * @param increment `true` if checking the use of the increment button, `false` for decrement
    * @returns `true` if the value is at the given index, otherwise `false`.
    */
-  #valueIsAt(index: number): boolean {
+  #canUseButton(increment: boolean): boolean {
     const { values } = this.options
     // If using legacy duck-typed method, false is the most permissive return value
     if (typeof values === "function") return false
 
     const valuesArray = toArray(values)
-    return this.value === valuesArray.at(index)
+    if (!(valuesArray.length > 1)) return false
+
+    // Edge case where the value is both the first and last item in the list
+    const firstValue = valuesArray.at(0)
+    const lastValue = valuesArray.at(-1)
+    if (firstValue === lastValue) return true
+
+    return this.value !== (increment ? lastValue : firstValue)
   }
 
+  /**
+   * Returns `true` if the current value is not the last value in the list.
+   * Handles edge case where the value is both the first and last item in the list.
+   */
   override canIncrement(): boolean {
-    return !this.#valueIsAt(-1)
+    return this.#canUseButton(true)
   }
 
   override canDecrement(): boolean {
-    return !this.#valueIsAt(0)
+    return this.#canUseButton(false)
   }
 
   override incrementValue(options: WidgetEventOptions): void {
