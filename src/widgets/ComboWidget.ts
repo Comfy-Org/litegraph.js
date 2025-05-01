@@ -6,7 +6,12 @@ import { clamp, LiteGraph } from "@/litegraph"
 import { BaseSteppedWidget } from "./BaseSteppedWidget"
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
-/** This is used as an (invalid) assertion to resolve issues with legacy duck-typed values. */
+/**
+ * This is used as an (invalid) assertion to resolve issues with legacy duck-typed values.
+ *
+ * Function style in use by:
+ * https://github.com/kijai/ComfyUI-KJNodes/blob/c3dc82108a2a86c17094107ead61d63f8c76200e/web/js/setgetnodes.js#L401-L404
+ */
 type Values = string[] | Record<string, string> | ((widget: ComboWidget, node: LGraphNode) => string[])
 
 function toArray(values: Values): string[] {
