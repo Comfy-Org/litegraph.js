@@ -44,7 +44,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
     ctx: CanvasRenderingContext2D,
     {
       width,
-      show_text = true,
+      showText = true,
     }: DrawWidgetOptions,
   ): void {
     // Store original context attributes
@@ -156,7 +156,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
     ctx.closePath()
 
     // Draw outline if not disabled
-    if (show_text && !this.computedDisabled) {
+    if (showText && !this.computedDisabled) {
       ctx.strokeStyle = this.outline_color
       // Draw value
       ctx.beginPath()
@@ -178,7 +178,7 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
     // TODO: TBD later when options work
 
     // Draw text
-    if (show_text) {
+    if (showText) {
       ctx.textAlign = "center"
       ctx.fillStyle = this.text_color
       const fixedValue = Number(this.value).toFixed(this.options.precision ?? 3)

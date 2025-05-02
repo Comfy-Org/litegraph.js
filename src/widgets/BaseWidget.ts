@@ -7,7 +7,7 @@ import { LiteGraph } from "@/litegraph"
 
 export interface DrawWidgetOptions {
   width: number
-  show_text?: boolean
+  showText?: boolean
 }
 
 export interface WidgetEventOptions {

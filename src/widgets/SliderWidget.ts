@@ -26,7 +26,7 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
     width,
-    show_text = true,
+    showText = true,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
@@ -50,7 +50,7 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
     ctx.fillRect(margin, y, nvalue * (width - margin * 2), height)
 
     // Draw outline if not disabled
-    if (show_text && !this.computedDisabled) {
+    if (showText && !this.computedDisabled) {
       ctx.strokeStyle = this.outline_color
       ctx.strokeRect(margin, y, width - margin * 2, height)
     }
@@ -69,7 +69,7 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
     }
 
     // Draw text
-    if (show_text) {
+    if (showText) {
       ctx.textAlign = "center"
       ctx.fillStyle = this.text_color
       const fixedValue = Number(this.value).toFixed(this.options.precision ?? 3)

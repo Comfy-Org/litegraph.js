@@ -22,7 +22,7 @@ export class ButtonWidget extends BaseWidget implements IButtonWidget {
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
     width,
-    show_text = true,
+    showText = true,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
@@ -41,13 +41,13 @@ export class ButtonWidget extends BaseWidget implements IButtonWidget {
     ctx.fillRect(margin, y, width - margin * 2, height)
 
     // Draw button outline if not disabled
-    if (show_text && !this.computedDisabled) {
+    if (showText && !this.computedDisabled) {
       ctx.strokeStyle = this.outline_color
       ctx.strokeRect(margin, y, width - margin * 2, height)
     }
 
     // Draw button text
-    if (show_text) {
+    if (showText) {
       ctx.textAlign = "center"
       ctx.fillStyle = this.text_color
       ctx.fillText(

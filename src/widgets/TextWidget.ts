@@ -21,7 +21,7 @@ export class TextWidget extends BaseWidget implements IStringWidget {
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
     width,
-    show_text = true,
+    showText = true,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
@@ -36,13 +36,13 @@ export class TextWidget extends BaseWidget implements IStringWidget {
     ctx.fillStyle = this.background_color
     ctx.beginPath()
 
-    if (show_text)
+    if (showText)
       ctx.roundRect(margin, y, width - margin * 2, height, [height * 0.5])
     else
       ctx.rect(margin, y, width - margin * 2, height)
     ctx.fill()
 
-    if (show_text) {
+    if (showText) {
       if (!this.computedDisabled) ctx.stroke()
       ctx.save()
       ctx.beginPath()
