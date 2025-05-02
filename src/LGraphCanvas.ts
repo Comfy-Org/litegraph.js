@@ -526,7 +526,7 @@ export class LGraphCanvas {
   node_in_panel?: LGraphNode | null
   last_mouse: ReadOnlyPoint = [0, 0]
   last_mouseclick: number = 0
-  graph: LGraph | null
+  graph: LGraph | Subgraph | null
   canvas: HTMLCanvasElement
   bgcanvas: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
