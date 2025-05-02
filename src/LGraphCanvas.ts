@@ -7021,7 +7021,6 @@ export class LGraphCanvas {
       options = node.getMenuOptions(this)
     } else {
       options = [
-        null,
         {
           content: "Properties",
           has_submenu: true,
