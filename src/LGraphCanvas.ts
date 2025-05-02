@@ -7022,18 +7022,6 @@ export class LGraphCanvas {
     } else {
       options = [
         {
-          content: "Inputs",
-          has_submenu: true,
-          disabled: true,
-        },
-        {
-          content: "Outputs",
-          has_submenu: true,
-          disabled: true,
-          callback: LGraphCanvas.showMenuNodeOptionalOutputs,
-        },
-        null,
-        {
           content: "Properties",
           has_submenu: true,
           callback: LGraphCanvas.onShowMenuNodeProperties,
