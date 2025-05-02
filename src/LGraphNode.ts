@@ -3385,7 +3385,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     for (const widget of widgets) {
       if (!this.isWidgetVisible(widget)) continue
 
-      const y = widget.y
+      const { y } = widget
       const outline_color = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
       widget.last_y = y
