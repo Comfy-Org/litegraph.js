@@ -3386,13 +3386,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (!this.isWidgetVisible(widget)) continue
 
       const { y } = widget
-      const outline_color = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
+      const outlineColour = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
       widget.last_y = y
       // Disable widget if it is disabled or if the value is passed from socket connection.
       widget.computedDisabled = widget.disabled || this.getSlotFromWidget(widget)?.link != null
 
-      ctx.strokeStyle = outline_color
+      ctx.strokeStyle = outlineColour
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
       if (widget.computedDisabled) ctx.globalAlpha *= 0.5
