@@ -43,16 +43,17 @@ export class KnobWidget extends BaseWidget implements IKnobWidget {
   drawWidget(
     ctx: CanvasRenderingContext2D,
     {
-      y,
       width,
       show_text = true,
-      margin = BaseWidget.margin,
     }: DrawWidgetOptions,
   ): void {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
+
+    const { y } = this
+    const { margin } = BaseWidget
 
     const { gradient_stops = "rgb(14, 182, 201); rgb(0, 216, 72)" } = this.options
     const effective_height = this.computedHeight || this.height

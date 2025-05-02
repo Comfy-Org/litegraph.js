@@ -3380,7 +3380,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     const show_text = !lowQuality
     ctx.save()
     ctx.globalAlpha = editorAlpha
-    const { margin } = BaseWidget
 
     for (const widget of widgets) {
       if (!this.isWidgetVisible(widget)) continue
@@ -3400,7 +3399,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[widget.type]
       if (WidgetClass) {
-        toClass(WidgetClass, widget).drawWidget(ctx, { y, width, show_text, margin })
+        toClass(WidgetClass, widget).drawWidget(ctx, { width, show_text })
       } else {
         widget.draw?.(ctx, this, width, y, H, lowQuality)
       }

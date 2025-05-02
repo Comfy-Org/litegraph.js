@@ -108,17 +108,16 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
    * @param options The options for drawing the widget
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
-    y,
     width,
     show_text = true,
-    margin = BaseWidget.margin,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const { height } = this
+    const { height, y } = this
+    const { margin } = BaseWidget
 
     ctx.textAlign = "left"
     ctx.strokeStyle = this.outline_color

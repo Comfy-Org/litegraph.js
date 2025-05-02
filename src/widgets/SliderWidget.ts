@@ -25,17 +25,16 @@ export class SliderWidget extends BaseWidget implements ISliderWidget {
    * @param options The options for drawing the widget
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
-    y,
     width,
     show_text = true,
-    margin = BaseWidget.margin,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const originalTextAlign = ctx.textAlign
     const originalStrokeStyle = ctx.strokeStyle
     const originalFillStyle = ctx.fillStyle
 
-    const { height } = this
+    const { height, y } = this
+    const { margin } = BaseWidget
 
     // Draw background
     ctx.fillStyle = this.background_color

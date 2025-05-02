@@ -14,12 +14,11 @@ export class BooleanWidget extends BaseWidget implements IBooleanWidget {
   }
 
   override drawWidget(ctx: CanvasRenderingContext2D, {
-    y,
     width,
     show_text = true,
-    margin = BaseWidget.margin,
   }: DrawWidgetOptions) {
-    const { height } = this
+    const { height, y } = this
+    const { margin } = BaseWidget
 
     ctx.textAlign = "left"
     ctx.strokeStyle = this.outline_color
