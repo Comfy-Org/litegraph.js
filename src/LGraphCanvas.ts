@@ -334,7 +334,6 @@ export class LGraphCanvas {
     this.state.draggingCanvas = value
     this.#updateCursorStyle()
   }
-  // #endregion Legacy accessors
 
   /**
    * @deprecated Use {@link LGraphNode.titleFontStyle} instead.
@@ -342,6 +341,7 @@ export class LGraphCanvas {
   get title_text_font(): string {
     return `${LiteGraph.NODE_TEXT_SIZE}px ${LiteGraph.NODE_FONT}`
   }
+  // #endregion Legacy accessors
 
   get inner_text_font(): string {
     return `normal ${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`
