@@ -3374,7 +3374,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }: DrawWidgetsOptions): void {
     if (!this.widgets) return
 
-    const width = this.size[0]
+    const nodeWidth = this.size[0]
     const widgets = this.widgets
     const H = LiteGraph.NODE_WIDGET_HEIGHT
     const show_text = !lowQuality
@@ -3396,13 +3396,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
       if (widget.computedDisabled) ctx.globalAlpha *= 0.5
-      const widget_width = widget.width || width
+      const width = widget.width || nodeWidth
 
       const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[widget.type]
       if (WidgetClass) {
-        toClass(WidgetClass, widget).drawWidget(ctx, { y, width: widget_width, show_text, margin })
+        toClass(WidgetClass, widget).drawWidget(ctx, { y, width, show_text, margin })
       } else {
-        widget.draw?.(ctx, this, widget_width, y, H, lowQuality)
+        widget.draw?.(ctx, this, width, y, H, lowQuality)
       }
       ctx.globalAlpha = editorAlpha
     }
