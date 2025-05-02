@@ -266,8 +266,6 @@ export class LGraphCanvas {
     selectionChanged: false,
   }
 
-  declare subgraph?: Subgraph
-
   #updateCursorStyle() {
     if (!this.state.shouldSetCursor) return
 
@@ -351,6 +349,11 @@ export class LGraphCanvas {
 
   get inner_text_font(): string {
     return `normal ${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`
+  }
+
+  /** The current graph, if it is a subgraph. */
+  get subgraph(): Subgraph | undefined {
+    if (this.graph instanceof Subgraph) return this.graph
   }
 
   #maximumFrameGap = 0
