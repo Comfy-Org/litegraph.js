@@ -3382,27 +3382,27 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     ctx.globalAlpha = editorAlpha
     const { margin } = BaseWidget
 
-    for (const w of widgets) {
-      if (!this.isWidgetVisible(w)) continue
+    for (const widget of widgets) {
+      if (!this.isWidgetVisible(widget)) continue
 
-      const y = w.y
-      const outline_color = w.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
+      const y = widget.y
+      const outline_color = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
-      w.last_y = y
+      widget.last_y = y
       // Disable widget if it is disabled or if the value is passed from socket connection.
-      w.computedDisabled = w.disabled || this.getSlotFromWidget(w)?.link != null
+      widget.computedDisabled = widget.disabled || this.getSlotFromWidget(widget)?.link != null
 
       ctx.strokeStyle = outline_color
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
-      if (w.computedDisabled) ctx.globalAlpha *= 0.5
-      const widget_width = w.width || width
+      if (widget.computedDisabled) ctx.globalAlpha *= 0.5
+      const widget_width = widget.width || width
 
-      const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[w.type]
+      const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[widget.type]
       if (WidgetClass) {
-        toClass(WidgetClass, w).drawWidget(ctx, { y, width: widget_width, show_text, margin })
+        toClass(WidgetClass, widget).drawWidget(ctx, { y, width: widget_width, show_text, margin })
       } else {
-        w.draw?.(ctx, this, widget_width, y, H, lowQuality)
+        widget.draw?.(ctx, this, widget_width, y, H, lowQuality)
       }
       ctx.globalAlpha = editorAlpha
     }
