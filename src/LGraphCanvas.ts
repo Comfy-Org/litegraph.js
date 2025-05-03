@@ -4552,7 +4552,7 @@ export class LGraphCanvas {
     // Draw node background (shape)
     ctx.beginPath()
     if (shape == RenderShape.BOX || low_quality) {
-      ctx.fillRect(area[0], area[1], area[2], area[3])
+      ctx.rect(area[0], area[1], area[2], area[3])
     } else if (shape == RenderShape.ROUND || shape == RenderShape.CARD) {
       ctx.roundRect(
         area[0],
