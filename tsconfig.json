@@ -20,6 +20,7 @@
     "noFallthroughCasesInSwitch": true,
     "downlevelIteration": true,
     "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
 
     /* AllowJs during migration phase */
     "allowJs": true,
