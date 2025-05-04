@@ -385,29 +385,29 @@ export function snapPoint(pos: Point | Rect, snapTo: number): boolean {
 export function alignToContainer(
   rect: Rect,
   anchors: Alignment,
-  container: ReadOnlyRect,
-  inset: ReadOnlyPoint = [0, 0],
+  [containerX, containerY, containerWidth, containerHeight]: ReadOnlyRect,
+  [insetX, insetY]: ReadOnlyPoint = [0, 0],
 ): Rect {
   if (hasFlag(anchors, Alignment.Left)) {
     // Left
-    rect[0] = container[0] + inset[0]
+    rect[0] = containerX + insetX
   } else if (hasFlag(anchors, Alignment.Right)) {
     // Right
-    rect[0] = container[0] + container[2] - inset[0] - rect[2]
+    rect[0] = containerX + containerWidth - insetX - rect[2]
   } else if (hasFlag(anchors, Alignment.Centre)) {
     // Horizontal centre
-    rect[0] = container[0] + (container[2] * 0.5) - (rect[2] * 0.5)
+    rect[0] = containerX + (containerWidth * 0.5) - (rect[2] * 0.5)
   }
 
   if (hasFlag(anchors, Alignment.Top)) {
     // Top
-    rect[1] = container[1] + inset[1]
+    rect[1] = containerY + insetY
   } else if (hasFlag(anchors, Alignment.Bottom)) {
     // Bottom
-    rect[1] = container[1] + container[3] - inset[1] - rect[3]
+    rect[1] = containerY + containerHeight - insetY - rect[3]
   } else if (hasFlag(anchors, Alignment.Middle)) {
     // Vertical middle
-    rect[1] = container[1] + (container[3] * 0.5) - (rect[3] * 0.5)
+    rect[1] = containerY + (containerHeight * 0.5) - (rect[3] * 0.5)
   }
   return rect
 }
@@ -428,29 +428,29 @@ export function alignToContainer(
 export function alignOutsideContainer(
   rect: Rect,
   anchors: Alignment,
-  other: ReadOnlyRect,
-  outset: ReadOnlyPoint = [0, 0],
+  [otherX, otherY, otherWidth, otherHeight]: ReadOnlyRect,
+  [outsetX, outsetY]: ReadOnlyPoint = [0, 0],
 ): Rect {
   if (hasFlag(anchors, Alignment.Left)) {
     // Left
-    rect[0] = other[0] - outset[0] - rect[2]
+    rect[0] = otherX - outsetX - rect[2]
   } else if (hasFlag(anchors, Alignment.Right)) {
     // Right
-    rect[0] = other[0] + other[2] + outset[0]
+    rect[0] = otherX + otherWidth + outsetX
   } else if (hasFlag(anchors, Alignment.Centre)) {
     // Horizontal centre
-    rect[0] = other[0] + (other[2] * 0.5) - (rect[2] * 0.5)
+    rect[0] = otherX + (otherWidth * 0.5) - (rect[2] * 0.5)
   }
 
   if (hasFlag(anchors, Alignment.Top)) {
     // Top
-    rect[1] = other[1] - outset[1] - rect[3]
+    rect[1] = otherY - outsetY - rect[3]
   } else if (hasFlag(anchors, Alignment.Bottom)) {
     // Bottom
-    rect[1] = other[1] + other[3] + outset[1]
+    rect[1] = otherY + otherHeight + outsetY
   } else if (hasFlag(anchors, Alignment.Middle)) {
     // Vertical middle
-    rect[1] = other[1] + (other[3] * 0.5) - (rect[3] * 0.5)
+    rect[1] = otherY + (otherHeight * 0.5) - (rect[3] * 0.5)
   }
   return rect
 }
