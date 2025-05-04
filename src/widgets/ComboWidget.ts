@@ -1,6 +1,8 @@
 import type { LGraphNode } from "@/LGraphNode"
 import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
 
+import { drawTextInArea } from "@/draw"
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { clamp, LiteGraph } from "@/litegraph"
 import { warnDeprecated } from "@/utils/feedback"
 
@@ -145,7 +147,6 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
 
       // Draw value
       ctx.fillStyle = this.text_color
-      ctx.textAlign = "right"
 
       let displayValue = typeof this.value === "number" ? String(this.value) : this.value
       if (this.options.values) {
@@ -159,42 +160,18 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
         }
       }
 
-      const labelWidth = ctx.measureText(label || "").width + margin * 2
+      const labelMetrics = this.measureLabelText(ctx)
+      const labelWidth = labelMetrics.width + margin * 2
       const inputWidth = width - margin * 4
       const availableWidth = inputWidth - labelWidth
-      const textWidth = ctx.measureText(displayValue).width
 
-      if (textWidth > availableWidth) {
-        const ELLIPSIS = "\u2026"
-        const ellipsisWidth = ctx.measureText(ELLIPSIS).width
-        const charWidthAvg = ctx.measureText("a").width
+      // Draw text - left-aligned to prevent bouncing during resize
+      const rightEdge = width - margin * 2 - 20
 
-        if (availableWidth <= ellipsisWidth) {
-          // One dot leader
-          displayValue = "\u2024"
-        } else {
-          displayValue = `${displayValue}`
-          const overflowWidth = (textWidth + ellipsisWidth) - availableWidth
+      const valueTextX = rightEdge - availableWidth
+      const area = new Rectangle(valueTextX, y, availableWidth, height * 0.7)
 
-          // Only first 3 characters need to be measured precisely
-          if (overflowWidth + charWidthAvg * 3 > availableWidth) {
-            const preciseRange = availableWidth + charWidthAvg * 3
-            const preTruncateCt = Math.floor((preciseRange - ellipsisWidth) / charWidthAvg)
-            displayValue = displayValue.substr(0, preTruncateCt)
-          }
-
-          while (ctx.measureText(displayValue).width + ellipsisWidth > availableWidth) {
-            displayValue = displayValue.substr(0, displayValue.length - 1)
-          }
-          displayValue += ELLIPSIS
-        }
-      }
-
-      ctx.fillText(
-        displayValue,
-        width - margin * 2 - 20,
-        y + height * 0.7,
-      )
+      drawTextInArea({ ctx, text: displayValue, area, align: "right" })
     }
 
     // Restore original context attributes
