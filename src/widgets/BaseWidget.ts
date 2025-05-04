@@ -2,12 +2,25 @@ import type { CanvasPointer, LGraphCanvas, LGraphNode, Size } from "@/litegraph"
 import type { CanvasMouseEvent, CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget, IWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "@/types/widgets"
 
+import { drawTextInArea } from "@/draw"
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { Point } from "@/interfaces"
 import { LiteGraph } from "@/litegraph"
 
 export interface DrawWidgetOptions {
+  /** The width of the node where this widget will be displayed. */
   width: number
+  /** Synonym for "low quality". */
   showText?: boolean
+}
+
+export interface DrawTruncatingTextOptions extends DrawWidgetOptions {
+  /** The canvas context to draw the text on. */
+  ctx: CanvasRenderingContext2D
+  /** The amount of padding to add to the left of the text. */
+  leftPadding?: number
+  /** The amount of padding to add to the right of the text. */
+  rightPadding?: number
 }
 
 export interface WidgetEventOptions {
@@ -112,6 +125,86 @@ export abstract class BaseWidget implements IBaseWidget {
    * custom widgets.
    */
   abstract drawWidget(ctx: CanvasRenderingContext2D, options: DrawWidgetOptions): void
+
+  /**
+   * Draws the standard widget shape - elongated capsule. The path of the widget shape is not
+   * cleared, and may be used for further drawing.
+   * @param ctx The canvas context
+   * @param options The options for drawing the widget
+   * @remarks Leaves {@link ctx} dirty.
+   */
+  protected drawWidgetShape(ctx: CanvasRenderingContext2D, { width, showText }: DrawWidgetOptions) {
+    const { height, y } = this
+    const { margin } = BaseWidget
+
+    ctx.textAlign = "left"
+    ctx.strokeStyle = this.outline_color
+    ctx.fillStyle = this.background_color
+    ctx.beginPath()
+
+    if (showText) {
+      ctx.roundRect(margin, y, width - margin * 2, height, [height * 0.5])
+      if (!this.computedDisabled) ctx.stroke()
+    } else {
+      ctx.rect(margin, y, width - margin * 2, height)
+    }
+    ctx.fill()
+  }
+
+  /**
+   * A shared routine for drawing a label and value as text, truncated
+   * if they exceed the available width.
+   */
+  protected drawTruncatingText({
+    ctx,
+    width,
+    leftPadding = 5,
+    rightPadding = 20,
+  }: DrawTruncatingTextOptions) {
+    const { height, y } = this
+    const { margin } = BaseWidget
+
+    // Measure label and value
+    const { displayName, displayValue } = this
+    const labelWidth = ctx.measureText(displayName).width
+    const valueWidth = ctx.measureText(displayValue).width
+
+    const gap = BaseWidget.labelValueGap
+    const x = margin * 2 + leftPadding
+
+    const totalWidth = width - x - 2 * margin - rightPadding
+    const requiredWidth = labelWidth + gap + valueWidth
+
+    const area = new Rectangle(x, y, totalWidth, height * 0.7)
+
+    ctx.fillStyle = this.secondary_text_color
+
+    if (requiredWidth <= totalWidth) {
+      // Draw label & value normally
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+    } else if (LiteGraph.truncateWidgetTextEvenly) {
+      // Label + value will not fit - scale evenly to fit
+      const scale = (totalWidth - gap) / (requiredWidth - gap)
+      area.width = labelWidth * scale
+
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+
+      // Move the area to the right to render the value
+      area.right = x + totalWidth
+      area.setWidthRightAnchored(valueWidth * scale)
+    } else {
+      // Label + value will not fit - scale label first
+      const cappedValueWidth = Math.min(valueWidth, totalWidth)
+
+      area.width = Math.max(totalWidth - gap - cappedValueWidth, 0)
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+
+      area.right = x + totalWidth
+      area.setWidthRightAnchored(cappedValueWidth)
+    }
+    ctx.fillStyle = this.text_color
+    drawTextInArea({ ctx, text: displayValue, area, align: "right" })
+  }
 
   /**
    * Handles the click event for the widget
