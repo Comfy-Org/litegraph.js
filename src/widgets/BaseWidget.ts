@@ -192,6 +192,15 @@ export abstract class BaseWidget implements IBaseWidget {
       // Move the area to the right to render the value
       area.right = x + totalWidth
       area.setWidthRightAnchored(valueWidth * scale)
+    } else if (LiteGraph.truncateWidgetValuesFirst) {
+      // Label + value will not fit - use legacy scaling of value first
+      const cappedLabelWidth = Math.min(labelWidth, totalWidth)
+
+      area.width = cappedLabelWidth
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+
+      area.right = x + totalWidth
+      area.setWidthRightAnchored(Math.max(totalWidth - gap - cappedLabelWidth, 0))
     } else {
       // Label + value will not fit - scale label first
       const cappedValueWidth = Math.min(valueWidth, totalWidth)

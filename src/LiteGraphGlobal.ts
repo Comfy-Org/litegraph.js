@@ -301,6 +301,13 @@ export class LiteGraphGlobal {
    */
   truncateWidgetTextEvenly: boolean = false
 
+  /**
+   * If `true`, widget values will be completely truncated when shrinking a widget,
+   * before truncating widget labels.  {@link truncateWidgetTextEvenly} must be `false`.
+   * @default false
+   */
+  truncateWidgetValuesFirst: boolean = false
+
   // TODO: Remove legacy accessors
   LGraph = LGraph
   LLink = LLink
