@@ -90,6 +90,14 @@ export abstract class BaseWidget implements IBaseWidget {
     return LiteGraph.WIDGET_DISABLED_TEXT_COLOR
   }
 
+  get displayName() {
+    return this.label || this.name
+  }
+
+  get displayValue(): string {
+    return String(this.value)
+  }
+
   /**
    * Draws the widget
    * @param ctx The canvas context
