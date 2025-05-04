@@ -159,21 +159,21 @@ export function strokeShape(
  * @param maxWidth The maximum width the text (plus ellipsis) can occupy.
  * @returns The truncated text, or the original text if it fits.
  */
-export function truncateTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+function truncateTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
   if (!(maxWidth > 0)) return ""
 
   // Text fits
   const fullWidth = ctx.measureText(text).width
   if (fullWidth <= maxWidth) return text
 
-  const ellipsisWidth = ctx.measureText(ELLIPSIS).width
+  const ellipsisWidth = ctx.measureText(ELLIPSIS).width * 0.75
 
   // Can't even fit ellipsis
   if (ellipsisWidth > maxWidth) {
-    const twoDotsWidth = ctx.measureText(TWO_DOT_LEADER).width
+    const twoDotsWidth = ctx.measureText(TWO_DOT_LEADER).width * 0.75
     if (twoDotsWidth < maxWidth) return TWO_DOT_LEADER
 
-    const oneDotWidth = ctx.measureText(ONE_DOT_LEADER).width
+    const oneDotWidth = ctx.measureText(ONE_DOT_LEADER).width * 0.75
     return oneDotWidth < maxWidth ? ONE_DOT_LEADER : ""
   }
 
@@ -236,5 +236,5 @@ export function drawTextInArea({ ctx, text, area, align = "left" }: IDrawTextInA
   // Draw the ellipsis, right-aligned to the button
   ctx.textAlign = "right"
   const ellipsis = truncated.at(-1)!
-  ctx.fillText(ellipsis, right, bottom)
+  ctx.fillText(ellipsis, right, bottom, ctx.measureText(ellipsis).width * 0.75)
 }
