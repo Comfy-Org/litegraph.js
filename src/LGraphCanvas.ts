@@ -2968,7 +2968,10 @@ export class LGraphCanvas {
 
     let { scale } = this.ds
 
-    if (navigator.userAgent.includes("Mac")) {
+    if (
+      LiteGraph.macTrackpadGestures &&
+      (!LiteGraph.macGesturesRequireMac || navigator.userAgent.includes("Mac"))
+    ) {
       if (e.ctrlKey && !Number.isInteger(e.deltaY)) {
         scale *= 1 + e.deltaY * (1 - this.zoom_speed) * 0.18
       } else {
