@@ -232,6 +232,20 @@ export class Rectangle extends Float64Array {
     return [this[0] - x, this[1] - y]
   }
 
+  /** Sets the width without moving the right edge (changes position) */
+  setWidthRightAnchored(width: number) {
+    const currentWidth = this[2]
+    this[2] = width
+    this[0] += currentWidth - width
+  }
+
+  /** Sets the height without moving the bottom edge (changes position) */
+  setHeightBottomAnchored(height: number) {
+    const currentHeight = this[3]
+    this[3] = height
+    this[1] += currentHeight - height
+  }
+
   /** Alias of {@link export}. */
   toArray() { return this.export() }
 
