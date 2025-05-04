@@ -25,6 +25,8 @@ export abstract class BaseWidget implements IBaseWidget {
   static arrowWidth = 10
   /** Absolute minimum display width of widget values */
   static minValueWidth = 42
+  /** Minimum gap between label and value */
+  static labelValueGap = 5
 
   linkedWidgets?: IWidget[]
   name: string

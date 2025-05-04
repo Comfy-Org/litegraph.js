@@ -155,10 +155,10 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
       const labelWidth = ctx.measureText(displayName).width
       const valueWidth = ctx.measureText(displayValue).width
 
-      const gap = 5
-      const x = margin * 2 + gap
+      const gap = BaseWidget.labelValueGap
+      const x = margin * 2 + 5
 
-      const totalWidth = width - x * 2 - gap * 3
+      const totalWidth = width - x * 2 - 15
       const requiredWidth = labelWidth + gap + valueWidth
 
       const area = new Rectangle(x, y, totalWidth, height * 0.7)
@@ -169,15 +169,15 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
         // Draw label & value normally
         drawTextInArea({ ctx, text: displayName, area, align: "left" })
       } else {
-        // Label + value will not fit
-        const leftoverWidth = clamp(totalWidth - valueWidth - gap, 0, totalWidth)
-        area.width = leftoverWidth
+        // Label + value will not fit - scale evenly to fit
+        const scale = (totalWidth - gap) / (requiredWidth - gap)
+        area.width = labelWidth * scale
 
         drawTextInArea({ ctx, text: displayName, area, align: "left" })
 
-        // Move the area to the right, then set the width to the remaining space
-        area.left = x + leftoverWidth
-        area.width = totalWidth - leftoverWidth
+        // Set the
+        area.right = x + totalWidth
+        area.setWidthRightAnchored(valueWidth * scale)
       }
       ctx.fillStyle = this.text_color
       drawTextInArea({ ctx, text: displayValue, area, align: "right" })
