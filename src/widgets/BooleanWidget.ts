@@ -40,20 +40,26 @@ export class BooleanWidget extends BaseWidget implements IBooleanWidget {
       Math.PI * 2,
     )
     ctx.fill()
+
     if (showText) {
-      ctx.fillStyle = this.secondary_text_color
-      const label = this.label || this.name
-      if (label != null) {
-        ctx.fillText(label, margin * 2, y + height * 0.7)
-      }
-      ctx.fillStyle = this.value ? this.text_color : this.secondary_text_color
-      ctx.textAlign = "right"
-      ctx.fillText(
-        this.value ? this.options.on || "true" : this.options.off || "false",
-        width - 40,
-        y + height * 0.7,
-      )
+      this.drawLabel(ctx, margin * 2)
+      this.drawValue(ctx, width - 40)
     }
+  }
+
+  drawLabel(ctx: CanvasRenderingContext2D, x: number): void {
+    // Draw label
+    ctx.fillStyle = this.secondary_text_color
+    const { displayName } = this
+    if (displayName) ctx.fillText(displayName, x, this.labelBaseline)
+  }
+
+  drawValue(ctx: CanvasRenderingContext2D, x: number): void {
+    // Draw value
+    ctx.fillStyle = this.value ? this.text_color : this.secondary_text_color
+    ctx.textAlign = "right"
+    const value = this.value ? this.options.on || "true" : this.options.off || "false"
+    ctx.fillText(value, x, this.labelBaseline)
   }
 
   override onClick(options: WidgetEventOptions) {

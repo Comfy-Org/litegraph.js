@@ -100,6 +100,10 @@ export abstract class BaseWidget implements IBaseWidget {
     return String(this.value)
   }
 
+  get labelBaseline() {
+    return this.y + this.height * 0.7
+  }
+
   /**
    * Draws the widget
    * @param ctx The canvas context
