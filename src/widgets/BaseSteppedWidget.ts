@@ -28,13 +28,11 @@ export abstract class BaseSteppedWidget extends BaseWidget {
   /**
    * Draw the arrow buttons for the widget
    * @param ctx The canvas rendering context
-   * @param margin The margin of the widget
-   * @param y The y position of the widget
    * @param width The width of the widget
    */
-  drawArrowButtons(ctx: CanvasRenderingContext2D, margin: number, y: number, width: number) {
-    const { height, text_color, disabledTextColor } = this
-    const { arrowMargin, arrowWidth } = BaseWidget
+  drawArrowButtons(ctx: CanvasRenderingContext2D, width: number) {
+    const { height, text_color, disabledTextColor, y } = this
+    const { arrowMargin, arrowWidth, margin } = BaseWidget
     const arrowTipX = margin + arrowMargin
     const arrowInnerX = arrowTipX + arrowWidth
 

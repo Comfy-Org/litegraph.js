@@ -77,7 +77,7 @@ export class NumberWidget extends BaseSteppedWidget implements INumericWidget {
     if (showText) {
       if (!this.computedDisabled) {
         ctx.stroke()
-        this.drawArrowButtons(ctx, margin, y, width)
+        this.drawArrowButtons(ctx, width)
       }
 
       // Draw label

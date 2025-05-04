@@ -135,7 +135,7 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
     if (showText) {
       if (!this.computedDisabled) {
         ctx.stroke()
-        this.drawArrowButtons(ctx, margin, y, width)
+        this.drawArrowButtons(ctx, width)
       }
 
       // Draw label
