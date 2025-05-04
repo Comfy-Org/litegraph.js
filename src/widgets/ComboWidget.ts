@@ -15,7 +15,7 @@ import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./B
  * Function style in use by:
  * https://github.com/kijai/ComfyUI-KJNodes/blob/c3dc82108a2a86c17094107ead61d63f8c76200e/web/js/setgetnodes.js#L401-L404
  */
-type Values = string[] | Record<string, string> | ((widget: ComboWidget, node: LGraphNode) => string[])
+type Values = string[] | Record<string, string> | ((widget?: ComboWidget, node?: LGraphNode) => string[])
 
 function toArray(values: Values): string[] {
   return Array.isArray(values) ? values : Object.keys(values)
@@ -27,6 +27,18 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
   declare value: string | number
   // @ts-expect-error Workaround for Record<string, string> not being typed in IWidgetOptions
   declare options: Omit<IWidgetOptions<string>, "values"> & { values: Values }
+
+  override get displayValue() {
+    const { values: rawValues } = this.options
+    if (rawValues) {
+      const values = typeof rawValues === "function" ? rawValues() : rawValues
+
+      if (values && !Array.isArray(values)) {
+        return values[this.value]
+      }
+    }
+    return typeof this.value === "number" ? String(this.value) : this.value
+  }
 
   constructor(widget: IComboWidget) {
     super(widget)
@@ -138,39 +150,36 @@ export class ComboWidget extends BaseSteppedWidget implements IComboWidget {
         this.drawArrowButtons(ctx, width)
       }
 
-      // Draw label
+      // Measure label and value
+      const { displayName, displayValue } = this
+      const labelWidth = ctx.measureText(displayName).width
+      const valueWidth = ctx.measureText(displayValue).width
+
+      const gap = 5
+      const x = margin * 2 + gap
+
+      const totalWidth = width - x * 2 - gap * 3
+      const requiredWidth = labelWidth + gap + valueWidth
+
+      const area = new Rectangle(x, y, totalWidth, height * 0.7)
+
       ctx.fillStyle = this.secondary_text_color
-      const label = this.label || this.name
-      if (label != null) {
-        ctx.fillText(label, margin * 2 + 5, y + height * 0.7)
-      }
 
-      // Draw value
+      if (requiredWidth <= totalWidth) {
+        // Draw label & value normally
+        drawTextInArea({ ctx, text: displayName, area, align: "left" })
+      } else {
+        // Label + value will not fit
+        const leftoverWidth = clamp(totalWidth - valueWidth - gap, 0, totalWidth)
+        area.width = leftoverWidth
+
+        drawTextInArea({ ctx, text: displayName, area, align: "left" })
+
+        // Move the area to the right, then set the width to the remaining space
+        area.left = x + leftoverWidth
+        area.width = totalWidth - leftoverWidth
+      }
       ctx.fillStyle = this.text_color
-
-      let displayValue = typeof this.value === "number" ? String(this.value) : this.value
-      if (this.options.values) {
-        let values = this.options.values
-        if (typeof values === "function") {
-          // @ts-expect-error handle () => string[] type that is not typed in IWidgetOptions
-          values = values()
-        }
-        if (values && !Array.isArray(values)) {
-          displayValue = values[this.value]
-        }
-      }
-
-      const labelMetrics = this.measureLabelText(ctx)
-      const labelWidth = labelMetrics.width + margin * 2
-      const inputWidth = width - margin * 4
-      const availableWidth = inputWidth - labelWidth
-
-      // Draw text - left-aligned to prevent bouncing during resize
-      const rightEdge = width - margin * 2 - 20
-
-      const valueTextX = rightEdge - availableWidth
-      const area = new Rectangle(valueTextX, y, availableWidth, height * 0.7)
-
       drawTextInArea({ ctx, text: displayValue, area, align: "right" })
     }
 
