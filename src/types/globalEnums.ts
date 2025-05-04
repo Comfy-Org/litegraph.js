@@ -107,22 +107,24 @@ export enum Alignment {
   Right = 1 << 4,
   /** Horizontal centre */
   Centre = 1 << 5,
-  /** Left side, vertically centred */
-  MidLeft = Left | Middle,
-  /** Right side, vertically centred */
-  MidRight = Right | Middle,
   /** Top left */
   TopLeft = Top | Left,
-  /** Top right */
-  TopRight = Top | Right,
-  /** Bottom left */
-  BottomLeft = Bottom | Left,
-  /** Bottom right */
-  BottomRight = Bottom | Right,
   /** Top side, horizontally centred */
   TopCentre = Top | Centre,
+  /** Top right */
+  TopRight = Top | Right,
+  /** Left side, vertically centred */
+  MidLeft = Left | Middle,
+  /** Middle centre */
+  MidCentre = Middle | Centre,
+  /** Right side, vertically centred */
+  MidRight = Right | Middle,
+  /** Bottom left */
+  BottomLeft = Bottom | Left,
   /** Bottom side, horizontally centred */
   BottomCentre = Bottom | Centre,
+  /** Bottom right */
+  BottomRight = Bottom | Right,
 }
 
 /**
