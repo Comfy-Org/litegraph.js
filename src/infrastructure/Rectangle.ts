@@ -253,4 +253,18 @@ export class Rectangle extends Float64Array {
   export(): [number, number, number, number] {
     return [this[0], this[1], this[2], this[3]]
   }
+
+  /** Draws a debug outline of this rectangle. */
+  _drawDebug(ctx: CanvasRenderingContext2D, colour = "red") {
+    const { strokeStyle, lineWidth } = ctx
+    try {
+      ctx.strokeStyle = colour
+      ctx.lineWidth = 0.5
+      ctx.beginPath()
+      ctx.strokeRect(this[0], this[1], this[2], this[3])
+    } finally {
+      ctx.strokeStyle = strokeStyle
+      ctx.lineWidth = lineWidth
+    }
+  }
 }
