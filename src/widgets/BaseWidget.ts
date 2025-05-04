@@ -144,11 +144,11 @@ export abstract class BaseWidget implements IBaseWidget {
 
     if (showText) {
       ctx.roundRect(margin, y, width - margin * 2, height, [height * 0.5])
-      if (!this.computedDisabled) ctx.stroke()
     } else {
       ctx.rect(margin, y, width - margin * 2, height)
     }
     ctx.fill()
+    if (showText && !this.computedDisabled) ctx.stroke()
   }
 
   /**
