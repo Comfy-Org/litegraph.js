@@ -25,9 +25,7 @@ export class ButtonWidget extends BaseWidget implements IButtonWidget {
     showText = true,
   }: DrawWidgetOptions) {
     // Store original context attributes
-    const originalTextAlign = ctx.textAlign
-    const originalStrokeStyle = ctx.strokeStyle
-    const originalFillStyle = ctx.fillStyle
+    const { fillStyle, strokeStyle, textAlign } = ctx
 
     const { height, y } = this
     const { margin } = BaseWidget
@@ -50,9 +48,7 @@ export class ButtonWidget extends BaseWidget implements IButtonWidget {
     if (showText) this.drawLabel(ctx, width * 0.5)
 
     // Restore original context attributes
-    ctx.textAlign = originalTextAlign
-    ctx.strokeStyle = originalStrokeStyle
-    ctx.fillStyle = originalFillStyle
+    Object.assign(ctx, { textAlign, strokeStyle, fillStyle })
   }
 
   drawLabel(ctx: CanvasRenderingContext2D, x: number): void {
