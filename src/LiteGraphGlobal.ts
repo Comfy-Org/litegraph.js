@@ -292,6 +292,12 @@ export class LiteGraphGlobal {
    */
   macGesturesRequireMac: boolean = true
 
+  /**
+   * If `true`, widget labels and values will both be scaled down to fit within the widget.
+   * @default true
+   */
+  truncateWidgetTextEvenly: boolean = true
+
   // TODO: Remove legacy accessors
   LGraph = LGraph
   LLink = LLink
