@@ -20,16 +20,8 @@ export class BooleanWidget extends BaseWidget implements IBooleanWidget {
     const { height, y } = this
     const { margin } = BaseWidget
 
-    ctx.textAlign = "left"
-    ctx.strokeStyle = this.outline_color
-    ctx.fillStyle = this.background_color
-    ctx.beginPath()
+    this.drawWidgetShape(ctx, { width, showText })
 
-    if (showText)
-      ctx.roundRect(margin, y, width - margin * 2, height, [height * 0.5])
-    else ctx.rect(margin, y, width - margin * 2, height)
-    ctx.fill()
-    if (showText && !this.computedDisabled) ctx.stroke()
     ctx.fillStyle = this.value ? "#89A" : "#333"
     ctx.beginPath()
     ctx.arc(
