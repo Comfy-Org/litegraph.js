@@ -25,7 +25,9 @@ loadPolyfills()
 // Type definitions for litegraph.js 0.7.0
 // Project: litegraph.js
 // Definitions by: NateScarlet <https://github.com/NateScarlet>
+/** @deprecated Use {@link Point} instead. */
 export type Vector2 = Point
+/** @deprecated Use {@link Rect} instead. */
 export type Vector4 = [number, number, number, number]
 
 export interface IContextMenuItem {
