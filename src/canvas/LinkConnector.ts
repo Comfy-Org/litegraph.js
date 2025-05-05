@@ -570,6 +570,10 @@ export class LinkConnector {
     }
   }
 
+  isInputValidDrop(node: LGraphNode, input: INodeInputSlot): boolean {
+    return this.renderLinks.some(link => link.canConnectToInput(node, input))
+  }
+
   isNodeValidDrop(node: LGraphNode): boolean {
     if (this.state.connectingTo === "output") {
       return node.outputs.some(output => this.renderLinks.some(link => link.canConnectToOutput(node, output)))
