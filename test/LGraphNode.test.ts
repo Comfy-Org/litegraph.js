@@ -18,8 +18,8 @@ describe("LGraphNode", () => {
     origLiteGraph = Object.assign({}, LiteGraph)
 
     Object.assign(LiteGraph, {
-      NODE_TITLE_HEIGHT: 30,
-      NODE_SLOT_HEIGHT: 20,
+      NODE_TITLE_HEIGHT: 20,
+      NODE_SLOT_HEIGHT: 15,
       NODE_TEXT_SIZE: 14,
       DEFAULT_SHADOW_COLOR: "rgba(0,0,0,0.5)",
       DEFAULT_GROUP_FONT_SIZE: 24,
@@ -239,8 +239,8 @@ describe("LGraphNode", () => {
       const inputPos = node.getInputPos(0)
       const outputPos = node.getOutputPos(0)
 
-      expect(inputPos).toEqual([100, 85])
-      expect(outputPos).toEqual([180, 85])
+      expect(inputPos).toEqual([100, 90])
+      expect(outputPos).toEqual([180, 90])
     })
 
     test("should return correct positions for input and output slots", () => {
@@ -256,8 +256,8 @@ describe("LGraphNode", () => {
       const inputPos = node.getInputPos(0)
       const outputPos = node.getOutputPos(0)
 
-      expect(inputPos).toEqual([110, 114])
-      expect(outputPos).toEqual([191, 114])
+      expect(inputPos).toEqual([107.5, 110.5])
+      expect(outputPos).toEqual([193.5, 110.5])
     })
   })
 
