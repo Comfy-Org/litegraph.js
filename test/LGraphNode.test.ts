@@ -1,4 +1,7 @@
-import { describe, expect } from "vitest"
+import type { INodeInputSlot, Point } from "@/interfaces"
+import type { ISerialisedNode } from "@/types/serialisation"
+
+import { afterEach, beforeEach, describe, expect, vi } from "vitest"
 
 import { LGraphNode, LiteGraph } from "@/litegraph"
 import { LGraph } from "@/litegraph"
@@ -8,15 +11,54 @@ import { NodeOutputSlot } from "@/node/NodeOutputSlot"
 import { test } from "./testExtensions"
 
 describe("LGraphNode", () => {
+  let node: LGraphNode
+  let origLiteGraph: typeof LiteGraph
+
+  beforeEach(async () => {
+    origLiteGraph = Object.assign({}, LiteGraph)
+
+    Object.assign(LiteGraph, {
+      NODE_TITLE_HEIGHT: 30,
+      NODE_SLOT_HEIGHT: 20,
+      NODE_TEXT_SIZE: 14,
+      DEFAULT_SHADOW_COLOR: "rgba(0,0,0,0.5)",
+      DEFAULT_GROUP_FONT_SIZE: 24,
+      isValidConnection: vi.fn().mockReturnValue(true),
+    })
+    node = new LGraphNode("Test Node")
+    node.pos = [100, 200]
+    node.size = [150, 100] // Example size
+
+    // Reset mocks if needed
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    Object.assign(LiteGraph, origLiteGraph)
+  })
+
   test("should serialize position/size correctly", () => {
     const node = new LGraphNode("TestNode")
-    node.pos = [10, 10]
-    expect(node.pos).toEqual(new Float32Array([10, 10]))
-    expect(node.serialize().pos).toEqual([10, 10])
+    node.pos = [10, 20]
+    node.size = [30, 40]
+    const json = node.serialize()
+    expect(json.pos).toEqual([10, 20])
+    expect(json.size).toEqual([30, 40])
 
-    node.size = [100, 100]
-    expect(node.size).toEqual(new Float32Array([100, 100]))
-    expect(node.serialize().size).toEqual([100, 100])
+    const configureData: ISerialisedNode = {
+      id: node.id,
+      type: node.type,
+      pos: [50, 60],
+      size: [70, 80],
+      flags: {},
+      order: node.order,
+      mode: node.mode,
+      inputs: node.inputs?.map(i => ({ name: i.name, type: i.type, link: i.link })),
+      outputs: node.outputs?.map(o => ({ name: o.name, type: o.type, links: o.links, slot_index: o.slot_index })),
+    }
+    node.configure(configureData)
+    expect(node.pos).toEqual(new Float32Array([50, 60]))
+    expect(node.size).toEqual(new Float32Array([70, 80]))
   })
 
   test("should configure inputs correctly", () => {
@@ -451,6 +493,75 @@ describe("LGraphNode", () => {
 
       expect(node.widgets![0].value).toBe(1)
       expect(node.widgets![1].value).toBe(100)
+    })
+  })
+
+  describe("getInputSlotPos", () => {
+    let inputSlot: INodeInputSlot
+
+    beforeEach(() => {
+      inputSlot = { name: "test_in", type: "string", slot_index: 0 }
+    })
+    test("should return position based on title height when collapsed", () => {
+      node.flags.collapsed = true
+      const expectedPos: Point = [100, 200 - LiteGraph.NODE_TITLE_HEIGHT * 0.5]
+      expect(node.getInputSlotPos(inputSlot)).toEqual(expectedPos)
+    })
+
+    test("should return position based on input.pos when defined and not collapsed", () => {
+      node.flags.collapsed = false
+      inputSlot.pos = [10, 50]
+      node.inputs = [inputSlot]
+      const expectedPos: Point = [100 + 10, 200 + 50]
+      expect(node.getInputSlotPos(inputSlot)).toEqual(expectedPos)
+    })
+
+    test("should return default vertical position when input.pos is undefined and not collapsed", () => {
+      node.flags.collapsed = false
+      const inputSlot2 = { name: "test_in_2", type: "number", slot_index: 1 }
+      node.inputs = [inputSlot, inputSlot2]
+      const slotIndex = 0
+      const nodeOffsetY = (node.constructor as any).slot_start_y || 0
+      const expectedY = 200 + (slotIndex + 0.7) * LiteGraph.NODE_SLOT_HEIGHT + nodeOffsetY
+      const expectedX = 100 + LiteGraph.NODE_SLOT_HEIGHT * 0.5
+      expect(node.getInputSlotPos(inputSlot)).toEqual([expectedX, expectedY])
+      const slotIndex2 = 1
+      const expectedY2 = 200 + (slotIndex2 + 0.7) * LiteGraph.NODE_SLOT_HEIGHT + nodeOffsetY
+      expect(node.getInputSlotPos(inputSlot2)).toEqual([expectedX, expectedY2])
+    })
+
+    test("should return default vertical position including slot_start_y when defined", () => {
+      (node.constructor as any).slot_start_y = 25
+      node.flags.collapsed = false
+      node.inputs = [inputSlot]
+      const slotIndex = 0
+      const nodeOffsetY = 25
+      const expectedY = 200 + (slotIndex + 0.7) * LiteGraph.NODE_SLOT_HEIGHT + nodeOffsetY
+      const expectedX = 100 + LiteGraph.NODE_SLOT_HEIGHT * 0.5
+      expect(node.getInputSlotPos(inputSlot)).toEqual([expectedX, expectedY])
+      delete (node.constructor as any).slot_start_y
+    })
+  })
+
+  describe("getInputPos", () => {
+    test("should call getInputSlotPos with the correct input slot from inputs array", () => {
+      const input0: INodeInputSlot = { name: "in0", type: "string", slot_index: 0 }
+      const input1: INodeInputSlot = { name: "in1", type: "number", slot_index: 1, pos: [5, 45] }
+      node.inputs = [input0, input1]
+      const spy = vi.spyOn(node, "getInputSlotPos")
+      node.getInputPos(1)
+      expect(spy).toHaveBeenCalledWith(input1)
+      const expectedPos: Point = [100 + 5, 200 + 45]
+      expect(node.getInputPos(1)).toEqual(expectedPos)
+      spy.mockClear()
+      node.getInputPos(0)
+      expect(spy).toHaveBeenCalledWith(input0)
+      const slotIndex = 0
+      const nodeOffsetY = (node.constructor as any).slot_start_y || 0
+      const expectedDefaultY = 200 + (slotIndex + 0.7) * LiteGraph.NODE_SLOT_HEIGHT + nodeOffsetY
+      const expectedDefaultX = 100 + LiteGraph.NODE_SLOT_HEIGHT * 0.5
+      expect(node.getInputPos(0)).toEqual([expectedDefaultX, expectedDefaultY])
+      spy.mockRestore()
     })
   })
 })
