@@ -3490,8 +3490,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Returns the input slot that is associated with the given widget.
    */
-  getSlotFromWidget(widget: IWidget): INodeInputSlot | undefined {
-    return this.inputs.find(slot => isWidgetInputSlot(slot) && slot.widget.name === widget.name)
+  getSlotFromWidget(widget: IWidget | undefined): INodeInputSlot | undefined {
+    if (widget) return this.inputs.find(slot => isWidgetInputSlot(slot) && slot.widget.name === widget.name)
   }
 
   /**
