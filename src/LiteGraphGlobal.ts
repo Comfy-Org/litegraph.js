@@ -306,7 +306,7 @@ export class LiteGraphGlobal {
    * before truncating widget labels.  {@link truncateWidgetTextEvenly} must be `false`.
    * @default false
    */
-  truncateWidgetValuesFirst: boolean = false
+  truncateWidgetValuesFirst: boolean = true
 
   // TODO: Remove legacy accessors
   LGraph = LGraph
