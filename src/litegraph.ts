@@ -17,10 +17,6 @@ import { loadPolyfills } from "./polyfills"
 
 export const LiteGraph = new LiteGraphGlobal()
 
-export function clamp(v: number, a: number, b: number): number {
-  return a > v ? a : (b < v ? b : v)
-}
-
 // Load legacy polyfills
 loadPolyfills()
 
@@ -133,7 +129,7 @@ export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
 export { LGraphGroup } from "./LGraphGroup"
 export { LGraphNode, type NodeId } from "./LGraphNode"
 export { type LinkId, LLink } from "./LLink"
-export { createBounds } from "./measure"
+export { clamp, createBounds } from "./measure"
 export { Reroute, type RerouteId } from "./Reroute"
 export type { CanvasPointerEvent } from "./types/events"
 export {
