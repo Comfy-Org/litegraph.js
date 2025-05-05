@@ -33,6 +33,7 @@ export interface Serialisable<SerialisableObject> {
 export interface BaseExportedGraph {
   /** Unique graph ID.  Automatically generated if not provided. */
   id: UUID
+  /** The revision number of this graph. Not automatically incremented; intended for use by a downstream save function. */
   revision: number
   config?: LGraphConfig
   /** Details of the appearance and location of subgraphs shown in this graph. Similar to */
