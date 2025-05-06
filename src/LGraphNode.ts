@@ -3367,7 +3367,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Returns `true` if the widget is visible, otherwise `false`.
    */
-  isWidgetVisible(widget: IWidget): boolean {
+  isWidgetVisible(widget: IBaseWidget): boolean {
     const isHidden = (
       this.collapsed ||
       widget.hidden ||
