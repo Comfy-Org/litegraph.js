@@ -1,5 +1,15 @@
 import type { LGraphNode } from "@/LGraphNode"
-import type { IBaseWidget, IWidget } from "@/types/widgets"
+import type {
+  IBaseWidget,
+  IBooleanWidget,
+  IButtonWidget,
+  IComboWidget,
+  IKnobWidget,
+  INumericWidget,
+  ISliderWidget,
+  IStringWidget,
+  IWidget,
+} from "@/types/widgets"
 
 import { BaseWidget } from "./BaseWidget"
 import { BooleanWidget } from "./BooleanWidget"
@@ -17,21 +27,24 @@ import { TextWidget } from "./TextWidget"
  * @param node The node the widget belongs to.
  * @param wrapLegacyWidgets Whether to wrap legacy widgets in a `LegacyWidget` instance.
  * @returns A concrete widget instance.
+ * @remarks This function uses type assertions based on discriminated union of {@link IBaseWidget.type}.
+ * This is not a type-safe operation, and care should be taken when refactoring.
  */
-export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets?: true): BaseWidget
-export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets: false): BaseWidget | undefined
-export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets = true): BaseWidget | undefined {
+export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets?: true): BaseWidget
+export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets: false): BaseWidget | undefined
+export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets = true): BaseWidget | undefined {
   if (widget instanceof BaseWidget) return widget
 
+  // Assertions: TypeScript has no concept of "all strings except X"
   switch (widget.type) {
-  case "button": return new ButtonWidget(widget, node)
-  case "toggle": return new BooleanWidget(widget, node)
-  case "slider": return new SliderWidget(widget, node)
-  case "knob": return new KnobWidget(widget, node)
-  case "combo": return new ComboWidget(widget, node)
-  case "number": return new NumberWidget(widget, node)
-  case "string": return new TextWidget(widget, node)
-  case "text": return new TextWidget(widget, node)
+  case "button": return new ButtonWidget(widget as IButtonWidget, node)
+  case "toggle": return new BooleanWidget(widget as IBooleanWidget, node)
+  case "slider": return new SliderWidget(widget as ISliderWidget, node)
+  case "knob": return new KnobWidget(widget as IKnobWidget, node)
+  case "combo": return new ComboWidget(widget as IComboWidget, node)
+  case "number": return new NumberWidget(widget as INumericWidget, node)
+  case "string": return new TextWidget(widget as IStringWidget, node)
+  case "text": return new TextWidget(widget as IStringWidget, node)
   default: {
     if (wrapLegacyWidgets) return new LegacyWidget(widget, node)
   }
