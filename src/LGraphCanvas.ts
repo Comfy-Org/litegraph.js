@@ -2653,14 +2653,15 @@ export class LGraphCanvas {
         node.onMouseMove?.(e, [e.canvasX - node.pos[0], e.canvasY - node.pos[1]], this)
 
         // The input the mouse is over has changed
+        const { mouseOver } = node
         if (
-          node.mouseOver.inputId !== inputId ||
-          node.mouseOver.outputId !== outputId ||
-          node.mouseOver.overWidget !== overWidget
+          mouseOver.inputId !== inputId ||
+          mouseOver.outputId !== outputId ||
+          mouseOver.overWidget !== overWidget
         ) {
-          node.mouseOver.inputId = inputId
-          node.mouseOver.outputId = outputId
-          node.mouseOver.overWidget = overWidget
+          mouseOver.inputId = inputId
+          mouseOver.outputId = outputId
+          mouseOver.overWidget = overWidget
 
           // State reset
           linkConnector.overWidget = undefined
