@@ -69,13 +69,6 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
     e?: CanvasMouseEvent,
   ): void
   mouse?(event: CanvasPointerEvent, pointerOffset: Point, node: LGraphNode): boolean
-  draw?(
-    ctx: CanvasRenderingContext2D,
-    node: LGraphNode,
-    widget_width: number,
-    y: number,
-    H: number,
-  ): void
   computeSize?(width?: number): Size
   onPointerDown?(pointer: CanvasPointer, node: LGraphNode, canvas: LGraphCanvas): boolean
 
