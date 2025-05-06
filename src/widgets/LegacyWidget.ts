@@ -1,5 +1,5 @@
 import type { LGraphNode } from "@/LGraphNode"
-import type { IBaseWidget, IWidget } from "@/types/widgets"
+import type { IBaseWidget } from "@/types/widgets"
 
 import { LiteGraph } from "@/litegraph"
 
@@ -11,7 +11,7 @@ import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
  * Support will eventually be removed.
  * @remarks Expect this class to undergo breaking changes without warning.
  */
-export class LegacyWidget<TWidget extends IWidget = IWidget> extends BaseWidget<TWidget> implements IBaseWidget {
+export class LegacyWidget<TWidget extends IBaseWidget = IBaseWidget> extends BaseWidget<TWidget> implements IBaseWidget {
   draw?(
     ctx: CanvasRenderingContext2D,
     node: LGraphNode,

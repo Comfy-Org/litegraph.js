@@ -129,9 +129,16 @@ export type TWidgetValue = IWidget["value"]
 
 /**
  * The base type for all widgets.  Should not be implemented directly.
+ * @template TValue The type of value this widget holds.
+ * @template TType A string designating the type of widget, e.g. "toggle" or "string".
+ * @template TOptions The options for this widget.
  * @see IWidget
  */
-export interface IBaseWidget<TValue = unknown, TType = string, TOptions = IWidgetOptions<TValue>> {
+export interface IBaseWidget<
+  TValue = boolean | number | string | object | undefined,
+  TType extends string = string,
+  TOptions extends IWidgetOptions<unknown> = IWidgetOptions<TValue>,
+> {
   linkedWidgets?: IWidget[]
 
   name: string
