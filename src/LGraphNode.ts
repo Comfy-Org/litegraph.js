@@ -61,9 +61,9 @@ export interface INodePropertyInfo {
 }
 
 export interface IMouseOverData {
-  inputId: number | null
-  outputId: number | null
-  overWidget: IWidget | null
+  inputId?: number
+  outputId?: number
+  overWidget?: IWidget
 }
 
 export interface ConnectByTypeOptions {
@@ -324,7 +324,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   console?: string[]
   _level?: number
   _shape?: RenderShape
-  mouseOver?: IMouseOverData | null
+  mouseOver?: IMouseOverData
   redraw_on_mouse?: boolean
   resizable?: boolean
   clonable?: boolean

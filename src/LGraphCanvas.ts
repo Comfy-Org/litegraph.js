@@ -1852,7 +1852,7 @@ export class LGraphCanvas {
     for (const otherNode of nodes) {
       if (otherNode.mouseOver && node != otherNode) {
         // mouse leave
-        otherNode.mouseOver = null
+        otherNode.mouseOver = undefined
         this._highlight_input = undefined
         this._highlight_pos = undefined
         this.linkConnector.overWidget = undefined
@@ -2629,15 +2629,11 @@ export class LGraphCanvas {
         const pos: Point = [0, 0]
         const inputId = isOverNodeInput(node, e.canvasX, e.canvasY, pos)
         const outputId = isOverNodeOutput(node, e.canvasX, e.canvasY, pos)
-        const overWidget = node.getWidgetOnPos(e.canvasX, e.canvasY, true)
+        const overWidget = node.getWidgetOnPos(e.canvasX, e.canvasY, true) ?? undefined
 
         if (!node.mouseOver) {
           // mouse enter
-          node.mouseOver = {
-            inputId: null,
-            outputId: null,
-            overWidget: null,
-          }
+          node.mouseOver = {}
           this.node_over = node
           this.dirty_canvas = true
 
