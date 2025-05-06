@@ -81,19 +81,25 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
     this.#value = value
   }
 
-  constructor(widget: TWidget, node: LGraphNode) {
+  constructor(widget: TWidget & { node: LGraphNode })
+  constructor(widget: TWidget, node: LGraphNode)
+  constructor(widget: TWidget & { node: LGraphNode }, node?: LGraphNode) {
+    // Private fields
+    this.#node = node ?? widget.node
+    this.#value = widget.value
+
+    // `node` has no setter - Object.assign will throw.
     // TODO: Resolve this workaround. Ref: https://github.com/Comfy-Org/litegraph.js/issues/1022
     // @ts-expect-error Prevent naming conflicts with custom nodes.
     // eslint-disable-next-line unused-imports/no-unused-vars
-    const { outline_color, background_color, height, text_color, secondary_text_color, disabledTextColor, displayName, displayValue, labelBaseline, ...safeValues } = widget
+    const { node: _, outline_color, background_color, height, text_color, secondary_text_color, disabledTextColor, displayName, displayValue, labelBaseline, ...safeValues } = widget
 
     Object.assign(this, safeValues)
+
+    // Re-assign to fix TS errors.
     this.name = widget.name
     this.options = widget.options
     this.type = widget.type
-
-    this.#node = node
-    this.#value = widget.value
   }
 
   get outline_color() {

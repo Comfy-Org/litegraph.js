@@ -11,7 +11,7 @@ import { BaseWidget, type DrawWidgetOptions } from "./BaseWidget"
  * Support will eventually be removed.
  * @remarks Expect this class to undergo breaking changes without warning.
  */
-export class LegacyWidget extends BaseWidget<IWidget> implements IBaseWidget {
+export class LegacyWidget<TWidget extends IWidget = IWidget> extends BaseWidget<TWidget> implements IBaseWidget {
   draw?(
     ctx: CanvasRenderingContext2D,
     node: LGraphNode,
