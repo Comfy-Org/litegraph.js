@@ -1910,9 +1910,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     canvasX: number,
     canvasY: number,
     includeDisabled = false,
-  ): IWidget | null {
+  ): IWidget | undefined {
     const { widgets, pos, size } = this
-    if (!widgets?.length) return null
+    if (!widgets?.length) return
 
     const x = canvasX - pos[0]
     const y = canvasY - pos[1]
@@ -1938,7 +1938,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
         return widget
       }
     }
-    return null
   }
 
   /**

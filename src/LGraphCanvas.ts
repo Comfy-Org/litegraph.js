@@ -1829,13 +1829,18 @@ export class LGraphCanvas {
   }
 
   /**
-   * Gets the widget at the current cursor position
+   * Gets the widget at the current cursor position.
    * @param node Optional node to check for widgets under cursor
-   * @returns The widget located at the current cursor position or null
+   * @returns The widget located at the current cursor position, if any is found.
+   * @deprecated Use {@link LGraphNode.getWidgetOnPos} instead.
+   * ```ts
+   * const [x, y] = canvas.graph_mouse
+   * const widget = canvas.node_over?.getWidgetOnPos(x, y, true)
+   * ```
    */
-  getWidgetAtCursor(node?: LGraphNode): IWidget | null {
+  getWidgetAtCursor(node?: LGraphNode): IWidget | undefined {
     node ??= this.node_over
-    return node?.getWidgetOnPos(this.graph_mouse[0], this.graph_mouse[1], true) ?? null
+    return node?.getWidgetOnPos(this.graph_mouse[0], this.graph_mouse[1], true)
   }
 
   /**
