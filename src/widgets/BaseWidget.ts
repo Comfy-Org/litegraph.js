@@ -52,7 +52,6 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
   options: TWidget["options"]
   label?: string
   type: TWidget["type"]
-  value: TWidget["value"]
   y: number = 0
   last_y?: number
   width?: number
@@ -80,6 +79,15 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
   computeSize?(width?: number): Size
   onPointerDown?(pointer: CanvasPointer, node: LGraphNode, canvas: LGraphCanvas): boolean
 
+  #value: TWidget["value"]
+  get value(): TWidget["value"] {
+    return this.#value
+  }
+
+  set value(value: TWidget["value"]) {
+    this.#value = value
+  }
+
   constructor(widget: TWidget, node: LGraphNode) {
     // TODO: Resolve this workaround. Ref: https://github.com/Comfy-Org/litegraph.js/issues/1022
     // @ts-expect-error Prevent naming conflicts with custom nodes.
@@ -92,7 +100,7 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
     this.type = widget.type
 
     this.#node = node
-    this.value = widget.value
+    this.#value = widget.value
   }
 
   get outline_color() {
