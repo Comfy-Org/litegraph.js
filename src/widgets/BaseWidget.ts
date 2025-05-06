@@ -41,6 +41,12 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
   /** Minimum gap between label and value */
   static labelValueGap = 5
 
+  #node: LGraphNode
+  /** The node that this widget belongs to. */
+  get node() {
+    return this.#node
+  }
+
   linkedWidgets?: IWidget[]
   name: string
   options: TWidget["options"]
@@ -74,7 +80,7 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
   computeSize?(width?: number): Size
   onPointerDown?(pointer: CanvasPointer, node: LGraphNode, canvas: LGraphCanvas): boolean
 
-  constructor(widget: TWidget) {
+  constructor(widget: TWidget, node: LGraphNode) {
     // TODO: Resolve this workaround. Ref: https://github.com/Comfy-Org/litegraph.js/issues/1022
     // @ts-expect-error Prevent naming conflicts with custom nodes.
     // eslint-disable-next-line unused-imports/no-unused-vars
@@ -84,6 +90,8 @@ export abstract class BaseWidget<TWidget extends IWidget = IWidget> implements I
     this.name = widget.name
     this.options = widget.options
     this.type = widget.type
+
+    this.#node = node
     this.value = widget.value
   }
 

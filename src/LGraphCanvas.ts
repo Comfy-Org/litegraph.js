@@ -2396,7 +2396,7 @@ export class LGraphCanvas {
     const x = pos[0] - node.pos[0]
     const y = pos[1] - node.pos[1]
 
-    const widgetInstance = toConcreteWidget(widget)
+    const widgetInstance = toConcreteWidget(widget, node)
     if (widgetInstance) {
       pointer.onClick = () => widgetInstance.onClick({
         e,

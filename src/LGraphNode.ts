@@ -1729,7 +1729,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   addCustomWidget<T extends IWidget>(custom_widget: T): T {
     this.widgets ||= []
     const WidgetClass = WIDGET_TYPE_MAP[custom_widget.type]
-    const widget = WidgetClass ? new WidgetClass(custom_widget) as IWidget : custom_widget
+    const widget = WidgetClass ? new WidgetClass(custom_widget, this) as IWidget : custom_widget
     this.widgets.push(widget)
     return widget as T
   }
@@ -3408,7 +3408,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
       const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[widget.type]
       if (WidgetClass) {
-        toClass(WidgetClass, widget).drawWidget(ctx, { width, showText })
+        toClass(WidgetClass, widget, this).drawWidget(ctx, { width, showText })
       } else {
         widget.draw?.(ctx, this, width, y, H, lowQuality)
       }
