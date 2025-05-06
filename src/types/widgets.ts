@@ -66,13 +66,13 @@ export type IWidget =
   | IButtonWidget
   | IKnobWidget
 
-export interface IBooleanWidget extends IBaseWidget<boolean, "toggle", IWidgetOptions<boolean>> {
+export interface IBooleanWidget extends IBaseWidget<boolean, "toggle"> {
   type: "toggle"
   value: boolean
 }
 
 /** Any widget that uses a numeric backing */
-export interface INumericWidget extends IBaseWidget<number, "number", IWidgetOptions<number>> {
+export interface INumericWidget extends IBaseWidget<number, "number"> {
   type: "number"
   value: number
 }
@@ -102,19 +102,19 @@ export interface IComboWidget extends IBaseWidget<
 }
 
 /** A widget with a string value */
-export interface IStringWidget extends IBaseWidget<string, "string" | "text", IWidgetOptions<string>> {
+export interface IStringWidget extends IBaseWidget<string, "string" | "text"> {
   type: "string" | "text"
   value: string
 }
 
-export interface IButtonWidget extends IBaseWidget<undefined, "button", IWidgetOptions<undefined>> {
+export interface IButtonWidget extends IBaseWidget<undefined, "button"> {
   type: "button"
   value: undefined
   clicked: boolean
 }
 
 /** A custom widget - accepts any value and has no built-in special handling */
-export interface ICustomWidget extends IBaseWidget<string | object, "custom", IWidgetOptions<string | object>> {
+export interface ICustomWidget extends IBaseWidget<string | object, "custom"> {
   type: "custom"
   value: string | object
 }
@@ -131,7 +131,7 @@ export type TWidgetValue = IWidget["value"]
  * The base type for all widgets.  Should not be implemented directly.
  * @see IWidget
  */
-export interface IBaseWidget<TValue = unknown, TType = string, TOptions = unknown> {
+export interface IBaseWidget<TValue = unknown, TType = string, TOptions = IWidgetOptions<TValue>> {
   linkedWidgets?: IWidget[]
 
   name: string
