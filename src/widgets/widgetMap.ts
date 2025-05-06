@@ -6,11 +6,21 @@ import { BooleanWidget } from "./BooleanWidget"
 import { ButtonWidget } from "./ButtonWidget"
 import { ComboWidget } from "./ComboWidget"
 import { KnobWidget } from "./KnobWidget"
+import { LegacyWidget } from "./LegacyWidget"
 import { NumberWidget } from "./NumberWidget"
 import { SliderWidget } from "./SliderWidget"
 import { TextWidget } from "./TextWidget"
 
-export function toConcreteWidget(widget: IWidget, node: LGraphNode): BaseWidget | undefined {
+/**
+ * Convert a widget POJO to a proper widget instance.
+ * @param widget The POJO to convert.
+ * @param node The node the widget belongs to.
+ * @param wrapLegacyWidgets Whether to wrap legacy widgets in a `LegacyWidget` instance.
+ * @returns A concrete widget instance.
+ */
+export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets?: true): BaseWidget
+export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets: false): BaseWidget | undefined
+export function toConcreteWidget(widget: IWidget, node: LGraphNode, wrapLegacyWidgets = true): BaseWidget | undefined {
   if (widget instanceof BaseWidget) return widget
 
   switch (widget.type) {
@@ -22,6 +32,9 @@ export function toConcreteWidget(widget: IWidget, node: LGraphNode): BaseWidget 
   case "number": return new NumberWidget(widget, node)
   case "string": return new TextWidget(widget, node)
   case "text": return new TextWidget(widget, node)
+  default: {
+    if (wrapLegacyWidgets) return new LegacyWidget(widget, node)
+  }
   }
 }
 
