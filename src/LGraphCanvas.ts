@@ -34,7 +34,7 @@ import type {
   CanvasPointerExtensions,
 } from "./types/events"
 import type { ClipboardItems } from "./types/serialisation"
-import type { IWidget } from "./types/widgets"
+import type { IBaseWidget } from "./types/widgets"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
 
@@ -466,7 +466,7 @@ export class LGraphCanvas {
   /** The current node being drawn by {@link drawNode}.  This should NOT be used to determine the currently selected node.  See {@link selectedItems} */
   current_node: LGraphNode | null
   /** used for widgets */
-  node_widget?: [LGraphNode, IWidget] | null
+  node_widget?: [LGraphNode, IBaseWidget] | null
   /** The link to draw a tooltip for. */
   over_link_center?: LinkSegment
   last_mouse_position: Point
@@ -1838,7 +1838,7 @@ export class LGraphCanvas {
    * const widget = canvas.node_over?.getWidgetOnPos(x, y, true)
    * ```
    */
-  getWidgetAtCursor(node?: LGraphNode): IWidget | undefined {
+  getWidgetAtCursor(node?: LGraphNode): IBaseWidget | undefined {
     node ??= this.node_over
     return node?.getWidgetOnPos(this.graph_mouse[0], this.graph_mouse[1], true)
   }
@@ -2386,7 +2386,7 @@ export class LGraphCanvas {
     this.dirty_canvas = true
   }
 
-  #processWidgetClick(e: CanvasPointerEvent, node: LGraphNode, widget: IWidget) {
+  #processWidgetClick(e: CanvasPointerEvent, node: LGraphNode, widget: IBaseWidget) {
     const { pointer } = this
 
     // Custom widget - CanvasPointer

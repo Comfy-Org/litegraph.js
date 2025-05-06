@@ -63,7 +63,7 @@ export interface INodePropertyInfo {
 export interface IMouseOverData {
   inputId?: number
   outputId?: number
-  overWidget?: IWidget
+  overWidget?: IBaseWidget
 }
 
 export interface ConnectByTypeOptions {
@@ -217,7 +217,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   properties: Dictionary<NodeProperty | undefined> = {}
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
-  widgets?: IWidget[]
+  widgets?: IBaseWidget[]
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
@@ -510,7 +510,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     name: string,
     value: unknown,
     old_value: unknown,
-    w: IWidget,
+    w: IBaseWidget,
   ): void
   onDeselected?(this: LGraphNode): void
   onKeyUp?(this: LGraphNode, e: KeyboardEvent): void
@@ -1726,7 +1726,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return widget
   }
 
-  addCustomWidget<T extends IWidget>(custom_widget: T): T {
+  addCustomWidget<T extends IBaseWidget>(custom_widget: T): T {
     this.widgets ||= []
     const WidgetClass = WIDGET_TYPE_MAP[custom_widget.type]
     const widget = WidgetClass ? new WidgetClass(custom_widget, this) as IWidget : custom_widget
@@ -1910,7 +1910,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     canvasX: number,
     canvasY: number,
     includeDisabled = false,
-  ): IWidget | undefined {
+  ): IBaseWidget | undefined {
     const { widgets, pos, size } = this
     if (!widgets?.length) return
 
@@ -3481,7 +3481,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return this.#getMouseOverSlot(slot) === slot
   }
 
-  #isMouseOverWidget(widget: IWidget | undefined): boolean {
+  #isMouseOverWidget(widget: IBaseWidget | undefined): boolean {
     if (!widget) return false
     return this.mouseOver?.overWidget === widget
   }
@@ -3489,14 +3489,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   /**
    * Returns the input slot that is associated with the given widget.
    */
-  getSlotFromWidget(widget: IWidget | undefined): INodeInputSlot | undefined {
+  getSlotFromWidget(widget: IBaseWidget | undefined): INodeInputSlot | undefined {
     if (widget) return this.inputs.find(slot => isWidgetInputSlot(slot) && slot.widget.name === widget.name)
   }
 
   /**
    * Returns the widget that is associated with the given input slot.
    */
-  getWidgetFromSlot(slot: INodeInputSlot): IWidget | undefined {
+  getWidgetFromSlot(slot: INodeInputSlot): IBaseWidget | undefined {
     if (!isWidgetInputSlot(slot)) return
     return this.widgets?.find(w => w.name === slot.widget.name)
   }
