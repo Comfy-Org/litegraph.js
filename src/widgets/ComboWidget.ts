@@ -1,6 +1,6 @@
 import type { WidgetEventOptions } from "./BaseWidget"
 import type { LGraphNode } from "@/LGraphNode"
-import type { IComboWidget, IWidgetOptions } from "@/types/widgets"
+import type { IComboWidget } from "@/types/widgets"
 
 import { clamp, LiteGraph } from "@/litegraph"
 import { warnDeprecated } from "@/utils/feedback"
@@ -21,9 +21,6 @@ function toArray(values: Values): string[] {
 
 export class ComboWidget extends BaseSteppedWidget<IComboWidget> implements IComboWidget {
   override type = "combo" as const
-
-  // @ts-expect-error Workaround for Record<string, string> not being typed in IWidgetOptions
-  declare options: Omit<IWidgetOptions<string>, "values"> & { values: Values }
 
   override get displayValue() {
     const { values: rawValues } = this.options
