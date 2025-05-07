@@ -41,6 +41,8 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
   /** Minimum gap between label and value */
   static labelValueGap = 5
 
+  declare computedHeight?: number
+
   #node: LGraphNode
   /** The node that this widget belongs to. */
   get node() {
