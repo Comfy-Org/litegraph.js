@@ -72,7 +72,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
   computeSize?(width?: number): Size
   onPointerDown?(pointer: CanvasPointer, node: LGraphNode, canvas: LGraphCanvas): boolean
 
-  #value: TWidget["value"]
+  #value: TWidget["value"] = undefined
   get value(): TWidget["value"] {
     return this.#value
   }
@@ -86,7 +86,6 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
   constructor(widget: TWidget & { node: LGraphNode }, node?: LGraphNode) {
     // Private fields
     this.#node = node ?? widget.node
-    this.#value = widget.value
 
     // `node` has no setter - Object.assign will throw.
     // TODO: Resolve this workaround. Ref: https://github.com/Comfy-Org/litegraph.js/issues/1022
