@@ -24,7 +24,7 @@ import type { LGraph } from "./LGraph"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { CanvasMouseEvent } from "./types/events"
 import type { ISerialisedNode } from "./types/serialisation"
-import type { IBaseWidget, IWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
+import type { IBaseWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
 import { NullGraphError } from "./infrastructure/NullGraphError"
@@ -46,7 +46,7 @@ import { findFreeSlotOfType } from "./utils/collections"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { BaseWidget } from "./widgets/BaseWidget"
-import { WIDGET_TYPE_MAP } from "./widgets/widgetMap"
+import { toConcreteWidget, WIDGET_TYPE_MAP, type WidgetConstructorMap } from "./widgets/widgetMap"
 
 // #region Types
 
@@ -1675,13 +1675,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @param options the object that contains special properties of this widget
    * @returns the created widget object
    */
-  addWidget(
-    type: TWidgetType,
+  addWidget<Type extends TWidgetType, TValue extends WidgetConstructorMap[Type]["value"]>(
+    type: Type,
     name: string,
-    value: string | number | boolean | object,
-    callback: IWidget["callback"] | string | null,
+    value: TValue,
+    callback: IBaseWidget["callback"] | string | null,
     options?: IWidgetOptions | string,
-  ): IWidget {
+  ): WidgetConstructorMap[Type] | IBaseWidget {
     this.widgets ||= []
 
     if (!options && callback && typeof callback === "object") {
@@ -1700,8 +1700,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       callback = null
     }
 
-    const w: IWidget = {
-      // @ts-expect-error Type check or just assert?
+    const w: IBaseWidget & { type: Type } = {
+      // @ts-expect-error
       type: type.toLowerCase(),
       name: name,
       value: value,
@@ -1726,12 +1726,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return widget
   }
 
-  addCustomWidget<T extends IBaseWidget>(custom_widget: T): T {
+  addCustomWidget<TPlainWidget extends IBaseWidget>(
+    custom_widget: TPlainWidget,
+  ): TPlainWidget | WidgetConstructorMap[TPlainWidget["type"]] {
     this.widgets ||= []
-    const WidgetClass = WIDGET_TYPE_MAP[custom_widget.type]
-    const widget = WidgetClass ? new WidgetClass(custom_widget, this) as IWidget : custom_widget
+    const widget = toConcreteWidget(custom_widget, this, false) ?? custom_widget
     this.widgets.push(widget)
-    return widget as T
+    return widget
   }
 
   move(deltaX: number, deltaY: number): void {

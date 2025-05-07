@@ -1,6 +1,6 @@
 import type { CanvasPointer, LGraphCanvas, LGraphNode, Size } from "@/litegraph"
 import type { CanvasMouseEvent, CanvasPointerEvent } from "@/types/events"
-import type { IBaseWidget, IWidget } from "@/types/widgets"
+import type { IBaseWidget } from "@/types/widgets"
 
 import { drawTextInArea } from "@/draw"
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -47,7 +47,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     return this.#node
   }
 
-  linkedWidgets?: IWidget[]
+  linkedWidgets?: IBaseWidget[]
   name: string
   options: TWidget["options"]
   label?: string
@@ -269,7 +269,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     const pos = canvas.graph_mouse
     this.callback?.(this.value, canvas, node, pos, e)
 
-    node.onWidgetChanged?.(this.name ?? "", v, oldValue, this as IWidget)
+    node.onWidgetChanged?.(this.name ?? "", v, oldValue, this)
     if (node.graph) node.graph._version++
   }
 }
