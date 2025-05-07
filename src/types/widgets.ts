@@ -114,9 +114,9 @@ export interface IStringWidget extends IBaseWidget<string, "string" | "text", IW
   value: string
 }
 
-export interface IButtonWidget extends IBaseWidget<undefined, "button"> {
+export interface IButtonWidget extends IBaseWidget<string | undefined, "button"> {
   type: "button"
-  value: undefined
+  value: string | undefined
   clicked: boolean
 }
 
