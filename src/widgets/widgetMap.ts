@@ -4,12 +4,16 @@ import type {
   IBooleanWidget,
   IButtonWidget,
   IComboWidget,
+  ICustomWidget,
   IKnobWidget,
   INumericWidget,
   ISliderWidget,
   IStringWidget,
   IWidget,
+  TWidgetType,
 } from "@/types/widgets"
+
+import { toClass } from "@/utils/type"
 
 import { BaseWidget } from "./BaseWidget"
 import { BooleanWidget } from "./BooleanWidget"
@@ -21,55 +25,104 @@ import { NumberWidget } from "./NumberWidget"
 import { SliderWidget } from "./SliderWidget"
 import { TextWidget } from "./TextWidget"
 
+export type WidgetTypeMap = {
+  button: ButtonWidget
+  toggle: BooleanWidget
+  slider: SliderWidget
+  knob: KnobWidget
+  combo: ComboWidget
+  number: NumberWidget
+  string: TextWidget
+  text: TextWidget
+  custom: LegacyWidget
+  [key: string]: BaseWidget
+}
+
 /**
  * Convert a widget POJO to a proper widget instance.
  * @param widget The POJO to convert.
  * @param node The node the widget belongs to.
  * @param wrapLegacyWidgets Whether to wrap legacy widgets in a `LegacyWidget` instance.
  * @returns A concrete widget instance.
- * @remarks This function uses type assertions based on discriminated union of {@link IBaseWidget.type}.
- * This is not a type-safe operation, and care should be taken when refactoring.
  */
-export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets?: true): BaseWidget
-export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets: false): BaseWidget | undefined
-export function toConcreteWidget(widget: IWidget | IBaseWidget, node: LGraphNode, wrapLegacyWidgets = true): BaseWidget | undefined {
-  if (widget instanceof BaseWidget) return widget
+export function toConcreteWidget<TWidget extends IWidget | IBaseWidget>(
+  widget: TWidget,
+  node: LGraphNode,
+  wrapLegacyWidgets?: true,
+): WidgetTypeMap[TWidget["type"]]
+export function toConcreteWidget<TWidget extends IWidget | IBaseWidget>(
+  widget: TWidget,
+  node: LGraphNode,
+  wrapLegacyWidgets: false): WidgetTypeMap[TWidget["type"]] | undefined
+export function toConcreteWidget<TWidget extends IWidget | IBaseWidget>(
+  widget: TWidget,
+  node: LGraphNode,
+  wrapLegacyWidgets = true,
+): WidgetTypeMap[TWidget["type"]] | undefined {
+  // Assertion: TypeScript has no concept of "all strings except X"
+  type RemoveBaseWidgetType<T> = T extends { type: TWidgetType } ? T : never
+  const narrowedWidget = widget as RemoveBaseWidgetType<TWidget>
 
-  // Assertions: TypeScript has no concept of "all strings except X"
-  switch (widget.type) {
-  case "button": return new ButtonWidget(widget as IButtonWidget, node)
-  case "toggle": return new BooleanWidget(widget as IBooleanWidget, node)
-  case "slider": return new SliderWidget(widget as ISliderWidget, node)
-  case "knob": return new KnobWidget(widget as IKnobWidget, node)
-  case "combo": return new ComboWidget(widget as IComboWidget, node)
-  case "number": return new NumberWidget(widget as INumericWidget, node)
-  case "string": return new TextWidget(widget as IStringWidget, node)
-  case "text": return new TextWidget(widget as IStringWidget, node)
+  switch (narrowedWidget.type) {
+  case "button": return toClass(ButtonWidget, narrowedWidget, node)
+  case "toggle": return toClass(BooleanWidget, narrowedWidget, node)
+  case "slider": return toClass(SliderWidget, narrowedWidget, node)
+  case "knob": return toClass(KnobWidget, narrowedWidget, node)
+  case "combo": return toClass(ComboWidget, narrowedWidget, node)
+  case "number": return toClass(NumberWidget, narrowedWidget, node)
+  case "string": return toClass(TextWidget, narrowedWidget, node)
+  case "text": return toClass(TextWidget, narrowedWidget, node)
   default: {
-    if (wrapLegacyWidgets) return new LegacyWidget(widget, node)
+    if (wrapLegacyWidgets) return toClass(LegacyWidget, widget, node)
   }
   }
 }
 
-type WidgetConstructor = {
-  new (plain: IBaseWidget, node: LGraphNode): BaseWidget
+// #region Type Guards
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link IButtonWidget}. */
+export function isButtonWidget(widget: IBaseWidget): widget is IButtonWidget {
+  return widget.type === "button"
 }
 
-export const WIDGET_TYPE_MAP: Record<string, WidgetConstructor> = {
-  // @ts-expect-error https://github.com/Comfy-Org/litegraph.js/issues/616
-  button: ButtonWidget,
-  // @ts-expect-error #616
-  toggle: BooleanWidget,
-  // @ts-expect-error #616
-  slider: SliderWidget,
-  // @ts-expect-error #616
-  knob: KnobWidget,
-  // @ts-expect-error #616
-  combo: ComboWidget,
-  // @ts-expect-error #616
-  number: NumberWidget,
-  // @ts-expect-error #616
-  string: TextWidget,
-  // @ts-expect-error #616
-  text: TextWidget,
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link IBooleanWidget}. */
+export function isBooleanWidget(widget: IBaseWidget): widget is IBooleanWidget {
+  return widget.type === "toggle"
 }
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link ISliderWidget}. */
+export function isSliderWidget(widget: IBaseWidget): widget is ISliderWidget {
+  return widget.type === "slider"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link IKnobWidget}. */
+export function isKnobWidget(widget: IBaseWidget): widget is IKnobWidget {
+  return widget.type === "knob"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link IComboWidget}. */
+export function isComboWidget(widget: IBaseWidget): widget is IComboWidget {
+  return widget.type === "combo"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link INumericWidget}. */
+export function isNumberWidget(widget: IBaseWidget): widget is INumericWidget {
+  return widget.type === "number"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link IStringWidget}. */
+export function isStringWidget(widget: IBaseWidget): widget is IStringWidget {
+  return widget.type === "string"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link ITextWidget}. */
+export function isTextWidget(widget: IBaseWidget): widget is IStringWidget {
+  return widget.type === "text"
+}
+
+/** Type guard: Narrow **from {@link IBaseWidget}** to {@link ICustomWidget}. */
+export function isCustomWidget(widget: IBaseWidget): widget is ICustomWidget {
+  return widget.type === "custom"
+}
+
+// #endregion Type Guards

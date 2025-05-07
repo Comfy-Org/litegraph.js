@@ -46,7 +46,7 @@ import { findFreeSlotOfType } from "./utils/collections"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { BaseWidget } from "./widgets/BaseWidget"
-import { toConcreteWidget, WIDGET_TYPE_MAP, type WidgetConstructorMap } from "./widgets/widgetMap"
+import { toConcreteWidget, type WidgetTypeMap } from "./widgets/widgetMap"
 
 // #region Types
 
@@ -1675,13 +1675,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @param options the object that contains special properties of this widget
    * @returns the created widget object
    */
-  addWidget<Type extends TWidgetType, TValue extends WidgetConstructorMap[Type]["value"]>(
+  addWidget<Type extends TWidgetType, TValue extends WidgetTypeMap[Type]["value"]>(
     type: Type,
     name: string,
     value: TValue,
     callback: IBaseWidget["callback"] | string | null,
     options?: IWidgetOptions | string,
-  ): WidgetConstructorMap[Type] | IBaseWidget {
+  ): WidgetTypeMap[Type] | IBaseWidget {
     this.widgets ||= []
 
     if (!options && callback && typeof callback === "object") {
@@ -1728,7 +1728,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
   addCustomWidget<TPlainWidget extends IBaseWidget>(
     custom_widget: TPlainWidget,
-  ): TPlainWidget | WidgetConstructorMap[TPlainWidget["type"]] {
+  ): TPlainWidget | WidgetTypeMap[TPlainWidget["type"]] {
     this.widgets ||= []
     const widget = toConcreteWidget(custom_widget, this, false) ?? custom_widget
     this.widgets.push(widget)
@@ -3406,9 +3406,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (widget.computedDisabled) ctx.globalAlpha *= 0.5
       const width = widget.width || nodeWidth
 
-      const WidgetClass: typeof WIDGET_TYPE_MAP[string] = WIDGET_TYPE_MAP[widget.type]
-      if (WidgetClass) {
-        toClass(WidgetClass, widget, this).drawWidget(ctx, { width, showText })
+      const widgetInstance = toConcreteWidget(widget, this, false)
+      if (widgetInstance) {
+        widgetInstance.drawWidget(ctx, { width, showText })
       } else {
         widget.draw?.(ctx, this, width, y, H, lowQuality)
       }

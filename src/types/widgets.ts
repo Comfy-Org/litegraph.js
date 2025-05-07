@@ -31,7 +31,7 @@ export interface IWidgetOptions<TValues = unknown[]> {
   callback?: IWidget["callback"]
 }
 
-export interface IWidgetSliderOptions extends IWidgetOptions<number> {
+export interface IWidgetSliderOptions extends IWidgetOptions<number[]> {
   min: number
   max: number
   step2: number
@@ -39,7 +39,7 @@ export interface IWidgetSliderOptions extends IWidgetOptions<number> {
   marker_color?: CanvasColour
 }
 
-export interface IWidgetKnobOptions extends IWidgetOptions<number> {
+export interface IWidgetKnobOptions extends IWidgetOptions<number[]> {
   min: number
   max: number
   step2: number
@@ -102,7 +102,7 @@ export interface IComboWidget extends IBaseWidget<
 }
 
 /** A widget with a string value */
-export interface IStringWidget extends IBaseWidget<string, "string" | "text"> {
+export interface IStringWidget extends IBaseWidget<string, "string" | "text", IWidgetOptions<string[]>> {
   type: "string" | "text"
   value: string
 }
@@ -137,9 +137,9 @@ export type TWidgetValue = IWidget["value"]
 export interface IBaseWidget<
   TValue = boolean | number | string | object | undefined,
   TType extends string = string,
-  TOptions extends IWidgetOptions<unknown> = IWidgetOptions<TValue>,
+  TOptions extends IWidgetOptions<unknown> = IWidgetOptions<unknown>,
 > {
-  linkedWidgets?: IWidget[]
+  linkedWidgets?: IBaseWidget[]
 
   name: string
   options: TOptions
