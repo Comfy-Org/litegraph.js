@@ -61,6 +61,7 @@ export type IWidget =
   | INumericWidget
   | IStringWidget
   | IComboWidget
+  | IStringComboWidget
   | ICustomWidget
   | ISliderWidget
   | IButtonWidget
@@ -87,6 +88,12 @@ export interface IKnobWidget extends IBaseWidget<number, "knob", IWidgetKnobOpti
   type: "knob"
   value: number
   options: IWidgetKnobOptions
+}
+
+/** Avoids the type issues with the legacy IComboWidget type */
+export interface IStringComboWidget extends IBaseWidget<string, "combo", RequiredProps<IWidgetOptions<string[]>, "values">> {
+  type: "combo"
+  value: string
 }
 
 type ComboWidgetValues = string[] | Record<string, string> | ((widget?: IComboWidget, node?: LGraphNode) => string[])
