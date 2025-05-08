@@ -43,6 +43,7 @@ import {
   TitleMode,
 } from "./types/globalEnums"
 import { findFreeSlotOfType } from "./utils/collections"
+import { warnDeprecated } from "./utils/feedback"
 import { distributeSpace } from "./utils/spaceDistribution"
 import { toClass } from "./utils/type"
 import { BaseWidget } from "./widgets/BaseWidget"
@@ -1730,7 +1731,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     custom_widget: TPlainWidget,
   ): TPlainWidget | WidgetTypeMap[TPlainWidget["type"]] {
     this.widgets ||= []
-    const widget = toConcreteWidget(custom_widget, this, false) ?? custom_widget
+    const widget = toConcreteWidget(custom_widget, this)
     this.widgets.push(widget)
     return widget
   }
@@ -3385,7 +3386,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     const nodeWidth = this.size[0]
     const { widgets } = this
-    const H = LiteGraph.NODE_WIDGET_HEIGHT
     const showText = !lowQuality
     ctx.save()
     ctx.globalAlpha = editorAlpha
@@ -3406,11 +3406,13 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (widget.computedDisabled) ctx.globalAlpha *= 0.5
       const width = widget.width || nodeWidth
 
-      const widgetInstance = toConcreteWidget(widget, this, false)
-      if (widgetInstance) {
-        widgetInstance.drawWidget(ctx, { width, showText })
+      // Bypass full type-checking
+      if ("drawWidget" in widget) {
+        widget.drawWidget(ctx, { width, showText })
       } else {
-        widget.draw?.(ctx, this, width, y, H, lowQuality)
+        // Assume this is a POJO added directly to widget array
+        warnDeprecated(`DEPRECATED: Found invalid widget [${widget.name}] - use BaseWidget subclass or use node.addCustomWidget`, widget)
+        toConcreteWidget(widget, this).drawWidget(ctx, { width, showText })
       }
       ctx.globalAlpha = editorAlpha
     }
