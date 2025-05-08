@@ -217,7 +217,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   properties: Dictionary<NodeProperty | undefined> = {}
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
-  widgets?: IBaseWidget[]
+  widgets?: (IBaseWidget | BaseWidget)[]
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
