@@ -56,6 +56,7 @@ export interface LGraphExtra extends Dictionary<unknown> {
 }
 
 export interface BaseLGraph {
+  /** The root graph. */
   readonly rootGraph: LGraph
 }
 
@@ -70,6 +71,9 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
   static STATUS_STOPPED = 1
   static STATUS_RUNNING = 2
+
+  /** List of LGraph properties that are manually handled by {@link LGraph.configure}. */
+  static readonly ConfigureProperties = new Set(["nodes", "groups", "links", "state", "reroutes", "floatingLinks", "id", "subgraphs", "definitions", "inputs", "outputs", "widgets", "inputNode", "outputNode"])
 
   id: UUID = zeroUuid
   revision: number = 0
@@ -1514,9 +1518,8 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     // copy all stored fields
     for (const i in data) {
       // links must be accepted
-      if (["nodes", "groups", "links", "state", "reroutes", "floatingLinks", "id"].includes(i)) {
-        continue
-      }
+      if (LGraph.ConfigureProperties.has(i)) continue
+
       // @ts-expect-error #574 Legacy property assignment
       this[i] = data[i]
     }
