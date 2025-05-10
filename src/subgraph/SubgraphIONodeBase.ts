@@ -1,10 +1,11 @@
 import type { Subgraph } from "./Subgraph"
 import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
-import type { Point, Positionable, ReadOnlyRect, Rect } from "@/interfaces"
+import type { Point, Positionable, ReadOnlyRect } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
 
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { isPointInRect, snapPoint } from "@/measure"
 
 export abstract class SubgraphIONodeBase implements Positionable, Serialisable<ExportedSubgraphIONode> {
@@ -12,13 +13,11 @@ export abstract class SubgraphIONodeBase implements Positionable, Serialisable<E
   static defaultWidth = 100
   static roundedRadius = 10
 
-  readonly #boundingRect: Float32Array = new Float32Array(4)
-  readonly #pos: Point = this.#boundingRect.subarray(0, 2)
-  readonly #size: Point = this.#boundingRect.subarray(2, 4)
+  readonly #boundingRect: Rectangle = new Rectangle()
 
   abstract readonly id: NodeId
 
-  get boundingRect(): Rect {
+  get boundingRect(): Rectangle {
     return this.#boundingRect
   }
 
@@ -26,25 +25,19 @@ export abstract class SubgraphIONodeBase implements Positionable, Serialisable<E
   pinned: boolean = false
 
   get pos() {
-    return this.#pos
+    return this.boundingRect.pos
   }
 
   set pos(value) {
-    if (!value || value.length < 2) return
-
-    this.#pos[0] = value[0]
-    this.#pos[1] = value[1]
+    this.boundingRect.pos = value
   }
 
   get size() {
-    return this.#size
+    return this.boundingRect.size
   }
 
   set size(value) {
-    if (!value || value.length < 2) return
-
-    this.#size[0] = value[0]
-    this.#size[1] = value[1]
+    this.boundingRect.size = value
   }
 
   abstract readonly slots: SubgraphInput[] | SubgraphOutput[]
