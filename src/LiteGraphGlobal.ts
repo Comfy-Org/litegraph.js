@@ -12,6 +12,8 @@ import { LGraphNode } from "./LGraphNode"
 import { LLink } from "./LLink"
 import { distance, isInsideRectangle, overlapBounding } from "./measure"
 import { Reroute } from "./Reroute"
+import { SubgraphIONodeBase } from "./subgraph/SubgraphIONodeBase"
+import { SubgraphSlot } from "./subgraph/SubgraphSlotBase"
 import {
   LGraphEventMode,
   LinkDirection,
@@ -319,6 +321,8 @@ export class LiteGraphGlobal {
   CurveEditor = CurveEditor
   Reroute = Reroute
   InputIndicators = InputIndicators
+  SubgraphSlot = SubgraphSlot
+  SubgraphIONodeBase = SubgraphIONodeBase
 
   onNodeTypeRegistered?(type: string, base_class: typeof LGraphNode): void
   onNodeTypeReplaced?(type: string, base_class: typeof LGraphNode, prev: unknown): void

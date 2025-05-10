@@ -2,6 +2,7 @@ import type { ContextMenu } from "./ContextMenu"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
+import type { SubgraphInput } from "./subgraph/SubgraphInput"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
 
 export type Dictionary<T> = { [key: string]: T }
@@ -420,3 +421,28 @@ export interface DefaultConnectionColors {
   getConnectedColor(type: ISlotType): CanvasColour
   getDisconnectedColor(type: ISlotType): CanvasColour
 }
+
+export interface ISubgraphInput extends INodeInputSlot {
+  _subgraphSlot: SubgraphInput
+}
+
+/**
+ * Shorthand for {@link Parameters} of optional callbacks.
+ * @example
+ * ```ts
+ * const { onClick } = CustomClass.prototype
+ * CustomClass.prototype.onClick = function (...args: CallbackParams<typeof onClick>) {
+ *   const r = onClick?.apply(this, args)
+ *   // ...
+ *   return r
+ * }
+ * ```
+ */
+export type CallbackParams<T extends ((...args: any) => any) | undefined> =
+  Parameters<Exclude<T, undefined>>
+
+/**
+ * Shorthand for {@link ReturnType} of optional callbacks.
+ * @see {@link CallbackParams}
+ */
+export type CallbackReturn<T extends ((...args: any) => any) | undefined> = ReturnType<Exclude<T, undefined>>

@@ -45,7 +45,7 @@ import { strokeShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId, type NodeProperty } from "./LGraphNode"
-import { LiteGraph } from "./litegraph"
+import { LiteGraph, SubgraphNode } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import {
   containsRect,
@@ -260,7 +260,7 @@ export class LGraphCanvas {
     shouldSetCursor: true,
   }
 
-  declare subgraph?: Subgraph
+  subgraph?: Subgraph
 
   #updateCursorStyle() {
     if (!this.state.shouldSetCursor) return
@@ -1582,6 +1582,21 @@ export class LGraphCanvas {
     this.#dirty()
   }
 
+  openSubgraph(subgraph: Subgraph): void {
+    const { graph } = this
+    if (!graph) throw new NullGraphError()
+
+    const options = { bubbles: true, detail: { subgraph, closingGraph: graph }, cancelable: true }
+    const mayContinue = this.canvas.dispatchEvent(new CustomEvent("subgraph-opening", options))
+    if (!mayContinue) return
+
+    this.clear()
+    this.subgraph = subgraph
+    this.setGraph(subgraph)
+
+    this.canvas.dispatchEvent(new CustomEvent("subgraph-opened", options))
+  }
+
   /**
    * @returns the visually active graph (in case there are more in the stack)
    */
@@ -1974,8 +1989,30 @@ export class LGraphCanvas {
     this.onMouseDown?.(e)
   }
 
+  /**
+   * Returns the first matching positionable item at the given co-ordinates.
+   *
+   * Order of preference:
+   * - Subgraph IO Nodes
+   * - Reroutes
+   * - Group titlebars
+   * @param x The x coordinate in canvas space
+   * @param y The y coordinate in canvas space
+   * @returns The positionable item or undefined
+   */
+  #getPositionableOnPos(x: number, y: number): Positionable | undefined {
+    const ioNode = this.subgraph?.getIoNodeOnPos(x, y)
+    if (ioNode) return ioNode
+
+    for (const reroute of this.#visibleReroutes) {
+      if (reroute.containsPoint([x, y])) return reroute
+    }
+
+    return this.graph?.getGroupTitlebarOnPos(x, y)
+  }
+
   #processPrimaryButton(e: CanvasPointerEvent, node: LGraphNode | undefined) {
-    const { pointer, graph, linkConnector } = this
+    const { pointer, graph, linkConnector, subgraph } = this
     if (!graph) throw new NullGraphError()
 
     const x = e.canvasX
@@ -1994,9 +2031,7 @@ export class LGraphCanvas {
 
       pointer.onClick = (eUp) => {
         // Click, not drag
-        const clickedItem = node ??
-          graph.getRerouteOnPos(eUp.canvasX, eUp.canvasY, this.#visibleReroutes) ??
-          graph.getGroupTitlebarOnPos(eUp.canvasX, eUp.canvasY)
+        const clickedItem = node ?? this.#getPositionableOnPos(eUp.canvasX, eUp.canvasY)
         this.processSelect(clickedItem, eUp)
       }
       pointer.onDragStart = () => this.dragging_rectangle = dragRect
@@ -2043,6 +2078,21 @@ export class LGraphCanvas {
     if (node && (this.allow_interaction || node.flags.allow_interaction)) {
       this.#processNodeClick(e, ctrlOrMeta, node)
     } else {
+      // Subgraph IO nodes
+      if (subgraph) {
+        const { inputNode, outputNode } = subgraph
+        if (inputNode?.containsPoint([x, y])) {
+          pointer.onClick = () => this.processSelect(inputNode, e)
+          pointer.onDragStart = () => this.#startDraggingItems(inputNode, pointer, true)
+          pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
+        } else if (outputNode?.containsPoint([x, y])) {
+          pointer.onClick = () => this.processSelect(outputNode, e)
+          pointer.onDragStart = () => this.#startDraggingItems(outputNode, pointer, true)
+          pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
+        }
+        return
+      }
+
       // Reroutes
       if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
         for (const reroute of this.#visibleReroutes) {
@@ -2357,6 +2407,7 @@ export class LGraphCanvas {
       this.#processWidgetClick(e, node, widget)
       this.node_widget = [node, widget]
     } else {
+      // Node background
       pointer.onDoubleClick = () => {
         // Double-click
         // Check if it's a double click on the title bar
@@ -2364,7 +2415,10 @@ export class LGraphCanvas {
         // If clicking on node header (title), pos[1] is negative
         if (pos[1] < 0 && !inCollapse) {
           node.onNodeTitleDblClick?.(e, pos, this)
+        } else if (node instanceof SubgraphNode) {
+          this.openSubgraph(node.subgraph)
         }
+
         node.onDblClick?.(e, pos, this)
         this.emitEvent({
           subType: "node-double-click",
@@ -3030,6 +3084,17 @@ export class LGraphCanvas {
     if (e.target.localName == "input") return
 
     if (e.type == "keydown") {
+      if ((e.key === "E" || e.key === "e") && e.ctrlKey && !e.altKey && e.shiftKey) {
+        if (this.selectedItems.size === 0) {
+          this.#noItemsSelected()
+          return
+        }
+
+        graph.convertToSubgraph(this.selectedItems)
+        e.preventDefault()
+        return
+      }
+
       // TODO: Switch
       if (e.key === " ") {
         // space
@@ -3041,6 +3106,11 @@ export class LGraphCanvas {
         block_default = true
       } else if (e.key === "Escape") {
         // esc
+        if (this.subgraph) {
+          this.setGraph(graph?.pathToRootGraph[0])
+          e.preventDefault()
+          return
+        }
         if (this.linkConnector.isConnecting) {
           this.linkConnector.reset()
           this.#dirty()
@@ -3343,7 +3413,7 @@ export class LGraphCanvas {
   #handleMultiSelect(e: CanvasPointerEvent, dragRect: Float32Array) {
     // Process drag
     // Convert Point pair (pos, offset) to Rect
-    const { graph, selectedItems } = this
+    const { graph, selectedItems, subgraph } = this
     if (!graph) throw new NullGraphError()
 
     const w = Math.abs(dragRect[2])
@@ -3356,6 +3426,17 @@ export class LGraphCanvas {
     // Select nodes - any part of the node is in the select area
     const isSelected = new Set<Positionable>()
     const notSelected: Positionable[] = []
+
+    if (subgraph) {
+      const { inputNode, outputNode } = subgraph
+
+      if (overlapBounding(dragRect, inputNode.boundingRect)) {
+        addPositionable(inputNode)
+      }
+      if (overlapBounding(dragRect, outputNode.boundingRect)) {
+        addPositionable(outputNode)
+      }
+    }
 
     for (const nodeX of graph._nodes) {
       if (overlapBounding(dragRect, nodeX.boundingRect)) {
@@ -3826,6 +3907,13 @@ export class LGraphCanvas {
       this.computeVisibleNodes(undefined, this.visible_nodes)
       // Update visible node IDs
       this.#visible_node_ids = new Set(this.visible_nodes.map(node => node.id))
+
+      // Arrange subgraph IO nodes
+      const { subgraph } = this
+      if (subgraph) {
+        subgraph.inputNode.arrange()
+        subgraph.outputNode.arrange()
+      }
     }
 
     if (
@@ -3850,7 +3938,7 @@ export class LGraphCanvas {
   drawFrontCanvas(): void {
     this.dirty_canvas = false
 
-    const { ctx, canvas, linkConnector } = this
+    const { ctx, canvas, graph, linkConnector } = this
 
     // @ts-expect-error
     if (ctx.start2D && !this.viewport) {
@@ -3903,7 +3991,7 @@ export class LGraphCanvas {
       this.renderInfo(ctx, area ? area[0] : 0, area ? area[1] : 0)
     }
 
-    if (this.graph) {
+    if (graph) {
       // apply transformations
       ctx.save()
       this.ds.toCanvasContext(ctx)
@@ -3928,13 +4016,16 @@ export class LGraphCanvas {
         ctx.restore()
       }
 
+      // Draw subgraph IO nodes
+      this.subgraph?.draw(ctx, this.colourGetter)
+
       // on top (debug)
       if (this.render_execution_order) {
         this.drawExecutionOrder(ctx)
       }
 
       // connections ontop?
-      if (this.graph.config.links_ontop) {
+      if (graph.config.links_ontop) {
         this.drawConnections(ctx)
       }
 
@@ -4682,7 +4773,7 @@ export class LGraphCanvas {
     this.renderedPaths.clear()
     if (this.links_render_mode === LinkRenderType.HIDDEN_LINK) return
 
-    const { graph } = this
+    const { graph, subgraph } = this
     if (!graph) throw new NullGraphError()
 
     const visibleReroutes: Reroute[] = []
@@ -4729,6 +4820,38 @@ export class LGraphCanvas {
         if (!output) continue
 
         this.#renderAllLinkSegments(ctx, link, startPos, endPos, visibleReroutes, now, output.dir, input.dir)
+      }
+    }
+
+    if (subgraph) {
+      for (const output of subgraph.inputNode.slots) {
+        if (!output.linkIds.length) continue
+
+        // find link info
+        const resolved = LLink.resolve(output.linkIds[0], graph)
+        if (!resolved) continue
+
+        const { link, inputNode, input } = resolved
+        if (!inputNode || !input) continue
+
+        const endPos = inputNode.getInputPos(link.target_slot)
+
+        this.#renderAllLinkSegments(ctx, link, output.pos, endPos, visibleReroutes, now, input.dir, input.dir)
+      }
+
+      for (const input of subgraph.outputNode.slots) {
+        if (!input.linkIds.length) continue
+
+        // find link info
+        const resolved = LLink.resolve(input.linkIds[0], graph)
+        if (!resolved) continue
+
+        const { link, outputNode, output } = resolved
+        if (!outputNode || !output) continue
+
+        const startPos = outputNode.getOutputPos(link.origin_slot)
+
+        this.#renderAllLinkSegments(ctx, link, startPos, input.pos, visibleReroutes, now, output.dir, input.dir)
       }
     }
 
@@ -7193,7 +7316,7 @@ export class LGraphCanvas {
     }
 
     if (node) {
-      options.title = node.type ?? undefined
+      options.title = node.displayType ?? node.type ?? undefined
       LGraphCanvas.active_node = node
 
       // check if mouse is in input
