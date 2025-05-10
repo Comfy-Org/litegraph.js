@@ -7255,6 +7255,12 @@ export class LGraphCanvas {
         content: "Distribute Nodes",
         has_submenu: true,
         callback: LGraphCanvas.createDistributeMenu,
+      }, {
+        content: "Convert to Subgraph",
+        callback: () => {
+          if (!this.graph) throw new NullGraphError()
+          this.graph.convertToSubgraph(this.selectedItems)
+        },
       })
     }
 
