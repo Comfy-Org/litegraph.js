@@ -2090,7 +2090,6 @@ export class LGraphCanvas {
           pointer.onDragStart = () => this.#startDraggingItems(outputNode, pointer, true)
           pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
         }
-        return
       }
 
       // Reroutes
