@@ -437,13 +437,3 @@ export type CallbackParams<T extends ((...args: any) => any) | undefined> =
  * @see {@link CallbackParams}
  */
 export type CallbackReturn<T extends ((...args: any) => any) | undefined> = ReturnType<Exclude<T, undefined>>
-
-/** {@link Omit} all properties that evaluate to `never`. */
-export type NeverNever<T> = {
-  [K in keyof T as T[K] extends never ? never : K]: T[K]
-}
-
-/** {@link Pick} only properties that evaluate to `never`. */
-export type PickNevers<T> = {
-  [K in keyof T as T[K] extends never ? K : never]: T[K]
-}
