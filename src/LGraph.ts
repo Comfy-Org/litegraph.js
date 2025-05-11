@@ -1529,7 +1529,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
       // copy all stored fields
       for (const i in data) {
-      // links must be accepted
         if (LGraph.ConfigureProperties.has(i)) continue
 
         // @ts-expect-error #574 Legacy property assignment
