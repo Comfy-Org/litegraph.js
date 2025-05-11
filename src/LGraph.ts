@@ -12,6 +12,7 @@ import type {
 } from "./interfaces"
 import type {
   ISerialisedGraph,
+  ISerialisedNode,
   Serialisable,
   SerialisableGraph,
   SerialisableReroute,
@@ -1536,6 +1537,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       }
 
       let error = false
+      const nodeDataMap = new Map<NodeId, ISerialisedNode>()
 
       // create nodes
       this._nodes = []
@@ -1558,12 +1560,12 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
           node.id = n_info.id
           // add before configure, otherwise configure cannot create links
           this.add(node, true)
+          nodeDataMap.set(node.id, n_info)
         }
 
         // configure nodes afterwards so they can reach each other
-        for (const n_info of nodesData) {
-          const node = this.getNodeById(n_info.id)
-          node?.configure(n_info)
+        for (const [id, nodeData] of nodeDataMap) {
+          this.getNodeById(id)?.configure(nodeData)
         }
       }
 
