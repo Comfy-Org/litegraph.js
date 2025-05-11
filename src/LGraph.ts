@@ -1,4 +1,5 @@
 import type { DragAndScaleState } from "./DragAndScale"
+import type { LGraphEventMap } from "./infrastructure/LGraphEventMap"
 import type {
   Dictionary,
   IContextMenuValue,
@@ -19,6 +20,7 @@ import type { UUID } from "@/utils/uuid"
 
 import { createUuidv4, zeroUuid } from "@/utils/uuid"
 
+import { CustomEventTarget } from "./infrastructure/CustomEventTarget"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId } from "./LGraphNode"
@@ -102,6 +104,8 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     lastLinkId: 0,
     lastRerouteId: 0,
   }
+
+  readonly events = new CustomEventTarget<LGraphEventMap>()
 
   _nodes: LGraphNode[] = []
   _nodes_by_id: Record<NodeId, LGraphNode> = {}
@@ -1448,154 +1452,165 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     data: ISerialisedGraph | SerialisableGraph,
     keep_old?: boolean,
   ): boolean | undefined {
-    // TODO: Finish typing configure()
-    if (!data) return
-    if (!keep_old) this.clear()
+    const options: LGraphEventMap["configuring"] = {
+      data,
+      clearGraph: !keep_old,
+    }
+    const mayContinue = this.events.dispatch("configuring", options)
+    if (!mayContinue) return
 
-    // Create a new graph ID if none is provided
-    if (data.id) this.id = data.id
-    else if (this.id === zeroUuid) this.id = createUuidv4()
+    try {
+      // TODO: Finish typing configure()
+      if (!data) return
+      if (options.clearGraph) this.clear()
 
-    let reroutes: SerialisableReroute[] | undefined
+      // Create a new graph ID if none is provided
+      if (data.id) this.id = data.id
+      else if (this.id === zeroUuid) this.id = createUuidv4()
 
-    // TODO: Determine whether this should this fall back to 0.4.
-    if (data.version === 0.4) {
-      const { extra } = data
-      // Deprecated - old schema version, links are arrays
-      if (Array.isArray(data.links)) {
-        for (const linkData of data.links) {
-          const link = LLink.createFromArray(linkData)
-          this._links.set(link.id, link)
+      let reroutes: SerialisableReroute[] | undefined
+
+      // TODO: Determine whether this should this fall back to 0.4.
+      if (data.version === 0.4) {
+        const { extra } = data
+        // Deprecated - old schema version, links are arrays
+        if (Array.isArray(data.links)) {
+          for (const linkData of data.links) {
+            const link = LLink.createFromArray(linkData)
+            this._links.set(link.id, link)
+          }
         }
-      }
-      // #region `extra` embeds for v0.4
+        // #region `extra` embeds for v0.4
 
-      // LLink parentIds
-      if (Array.isArray(extra?.linkExtensions)) {
-        for (const linkEx of extra.linkExtensions) {
-          const link = this._links.get(linkEx.id)
-          if (link) link.parentId = linkEx.parentId
+        // LLink parentIds
+        if (Array.isArray(extra?.linkExtensions)) {
+          for (const linkEx of extra.linkExtensions) {
+            const link = this._links.get(linkEx.id)
+            if (link) link.parentId = linkEx.parentId
+          }
         }
+
+        // Reroutes
+        reroutes = extra?.reroutes
+
+        // #endregion `extra` embeds for v0.4
+      } else {
+        // New schema - one version so far, no check required.
+
+        // State
+        if (data.state) {
+          const { lastGroupId, lastLinkId, lastNodeId, lastRerouteId } = data.state
+          const { state } = this
+          if (lastGroupId != null) state.lastGroupId = lastGroupId
+          if (lastLinkId != null) state.lastLinkId = lastLinkId
+          if (lastNodeId != null) state.lastNodeId = lastNodeId
+          if (lastRerouteId != null) state.lastRerouteId = lastRerouteId
+        }
+
+        // Links
+        if (Array.isArray(data.links)) {
+          for (const linkData of data.links) {
+            const link = LLink.create(linkData)
+            this._links.set(link.id, link)
+          }
+        }
+
+        reroutes = data.reroutes
       }
 
       // Reroutes
-      reroutes = extra?.reroutes
-
-      // #endregion `extra` embeds for v0.4
-    } else {
-      // New schema - one version so far, no check required.
-
-      // State
-      if (data.state) {
-        const { lastGroupId, lastLinkId, lastNodeId, lastRerouteId } = data.state
-        const { state } = this
-        if (lastGroupId != null) state.lastGroupId = lastGroupId
-        if (lastLinkId != null) state.lastLinkId = lastLinkId
-        if (lastNodeId != null) state.lastNodeId = lastNodeId
-        if (lastRerouteId != null) state.lastRerouteId = lastRerouteId
-      }
-
-      // Links
-      if (Array.isArray(data.links)) {
-        for (const linkData of data.links) {
-          const link = LLink.create(linkData)
-          this._links.set(link.id, link)
+      if (Array.isArray(reroutes)) {
+        for (const rerouteData of reroutes) {
+          this.setReroute(rerouteData)
         }
       }
 
-      reroutes = data.reroutes
-    }
+      const nodesData = data.nodes
 
-    // Reroutes
-    if (Array.isArray(reroutes)) {
-      for (const rerouteData of reroutes) {
-        this.setReroute(rerouteData)
-      }
-    }
-
-    const nodesData = data.nodes
-
-    // copy all stored fields
-    for (const i in data) {
+      // copy all stored fields
+      for (const i in data) {
       // links must be accepted
-      if (LGraph.ConfigureProperties.has(i)) continue
+        if (LGraph.ConfigureProperties.has(i)) continue
 
-      // @ts-expect-error #574 Legacy property assignment
-      this[i] = data[i]
-    }
+        // @ts-expect-error #574 Legacy property assignment
+        this[i] = data[i]
+      }
 
-    let error = false
+      let error = false
 
-    // create nodes
-    this._nodes = []
-    if (nodesData) {
-      for (const n_info of nodesData) {
-        // stored info
-        let node = LiteGraph.createNode(String(n_info.type), n_info.title)
-        if (!node) {
-          if (LiteGraph.debug) console.log("Node not found or has errors:", n_info.type)
+      // create nodes
+      this._nodes = []
+      if (nodesData) {
+        for (const n_info of nodesData) {
+          // stored info
+          let node = LiteGraph.createNode(String(n_info.type), n_info.title)
+          if (!node) {
+            if (LiteGraph.debug) console.log("Node not found or has errors:", n_info.type)
 
-          // in case of error we create a replacement node to avoid losing info
-          node = new LGraphNode("")
-          node.last_serialization = n_info
-          node.has_errors = true
-          error = true
-          // continue;
+            // in case of error we create a replacement node to avoid losing info
+            node = new LGraphNode("")
+            node.last_serialization = n_info
+            node.has_errors = true
+            error = true
+            // continue;
+          }
+
+          // id it or it will create a new id
+          node.id = n_info.id
+          // add before configure, otherwise configure cannot create links
+          this.add(node, true)
         }
 
-        // id it or it will create a new id
-        node.id = n_info.id
-        // add before configure, otherwise configure cannot create links
-        this.add(node, true)
+        // configure nodes afterwards so they can reach each other
+        for (const n_info of nodesData) {
+          const node = this.getNodeById(n_info.id)
+          node?.configure(n_info)
+        }
       }
 
-      // configure nodes afterwards so they can reach each other
-      for (const n_info of nodesData) {
-        const node = this.getNodeById(n_info.id)
-        node?.configure(n_info)
+      // Floating links
+      if (Array.isArray(data.floatingLinks)) {
+        for (const linkData of data.floatingLinks) {
+          const floatingLink = LLink.create(linkData)
+          this.addFloatingLink(floatingLink)
+
+          if (floatingLink.id > this.#lastFloatingLinkId) this.#lastFloatingLinkId = floatingLink.id
+        }
       }
+
+      // Drop broken reroutes
+      for (const reroute of this.reroutes.values()) {
+        // Drop broken links, and ignore reroutes with no valid links
+        if (!reroute.validateLinks(this._links, this.floatingLinks)) {
+          this.reroutes.delete(reroute.id)
+        }
+      }
+
+      // groups
+      this._groups.length = 0
+      const groupData = data.groups
+      if (groupData) {
+        for (const data of groupData) {
+          // TODO: Search/remove these global object refs
+          const group = new LiteGraph.LGraphGroup()
+          group.configure(data)
+          this.add(group)
+        }
+      }
+
+      this.updateExecutionOrder()
+
+      this.extra = data.extra || {}
+      // Ensure auto-generated serialisation data is removed from extra
+      delete this.extra.linkExtensions
+
+      this.onConfigure?.(data)
+      this._version++
+      this.setDirtyCanvas(true, true)
+      return error
+    } finally {
+      this.events.dispatch("configured")
     }
-
-    // Floating links
-    if (Array.isArray(data.floatingLinks)) {
-      for (const linkData of data.floatingLinks) {
-        const floatingLink = LLink.create(linkData)
-        this.addFloatingLink(floatingLink)
-
-        if (floatingLink.id > this.#lastFloatingLinkId) this.#lastFloatingLinkId = floatingLink.id
-      }
-    }
-
-    // Drop broken reroutes
-    for (const reroute of this.reroutes.values()) {
-      // Drop broken links, and ignore reroutes with no valid links
-      if (!reroute.validateLinks(this._links, this.floatingLinks)) {
-        this.reroutes.delete(reroute.id)
-      }
-    }
-
-    // groups
-    this._groups.length = 0
-    const groupData = data.groups
-    if (groupData) {
-      for (const data of groupData) {
-        // TODO: Search/remove these global object refs
-        const group = new LiteGraph.LGraphGroup()
-        group.configure(data)
-        this.add(group)
-      }
-    }
-
-    this.updateExecutionOrder()
-
-    this.extra = data.extra || {}
-    // Ensure auto-generated serialisation data is removed from extra
-    delete this.extra.linkExtensions
-
-    this.onConfigure?.(data)
-    this._version++
-    this.setDirtyCanvas(true, true)
-    return error
   }
 
   load(url: string | Blob | URL | File, callback: () => void) {
