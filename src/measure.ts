@@ -417,7 +417,7 @@ export function alignToContainer(
 }
 
 /**
- * Aligns a {@link Rect} relative to the edges or centre of {@link other}.
+ * Aligns a {@link Rect} relative to the edges of {@link other}.
  *
  * With no {@link outset}, the element will be placed on the exterior of the {@link other},
  * with their edges lined up on the {@link anchors}.  A positive {@link outset} moves the element away from the {@link other},
@@ -425,7 +425,7 @@ export function alignToContainer(
  * @param rect The bounding rect of the element to align.
  * If using the element's pos/size backing store, this function will move the element.
  * @param anchors The direction(s) to anchor the element to
- * @param other The rectangle inside which to align the element
+ * @param other The rectangle to align {@link rect} to
  * @param outset Relative offset from each {@link anchors} edge, with positive always moving away from the centre of the {@link other}, as an `[x, y]` point
  * @returns The original {@link rect}, modified in place.
  */
