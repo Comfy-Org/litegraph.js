@@ -123,7 +123,6 @@ export type {
   ReadOnlyPoint,
   ReadOnlyRect,
   Rect,
-  Rect32,
   Size,
 } from "./interfaces"
 export { LGraph } from "./LGraph"
