@@ -1,8 +1,9 @@
 import type { SubgraphIONodeBase } from "./SubgraphIONodeBase"
-import type { Point, ReadOnlyRect, Rect } from "@/interfaces"
+import type { Point, ReadOnlyRect } from "@/interfaces"
 import type { LinkId } from "@/LLink"
 import type { Serialisable, SubgraphIO } from "@/types/serialisation"
 
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { LiteGraph } from "@/litegraph"
 import { SlotBase } from "@/node/SlotBase"
 import { createUuidv4, type UUID } from "@/utils/uuid"
@@ -21,7 +22,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
 
   readonly linkIds: LinkId[] = []
 
-  override readonly boundingRect: Rect = [0, 0, 0, SubgraphSlot.defaultHeight]
+  override readonly boundingRect: Rectangle = new Rectangle(0, 0, 0, SubgraphSlot.defaultHeight)
 
   override get pos() {
     return this.#pos
