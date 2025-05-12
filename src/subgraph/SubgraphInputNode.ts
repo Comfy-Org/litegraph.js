@@ -1,4 +1,4 @@
-import type { Positionable } from "@/interfaces"
+import type { DefaultConnectionColors, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
 
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
@@ -8,5 +8,40 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
 
   get slots() {
     return this.subgraph.inputs
+  }
+
+  get slotAnchorX() {
+    const [x, , width] = this.boundingRect
+    return x + width - SubgraphIONodeBase.roundedRadius
+  }
+
+  override draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
+    const { roundedRadius } = SubgraphIONodeBase
+    const transform = ctx.getTransform()
+    const { lineWidth, strokeStyle, fillStyle, font, textBaseline } = ctx
+
+    const [x, y, width, height] = this.boundingRect
+    ctx.translate(x, y)
+
+    // Draw top rounded part
+    ctx.strokeStyle = "white"
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.arc(width - roundedRadius, roundedRadius, roundedRadius, Math.PI * 1.5, 0)
+
+    // Straight line to bottom
+    ctx.moveTo(width, roundedRadius)
+    ctx.lineTo(width, height - roundedRadius)
+
+    // Bottom rounded part
+    ctx.arc(width - roundedRadius, height - roundedRadius, roundedRadius, 0, Math.PI * 0.5)
+    ctx.stroke()
+
+    // Restore context
+    ctx.setTransform(transform)
+
+    this.drawSlots(ctx, colorContext)
+
+    Object.assign(ctx, { lineWidth, strokeStyle, fillStyle, font, textBaseline })
   }
 }
