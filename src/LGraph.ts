@@ -3,6 +3,7 @@ import type { LGraphEventMap } from "./infrastructure/LGraphEventMap"
 import type {
   Dictionary,
   IContextMenuValue,
+  INodeOutputSlot,
   LinkNetwork,
   LinkSegment,
   MethodNames,
@@ -11,6 +12,7 @@ import type {
   Positionable,
 } from "./interfaces"
 import type {
+  ExportedSubgraph,
   ISerialisedGraph,
   ISerialisedNode,
   Serialisable,
@@ -25,12 +27,15 @@ import { CustomEventTarget } from "./infrastructure/CustomEventTarget"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId } from "./LGraphNode"
-import { LiteGraph } from "./litegraph"
-import { type LinkId, LLink } from "./LLink"
+import { LiteGraph, type SubgraphNode } from "./litegraph"
+import { type LinkId, LLink, type ResolvedConnection } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
+import { alignOutsideContainer, alignToContainer, createBounds } from "./measure"
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
-import { LGraphEventMode } from "./types/globalEnums"
+import { Subgraph } from "./subgraph/Subgraph"
+import { getBoundaryLinks, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
+import { Alignment, LGraphEventMode } from "./types/globalEnums"
 import { getAllNestedItems } from "./utils/collections"
 
 export interface LGraphState {
@@ -107,8 +112,9 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   }
 
   readonly events = new CustomEventTarget<LGraphEventMap>()
+  readonly _subgraphs: Map<UUID, Subgraph> = new Map()
 
-  _nodes: LGraphNode[] = []
+  _nodes: (LGraphNode | SubgraphNode)[] = []
   _nodes_by_id: Record<NodeId, LGraphNode> = {}
   _nodes_in_order: LGraphNode[] = []
   _nodes_executable: LGraphNode[] | null = null
@@ -169,6 +175,14 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
   get rootGraph(): LGraph {
     return this
+  }
+
+  /**
+   * Returns an array of all nested subgraphs, from the root graph to this graph (inclusive).
+   * @see {@link Subgraph.pathToRootGraph}
+   */
+  get pathToRootGraph(): readonly [LGraph, ...Subgraph[]] {
+    return [this]
   }
 
   get isRootGraph(): boolean {
@@ -250,6 +264,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
     // used to detect changes
     this._version = -1
+    this._subgraphs.clear()
 
     // safe clear
     if (this._nodes) {
@@ -305,6 +320,10 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     this.canvasAction(c => c.clear())
   }
 
+  get subgraphs(): Map<UUID, Subgraph> {
+    return this.rootGraph._subgraphs
+  }
+
   get nodes() {
     return this._nodes
   }
@@ -321,6 +340,8 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       throw new TypeError("attachCanvas expects an LGraphCanvas instance")
     }
 
+    this.primaryCanvas = canvas
+
     this.list_of_graphcanvas ??= []
     if (!this.list_of_graphcanvas.includes(canvas)) {
       this.list_of_graphcanvas.push(canvas)
@@ -330,6 +351,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
     canvas.graph?.detachCanvas(canvas)
     canvas.graph = this
+    canvas.subgraph = undefined
   }
 
   /**
@@ -1359,12 +1381,174 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   }
 
   /**
+   * Creates a new subgraph definition, and adds it to the graph.
+   * @param data Exported data (typically serialised) to configure the new subgraph with
+   * @returns The newly created subgraph definition.
+   */
+  createSubgraph(data: ExportedSubgraph): Subgraph {
+    const { id } = data
+
+    const subgraph = new Subgraph(this.pathToRootGraph, data)
+    this.subgraphs.set(id, subgraph)
+
+    // FE: Create node defs
+    this.rootGraph.events.dispatch("subgraph-created", { subgraph, data })
+    return subgraph
+  }
+
+  convertToSubgraph(items: Set<Positionable>): Subgraph {
+    if (items.size === 0) throw new Error("Cannot convert to subgraph: items is an empty set")
+    const { state, revision, config } = this
+
+    const { boundaryLinks, boundaryFloatingLinks, internalLinks, boundaryInputLinks, boundaryOutputLinks } = getBoundaryLinks(this, items)
+    const { nodes, reroutes, groups } = splitPositionables(items)
+
+    const boundingRect = createBounds(items)
+    if (!boundingRect) throw new Error("Failed to create bounding rect for subgraph")
+
+    const resolvedInputLinks = boundaryInputLinks.map(x => x.resolve(this))
+    const resolvedOutputLinks = boundaryOutputLinks.map(x => x.resolve(this))
+
+    const clonedNodes = multiClone(nodes)
+
+    // Inputs, outputs, and links
+    const links = internalLinks.map(x => x.asSerialisable())
+    const inputs = mapSubgraphInputsAndLinks(resolvedInputLinks, links)
+    const outputs = mapSubgraphOutputsAndLinks(resolvedOutputLinks, links)
+
+    // Prepare subgraph data
+    const data = {
+      id: createUuidv4(),
+      name: "Subgraph - Click me",
+      inputNode: {
+        id: -10,
+        bounding: [0, 0, 75, 100],
+      },
+      outputNode: {
+        id: -20,
+        bounding: [0, 0, 75, 100],
+      },
+      inputs,
+      outputs,
+      widgets: [],
+      version: LGraph.serialisedSchemaVersion,
+      state,
+      revision,
+      config,
+      links,
+      nodes: clonedNodes,
+      reroutes: structuredClone([...reroutes].map(reroute => reroute.asSerialisable())),
+      groups: structuredClone([...groups].map(group => group.serialize())),
+    } satisfies ExportedSubgraph
+
+    const subgraph = this.createSubgraph(data)
+
+    // Position the subgraph input nodes
+    subgraph.inputNode.arrange()
+    subgraph.outputNode.arrange()
+    const { boundingRect: inputRect } = subgraph.inputNode
+    const { boundingRect: outputRect } = subgraph.outputNode
+    alignOutsideContainer(inputRect, Alignment.MidLeft, boundingRect, [50, 0])
+    alignOutsideContainer(outputRect, Alignment.MidRight, boundingRect, [50, 0])
+
+    // Remove items converted to subgraph
+    for (const resolved of resolvedInputLinks) resolved.inputNode?.disconnectInput(resolved.inputNode.inputs.indexOf(resolved.input!), true)
+    for (const resolved of resolvedOutputLinks) resolved.outputNode?.disconnectOutput(resolved.outputNode.outputs.indexOf(resolved.output!), resolved.inputNode)
+
+    for (const node of nodes) this.remove(node)
+    for (const reroute of reroutes) this.removeReroute(reroute.id)
+    for (const group of groups) this.remove(group)
+
+    this.canvasAction((c) => {
+      // c.deleteSelected()
+      c.selectedItems.clear()
+      c.setDirty(true, true)
+    })
+
+    this.rootGraph.events.dispatch("convert-to-subgraph", {
+      subgraph,
+      bounds: boundingRect,
+      exportedSubgraph: data,
+      boundaryLinks,
+      resolvedInputLinks,
+      resolvedOutputLinks,
+      boundaryFloatingLinks,
+      internalLinks,
+    })
+
+    // Create subgraph node object
+    const subgraphNode = LiteGraph.createNode(subgraph.id, subgraph.name, {
+      inputs: structuredClone(inputs),
+      outputs: structuredClone(outputs),
+    })
+    if (!subgraphNode) throw new Error("Failed to create subgraph node")
+
+    // Resize to inputs/outputs
+    subgraphNode.setSize(subgraphNode.computeSize())
+
+    // Center the subgraph node
+    alignToContainer(subgraphNode._posSize, Alignment.Centre | Alignment.Middle, boundingRect)
+
+    // Add the subgraph node to the graph
+    this.add(subgraphNode)
+
+    // Group matching input links
+    const groupedByOutput = new Map<INodeOutputSlot | undefined, ResolvedConnection[]>()
+
+    for (const resolved of resolvedInputLinks) {
+      const group = groupedByOutput.get(resolved.output)
+      if (group) {
+        group.push(resolved)
+      } else {
+        groupedByOutput.set(resolved.output, [resolved])
+      }
+    }
+
+    // Reconnect input links in parent graph
+    for (const [output, connections] of groupedByOutput) {
+      const { outputNode, link } = connections[0]
+
+      if (!output || !outputNode) {
+        console.warn("Failed to resolve link", connections[0])
+        continue
+      }
+
+      const input = subgraphNode.findInputSlotByType(link.type, true, true)
+      outputNode.connectSlots(
+        output,
+        subgraphNode,
+        input,
+        link.parentId,
+      )
+    }
+
+    // Reconnect output links in parent graph
+    for (const res of resolvedOutputLinks) {
+      const { input, inputNode, link } = res
+
+      if (!input || !inputNode) {
+        console.warn("Failed to resolve link", res)
+        continue
+      }
+
+      const output = subgraphNode.findOutputSlotByType(link.type, true, true, true)
+      subgraphNode.connectSlots(
+        output,
+        inputNode,
+        input,
+        link.parentId,
+      )
+    }
+    return subgraph
+  }
+
+  /**
    * Creates a Object containing all the info about this graph, it can be serialized
    * @deprecated Use {@link asSerialisable}, which returns the newer schema version.
    * @returns value of the node
    */
   serialize(option?: { sortNodes: boolean }): ISerialisedGraph {
-    const { config, state, groups, nodes, reroutes, extra, floatingLinks } = this.asSerialisable(option)
+    const { config, state, groups, nodes, reroutes, extra, floatingLinks, definitions } = this.asSerialisable(option)
     const linkArray = [...this._links.values()]
     const links = linkArray.map(x => x.serialize())
 
@@ -1385,6 +1569,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       links,
       floatingLinks,
       groups,
+      definitions,
       config,
       extra,
       version: LiteGraph.VERSION,
@@ -1437,6 +1622,10 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       floatingLinks,
       reroutes,
       extra,
+    }
+
+    if (this.isRootGraph && this._subgraphs.size) {
+      data.definitions = { subgraphs: [...this._subgraphs.values()].map(x => x.asSerialisable()) }
     }
 
     this.onSerialize?.(data)
@@ -1536,6 +1725,12 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
         this[i] = data[i]
       }
 
+      // Subgraph definitions
+      const subgraphs = data.definitions?.subgraphs
+      if (subgraphs) {
+        for (const subgraph of subgraphs) this.createSubgraph(subgraph)
+      }
+
       let error = false
       const nodeDataMap = new Map<NodeId, ISerialisedNode>()
 
@@ -1607,11 +1802,33 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
       this.onConfigure?.(data)
       this._version++
+
+      // Ensure the primary canvas is set to the correct graph
+      const { primaryCanvas } = this
+      const subgraphId = primaryCanvas?.subgraph?.id
+      if (subgraphId) {
+        const subgraph = this.subgraphs.get(subgraphId)
+        if (subgraph) {
+          primaryCanvas.setGraph(subgraph)
+        } else {
+          primaryCanvas.setGraph(this)
+        }
+      }
+
       this.setDirtyCanvas(true, true)
       return error
     } finally {
       this.events.dispatch("configured")
     }
+  }
+
+  #canvas?: LGraphCanvas
+  get primaryCanvas(): LGraphCanvas | undefined {
+    return this.rootGraph.#canvas
+  }
+
+  set primaryCanvas(canvas: LGraphCanvas) {
+    this.rootGraph.#canvas = canvas
   }
 
   load(url: string | Blob | URL | File, callback: () => void) {

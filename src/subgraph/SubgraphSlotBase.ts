@@ -1,12 +1,19 @@
 import type { SubgraphIONodeBase } from "./SubgraphIONodeBase"
-import type { Point, ReadOnlyRect } from "@/interfaces"
-import type { LinkId } from "@/LLink"
+import type { DefaultConnectionColors, Point, ReadOnlyRect, ReadOnlySize } from "@/interfaces"
+import type { LinkId, LLink } from "@/LLink"
 import type { Serialisable, SubgraphIO } from "@/types/serialisation"
 
+import { ConstrainedSize } from "@/infrastructure/ConstrainedSize"
 import { Rectangle } from "@/infrastructure/Rectangle"
-import { LiteGraph } from "@/litegraph"
+import { LGraphCanvas, LiteGraph, SlotShape } from "@/litegraph"
 import { SlotBase } from "@/node/SlotBase"
 import { createUuidv4, type UUID } from "@/utils/uuid"
+
+export interface SubgraphSlotDrawOptions {
+  ctx: CanvasRenderingContext2D
+  colorContext: DefaultConnectionColors
+  lowQuality?: boolean
+}
 
 /** Shared base class for the slots used on Subgraph . */
 export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Serialisable<SubgraphIO> {
@@ -16,11 +23,15 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
 
   readonly #pos: Point = new Float32Array(2)
 
+  readonly measurement: ConstrainedSize = new ConstrainedSize(SubgraphSlot.defaultHeight, SubgraphSlot.defaultHeight)
+
   readonly id: UUID
   readonly parent: SubgraphIONodeBase
   override type: string
 
   readonly linkIds: LinkId[] = []
+
+  highlight?: boolean
 
   override readonly boundingRect: Rectangle = new Rectangle(0, 0, 0, SubgraphSlot.defaultHeight)
 
@@ -56,7 +67,68 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
     this.parent = parent
   }
 
+  getLinks(): LLink[] {
+    const links: LLink[] = []
+    const { subgraph } = this.parent
+
+    for (const id of this.linkIds) {
+      const link = subgraph.getLink(id)
+      if (link) links.push(link)
+    }
+    return links
+  }
+
+  measure(): ReadOnlySize {
+    const width = LGraphCanvas._measureText?.(this.displayName) ?? 0
+
+    const { defaultHeight } = SubgraphSlot
+    this.measurement.setValues(width + defaultHeight, defaultHeight)
+    return this.measurement.toSize()
+  }
+
   abstract arrange(rect: ReadOnlyRect): void
+
+  /** @remarks Leaves the context dirty. */
+  drawLabel(ctx: CanvasRenderingContext2D): void {
+    if (!this.displayName) return
+
+    const [x, y] = this.labelPos
+    ctx.fillStyle = this.highlight ? "white" : "#AAA"
+
+    ctx.fillText(this.displayName, x, y)
+  }
+
+  /** @remarks Leaves the context dirty. */
+  draw({ ctx, colorContext, lowQuality }: SubgraphSlotDrawOptions): void {
+    // Assertion: SlotShape is a subset of RenderShape
+    const shape = this.shape as unknown as SlotShape
+    const { highlight, pos: [x, y] } = this
+
+    ctx.beginPath()
+
+    // Default rendering for circle, hollow circle.
+    const color = this.renderingColor(colorContext)
+    if (lowQuality) {
+      ctx.fillStyle = color
+
+      ctx.rect(x - 4, y - 4, 8, 8)
+      ctx.fill()
+    } else if (shape === SlotShape.HollowCircle) {
+      ctx.lineWidth = 3
+      ctx.strokeStyle = color
+
+      const radius = highlight ? 4 : 3
+      ctx.arc(x, y, radius, 0, Math.PI * 2)
+      ctx.stroke()
+    } else {
+      // Normal circle
+      ctx.fillStyle = color
+
+      const radius = highlight ? 5 : 4
+      ctx.arc(x, y, radius, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
 
   asSerialisable(): SubgraphIO {
     const { id, name, type, linkIds, localized_name, label, dir, shape, color_off, color_on, pos } = this

@@ -2,6 +2,7 @@ import type { ContextMenu } from "./ContextMenu"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
+import type { SubgraphInput } from "./subgraph/SubgraphInput"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
 
 export type Dictionary<T> = { [key: string]: T }
@@ -420,6 +421,11 @@ export interface DefaultConnectionColors {
   getConnectedColor(type: ISlotType): CanvasColour
   getDisconnectedColor(type: ISlotType): CanvasColour
 }
+
+export interface ISubgraphInput extends INodeInputSlot {
+  _subgraphSlot: SubgraphInput
+}
+
 /**
  * Shorthand for {@link Parameters} of optional callbacks.
  * @example
