@@ -23,6 +23,12 @@ export class Rectangle extends Float64Array {
     this[3] = height
   }
 
+  static ensureRect(rect: ReadOnlyRect): Rectangle {
+    return rect instanceof Rectangle
+      ? rect
+      : new Rectangle(rect[0], rect[1], rect[2], rect[3])
+  }
+
   override subarray(begin: number = 0, end?: number): Float64Array<ArrayBuffer> {
     const byteOffset = begin << 3
     const length = end === undefined ? end : end - begin
@@ -266,7 +272,10 @@ export class Rectangle extends Float64Array {
     return [this[0], this[1], this[2], this[3]]
   }
 
-  /** Draws a debug outline of this rectangle. */
+  /**
+   * Draws a debug outline of this rectangle.
+   * @internal Convenience debug/development interface; not for production use.
+   */
   _drawDebug(ctx: CanvasRenderingContext2D, colour = "red") {
     const { strokeStyle, lineWidth } = ctx
     try {
