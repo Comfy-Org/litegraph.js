@@ -3,6 +3,8 @@ import type { LLink } from "@/LLink"
 import type { RenderShape } from "@/types/globalEnums"
 import type { LinkDirection } from "@/types/globalEnums"
 
+import { Rectangle } from "@/infrastructure/Rectangle"
+
 /** Base class for all input & output slots. */
 
 export abstract class SlotBase implements INodeSlot {
@@ -25,10 +27,10 @@ export abstract class SlotBase implements INodeSlot {
   abstract pos?: Point
   readonly boundingRect: Rect
 
-  constructor(name: string, type: ISlotType, boundingRect: Rect) {
+  constructor(name: string, type: ISlotType, boundingRect?: Rect) {
     this.name = name
     this.type = type
-    this.boundingRect = boundingRect
+    this.boundingRect = boundingRect ?? new Rectangle()
   }
 
   abstract get isConnected(): boolean

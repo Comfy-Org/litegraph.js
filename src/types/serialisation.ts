@@ -136,7 +136,7 @@ export interface ExportedSubgraph extends SerialisableGraph {
 }
 
 /** Properties shared by subgraph and node I/O slots. */
-type SubgraphIOShared = Omit<INodeSlot, "nameLocked" | "locked" | "removable" | "_floatingLinks">
+type SubgraphIOShared = Omit<INodeSlot, "boundingRect" | "nameLocked" | "locked" | "removable" | "_floatingLinks">
 
 /** Subgraph I/O slots */
 export interface SubgraphIO extends SubgraphIOShared {
