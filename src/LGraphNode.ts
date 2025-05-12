@@ -1472,7 +1472,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    * @param type string defining the input type ("vec3","number",...), it its a generic one use 0
    * @param extra_info this can be used to have special properties of an input (label, color, position, etc)
    */
-  addInput<TProperties extends Partial<INodeInputSlot>>(name: string, type: ISlotType, extra_info: TProperties): INodeInputSlot & TProperties {
+  addInput<TProperties extends Partial<INodeInputSlot>>(name: string, type: ISlotType, extra_info?: TProperties): INodeInputSlot & TProperties {
     type ||= 0
 
     const input = Object.assign(
