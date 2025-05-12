@@ -18,6 +18,7 @@ import type {
   ISlotType,
   Point,
   Positionable,
+  ReadOnlyPoint,
   ReadOnlyRect,
   Rect,
   Size,
@@ -30,9 +31,10 @@ import type { IBaseWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./t
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
 import { NullGraphError } from "./infrastructure/NullGraphError"
+import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { type LGraphNodeConstructor, LiteGraph, Rectangle } from "./litegraph"
+import { type LGraphNodeConstructor, LiteGraph, type SubgraphNode } from "./litegraph"
 import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { NodeInputSlot } from "./node/NodeInputSlot"
@@ -211,6 +213,10 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     return `normal ${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`
   }
 
+  get displayType(): string {
+    return this.type
+  }
+
   graph: LGraph | null = null
   id: NodeId
   type: string = ""
@@ -346,6 +352,14 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   selected?: boolean
   showAdvanced?: boolean
 
+  declare comfyClass?: string
+  declare isVirtualNode?: boolean
+  applyToGraph?(extraLinks?: LLink[]): void
+
+  isSubgraphNode(): this is SubgraphNode {
+    return false
+  }
+
   /** @inheritdoc {@link renderArea} */
   #renderArea: Float32Array = new Float32Array(4)
   /**
@@ -365,6 +379,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
    */
   get boundingRect(): ReadOnlyRectangle {
     return this.#boundingRect
+  }
+
+  /** The offset from {@link pos} to the top-left of {@link boundingRect}. */
+  get boundingOffset(): ReadOnlyPoint {
+    const { pos: [posX, posY], boundingRect: [bX, bY] } = this
+    return [posX - bX, posY - bY]
   }
 
   /** {@link pos} and {@link size} values are backed by this {@link Rect}. */
