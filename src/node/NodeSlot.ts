@@ -52,7 +52,7 @@ export abstract class NodeSlot extends SlotBase implements INodeSlot {
   abstract get isWidgetInputSlot(): boolean
 
   constructor(slot: OptionalProps<INodeSlot, "boundingRect">, node: LGraphNode) {
-    super(slot.name, slot.type, slot.boundingRect ?? [0, 0, 0, 0])
+    super(slot.name, slot.type, slot.boundingRect)
 
     Object.assign(this, slot)
     this.#node = node
