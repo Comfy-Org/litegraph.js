@@ -1,4 +1,4 @@
-import type { CanvasColour, DefaultConnectionColors, INodeSlot, ISlotType, IWidgetLocator, Point, Rect } from "@/interfaces"
+import type { CanvasColour, DefaultConnectionColors, INodeSlot, ISlotType, IWidgetLocator, Point } from "@/interfaces"
 import type { LLink } from "@/LLink"
 import type { RenderShape } from "@/types/globalEnums"
 import type { LinkDirection } from "@/types/globalEnums"
@@ -25,9 +25,9 @@ export abstract class SlotBase implements INodeSlot {
 
   /** The centre point of the slot. */
   abstract pos?: Point
-  readonly boundingRect: Rect
+  readonly boundingRect: Rectangle
 
-  constructor(name: string, type: ISlotType, boundingRect?: Rect) {
+  constructor(name: string, type: ISlotType, boundingRect?: Rectangle) {
     this.name = name
     this.type = type
     this.boundingRect = boundingRect ?? new Rectangle()
