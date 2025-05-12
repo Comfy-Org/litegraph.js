@@ -47,7 +47,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
   abstract get labelPos(): Point
 
   constructor(slot: SubgraphIO, parent: SubgraphIONodeBase) {
-    super(slot.name, slot.type, slot.boundingRect)
+    super(slot.name, slot.type)
 
     Object.assign(this, slot)
     this.id = slot.id ?? createUuidv4()
@@ -58,7 +58,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
   abstract arrange(rect: ReadOnlyRect): void
 
   asSerialisable(): SubgraphIO {
-    const { id, name, type, linkIds, localized_name, label, dir, shape, color_off, color_on, pos, boundingRect } = this
-    return { id, name, type, linkIds, localized_name, label, dir, shape, color_off, color_on, pos, boundingRect }
+    const { id, name, type, linkIds, localized_name, label, dir, shape, color_off, color_on, pos } = this
+    return { id, name, type, linkIds, localized_name, label, dir, shape, color_off, color_on, pos }
   }
 }
