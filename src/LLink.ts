@@ -34,6 +34,8 @@ type BasicReadonlyNetwork = Pick<ReadonlyLinkNetwork, "getNodeById" | "links" | 
 
 // this is the class in charge of storing link information
 export class LLink implements LinkSegment, Serialisable<SerialisableLLink> {
+  static _drawDebug = false
+
   /** Link ID */
   id: LinkId
   parentId?: RerouteId
