@@ -91,6 +91,8 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
         for (const input of node.inputs) {
           addFloatingLinks(input._floatingLinks)
 
+          if (input.link == null) continue
+
           const resolved = LLink.resolve(input.link, graph)
           if (!resolved) {
             console.debug(`Failed to resolve link ID [${input.link}]`)
