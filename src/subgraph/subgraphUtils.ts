@@ -92,7 +92,10 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
           addFloatingLinks(input._floatingLinks)
 
           const resolved = LLink.resolve(input.link, graph)
-          if (!resolved) continue
+          if (!resolved) {
+            console.debug(`Failed to resolve link ID [${input.link}]`)
+            continue
+          }
 
           // Output end of this link is outside the items set
           const { link, outputNode } = resolved
@@ -102,6 +105,11 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
             } else {
               internalLinks.push(link)
             }
+          } else if (link.origin_id === -10) {
+            // Subgraph input node - always boundary
+            boundaryInputLinks.push(link)
+          } else {
+            console.debug("Failed to resolve output node of link", link)
           }
         }
       }
@@ -115,9 +123,15 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
 
           const many = LLink.resolveMany(output.links, graph)
           for (const { link, inputNode } of many) {
-            if (inputNode && !items.has(inputNode)) {
+            if (
+              // Subgraph output node
+              link.target_id === -20 ||
               // Input end of this link is outside the items set
+              (inputNode && !items.has(inputNode))
+            ) {
               boundaryOutputLinks.push(link)
+            } else {
+              console.debug("Failed to resolve input node of link", link)
             }
             // Internal links are discovered on input side.
           }
