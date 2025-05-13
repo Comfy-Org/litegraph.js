@@ -5454,6 +5454,28 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         ctx.fillStyle = fillStyle
       }
       ctx.fill()
+
+      if (LLink._drawDebug) {
+        const { fillStyle, font, globalAlpha, lineWidth, strokeStyle } = ctx
+        ctx.globalAlpha = 1
+        ctx.lineWidth = 4
+        ctx.fillStyle = "white"
+        ctx.strokeStyle = "black"
+        ctx.font = "16px Arial"
+
+        const text = String(linkSegment.id)
+        const { width, actualBoundingBoxAscent } = ctx.measureText(text)
+        const x = pos[0] - width * 0.5
+        const y = pos[1] + actualBoundingBoxAscent * 0.5
+        ctx.strokeText(text, x, y)
+        ctx.fillText(text, x, y)
+
+        ctx.font = font
+        ctx.globalAlpha = globalAlpha
+        ctx.lineWidth = lineWidth
+        ctx.fillStyle = fillStyle
+        ctx.strokeStyle = strokeStyle
+      }
     }
 
     // render flowing points
