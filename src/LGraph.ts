@@ -1505,11 +1505,26 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     }
 
     // Reconnect input links in parent graph
-    for (const [output, connections] of groupedByOutput) {
-      const { outputNode, link } = connections[0]
+    let i = 0
+    for (const [output, connections] of groupedByOutput.entries()) {
+      const [firstResolved, ...others] = connections
+      const { outputNode, link } = firstResolved
+
+      // Special handling: Subgraph input node
+      i++
+      if (link.origin_id === -10) {
+        link.target_id = subgraphNode.id
+        link.target_slot = i - 1
+        console.debug({ ...link }, this.links.get(link.id) === link)
+
+        for (const resolved of others) {
+          resolved.link.disconnect(this)
+        }
+        continue
+      }
 
       if (!output || !outputNode) {
-        console.warn("Failed to resolve link", connections[0])
+        console.warn("Convert to Subgraph reconnect: Failed to resolve input link", connections[0])
         continue
       }
 
@@ -1523,11 +1538,22 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     }
 
     // Reconnect output links in parent graph
+    i = 0
     for (const res of resolvedOutputLinks) {
       const { input, inputNode, link } = res
 
+      // Special handling: Subgraph output node
+      i++
+      if (link.target_id === -20) {
+        link.origin_id = subgraphNode.id
+        link.origin_slot = i - 1
+        this.links.set(link.id, link)
+        console.debug({ ...link }, this.links.get(link.id) === link)
+        continue
+      }
+
       if (!input || !inputNode) {
-        console.warn("Failed to resolve link", res)
+        console.warn("Convert to Subgraph reconnect: Failed to resolve output link", res)
         continue
       }
 
