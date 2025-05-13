@@ -76,7 +76,7 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
   const boundaryInputLinks: LLink[] = []
   const boundaryOutputLinks: LLink[] = []
   const boundaryFloatingLinks: LLink[] = []
-  const visited = new Set<Positionable>()
+  const visited = new WeakSet<Positionable>()
 
   for (const item of items) {
     if (visited.has(item)) continue
