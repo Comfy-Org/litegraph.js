@@ -27,6 +27,7 @@ const test = baseTest.extend<TestContext>({
       links: new Map<number, LLink>(),
       reroutes,
       floatingLinks,
+      getLink: graph.getLink.bind(graph),
       getNodeById: (id: number) => graph.getNodeById(id),
       addFloatingLink: (link: LLink) => {
         floatingLinks.set(link.id, link)
