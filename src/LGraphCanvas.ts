@@ -3190,17 +3190,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     if (e.target.localName == "input") return
 
     if (e.type == "keydown") {
-      if ((e.key === "E" || e.key === "e") && e.ctrlKey && !e.altKey && e.shiftKey) {
-        if (this.selectedItems.size === 0) {
-          this.#noItemsSelected()
-          return
-        }
-
-        graph.convertToSubgraph(this.selectedItems)
-        e.preventDefault()
-        return
-      }
-
       // TODO: Switch
       if (e.key === " ") {
         // space
