@@ -81,7 +81,23 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   static STATUS_RUNNING = 2
 
   /** List of LGraph properties that are manually handled by {@link LGraph.configure}. */
-  static readonly ConfigureProperties = new Set(["nodes", "groups", "links", "state", "reroutes", "floatingLinks", "id", "subgraphs", "definitions", "inputs", "outputs", "widgets", "inputNode", "outputNode"])
+  static readonly ConfigureProperties = new Set([
+    "nodes",
+    "groups",
+    "links",
+    "state",
+    "reroutes",
+    "floatingLinks",
+    "id",
+    "subgraphs",
+    "definitions",
+    "inputs",
+    "outputs",
+    "widgets",
+    "inputNode",
+    "outputNode",
+    "extra",
+  ])
 
   id: UUID = zeroUuid
   revision: number = 0
@@ -1396,7 +1412,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     return subgraph
   }
 
-  convertToSubgraph(items: Set<Positionable>): Subgraph {
+  convertToSubgraph(items: Set<Positionable>): { subgraph: Subgraph, node: SubgraphNode } {
     if (items.size === 0) throw new Error("Cannot convert to subgraph: items is an empty set")
     const { state, revision, config } = this
 
@@ -1442,6 +1458,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     } satisfies ExportedSubgraph
 
     const subgraph = this.createSubgraph(data)
+    subgraph.configure(data)
 
     // Position the subgraph input nodes
     subgraph.inputNode.arrange()
@@ -1565,7 +1582,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
         link.parentId,
       )
     }
-    return subgraph
+    return { subgraph, node: subgraphNode as SubgraphNode }
   }
 
   /**
@@ -1658,6 +1675,23 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     return data
   }
 
+  protected _configureBase(data: ISerialisedGraph | SerialisableGraph): void {
+    const { id, extra } = data
+
+    // Create a new graph ID if none is provided
+    if (id) {
+      this.id = id
+    } else if (this.id === zeroUuid) {
+      this.id = createUuidv4()
+    }
+
+    // Extra
+    this.extra = extra ? structuredClone(extra) : {}
+
+    // Ensure auto-generated serialisation data is removed from extra
+    delete this.extra.linkExtensions
+  }
+
   /**
    * Configure a graph from a JSON string
    * @param data The deserialised object to configure this graph from
@@ -1680,9 +1714,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       if (!data) return
       if (options.clearGraph) this.clear()
 
-      // Create a new graph ID if none is provided
-      if (data.id) this.id = data.id
-      else if (this.id === zeroUuid) this.id = createUuidv4()
+      this._configureBase(data)
 
       let reroutes: SerialisableReroute[] | undefined
 
@@ -1755,6 +1787,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       const subgraphs = data.definitions?.subgraphs
       if (subgraphs) {
         for (const subgraph of subgraphs) this.createSubgraph(subgraph)
+        for (const subgraph of subgraphs) this.subgraphs.get(subgraph.id)?.configure(subgraph)
       }
 
       let error = false
@@ -1821,10 +1854,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       }
 
       this.updateExecutionOrder()
-
-      this.extra = data.extra || {}
-      // Ensure auto-generated serialisation data is removed from extra
-      delete this.extra.linkExtensions
 
       this.onConfigure?.(data)
       this._version++
