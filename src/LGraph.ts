@@ -1476,12 +1476,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     for (const reroute of reroutes) this.removeReroute(reroute.id)
     for (const group of groups) this.remove(group)
 
-    this.canvasAction((c) => {
-      // c.deleteSelected()
-      c.selectedItems.clear()
-      c.setDirty(true, true)
-    })
-
     this.rootGraph.events.dispatch("convert-to-subgraph", {
       subgraph,
       bounds: boundingRect,
