@@ -18,17 +18,17 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   static MAX_NESTED_SUBGRAPHS = 1000
 
   /** The display name of the subgraph. */
-  name: string
+  name: string = "Unnamed Subgraph"
 
   readonly inputNode = new SubgraphInputNode(this)
   readonly outputNode = new SubgraphOutputNode(this)
 
   /** Ordered list of inputs to the subgraph itself. Similar to a reroute, with the input side in the graph, and the output side in the subgraph. */
-  readonly inputs: SubgraphInput[]
+  readonly inputs: SubgraphInput[] = []
   /** Ordered list of outputs from the subgraph itself. Similar to a reroute, with the input side in the subgraph, and the output side in the graph. */
-  readonly outputs: SubgraphOutput[]
+  readonly outputs: SubgraphOutput[] = []
   /** A list of node widgets displayed in the parent graph, on the subgraph object. */
-  readonly widgets: ExposedWidget[]
+  readonly widgets: ExposedWidget[] = []
 
   override get rootGraph(): LGraph {
     return this.parents[0]
@@ -50,16 +50,11 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   ) {
     if (!parents.length) throw new Error("Subgraph must have at least one parent")
 
-    const cloned = structuredClone(data)
-    const { name, inputs, outputs, widgets } = cloned
     super()
 
-    this.name = name
-    this.inputs = inputs?.map(x => new SubgraphInput(x, this.inputNode)) ?? []
-    this.outputs = outputs?.map(x => new SubgraphOutput(x, this.outputNode)) ?? []
-    this.widgets = widgets ?? []
-
-    this.configure(cloned)
+    const cloned = structuredClone(data)
+    this._configureBase(cloned)
+    this.#configureSubgraph(cloned)
   }
 
   getIoNodeOnPos(x: number, y: number): SubgraphInputNode | SubgraphOutputNode | undefined {
@@ -68,9 +63,7 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     if (outputNode.containsPoint([x, y])) return outputNode
   }
 
-  override configure(data: ISerialisedGraph & ExportedSubgraph | SerialisableGraph & ExportedSubgraph, keep_old?: boolean): boolean | undefined {
-    const r = super.configure(data, keep_old)
-
+  #configureSubgraph(data: ISerialisedGraph & ExportedSubgraph | SerialisableGraph & ExportedSubgraph): void {
     const { name, inputs, outputs, widgets } = data
 
     this.name = name
@@ -97,7 +90,12 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
 
     this.inputNode.configure(data.inputNode)
     this.outputNode.configure(data.outputNode)
+  }
 
+  override configure(data: ISerialisedGraph & ExportedSubgraph | SerialisableGraph & ExportedSubgraph, keep_old?: boolean): boolean | undefined {
+    const r = super.configure(data, keep_old)
+
+    this.#configureSubgraph(data)
     return r
   }
 
