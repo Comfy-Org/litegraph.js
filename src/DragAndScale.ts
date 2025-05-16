@@ -28,6 +28,10 @@ export class DragAndScale {
    * Implemented as a POCO that can be proxied without side-effects.
    */
   state: DragAndScaleState
+  lastState: DragAndScaleState = {
+    offset: [0, 0],
+    scale: 0,
+  }
 
   /** Maximum scale (zoom in) */
   max_scale: number
@@ -41,6 +45,7 @@ export class DragAndScale {
   viewport?: Rect
 
   onredraw?(das: DragAndScale): void
+  onChanged?(scale: number, offset: Point): void
 
   get offset(): [number, number] {
     return this.state.offset
@@ -73,23 +78,43 @@ export class DragAndScale {
     this.element = element
   }
 
+  /**
+   * Returns `true` if the current state has changed from the previous state.
+   * @returns `true` if the current state has changed from the previous state, otherwise `false`.
+   */
+  #stateHasChanged(): boolean {
+    const current = this.state
+    const previous = this.lastState
+
+    return current.scale !== previous.scale ||
+      current.offset[0] !== previous.offset[0] ||
+      current.offset[1] !== previous.offset[1]
+  }
+
   computeVisibleArea(viewport: Rect | undefined): void {
+    const { scale, offset } = this
+
+    if (this.#stateHasChanged()) {
+      this.onChanged?.(scale, offset)
+      copyState(this.state, this.lastState)
+    }
+
     if (!this.element) {
       this.visible_area[0] = this.visible_area[1] = this.visible_area[2] = this.visible_area[3] = 0
       return
     }
     let width = this.element.width
     let height = this.element.height
-    let startx = -this.offset[0]
-    let starty = -this.offset[1]
+    let startx = -offset[0]
+    let starty = -offset[1]
     if (viewport) {
-      startx += viewport[0] / this.scale
-      starty += viewport[1] / this.scale
+      startx += viewport[0] / scale
+      starty += viewport[1] / scale
       width = viewport[2]
       height = viewport[3]
     }
-    const endx = startx + width / this.scale
-    const endy = starty + height / this.scale
+    const endx = startx + width / scale
+    const endy = starty + height / scale
     this.visible_area[0] = startx
     this.visible_area[1] = starty
     this.visible_area[2] = endx - startx
@@ -274,4 +299,15 @@ export class DragAndScale {
     this.offset[0] = 0
     this.offset[1] = 0
   }
+}
+
+/**
+ * Copies the values of one state into another, preserving references.
+ * @param from The state to copy values from.
+ * @param to The state to copy values into.
+ */
+function copyState(from: DragAndScaleState, to: DragAndScaleState): void {
+  to.scale = from.scale
+  to.offset[0] = from.offset[0]
+  to.offset[1] = from.offset[1]
 }
