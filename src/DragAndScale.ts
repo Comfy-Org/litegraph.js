@@ -47,7 +47,8 @@ export class DragAndScale {
   }
 
   set offset(value: Point) {
-    this.state.offset = value
+    this.state.offset[0] = value[0]
+    this.state.offset[1] = value[1]
   }
 
   get scale(): number {
