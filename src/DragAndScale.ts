@@ -7,7 +7,7 @@ export interface DragAndScaleState {
    * The offset from the top-left of the current canvas viewport to `[0, 0]` in graph space.
    * Or said another way, the inverse offset of the viewport.
    */
-  offset: Point
+  offset: [number, number]
   /** The scale of the graph. */
   scale: number
 }
@@ -42,7 +42,7 @@ export class DragAndScale {
 
   onredraw?(das: DragAndScale): void
 
-  get offset(): Point {
+  get offset(): [number, number] {
     return this.state.offset
   }
 
@@ -60,7 +60,7 @@ export class DragAndScale {
 
   constructor(element: HTMLCanvasElement) {
     this.state = {
-      offset: new Float32Array([0, 0]),
+      offset: [0, 0],
       scale: 1,
     }
     this.max_scale = 10
