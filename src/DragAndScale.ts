@@ -116,8 +116,7 @@ export class DragAndScale {
     const endy = starty + height / scale
     visible_area[0] = startx
     visible_area[1] = starty
-    visible_area[2] = endx - startx
-    visible_area[3] = endy - starty
+    visible_area.resizeBottomRight(endx, endy)
   }
 
   toCanvasContext(ctx: CanvasRenderingContext2D): void {
