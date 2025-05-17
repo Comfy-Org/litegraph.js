@@ -1,4 +1,6 @@
-import type { ExportedSubgraph, ExposedWidget, Serialisable, SerialisableGraph } from "@/types/serialisation"
+import type { DefaultConnectionColors } from "@/interfaces"
+import type { LGraphCanvas } from "@/LGraphCanvas"
+import type { ExportedSubgraph, ExposedWidget, ISerialisedGraph, Serialisable, SerialisableGraph } from "@/types/serialisation"
 
 import { type BaseLGraph, LGraph } from "@/LGraph"
 
@@ -12,26 +14,34 @@ export type GraphOrSubgraph = LGraph | Subgraph
 
 /** A subgraph definition. */
 export class Subgraph extends LGraph implements BaseLGraph, Serialisable<ExportedSubgraph> {
+  /** Limits the number of levels / depth that subgraphs may be nested.  Prevents uncontrolled programmatic nesting. */
+  static MAX_NESTED_SUBGRAPHS = 1000
+
   /** The display name of the subgraph. */
-  name: string
+  name: string = "Unnamed Subgraph"
 
   readonly inputNode = new SubgraphInputNode(this)
   readonly outputNode = new SubgraphOutputNode(this)
 
   /** Ordered list of inputs to the subgraph itself. Similar to a reroute, with the input side in the graph, and the output side in the subgraph. */
-  readonly inputs: SubgraphInput[]
+  readonly inputs: SubgraphInput[] = []
   /** Ordered list of outputs from the subgraph itself. Similar to a reroute, with the input side in the subgraph, and the output side in the graph. */
-  readonly outputs: SubgraphOutput[]
+  readonly outputs: SubgraphOutput[] = []
   /** A list of node widgets displayed in the parent graph, on the subgraph object. */
-  readonly widgets: ExposedWidget[]
+  readonly widgets: ExposedWidget[] = []
 
   override get rootGraph(): LGraph {
     return this.parents[0]
   }
 
   /** @inheritdoc */
-  get pathToRootGraph(): readonly [LGraph, ...Subgraph[]] {
+  override get pathToRootGraph(): readonly [LGraph, ...Subgraph[]] {
     return [...this.parents, this]
+  }
+
+  get parentGraph(): LGraph {
+    // Assertion: This is always at least one parent in a subgraph.
+    return this.parents.at(-1)!
   }
 
   constructor(
@@ -40,16 +50,63 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   ) {
     if (!parents.length) throw new Error("Subgraph must have at least one parent")
 
-    const cloned = structuredClone(data)
-    const { name, inputs, outputs, widgets } = cloned
     super()
 
-    this.name = name
-    this.inputs = inputs?.map(x => new SubgraphInput(x, this.inputNode)) ?? []
-    this.outputs = outputs?.map(x => new SubgraphOutput(x, this.outputNode)) ?? []
-    this.widgets = widgets ?? []
+    const cloned = structuredClone(data)
+    this._configureBase(cloned)
+    this.#configureSubgraph(cloned)
+  }
 
-    this.configure(cloned)
+  getIoNodeOnPos(x: number, y: number): SubgraphInputNode | SubgraphOutputNode | undefined {
+    const { inputNode, outputNode } = this
+    if (inputNode.containsPoint([x, y])) return inputNode
+    if (outputNode.containsPoint([x, y])) return outputNode
+  }
+
+  #configureSubgraph(data: ISerialisedGraph & ExportedSubgraph | SerialisableGraph & ExportedSubgraph): void {
+    const { name, inputs, outputs, widgets } = data
+
+    this.name = name
+    if (inputs) {
+      this.inputs.length = 0
+      for (const input of inputs) {
+        this.inputs.push(new SubgraphInput(input, this.inputNode))
+      }
+    }
+
+    if (outputs) {
+      this.outputs.length = 0
+      for (const output of outputs) {
+        this.outputs.push(new SubgraphOutput(output, this.outputNode))
+      }
+    }
+
+    if (widgets) {
+      this.widgets.length = 0
+      for (const widget of widgets) {
+        this.widgets.push(widget)
+      }
+    }
+
+    this.inputNode.configure(data.inputNode)
+    this.outputNode.configure(data.outputNode)
+  }
+
+  override configure(data: ISerialisedGraph & ExportedSubgraph | SerialisableGraph & ExportedSubgraph, keep_old?: boolean): boolean | undefined {
+    const r = super.configure(data, keep_old)
+
+    this.#configureSubgraph(data)
+    return r
+  }
+
+  override attachCanvas(canvas: LGraphCanvas): void {
+    super.attachCanvas(canvas)
+    canvas.subgraph = this
+  }
+
+  draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
+    this.inputNode.draw(ctx, colorContext)
+    this.outputNode.draw(ctx, colorContext)
   }
 
   override asSerialisable(): ExportedSubgraph & Required<Pick<SerialisableGraph, "nodes" | "groups" | "extra">> {
