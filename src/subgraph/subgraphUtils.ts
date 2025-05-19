@@ -1,4 +1,4 @@
-import type { INodeOutputSlot, Positionable } from "@/interfaces"
+import type { Positionable } from "@/interfaces"
 import type { LGraph } from "@/LGraph"
 import type { ISerialisedNode, SerialisableLLink, SubgraphIO } from "@/types/serialisation"
 
@@ -211,14 +211,16 @@ export function multiClone(nodes: Iterable<LGraphNode>): ISerialisedNode[] {
 
 export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection[], links: SerialisableLLink[]): SubgraphIO[] {
   // Group matching links
-  const groupedByOutput = new Map<INodeOutputSlot | undefined, ResolvedConnection[]>()
+  const groupedByOutput = new Map<object, ResolvedConnection[]>()
 
   for (const resolved of resolvedInputLinks) {
-    const group = groupedByOutput.get(resolved.output)
+    // Force no group (unique object) if output is undefined; corruption or an error has occurred
+    const groupBy = resolved.subgraphInput ?? resolved.output ?? {}
+    const group = groupedByOutput.get(groupBy)
     if (group) {
       group.push(resolved)
     } else {
-      groupedByOutput.set(resolved.output, [resolved])
+      groupedByOutput.set(groupBy, [resolved])
     }
   }
 

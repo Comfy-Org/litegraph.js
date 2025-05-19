@@ -1505,22 +1505,25 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     this.add(subgraphNode)
 
     // Group matching input links
-    const groupedByOutput = new Map<INodeOutputSlot | undefined, ResolvedConnection[]>()
+    const groupedByOutput = new Map<object, ResolvedConnection[]>()
 
     for (const resolved of resolvedInputLinks) {
-      const group = groupedByOutput.get(resolved.output)
+      // Force no group (unique object) if output is undefined; corruption or an error has occurred
+      const groupBy = resolved.subgraphInput ?? resolved.output ?? {}
+      const group = groupedByOutput.get(groupBy)
+
       if (group) {
         group.push(resolved)
       } else {
-        groupedByOutput.set(resolved.output, [resolved])
+        groupedByOutput.set(groupBy, [resolved])
       }
     }
 
     // Reconnect input links in parent graph
     let i = 0
-    for (const [output, connections] of groupedByOutput.entries()) {
+    for (const [, connections] of groupedByOutput.entries()) {
       const [firstResolved, ...others] = connections
-      const { outputNode, link } = firstResolved
+      const { output, outputNode, link } = firstResolved
 
       // Special handling: Subgraph input node
       i++
