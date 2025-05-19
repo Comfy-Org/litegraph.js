@@ -2117,11 +2117,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       // Subgraph IO nodes
       if (subgraph) {
         const { inputNode, outputNode } = subgraph
-        if (inputNode?.containsPoint([x, y])) {
+        if (inputNode.containsPoint([x, y])) {
           pointer.onClick = () => this.processSelect(inputNode, e)
           pointer.onDragStart = () => this.#startDraggingItems(inputNode, pointer, true)
           pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
-        } else if (outputNode?.containsPoint([x, y])) {
+        } else if (outputNode.containsPoint([x, y])) {
           pointer.onClick = () => this.processSelect(outputNode, e)
           pointer.onDragStart = () => this.#startDraggingItems(outputNode, pointer, true)
           pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
