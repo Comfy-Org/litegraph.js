@@ -126,8 +126,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   /** @internal Leaves {@link ctx} dirty. */
   protected abstract drawProtected(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void
 
-  /** @internal Leaves ctx dirty. */
-  drawSlots(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
+  /** @internal Leaves {@link ctx} dirty. */
+  protected drawSlots(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
     ctx.fillStyle = "#AAA"
     ctx.font = "12px Arial"
     ctx.textBaseline = "middle"
