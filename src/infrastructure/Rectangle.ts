@@ -169,7 +169,7 @@ export class Rectangle extends Float64Array {
    * @returns `true` if the point is inside this rectangle, otherwise `false`.
    */
   containsXy(x: number, y: number): boolean {
-    const { x: left, y: top, width, height } = this
+    const [left, top, width, height] = this
     return x >= left &&
       x < left + width &&
       y >= top &&
@@ -181,11 +181,12 @@ export class Rectangle extends Float64Array {
    * @param point The point to check
    * @returns `true` if {@link point} is inside this rectangle, otherwise `false`.
    */
-  containsPoint(point: ReadOnlyPoint): boolean {
-    return this.x <= point[0] &&
-      this.y <= point[1] &&
-      this.x + this.width >= point[0] &&
-      this.y + this.height >= point[1]
+  containsPoint([x, y]: ReadOnlyPoint): boolean {
+    const [left, top, width, height] = this
+    return x >= left &&
+      x < left + width &&
+      y >= top &&
+      y < top + height
   }
 
   /**
