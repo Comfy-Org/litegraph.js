@@ -117,7 +117,14 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     size[1] = currentY - y + roundedRadius
   }
 
-  abstract draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void
+  draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
+    const { lineWidth, strokeStyle, fillStyle, font, textBaseline } = ctx
+    this.drawProtected(ctx, colorContext)
+    Object.assign(ctx, { lineWidth, strokeStyle, fillStyle, font, textBaseline })
+  }
+
+  /** @internal Leaves {@link ctx} dirty. */
+  protected abstract drawProtected(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void
 
   /** @internal Leaves ctx dirty. */
   drawSlots(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
