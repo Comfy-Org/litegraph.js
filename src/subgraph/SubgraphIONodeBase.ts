@@ -1,7 +1,7 @@
 import type { Subgraph } from "./Subgraph"
 import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
-import type { DefaultConnectionColors, Hoverable, Point, Positionable, ReadOnlyRect } from "@/interfaces"
+import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
 import type { CanvasPointerEvent } from "@/litegraph"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
@@ -146,12 +146,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   asSerialisable(): ExportedSubgraphIONode {
     return {
       id: this.id,
-      bounding: serialiseRect(this.boundingRect),
+      bounding: this.boundingRect.export(),
       pinned: this.pinned ? true : undefined,
     }
   }
-}
-
-function serialiseRect(rect: ReadOnlyRect): [number, number, number, number] {
-  return [rect[0], rect[1], rect[2], rect[3]]
 }
