@@ -4,6 +4,7 @@ import type { LGraph } from "@/LGraph"
 import type { LGraphNode } from "@/LGraphNode"
 
 import { LLink } from "@/LLink"
+import { SUBGRAPH_INPUT_ID } from "@/constants"
 
 /**
  * A subset of {@link LGraphNode}; the members used when assembling the graph for backend execution.
@@ -82,7 +83,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
       return null
     }
 
-    if (link.origin_id === -10) {
+    if (link.origin_id === SUBGRAPH_INPUT_ID) {
       const outerLink = graph.getLink(this.subgraphNode.inputs[link.origin_slot].link)
       if (!outerLink) {
         console.error(`[ExecutableNodeDTO.getInputNode] No link found in parent graph for slot ${slot}`, this)
@@ -114,7 +115,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     newLink.target_id = this.id
 
     // Link comes from outside the subgraph
-    if (link.origin_id === -10) {
+    if (link.origin_id === SUBGRAPH_INPUT_ID) {
       const outerLink = graph.getLink(this.subgraphNode.inputs[link.origin_slot].link)
       if (!outerLink) {
         console.error(`[ExecutableNodeDTO.getInputLink] No outer link found for slot ${slot}`, this)
