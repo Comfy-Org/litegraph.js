@@ -1,11 +1,11 @@
 import type { SubgraphIONodeBase } from "./SubgraphIONodeBase"
-import type { DefaultConnectionColors, Point, ReadOnlyRect, ReadOnlySize } from "@/interfaces"
+import type { DefaultConnectionColors, Hoverable, Point, ReadOnlyRect, ReadOnlySize } from "@/interfaces"
 import type { LinkId, LLink } from "@/LLink"
 import type { Serialisable, SubgraphIO } from "@/types/serialisation"
 
 import { ConstrainedSize } from "@/infrastructure/ConstrainedSize"
 import { Rectangle } from "@/infrastructure/Rectangle"
-import { LGraphCanvas, LiteGraph, SlotShape } from "@/litegraph"
+import { type CanvasPointerEvent, LGraphCanvas, LiteGraph, SlotShape } from "@/litegraph"
 import { SlotBase } from "@/node/SlotBase"
 import { createUuidv4, type UUID } from "@/utils/uuid"
 
@@ -16,7 +16,7 @@ export interface SubgraphSlotDrawOptions {
 }
 
 /** Shared base class for the slots used on Subgraph . */
-export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Serialisable<SubgraphIO> {
+export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hoverable, Serialisable<SubgraphIO> {
   static get defaultHeight() {
     return LiteGraph.NODE_SLOT_HEIGHT
   }
@@ -30,8 +30,6 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
   override type: string
 
   readonly linkIds: LinkId[] = []
-
-  highlight?: boolean
 
   override readonly boundingRect: Rectangle = new Rectangle(0, 0, 0, SubgraphSlot.defaultHeight)
 
@@ -67,6 +65,16 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
     this.parent = parent
   }
 
+  isPointerOver: boolean = false
+
+  containsPoint(point: Point): boolean {
+    return this.boundingRect.containsPoint(point)
+  }
+
+  onPointerMove(e: CanvasPointerEvent): void {
+    this.isPointerOver = this.boundingRect.containsXy(e.canvasX, e.canvasY)
+  }
+
   getLinks(): LLink[] {
     const links: LLink[] = []
     const { subgraph } = this.parent
@@ -93,7 +101,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
     if (!this.displayName) return
 
     const [x, y] = this.labelPos
-    ctx.fillStyle = this.highlight ? "white" : "#AAA"
+    ctx.fillStyle = this.isPointerOver ? "white" : "#AAA"
 
     ctx.fillText(this.displayName, x, y)
   }
@@ -102,7 +110,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
   draw({ ctx, colorContext, lowQuality }: SubgraphSlotDrawOptions): void {
     // Assertion: SlotShape is a subset of RenderShape
     const shape = this.shape as unknown as SlotShape
-    const { highlight, pos: [x, y] } = this
+    const { isPointerOver, pos: [x, y] } = this
 
     ctx.beginPath()
 
@@ -117,14 +125,14 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Seria
       ctx.lineWidth = 3
       ctx.strokeStyle = color
 
-      const radius = highlight ? 4 : 3
+      const radius = isPointerOver ? 4 : 3
       ctx.arc(x, y, radius, 0, Math.PI * 2)
       ctx.stroke()
     } else {
       // Normal circle
       ctx.fillStyle = color
 
-      const radius = highlight ? 5 : 4
+      const radius = isPointerOver ? 5 : 4
       ctx.arc(x, y, radius, 0, Math.PI * 2)
       ctx.fill()
     }

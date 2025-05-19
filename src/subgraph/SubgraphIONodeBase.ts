@@ -1,14 +1,15 @@
 import type { Subgraph } from "./Subgraph"
 import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
-import type { DefaultConnectionColors, Point, Positionable, ReadOnlyRect } from "@/interfaces"
+import type { DefaultConnectionColors, Hoverable, Point, Positionable, ReadOnlyRect } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
+import type { CanvasPointerEvent } from "@/litegraph"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
 
 import { Rectangle } from "@/infrastructure/Rectangle"
-import { isPointInRect, snapPoint } from "@/measure"
+import { snapPoint } from "@/measure"
 
-export abstract class SubgraphIONodeBase implements Positionable, Serialisable<ExportedSubgraphIONode> {
+export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
   static margin = 10
   static defaultWidth = 100
   static roundedRadius = 10
@@ -23,6 +24,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Serialisable<E
 
   selected: boolean = false
   pinned: boolean = false
+
+  isPointerOver: boolean = false
 
   get pos() {
     return this.boundingRect.pos
@@ -57,11 +60,40 @@ export abstract class SubgraphIONodeBase implements Positionable, Serialisable<E
     return this.pinned ? false : snapPoint(this.pos, snapTo)
   }
 
+  // #region Hoverable
+
   containsPoint(point: Point): boolean {
     return this.boundingRect.containsPoint(point)
   }
 
   abstract get slotAnchorX(): number
+
+  onPointerMove(e: CanvasPointerEvent): void {
+    const containsPoint = this.boundingRect.containsXy(e.canvasX, e.canvasY)
+    if (containsPoint) {
+      if (!this.isPointerOver) this.onPointerEnter()
+
+      for (const slot of this.slots) {
+        slot.onPointerMove(e)
+      }
+    } else if (this.isPointerOver) {
+      this.onPointerLeave()
+    }
+  }
+
+  onPointerEnter() {
+    this.isPointerOver = true
+  }
+
+  onPointerLeave() {
+    this.isPointerOver = false
+
+    for (const slot of this.slots) {
+      slot.isPointerOver = false
+    }
+  }
+
+  // #endregion Hoverable
 
   /** Arrange the slots in this node. */
   arrange(): void {
