@@ -17,10 +17,9 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
     return x + width - SubgraphIONodeBase.roundedRadius
   }
 
-  override draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
+  override drawProtected(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
     const { roundedRadius } = SubgraphIONodeBase
     const transform = ctx.getTransform()
-    const { lineWidth, strokeStyle, fillStyle, font, textBaseline } = ctx
 
     const [x, y, width, height] = this.boundingRect
     ctx.translate(x, y)
@@ -43,7 +42,5 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
     ctx.setTransform(transform)
 
     this.drawSlots(ctx, colorContext)
-
-    Object.assign(ctx, { lineWidth, strokeStyle, fillStyle, font, textBaseline })
   }
 }
