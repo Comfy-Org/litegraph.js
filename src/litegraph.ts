@@ -91,6 +91,7 @@ export interface LGraphNodeConstructor<T extends LGraphNode = LGraphNode> {
 export { InputIndicators } from "./canvas/InputIndicators"
 export { isOverNodeInput, isOverNodeOutput } from "./canvas/measureSlots"
 export { CanvasPointer } from "./CanvasPointer"
+export * as Constants from "./constants"
 export { ContextMenu } from "./ContextMenu"
 export { CurveEditor } from "./CurveEditor"
 export { DragAndScale } from "./DragAndScale"
