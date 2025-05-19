@@ -21,6 +21,7 @@ import type {
 } from "./types/serialisation"
 import type { UUID } from "@/utils/uuid"
 
+import { SUBGRAPH_INPUT_ID, SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { createUuidv4, zeroUuid } from "@/utils/uuid"
 
 import { CustomEventTarget } from "./infrastructure/CustomEventTarget"
@@ -1437,11 +1438,11 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       id: createUuidv4(),
       name: "Subgraph - Click me",
       inputNode: {
-        id: -10,
+        id: SUBGRAPH_INPUT_ID,
         bounding: [0, 0, 75, 100],
       },
       outputNode: {
-        id: -20,
+        id: SUBGRAPH_OUTPUT_ID,
         bounding: [0, 0, 75, 100],
       },
       inputs,
@@ -1523,7 +1524,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
       // Special handling: Subgraph input node
       i++
-      if (link.origin_id === -10) {
+      if (link.origin_id === SUBGRAPH_INPUT_ID) {
         link.target_id = subgraphNode.id
         link.target_slot = i - 1
         console.debug({ ...link }, this.links.get(link.id) === link)
@@ -1555,7 +1556,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
 
       // Special handling: Subgraph output node
       i++
-      if (link.target_id === -20) {
+      if (link.target_id === SUBGRAPH_OUTPUT_ID) {
         link.origin_id = subgraphNode.id
         link.origin_slot = i - 1
         this.links.set(link.id, link)

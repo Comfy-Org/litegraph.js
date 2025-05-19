@@ -1,10 +1,12 @@
 import type { DefaultConnectionColors, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
 
+import { SUBGRAPH_INPUT_ID } from "@/constants"
+
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
 
 export class SubgraphInputNode extends SubgraphIONodeBase implements Positionable {
-  readonly id: NodeId = -10
+  readonly id: NodeId = SUBGRAPH_INPUT_ID
 
   get slots() {
     return this.subgraph.inputs
