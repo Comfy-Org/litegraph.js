@@ -3,6 +3,8 @@ import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { SubgraphInput } from "./subgraph/SubgraphInput"
+import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
+import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
 
 export type Dictionary<T> = { [key: string]: T }
@@ -135,6 +137,9 @@ export interface ReadonlyLinkNetwork {
   getLink(id: LinkId | null | undefined): LLink | undefined
   getReroute(parentId: null | undefined): undefined
   getReroute(parentId: RerouteId | null | undefined): Reroute | undefined
+
+  readonly inputNode?: SubgraphInputNode
+  readonly outputNode?: SubgraphOutputNode
 }
 
 /**
