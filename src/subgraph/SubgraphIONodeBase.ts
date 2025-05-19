@@ -58,7 +58,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Serialisable<E
   }
 
   containsPoint(point: Point): boolean {
-    return isPointInRect(point, this.boundingRect)
+    return this.boundingRect.containsPoint(point)
   }
 
   abstract get slotAnchorX(): number
