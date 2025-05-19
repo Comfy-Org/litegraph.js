@@ -25,8 +25,8 @@ export class SubgraphOutputNode extends SubgraphIONodeBase implements Positionab
     ctx.translate(x, y)
 
     // Draw bottom rounded part
-    ctx.strokeStyle = "white"
-    ctx.lineWidth = 2
+    ctx.strokeStyle = this.sideStrokeStyle
+    ctx.lineWidth = this.sideLineWidth
     ctx.beginPath()
     ctx.arc(roundedRadius, roundedRadius, roundedRadius, Math.PI, Math.PI * 1.5)
 
