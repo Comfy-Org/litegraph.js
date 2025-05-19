@@ -3,7 +3,7 @@ import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
 import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
-import type { CanvasPointerEvent } from "@/litegraph"
+import type { CanvasColour, CanvasPointerEvent } from "@/litegraph"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
 
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -41,6 +41,14 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
 
   set size(value) {
     this.boundingRect.size = value
+  }
+
+  protected get sideLineWidth(): number {
+    return this.isPointerOver ? 2.5 : 2
+  }
+
+  protected get sideStrokeStyle(): CanvasColour {
+    return this.isPointerOver ? "white" : "#efefef"
   }
 
   abstract readonly slots: SubgraphInput[] | SubgraphOutput[]
