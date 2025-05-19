@@ -3,7 +3,6 @@ import type { LGraphEventMap } from "./infrastructure/LGraphEventMap"
 import type {
   Dictionary,
   IContextMenuValue,
-  INodeOutputSlot,
   LinkNetwork,
   LinkSegment,
   MethodNames,
@@ -29,13 +28,13 @@ import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId } from "./LGraphNode"
 import { LiteGraph, type SubgraphNode } from "./litegraph"
-import { type LinkId, LLink, type ResolvedConnection } from "./LLink"
+import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { alignOutsideContainer, alignToContainer, createBounds } from "./measure"
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { Subgraph } from "./subgraph/Subgraph"
-import { getBoundaryLinks, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
+import { getBoundaryLinks, groupResolvedByOutput, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
 import { Alignment, LGraphEventMode } from "./types/globalEnums"
 import { getAllNestedItems } from "./utils/collections"
 
@@ -1505,19 +1504,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     this.add(subgraphNode)
 
     // Group matching input links
-    const groupedByOutput = new Map<object, ResolvedConnection[]>()
-
-    for (const resolved of resolvedInputLinks) {
-      // Force no group (unique object) if output is undefined; corruption or an error has occurred
-      const groupBy = resolved.subgraphInput ?? resolved.output ?? {}
-      const group = groupedByOutput.get(groupBy)
-
-      if (group) {
-        group.push(resolved)
-      } else {
-        groupedByOutput.set(groupBy, [resolved])
-      }
-    }
+    const groupedByOutput = groupResolvedByOutput(resolvedInputLinks)
 
     // Reconnect input links in parent graph
     let i = 0

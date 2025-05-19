@@ -1,4 +1,4 @@
-import type { Positionable } from "@/interfaces"
+import type { INodeOutputSlot, Positionable } from "@/interfaces"
 import type { LGraph } from "@/LGraph"
 import type { ISerialisedNode, SerialisableLLink, SubgraphIO } from "@/types/serialisation"
 
@@ -209,11 +209,17 @@ export function multiClone(nodes: Iterable<LGraphNode>): ISerialisedNode[] {
   return clonedNodes
 }
 
-export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection[], links: SerialisableLLink[]): SubgraphIO[] {
-  // Group matching links
-  const groupedByOutput = new Map<object, ResolvedConnection[]>()
+/**
+ * Groups resolved connections by output object. If the output is nullish, the connection will be in its own group.
+ * @param resolvedConnections The resolved connections to group
+ * @returns A map of grouped connections.
+ */
+export function groupResolvedByOutput(
+  resolvedConnections: ResolvedConnection[],
+): Map<SubgraphIO | INodeOutputSlot | object, ResolvedConnection[]> {
+  const groupedByOutput: ReturnType<typeof groupResolvedByOutput> = new Map()
 
-  for (const resolved of resolvedInputLinks) {
+  for (const resolved of resolvedConnections) {
     // Force no group (unique object) if output is undefined; corruption or an error has occurred
     const groupBy = resolved.subgraphInput ?? resolved.output ?? {}
     const group = groupedByOutput.get(groupBy)
@@ -223,6 +229,13 @@ export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection
       groupedByOutput.set(groupBy, [resolved])
     }
   }
+
+  return groupedByOutput
+}
+
+export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection[], links: SerialisableLLink[]): SubgraphIO[] {
+  // Group matching links
+  const groupedByOutput = groupResolvedByOutput(resolvedInputLinks)
 
   // Create one input for each output (outside subgraph)
   const inputs: SubgraphIO[] = []
