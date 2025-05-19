@@ -190,15 +190,26 @@ export class Rectangle extends Float64Array {
   }
 
   /**
-   * Checks if {@link rect} is inside this rectangle.
-   * @param rect The rectangle to check
-   * @returns `true` if {@link rect} is inside this rectangle, otherwise `false`.
+   * Checks if {@link other} is a smaller rectangle inside this rectangle.
+   * One **must** be larger than the other; identical rectangles are not considered to contain each other.
+   * @param other The rectangle to check
+   * @returns `true` if {@link other} is inside this rectangle, otherwise `false`.
    */
-  containsRect(rect: ReadOnlyRect): boolean {
-    return this.x <= rect[0] &&
-      this.y <= rect[1] &&
-      this.x + this.width >= rect[0] + rect[2] &&
-      this.y + this.height >= rect[1] + rect[3]
+  containsRect(other: ReadOnlyRect): boolean {
+    const { right, bottom } = this
+    const otherRight = other[0] + other[2]
+    const otherBottom = other[1] + other[3]
+
+    const identical = this.x === other[0] &&
+      this.y === other[1] &&
+      right === otherRight &&
+      bottom === otherBottom
+
+    return !identical &&
+      this.x <= other[0] &&
+      this.y <= other[1] &&
+      right >= otherRight &&
+      bottom >= otherBottom
   }
 
   /**
