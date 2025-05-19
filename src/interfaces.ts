@@ -6,6 +6,8 @@ import type { SubgraphInput } from "./subgraph/SubgraphInput"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
+import type { Rectangle } from "@/infrastructure/Rectangle"
+import type { CanvasPointerEvent } from "@/types/events"
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -451,3 +453,17 @@ export type CallbackParams<T extends ((...args: any) => any) | undefined> =
  * @see {@link CallbackParams}
  */
 export type CallbackReturn<T extends ((...args: any) => any) | undefined> = ReturnType<Exclude<T, undefined>>
+
+/**
+ * An object that can be hovered over.
+ */
+export interface Hoverable extends HasBoundingRect {
+  readonly boundingRect: Rectangle
+  isPointerOver: boolean
+
+  containsPoint(point: Point): boolean
+
+  onPointerMove(e: CanvasPointerEvent): void
+  onPointerEnter?(e?: CanvasPointerEvent): void
+  onPointerLeave?(e?: CanvasPointerEvent): void
+}

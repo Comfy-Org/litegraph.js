@@ -2710,7 +2710,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     if (this.set_canvas_dirty_on_mouse_event) this.dirty_canvas = true
 
-    const { graph, resizingGroup, linkConnector } = this
+    const { graph, resizingGroup, linkConnector, subgraph } = this
     if (!graph) return
 
     LGraphCanvas.active_canvas = this
@@ -2728,6 +2728,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     this.graph_mouse[1] = y
 
     if (e.isPrimary) this.pointer.move(e)
+
+    if (subgraph) {
+      subgraph.inputNode.onPointerMove(e)
+      subgraph.outputNode.onPointerMove(e)
+    }
 
     if (this.block_click) {
       e.preventDefault()
