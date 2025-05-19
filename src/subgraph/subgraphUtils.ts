@@ -2,6 +2,7 @@ import type { INodeOutputSlot, Positionable } from "@/interfaces"
 import type { LGraph } from "@/LGraph"
 import type { ISerialisedNode, SerialisableLLink, SubgraphIO } from "@/types/serialisation"
 
+import { SUBGRAPH_INPUT_ID, SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { LGraphGroup } from "@/LGraphGroup"
 import { LGraphNode } from "@/LGraphNode"
 import { createUuidv4, LiteGraph } from "@/litegraph"
@@ -107,7 +108,7 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
             } else {
               internalLinks.push(link)
             }
-          } else if (link.origin_id === -10) {
+          } else if (link.origin_id === SUBGRAPH_INPUT_ID) {
             // Subgraph input node - always boundary
             boundaryInputLinks.push(link)
           } else {
@@ -127,7 +128,7 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
           for (const { link, inputNode } of many) {
             if (
               // Subgraph output node
-              link.target_id === -20 ||
+              link.target_id === SUBGRAPH_OUTPUT_ID ||
               // Input end of this link is outside the items set
               (inputNode && !items.has(inputNode))
             ) {
@@ -233,7 +234,7 @@ export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection
       if (!input) continue
 
       const linkData = link.asSerialisable()
-      linkData.origin_id = -10
+      linkData.origin_id = SUBGRAPH_INPUT_ID
       linkData.origin_slot = inputs.length
       links.push(linkData)
       inputLinks.push(linkData)
@@ -280,7 +281,7 @@ export function mapSubgraphOutputsAndLinks(resolvedOutputLinks: ResolvedConnecti
 
     // Link
     const linkData = link.asSerialisable()
-    linkData.target_id = -20
+    linkData.target_id = SUBGRAPH_OUTPUT_ID
     linkData.target_slot = outputs.length
     links.push(linkData)
 
