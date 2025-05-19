@@ -2649,8 +2649,9 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       mouse[1] - this.last_mouse[1],
     ]
     this.last_mouse = mouse
-    this.graph_mouse[0] = e.canvasX
-    this.graph_mouse[1] = e.canvasY
+    const { canvasX: x, canvasY: y } = e
+    this.graph_mouse[0] = x
+    this.graph_mouse[1] = y
 
     if (e.isPrimary) this.pointer.move(e)
 
@@ -2666,9 +2667,9 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       const [node, widget] = this.node_widget
 
       if (widget?.mouse) {
-        const x = e.canvasX - node.pos[0]
-        const y = e.canvasY - node.pos[1]
-        const result = widget.mouse(e, [x, y], node)
+        const relativeX = x - node.pos[0]
+        const relativeY = y - node.pos[1]
+        const result = widget.mouse(e, [relativeX, relativeY], node)
         if (result != null) this.dirty_canvas = result
       }
     }
@@ -2677,15 +2678,15 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     let underPointer = CanvasItem.Nothing
     // get node over
     const node = graph.getNodeOnPos(
-      e.canvasX,
-      e.canvasY,
+      x,
+      y,
       this.visible_nodes,
     )
 
     const dragRect = this.dragging_rectangle
     if (dragRect) {
-      dragRect[2] = e.canvasX - dragRect[0]
-      dragRect[3] = e.canvasY - dragRect[1]
+      dragRect[2] = x - dragRect[0]
+      dragRect[3] = y - dragRect[1]
       this.dirty_canvas = true
     } else if (resizingGroup) {
       // Resizing a group
@@ -2712,9 +2713,9 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         // For input/output hovering
         // to store the output of isOverNodeInput
         const pos: Point = [0, 0]
-        const inputId = isOverNodeInput(node, e.canvasX, e.canvasY, pos)
-        const outputId = isOverNodeOutput(node, e.canvasX, e.canvasY, pos)
-        const overWidget = node.getWidgetOnPos(e.canvasX, e.canvasY, true) ?? undefined
+        const inputId = isOverNodeInput(node, x, y, pos)
+        const outputId = isOverNodeOutput(node, x, y, pos)
+        const overWidget = node.getWidgetOnPos(x, y, true) ?? undefined
 
         if (!node.mouseOver) {
           // mouse enter
@@ -2730,7 +2731,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         }
 
         // in case the node wants to do something
-        node.onMouseMove?.(e, [e.canvasX - node.pos[0], e.canvasY - node.pos[1]], this)
+        node.onMouseMove?.(e, [x - node.pos[0], y - node.pos[1]], this)
 
         // The input the mouse is over has changed
         const { mouseOver } = node
@@ -2818,7 +2819,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         }
 
         // Resize corner
-        if (node.inResizeCorner(e.canvasX, e.canvasY)) {
+        if (node.inResizeCorner(x, y)) {
           underPointer |= CanvasItem.ResizeSe
         }
       } else {
@@ -2834,12 +2835,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         }
 
         if (this.canvas) {
-          const group = graph.getGroupOnPos(e.canvasX, e.canvasY)
+          const group = graph.getGroupOnPos(x, y)
           if (
             group &&
             !e.ctrlKey &&
             !this.read_only &&
-            group.isInResize(e.canvasX, e.canvasY)
+            group.isInResize(x, y)
           ) {
             underPointer |= CanvasItem.ResizeSe
           }
@@ -2851,8 +2852,8 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         this.node_capturing_input.onMouseMove?.(
           e,
           [
-            e.canvasX - this.node_capturing_input.pos[0],
-            e.canvasY - this.node_capturing_input.pos[1],
+            x - this.node_capturing_input.pos[0],
+            y - this.node_capturing_input.pos[1],
           ],
           this,
         )
