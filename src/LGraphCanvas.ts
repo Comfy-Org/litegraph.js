@@ -64,6 +64,7 @@ import { NodeInputSlot } from "./node/NodeInputSlot"
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { Subgraph } from "./subgraph/Subgraph"
+import { SubgraphIONodeBase } from "./subgraph/SubgraphIONodeBase"
 import {
   CanvasItem,
   LGraphEventMode,
@@ -2117,14 +2118,17 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       // Subgraph IO nodes
       if (subgraph) {
         const { inputNode, outputNode } = subgraph
-        if (inputNode.containsPoint([x, y])) {
-          pointer.onClick = () => this.processSelect(inputNode, e)
-          pointer.onDragStart = () => this.#startDraggingItems(inputNode, pointer, true)
-          pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
-        } else if (outputNode.containsPoint([x, y])) {
-          pointer.onClick = () => this.processSelect(outputNode, e)
-          pointer.onDragStart = () => this.#startDraggingItems(outputNode, pointer, true)
-          pointer.onDragEnd = eUp => this.#processDraggedItems(eUp)
+
+        if (processSubgraphIONode(this, inputNode)) return
+        if (processSubgraphIONode(this, outputNode)) return
+
+        function processSubgraphIONode(canvas: LGraphCanvas, ioNode: SubgraphIONodeBase) {
+          if (!ioNode.containsPoint([x, y])) return false
+
+          pointer.onClick = () => canvas.processSelect(ioNode, e)
+          pointer.onDragStart = () => canvas.#startDraggingItems(ioNode, pointer, true)
+          pointer.onDragEnd = eUp => canvas.#processDraggedItems(eUp)
+          return true
         }
       }
 
