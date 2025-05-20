@@ -304,6 +304,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   #updateCursorStyle() {
     if (!this.state.shouldSetCursor) return
 
+    const crosshairItems =
+      CanvasItem.Node |
+      CanvasItem.RerouteSlot |
+      CanvasItem.SubgraphIoNode |
+      CanvasItem.SubgraphIoSlot
+
     let cursor = "default"
     if (this.state.draggingCanvas) {
       cursor = "grabbing"
@@ -311,12 +317,10 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       cursor = "grab"
     } else if (this.pointer.resizeDirection) {
       cursor = cursors[this.pointer.resizeDirection] ?? cursors.SE
-    } else if (this.state.hoveringOver & CanvasItem.Node) {
+    } else if (this.state.hoveringOver & crosshairItems) {
       cursor = "crosshair"
     } else if (this.state.hoveringOver & CanvasItem.Reroute) {
       cursor = "grab"
-    } else if (this.state.hoveringOver & CanvasItem.RerouteSlot) {
-      cursor = "crosshair"
     }
 
     this.canvas.style.cursor = cursor
@@ -2733,9 +2737,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     if (e.isPrimary) this.pointer.move(e)
 
+    /** See {@link state}.{@link LGraphCanvasState.hoveringOver hoveringOver} */
+    let underPointer = CanvasItem.Nothing
     if (subgraph) {
-      subgraph.inputNode.onPointerMove(e)
-      subgraph.outputNode.onPointerMove(e)
+      underPointer |= subgraph.inputNode.onPointerMove(e)
+      underPointer |= subgraph.outputNode.onPointerMove(e)
     }
 
     if (this.block_click) {
@@ -2757,8 +2763,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       }
     }
 
-    /** See {@link state}.{@link LGraphCanvasState.hoveringOver hoveringOver} */
-    let underPointer = CanvasItem.Nothing
     // get node over
     const node = graph.getNodeOnPos(
       x,
