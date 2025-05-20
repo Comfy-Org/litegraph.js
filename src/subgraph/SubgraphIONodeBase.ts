@@ -8,6 +8,7 @@ import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation
 
 import { Rectangle } from "@/infrastructure/Rectangle"
 import { snapPoint } from "@/measure"
+import { CanvasItem } from "@/types/globalEnums"
 
 export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
   static margin = 10
@@ -76,17 +77,21 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
 
   abstract get slotAnchorX(): number
 
-  onPointerMove(e: CanvasPointerEvent): void {
+  onPointerMove(e: CanvasPointerEvent): CanvasItem {
     const containsPoint = this.boundingRect.containsXy(e.canvasX, e.canvasY)
+    let underPointer = containsPoint ? CanvasItem.SubgraphIoNode : CanvasItem.Nothing
+
     if (containsPoint) {
       if (!this.isPointerOver) this.onPointerEnter()
 
       for (const slot of this.slots) {
         slot.onPointerMove(e)
+        if (slot.isPointerOver) underPointer |= CanvasItem.SubgraphIoSlot
       }
     } else if (this.isPointerOver) {
       this.onPointerLeave()
     }
+    return underPointer
   }
 
   onPointerEnter() {
