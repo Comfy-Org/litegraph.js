@@ -657,9 +657,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     this.ds = new DragAndScale(canvas)
     this.pointer = new CanvasPointer(canvas)
 
+    this.linkConnector.events.addEventListener("link-created", () => this.#dirty())
+
     // @deprecated Workaround: Keep until connecting_links is removed.
     this.linkConnector.events.addEventListener("reset", () => {
       this.connecting_links = null
+      this.dirty_bgcanvas = true
     })
 
     // Dropped a link on the canvas
@@ -1800,10 +1803,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     if (!graph) throw new NullGraphError()
 
     pointer.onDragEnd = upEvent => linkConnector.dropLinks(graph, upEvent)
-    pointer.finally = () => {
-      this.linkConnector.reset(true)
-      this.#dirty()
-    }
+    pointer.finally = () => this.linkConnector.reset(true)
   }
 
   /**
@@ -3144,7 +3144,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         }
         if (this.linkConnector.isConnecting) {
           this.linkConnector.reset()
-          this.#dirty()
           e.preventDefault()
           return
         }
