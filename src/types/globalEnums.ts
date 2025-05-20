@@ -36,6 +36,10 @@ export enum CanvasItem {
   Link = 1 << 3,
   /** A reroute slot */
   RerouteSlot = 1 << 5,
+  /** A subgraph input or output node */
+  SubgraphIoNode = 1 << 6,
+  /** A subgraph input or output slot */
+  SubgraphIoSlot = 1 << 7,
 }
 
 /** The direction that a link point will flow towards - e.g. horizontal outputs are right by default */
