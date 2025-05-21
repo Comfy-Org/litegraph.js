@@ -1,9 +1,10 @@
 import type { Subgraph } from "./Subgraph"
 import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
+import type { LinkConnector } from "@/canvas/LinkConnector"
 import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
-import type { CanvasColour, CanvasPointerEvent } from "@/litegraph"
+import type { CanvasColour, CanvasPointer, CanvasPointerEvent } from "@/litegraph"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
 
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -68,6 +69,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   snapToGrid(snapTo: number): boolean {
     return this.pinned ? false : snapPoint(this.pos, snapTo)
   }
+
+  abstract onPointerDown(e: CanvasPointerEvent, pointer: CanvasPointer, linkConnector: LinkConnector): void
 
   // #region Hoverable
 

@@ -33,7 +33,7 @@ import type {
   CanvasPointerEvent,
   CanvasPointerExtensions,
 } from "./types/events"
-import type { ClipboardItems } from "./types/serialisation"
+import type { ClipboardItems, SubgraphIO } from "./types/serialisation"
 import type { NeverNever } from "./types/utility"
 import type { PickNevers } from "./types/utility"
 import type { IBaseWidget } from "./types/widgets"
@@ -64,7 +64,9 @@ import { NodeInputSlot } from "./node/NodeInputSlot"
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { Subgraph } from "./subgraph/Subgraph"
+import { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import { SubgraphIONodeBase } from "./subgraph/SubgraphIONodeBase"
+import { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import {
   CanvasItem,
   LGraphEventMode,
@@ -97,13 +99,13 @@ interface IShowSearchOptions {
 
 interface ICreateNodeOptions {
   /** input */
-  nodeFrom?: LGraphNode | null
+  nodeFrom?: SubgraphInputNode | LGraphNode | null
   /** input */
-  slotFrom?: number | INodeOutputSlot | INodeInputSlot | null
+  slotFrom?: number | INodeOutputSlot | INodeInputSlot | SubgraphIO | null
   /** output */
-  nodeTo?: LGraphNode | null
+  nodeTo?: SubgraphOutputNode | LGraphNode | null
   /** output */
-  slotTo?: number | INodeOutputSlot | INodeInputSlot | null
+  slotTo?: number | INodeOutputSlot | INodeInputSlot | SubgraphIO | null
   /** pass the event coords */
 
   /** Create the connection from a reroute */
@@ -694,13 +696,13 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       if (LiteGraph.release_link_on_empty_shows_menu) {
         const linkReleaseContext = this.linkConnector.state.connectingTo === "input"
           ? {
-            node_from: firstLink.node,
-            slot_from: firstLink.fromSlot,
+            node_from: firstLink.node as LGraphNode,
+            slot_from: firstLink.fromSlot as INodeOutputSlot,
             type_filter_in: firstLink.fromSlot.type,
           }
           : {
-            node_to: firstLink.node,
-            slot_from: firstLink.fromSlot,
+            node_to: firstLink.node as LGraphNode,
+            slot_to: firstLink.fromSlot as INodeInputSlot,
             type_filter_out: firstLink.fromSlot.type,
           }
 
@@ -708,12 +710,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
         if ("shiftKey" in e && e.shiftKey) {
           if (this.allow_searchbox) {
-            this.showSearchBox(e as unknown as MouseEvent, linkReleaseContext)
+            this.showSearchBox(e as unknown as MouseEvent, linkReleaseContext as IShowSearchOptions)
           }
         } else if (this.linkConnector.state.connectingTo === "input") {
-          this.showConnectionMenu({ nodeFrom: firstLink.node, slotFrom: firstLink.fromSlot, e, afterRerouteId })
+          this.showConnectionMenu({ nodeFrom: firstLink.node as LGraphNode, slotFrom: firstLink.fromSlot as INodeOutputSlot, e, afterRerouteId })
         } else {
-          this.showConnectionMenu({ nodeTo: firstLink.node, slotTo: firstLink.fromSlot, e, afterRerouteId })
+          this.showConnectionMenu({ nodeTo: firstLink.node as LGraphNode, slotTo: firstLink.fromSlot as INodeInputSlot, e, afterRerouteId })
         }
       }
     })
@@ -2129,9 +2131,10 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         function processSubgraphIONode(canvas: LGraphCanvas, ioNode: SubgraphIONodeBase) {
           if (!ioNode.containsPoint([x, y])) return false
 
-          pointer.onClick = () => canvas.processSelect(ioNode, e)
-          pointer.onDragStart = () => canvas.#startDraggingItems(ioNode, pointer, true)
-          pointer.onDragEnd = eUp => canvas.#processDraggedItems(eUp)
+          ioNode.onPointerDown(e, pointer, linkConnector)
+          pointer.onClick ??= () => canvas.processSelect(ioNode, e)
+          pointer.onDragStart ??= () => canvas.#startDraggingItems(ioNode, pointer, true)
+          pointer.onDragEnd ??= eUp => canvas.#processDraggedItems(eUp)
           return true
         }
       }
@@ -3215,6 +3218,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         block_default = true
       } else if (e.key === "Escape") {
         // esc
+        if (this.linkConnector.isConnecting) {
+          this.linkConnector.reset()
+          e.preventDefault()
+          return
+        }
         if (this.subgraph) {
           const parentGraph = graph.pathToRootGraph.at(-2)
           console.warn("path", graph.pathToRootGraph)
@@ -3223,11 +3231,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
             return
           }
           this.setGraph(parentGraph)
-          e.preventDefault()
-          return
-        }
-        if (this.linkConnector.isConnecting) {
-          this.linkConnector.reset()
           e.preventDefault()
           return
         }
@@ -4623,7 +4626,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     if (!node.collapsed) {
       node.arrange()
       node.drawSlots(ctx, {
-        fromSlot: this.linkConnector.renderLinks[0]?.fromSlot,
+        fromSlot: this.linkConnector.renderLinks[0]?.fromSlot as INodeOutputSlot | INodeInputSlot,
         colorContext: this.colourGetter,
         editorAlpha: this.editor_alpha,
         lowQuality: this.low_quality,
@@ -5772,28 +5775,42 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     let slotX = isFrom ? opts.slotFrom : opts.slotTo
 
     let iSlotConn: number | false = false
-    switch (typeof slotX) {
-    case "string":
-      iSlotConn = isFrom ? nodeX.findOutputSlot(slotX, false) : nodeX.findInputSlot(slotX, false)
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-      break
-    case "object":
-      if (slotX === null) {
+    if (nodeX instanceof SubgraphIONodeBase) {
+      if (typeof slotX !== "object" || !slotX) {
         console.warn("Cant get slot information", slotX)
         return false
       }
+      const { name } = slotX
+      iSlotConn = nodeX.slots.findIndex(s => s.name === name)
+      slotX = nodeX.slots[iSlotConn]
+      if (!slotX) {
+        console.warn("Cant get slot information", slotX)
+        return false
+      }
+    } else {
+      switch (typeof slotX) {
+      case "string":
+        iSlotConn = isFrom ? nodeX.findOutputSlot(slotX, false) : nodeX.findInputSlot(slotX, false)
+        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+        break
+      case "object":
+        if (slotX === null) {
+          console.warn("Cant get slot information", slotX)
+          return false
+        }
 
-      // ok slotX
-      iSlotConn = isFrom ? nodeX.findOutputSlot(slotX.name) : nodeX.findInputSlot(slotX.name)
-      break
-    case "number":
-      iSlotConn = slotX
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-      break
-    case "undefined":
-    default:
-      console.warn("Cant get slot information", slotX)
-      return false
+        // ok slotX
+        iSlotConn = isFrom ? nodeX.findOutputSlot(slotX.name) : nodeX.findInputSlot(slotX.name)
+        break
+      case "number":
+        iSlotConn = slotX
+        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+        break
+      case "undefined":
+      default:
+        console.warn("Cant get slot information", slotX)
+        return false
+      }
     }
 
     // check for defaults nodes for this slottype
@@ -5929,31 +5946,45 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     let slotX = isFrom ? opts.slotFrom : opts.slotTo
 
     let iSlotConn: number
-    switch (typeof slotX) {
-    case "string":
-      iSlotConn = isFrom
-        ? nodeX.findOutputSlot(slotX, false)
-        : nodeX.findInputSlot(slotX, false)
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-      break
-    case "object":
-      if (slotX === null) {
+    if (nodeX instanceof SubgraphIONodeBase) {
+      if (typeof slotX !== "object" || !slotX) {
         console.warn("Cant get slot information", slotX)
         return
       }
+      const { name } = slotX
+      iSlotConn = nodeX.slots.findIndex(s => s.name === name)
+      slotX = nodeX.slots[iSlotConn]
+      if (!slotX) {
+        console.warn("Cant get slot information", slotX)
+        return
+      }
+    } else {
+      switch (typeof slotX) {
+      case "string":
+        iSlotConn = isFrom
+          ? nodeX.findOutputSlot(slotX, false)
+          : nodeX.findInputSlot(slotX, false)
+        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+        break
+      case "object":
+        if (slotX === null) {
+          console.warn("Cant get slot information", slotX)
+          return
+        }
 
-      // ok slotX
-      iSlotConn = isFrom
-        ? nodeX.findOutputSlot(slotX.name)
-        : nodeX.findInputSlot(slotX.name)
-      break
-    case "number":
-      iSlotConn = slotX
-      slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
-      break
-    default:
-      console.warn("Cant get slot information", slotX)
-      return
+        // ok slotX
+        iSlotConn = isFrom
+          ? nodeX.findOutputSlot(slotX.name)
+          : nodeX.findInputSlot(slotX.name)
+        break
+      case "number":
+        iSlotConn = slotX
+        slotX = isFrom ? nodeX.outputs[slotX] : nodeX.inputs[slotX]
+        break
+      default:
+        console.warn("Cant get slot information", slotX)
+        return
+      }
     }
 
     const options = ["Add Node", "Add Reroute", null]
@@ -5998,9 +6029,13 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
           if (!node) return
 
           if (isFrom) {
-            opts.nodeFrom?.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
+            if (!opts.nodeFrom) throw new TypeError("Cannot add node to SubgraphInputNode: nodeFrom was null")
+            const slot = opts.nodeFrom.connectByType(iSlotConn, node, fromSlotType, { afterRerouteId })
+            if (!slot) console.warn("Failed to make new connection.")
+            // }
           } else {
-            opts.nodeTo?.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
+            if (!opts.nodeTo) throw new TypeError("Cannot add node to SubgraphInputNode: nodeTo was null")
+            opts.nodeTo.connectByTypeOutput(iSlotConn, node, fromSlotType, { afterRerouteId })
           }
         })
         break
@@ -6013,16 +6048,22 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         if (!slot) throw new TypeError("Cannot add reroute: slot was null")
         if (!opts.e) throw new TypeError("Cannot add reroute: CanvasPointerEvent was null")
 
-        const reroute = node.connectFloatingReroute([opts.e.canvasX, opts.e.canvasY], slot, afterRerouteId)
-        if (!reroute) throw new Error("Failed to create reroute")
+        if (node instanceof SubgraphIONodeBase) {
+          throw new TypeError("Cannot add floating reroute to Subgraph IO Nodes")
+        } else {
+          const reroute = node.connectFloatingReroute([opts.e.canvasX, opts.e.canvasY], slot, afterRerouteId)
+          if (!reroute) throw new Error("Failed to create reroute")
+        }
 
         dirty()
         break
       }
       case "Search":
         if (isFrom) {
+          // @ts-expect-error Subgraph
           opts.showSearchBox(e, { node_from: opts.nodeFrom, slot_from: slotX, type_filter_in: fromSlotType })
         } else {
+          // @ts-expect-error Subgraph
           opts.showSearchBox(e, { node_to: opts.nodeTo, slot_from: slotX, type_filter_out: fromSlotType })
         }
         break
@@ -6034,8 +6075,8 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         } satisfies Partial<ICreateDefaultNodeOptions>
 
         const options = Object.assign(opts, customProps)
-        that.createDefaultNodeForSlot(options)
-        break
+        if (!that.createDefaultNodeForSlot(options))
+          break
       }
       }
     }
