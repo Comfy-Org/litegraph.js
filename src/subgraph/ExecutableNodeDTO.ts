@@ -3,8 +3,8 @@ import type { CallbackParams, CallbackReturn } from "@/interfaces"
 import type { LGraph } from "@/LGraph"
 import type { LGraphNode } from "@/LGraphNode"
 
-import { LLink } from "@/LLink"
 import { SUBGRAPH_INPUT_ID } from "@/constants"
+import { LLink } from "@/LLink"
 
 /**
  * A subset of {@link LGraphNode}; the members used when assembling the graph for backend execution.
