@@ -23,8 +23,11 @@ import type {
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type { Reroute, RerouteId } from "./Reroute"
+import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
+import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import type { CanvasMouseEvent } from "./types/events"
-import type { ISerialisedNode } from "./types/serialisation"
+import type { NodeLike } from "./types/NodeLike"
+import type { ISerialisedNode, SubgraphIO } from "./types/serialisation"
 import type { IBaseWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
@@ -183,7 +186,7 @@ export interface LGraphNode {
  * @param type a type for the node
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-export class LGraphNode implements Positionable, IPinnable, IColorable {
+export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable {
   // Static properties used by dynamic child classes
   static title?: string
   static MAX_CONSOLE?: number
@@ -464,16 +467,16 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     this: LGraphNode,
     target_slot: number,
     type: unknown,
-    output: INodeOutputSlot,
-    node: LGraphNode,
+    output: INodeOutputSlot | SubgraphIO,
+    node: LGraphNode | SubgraphInputNode,
     slot: number,
   ): boolean
   onConnectOutput?(
     this: LGraphNode,
     slot: number,
     type: unknown,
-    input: INodeInputSlot,
-    target_node: number | LGraphNode,
+    input: INodeInputSlot | SubgraphIO,
+    target_node: number | LGraphNode | SubgraphOutputNode,
     target_slot: number,
   ): boolean
   onResize?(this: LGraphNode, size: Size): void
@@ -2381,9 +2384,9 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   canConnectTo(
-    node: LGraphNode,
-    toSlot: INodeInputSlot,
-    fromSlot: INodeOutputSlot,
+    node: NodeLike,
+    toSlot: INodeInputSlot | SubgraphIO,
+    fromSlot: INodeOutputSlot | SubgraphIO,
   ) {
     return this.id !== node.id && LiteGraph.isValidConnection(fromSlot.type, toSlot.type)
   }

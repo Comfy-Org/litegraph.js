@@ -1,11 +1,17 @@
-import type { SubgraphIONodeBase } from "./SubgraphIONodeBase"
-import type { DefaultConnectionColors, Hoverable, Point, ReadOnlyRect, ReadOnlySize } from "@/interfaces"
+import type { SubgraphInputNode } from "./SubgraphInputNode"
+import type { SubgraphOutputNode } from "./SubgraphOutputNode"
+import type { DefaultConnectionColors, Hoverable, INodeInputSlot, INodeOutputSlot, Point, ReadOnlyRect, ReadOnlySize } from "@/interfaces"
+import type { LGraphNode } from "@/LGraphNode"
 import type { LinkId, LLink } from "@/LLink"
+import type { RerouteId } from "@/Reroute"
+import type { CanvasPointerEvent } from "@/types/events"
 import type { Serialisable, SubgraphIO } from "@/types/serialisation"
 
+import { SlotShape } from "@/draw"
 import { ConstrainedSize } from "@/infrastructure/ConstrainedSize"
 import { Rectangle } from "@/infrastructure/Rectangle"
-import { type CanvasPointerEvent, LGraphCanvas, LiteGraph, SlotShape } from "@/litegraph"
+import { LGraphCanvas } from "@/LGraphCanvas"
+import { LiteGraph } from "@/litegraph"
 import { SlotBase } from "@/node/SlotBase"
 import { createUuidv4, type UUID } from "@/utils/uuid"
 
@@ -26,7 +32,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
   readonly measurement: ConstrainedSize = new ConstrainedSize(SubgraphSlot.defaultHeight, SubgraphSlot.defaultHeight)
 
   readonly id: UUID
-  readonly parent: SubgraphIONodeBase
+  readonly parent: SubgraphInputNode | SubgraphOutputNode
   override type: string
 
   readonly linkIds: LinkId[] = []
@@ -56,7 +62,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
 
   abstract get labelPos(): Point
 
-  constructor(slot: SubgraphIO, parent: SubgraphIONodeBase) {
+  constructor(slot: SubgraphIO, parent: SubgraphInputNode | SubgraphOutputNode) {
     super(slot.name, slot.type)
 
     Object.assign(this, slot)
@@ -95,6 +101,12 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
   }
 
   abstract arrange(rect: ReadOnlyRect): void
+
+  abstract connect(
+    slot: INodeInputSlot | INodeOutputSlot,
+    node: LGraphNode,
+    afterRerouteId?: RerouteId,
+  ): LLink | undefined
 
   /** @remarks Leaves the context dirty. */
   drawLabel(ctx: CanvasRenderingContext2D): void {
