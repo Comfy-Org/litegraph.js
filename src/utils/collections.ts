@@ -99,3 +99,11 @@ export function findFreeSlotOfType<T extends InputOrOutput>(
   }
   return wildSlot ?? occupiedSlot ?? occupiedWildSlot
 }
+
+export function removeFromArray<T>(array: T[], value: T): boolean {
+  const index = array.indexOf(value)
+  const found = index !== -1
+
+  if (found) array.splice(index, 1)
+  return found
+}
