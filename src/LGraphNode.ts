@@ -2616,7 +2616,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
 
     this.setDirtyCanvas(false, true)
     graph.afterChange()
-    graph.connectionChange(this)
 
     return link
   }
@@ -2784,7 +2783,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     this.setDirtyCanvas(false, true)
-    graph.connectionChange(this)
     return true
   }
 
@@ -2865,7 +2863,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     }
 
     this.setDirtyCanvas(false, true)
-    graph?.connectionChange(this)
     return true
   }
 

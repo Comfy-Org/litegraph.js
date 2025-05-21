@@ -1176,15 +1176,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     this.canvasAction(c => c.onAfterChange?.(this))
   }
 
-  connectionChange(node: LGraphNode): void {
-    this.updateExecutionOrder()
-    this.onConnectionChange?.(node)
-    this._version++
-    // TODO: Interface never implemented - any consumers?
-    // @ts-expect-error
-    this.canvasAction(c => c.onConnectionChange?.())
-  }
-
   /**
    * clears the triggered slot animation in all links (stop visual animation)
    */
