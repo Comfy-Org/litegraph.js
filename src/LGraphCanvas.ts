@@ -7274,7 +7274,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       ]
       if (Object.keys(this.selected_nodes).length > 1) {
         options.push({
-          content: "Convert to Subgraph",
+          content: "Convert to Subgraph 🆕",
           callback: () => {
             this._graph.convertToSubgraph(this.selectedItems)
           },
@@ -7313,7 +7313,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         },
         null,
         {
-          content: "Convert to Subgraph",
+          content: "Convert to Subgraph 🆕",
           callback: () => {
             this._graph.convertToSubgraph(this.selectedItems)
           },
