@@ -7,6 +7,7 @@ import type { RerouteId } from "@/Reroute"
 import type { CanvasPointerEvent } from "@/types/events"
 
 import { SUBGRAPH_INPUT_ID } from "@/constants"
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { LLink } from "@/LLink"
 
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
@@ -25,7 +26,9 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
 
   override onPointerDown(e: CanvasPointerEvent, pointer: CanvasPointer, linkConnector: LinkConnector): void {
     for (const slot of this.slots) {
-      if (slot.boundingRect.containsXy(e.canvasX, e.canvasY)) {
+      const slotBounds = Rectangle.fromCentre(slot.pos, slot.boundingRect.height)
+
+      if (slotBounds.containsXy(e.canvasX, e.canvasY)) {
         pointer.onDragStart = () => {
           linkConnector.dragNewFromSubgraphInput(this.subgraph, this, slot)
         }
