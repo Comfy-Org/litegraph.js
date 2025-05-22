@@ -26,6 +26,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
 
   selected: boolean = false
   pinned: boolean = false
+  readonly removable = false
 
   isPointerOver: boolean = false
 
