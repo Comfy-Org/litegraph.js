@@ -30,27 +30,20 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   /** A list of node widgets displayed in the parent graph, on the subgraph object. */
   readonly widgets: ExposedWidget[] = []
 
+  #rootGraph: LGraph
   override get rootGraph(): LGraph {
-    return this.parents[0]
-  }
-
-  /** @inheritdoc */
-  override get pathToRootGraph(): readonly [LGraph, ...Subgraph[]] {
-    return [...this.parents, this]
-  }
-
-  get parentGraph(): LGraph {
-    // Assertion: This is always at least one parent in a subgraph.
-    return this.parents.at(-1)!
+    return this.#rootGraph
   }
 
   constructor(
-    readonly parents: readonly [LGraph, ...Subgraph[]],
+    rootGraph: LGraph,
     data: ExportedSubgraph,
   ) {
-    if (!parents.length) throw new Error("Subgraph must have at least one parent")
+    if (!rootGraph) throw new Error("Root graph is required")
 
     super()
+
+    this.#rootGraph = rootGraph
 
     const cloned = structuredClone(data)
     this._configureBase(cloned)
@@ -107,6 +100,10 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
     this.inputNode.draw(ctx, colorContext)
     this.outputNode.draw(ctx, colorContext)
+  }
+
+  clone(): Subgraph {
+    return new Subgraph(this.rootGraph, this.asSerialisable())
   }
 
   override asSerialisable(): ExportedSubgraph & Required<Pick<SerialisableGraph, "nodes" | "groups" | "extra">> {

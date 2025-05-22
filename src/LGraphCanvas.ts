@@ -3227,17 +3227,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
           e.preventDefault()
           return
         }
-        if (this.subgraph) {
-          const parentGraph = graph.pathToRootGraph.at(-2)
-          console.warn("path", graph.pathToRootGraph)
-          if (!parentGraph) {
-            console.warn("Failed to retrieve parent graph")
-            return
-          }
-          this.setGraph(parentGraph)
-          e.preventDefault()
-          return
-        }
         this.node_panel?.close()
         this.options_panel?.close()
         block_default = true

@@ -193,14 +193,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     return this
   }
 
-  /**
-   * Returns an array of all nested subgraphs, from the root graph to this graph (inclusive).
-   * @see {@link Subgraph.pathToRootGraph}
-   */
-  get pathToRootGraph(): readonly [LGraph, ...Subgraph[]] {
-    return [this]
-  }
-
   get isRootGraph(): boolean {
     return this.rootGraph === this
   }
@@ -1395,7 +1387,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   createSubgraph(data: ExportedSubgraph): Subgraph {
     const { id } = data
 
-    const subgraph = new Subgraph(this.pathToRootGraph, data)
+    const subgraph = new Subgraph(this.rootGraph, data)
     this.subgraphs.set(id, subgraph)
 
     // FE: Create node defs
