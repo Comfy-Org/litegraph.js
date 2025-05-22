@@ -3230,7 +3230,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         }
         this.node_panel?.close()
         this.options_panel?.close()
-        block_default = true
+        if (this.node_panel || this.options_panel) block_default = true
       } else if (e.keyCode === 65 && e.ctrlKey) {
         // select all Control A
         this.selectItems()
