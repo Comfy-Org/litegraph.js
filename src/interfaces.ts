@@ -79,6 +79,12 @@ export interface Positionable extends Parent<Positionable>, HasBoundingRect {
   readonly pinned?: boolean
 
   /**
+   * When explicitly set to `false`, no options to delete this item will be provided.
+   * @default undefined (true)
+   */
+  readonly removable?: boolean
+
+  /**
    * Adds a delta to the current position.
    * @param deltaX X value to add to current position
    * @param deltaY Y value to add to current position
