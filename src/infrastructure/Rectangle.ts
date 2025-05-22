@@ -6,7 +6,8 @@ import { isInRectangle } from "@/measure"
  * A rectangle, represented as a float64 array of 4 numbers: [x, y, width, height].
  *
  * This class is a subclass of Float64Array, and so has all the methods of that class.  Notably,
- * {@link Rectangle.from} can be used to convert a {@link ReadOnlyRect}.
+ * {@link Rectangle.from} can be used to convert a {@link ReadOnlyRect}. Typing of this however,
+ * is broken due to the base TS lib returning Float64Array rather than `this`.
  *
  * Sub-array properties ({@link Float64Array.subarray}):
  * - {@link pos}: The position of the top-left corner of the rectangle.
@@ -23,6 +24,23 @@ export class Rectangle extends Float64Array {
     this[1] = y
     this[2] = width
     this[3] = height
+  }
+
+  static override from([x, y, width, height]: ReadOnlyRect): Rectangle {
+    return new Rectangle(x, y, width, height)
+  }
+
+  /**
+   * Creates a new rectangle positioned at the given centre, with the given width/height.
+   * @param centre The centre of the rectangle, as an `[x, y]` point
+   * @param width The width of the rectangle
+   * @param height The height of the rectangle.  Default: {@link width}
+   * @returns A new rectangle whose centre is at {@link x}
+   */
+  static fromCentre([x, y]: ReadOnlyPoint, width: number, height = width): Rectangle {
+    const left = x - width * 0.5
+    const top = y - height * 0.5
+    return new Rectangle(left, top, width, height)
   }
 
   static ensureRect(rect: ReadOnlyRect): Rectangle {
@@ -361,6 +379,10 @@ export class Rectangle extends Float64Array {
     const currentHeight = this[3]
     this[3] = height
     this[1] += currentHeight - height
+  }
+
+  clone(): Rectangle {
+    return new Rectangle(this[0], this[1], this[2], this[3])
   }
 
   /** Alias of {@link export}. */
