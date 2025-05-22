@@ -556,6 +556,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   last_mouse: ReadOnlyPoint = [0, 0]
   last_mouseclick: number = 0
   graph: LGraph | Subgraph | null
+  get _graph(): LGraph | Subgraph {
+    if (!this.graph) throw new NullGraphError()
+    return this.graph
+  }
+
   canvas: HTMLCanvasElement & ICustomEventTarget<LGraphCanvasEventMap>
   bgcanvas: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
@@ -7269,6 +7274,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       ]
       if (Object.keys(this.selected_nodes).length > 1) {
         options.push({
+          content: "Convert to Subgraph",
+          callback: () => {
+            this._graph.convertToSubgraph(this.selectedItems)
+          },
+        }, {
           content: "Align",
           has_submenu: true,
           callback: LGraphCanvas.onGroupAlign,
@@ -7302,6 +7312,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
           callback: LGraphCanvas.showMenuNodeOptionalOutputs,
         },
         null,
+        {
+          content: "Convert to Subgraph",
+          callback: () => {
+            this._graph.convertToSubgraph(this.selectedItems)
+          },
+        },
         {
           content: "Properties",
           has_submenu: true,
@@ -7387,12 +7403,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         content: "Distribute Nodes",
         has_submenu: true,
         callback: LGraphCanvas.createDistributeMenu,
-      }, {
-        content: "Convert to Subgraph",
-        callback: () => {
-          if (!this.graph) throw new NullGraphError()
-          this.graph.convertToSubgraph(this.selectedItems)
-        },
       })
     }
 
