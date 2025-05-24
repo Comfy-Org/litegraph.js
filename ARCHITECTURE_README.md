@@ -54,26 +54,16 @@ Key properties:
 #### 3. **LGraphNode** (`src/LGraphNode.ts`)
 The fundamental building blocks that:
 - Contain inputs, outputs, properties, and widgets
-- Implement execution logic via `onExecute()`
 - Support custom rendering and interactions
 - Handle connections and data flow
+- Can define custom behavior callbacks
 
-Node lifecycle:
-```mermaid
-sequenceDiagram
-  participant Graph
-  participant Node
-  participant Canvas
-  
-  Graph->>Node: create & configure
-  Graph->>Node: add to graph
-  Node->>Node: onAdded()
-  Canvas->>Node: render
-  Graph->>Node: execute
-  Node->>Node: onExecute()
-  Graph->>Node: remove
-  Node->>Node: onRemoved()
-```
+Node lifecycle callbacks:
+- `onAdded()`: Called when node is added to graph
+- `onRemoved()`: Called when node is removed from graph
+- `onDrawForeground()`: Custom widget/content rendering
+- `onDrawBackground()`: Custom background rendering
+- Mouse event callbacks: `onMouseDown`, `onMouseUp`, `onMouseMove`, etc.
 
 #### 4. **LGraphCanvas** (`src/LGraphCanvas.ts`)
 The visualization and interaction layer that:
@@ -112,19 +102,22 @@ Node connection points:
 
 #### 7. **Widget System** (`src/widgets/`)
 Interactive controls within nodes:
-- **BaseWidget**: Abstract base class
+- **BaseWidget**: Abstract base class for all widgets
 - **NumberWidget**: Numeric inputs with validation
-- **SliderWidget**: Range-based numeric input
+- **SliderWidget**: Range-based numeric input  
+- **KnobWidget**: Circular knob control with gradient
 - **ComboWidget**: Dropdown selections
-- **TextWidget**: Text input fields
-- **BooleanWidget**: Checkboxes
-- **ButtonWidget**: Clickable actions
+- **TextWidget**: Text input fields (handles both "text" and "string" types)
+- **BooleanWidget**: Toggle switches (type: "toggle")
+- **ButtonWidget**: Clickable action buttons
+- **LegacyWidget**: Wrapper for custom/unknown widget types
 
 Widget features:
 - Value binding and callbacks
-- Custom rendering
-- Mouse interaction handling
+- Custom rendering per widget type
+- Mouse/pointer interaction handling
 - Serialization support
+- Layout size computation
 
 #### 8. **Subgraph System** (`src/subgraph/`)
 Nested graph functionality:
@@ -134,7 +127,7 @@ Nested graph functionality:
 - Input/output mapping
 - Widget exposure to parent graph
 
-## Event Flow and Execution
+## Event Flow and Node Organization
 
 ### Event System
 
@@ -152,22 +145,23 @@ sequenceDiagram
   Canvas->>Node: Forward Event
   Node->>Widget: Widget Interaction
   Widget->>Node: Value Changed
-  Node->>Graph: Trigger Execution
-  Graph->>Node: Execute Nodes
-  Node-->>Graph: Output Data
+  Node->>Node: Callback Triggered
 ```
 
-### Execution Model
+### Node Ordering
 
-1. **Topological Sorting**: Nodes are sorted based on dependencies
-2. **Execution Order**: Nodes execute in dependency order
-3. **Data Flow**: Values propagate through links
-4. **Event Modes**:
-   - `ALWAYS`: Execute continuously
-   - `ON_EVENT`: Execute on input change
-   - `NEVER`: Manual execution only
-   - `ON_TRIGGER`: Execute on trigger signal
-   - `BYPASS`: Skip execution
+The graph maintains node order for various operations:
+
+1. **Execution Order** (`computeExecutionOrder`): 
+   - Performs topological sorting based on node connections
+   - Identifies nodes without inputs as starting points
+   - Assigns levels to nodes based on their dependencies
+   - Used for graph layout and organization
+
+2. **Node Collections**:
+   - `_nodes`: All nodes in insertion order
+   - `_nodes_in_order`: Topologically sorted nodes
+   - `_nodes_by_id`: Fast lookup by node ID
 
 ## Rendering System
 
@@ -226,14 +220,16 @@ class MyCustomNode extends LGraphNode {
     this.addWidget("number", "value", 1)
   }
   
-  onExecute() {
-    const input = this.getInputData(0) ?? 0
-    const multiplier = this.widgets[0].value
-    this.setOutputData(0, input * multiplier)
+  onAdded() {
+    // Called when node is added to graph
+  }
+  
+  onRemoved() {
+    // Called when node is removed from graph
   }
 }
 
-LiteGraph.registerNodeType("custom/multiply", MyCustomNode)
+LiteGraph.registerNodeType("custom/mynode", MyCustomNode)
 ```
 
 ### Custom Widgets
@@ -270,7 +266,7 @@ class MyWidget extends BaseWidget {
 ## Best Practices
 
 1. **Node Design**:
-   - Keep execution logic lightweight
+   - Keep node logic focused and modular
    - Validate inputs before processing
    - Handle undefined/null gracefully
    - Use appropriate slot types
@@ -282,14 +278,13 @@ class MyWidget extends BaseWidget {
    - Label nodes and groups clearly
 
 3. **Performance**:
-   - Limit widget updates during execution
-   - Use appropriate execution modes
+   - Limit widget updates during rendering
+   - Use viewport culling for large graphs
    - Profile heavy computations
    - Consider web workers for intensive tasks
 
 ## Future Considerations
 
-- WebGL rendering backend
 - Improved touch support
 - Enhanced subgraph capabilities
 - Extended serialization formats
