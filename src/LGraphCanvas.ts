@@ -2272,7 +2272,7 @@ export class LGraphCanvas {
 
         pointer.onDragEnd = () => {
           this.#dirty()
-          graph.afterChange(this.resizing_node)
+          graph.afterChange(node)
         }
         pointer.finally = () => this.resizing_node = null
         this.canvas.style.cursor = "se-resize"
