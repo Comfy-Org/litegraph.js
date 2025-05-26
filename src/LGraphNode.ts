@@ -3,7 +3,7 @@ import type { IDrawBoundingOptions } from "./draw"
 import type { ReadOnlyRectangle } from "./infrastructure/Rectangle"
 import type {
   ColorOption,
-  CompassDirection,
+  CompassCorners,
   DefaultConnectionColors,
   Dictionary,
   IColorable,
@@ -1643,12 +1643,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
   }
 
   /**
-   * Returns which resize handle the point is over, or null if none
+   * Returns which resize corner the point is over, if any.
    * @param canvasX X position in canvas coordinates
    * @param canvasY Y position in canvas coordinates
-   * @returns Resize handle type or null
+   * @returns The compass corner the point is in, otherwise `undefined`.
    */
-  findResizeDirection(canvasX: number, canvasY: number): CompassDirection | undefined {
+  findResizeDirection(canvasX: number, canvasY: number): CompassCorners | undefined {
     if (this.resizable === false) return
 
     const { boundingRect } = this

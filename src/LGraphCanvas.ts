@@ -203,13 +203,9 @@ interface ICreatePanelOptions {
 }
 
 const cursors = {
-  N: "ns-resize",
   NE: "nesw-resize",
-  E: "ew-resize",
   SE: "nwse-resize",
-  S: "ns-resize",
   SW: "nesw-resize",
-  W: "ew-resize",
   NW: "nwse-resize",
 } as const
 
