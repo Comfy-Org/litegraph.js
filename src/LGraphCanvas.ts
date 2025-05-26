@@ -2380,33 +2380,19 @@ export class LGraphCanvas {
 
             // Handle resize based on the direction
             switch (resizeDirection) {
-            case "N": // North (top)
-              newBounds.y = startBounds.y + deltaY
-              newBounds.height = startBounds.height - deltaY
-              break
             case "NE": // North-East (top-right)
               newBounds.y = startBounds.y + deltaY
               newBounds.width = startBounds.width + deltaX
               newBounds.height = startBounds.height - deltaY
               break
-            case "E": // East (right)
-              newBounds.width = startBounds.width + deltaX
-              break
             case "SE": // South-East (bottom-right)
               newBounds.width = startBounds.width + deltaX
-              newBounds.height = startBounds.height + deltaY
-              break
-            case "S": // South (bottom)
               newBounds.height = startBounds.height + deltaY
               break
             case "SW": // South-West (bottom-left)
               newBounds.x = startBounds.x + deltaX
               newBounds.width = startBounds.width - deltaX
               newBounds.height = startBounds.height + deltaY
-              break
-            case "W": // West (left)
-              newBounds.x = startBounds.x + deltaX
-              newBounds.width = startBounds.width - deltaX
               break
             case "NW": // North-West (top-left)
               newBounds.x = startBounds.x + deltaX

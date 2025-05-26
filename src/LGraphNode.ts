@@ -1655,15 +1655,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     if (!boundingRect.containsXy(canvasX, canvasY)) return
 
     // Check corners first (they take priority over edges)
-    const cnr = boundingRect.findContainingCorner(canvasX, canvasY, LGraphNode.resizeHandleSize)
-    if (cnr) return cnr
-
-    // Edges - only need to check one axis because we already know the point is inside the node
-    const edgeSize = LGraphNode.resizeEdgeSize
-    if (canvasX - boundingRect.left < edgeSize) return "W"
-    if (boundingRect.right - canvasX < edgeSize) return "E"
-    if (canvasY - boundingRect.top < edgeSize) return "N"
-    if (boundingRect.bottom - canvasY < edgeSize) return "S"
+    return boundingRect.findContainingCorner(canvasX, canvasY, LGraphNode.resizeHandleSize)
   }
 
   /**
