@@ -22,13 +22,17 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
     return this.subgraph.inputs
   }
 
+  override get allSlots(): SubgraphInput[] {
+    return [...this.slots, this.emptySlot]
+  }
+
   get slotAnchorX() {
     const [x, , width] = this.boundingRect
     return x + width - SubgraphIONodeBase.roundedRadius
   }
 
   override onPointerDown(e: CanvasPointerEvent, pointer: CanvasPointer, linkConnector: LinkConnector): void {
-    for (const slot of this.slots) {
+    for (const slot of this.allSlots) {
       const slotBounds = Rectangle.fromCentre(slot.pos, slot.boundingRect.height)
 
       if (slotBounds.containsXy(e.canvasX, e.canvasY)) {
