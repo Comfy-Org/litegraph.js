@@ -1,9 +1,7 @@
-import type { SubgraphOutput } from "./SubgraphOutput"
 import type { ISubgraphInput } from "@/interfaces"
 import type { BaseLGraph, LGraph } from "@/LGraph"
-import type { INodeInputSlot, INodeOutputSlot, ISlotType } from "@/litegraph"
+import type { INodeInputSlot, ISlotType } from "@/litegraph"
 import type { GraphOrSubgraph, Subgraph } from "@/subgraph/Subgraph"
-import type { SubgraphInput } from "@/subgraph/SubgraphInput"
 import type { ExportedSubgraphInstance } from "@/types/serialisation"
 import type { UUID } from "@/utils/uuid"
 
@@ -17,9 +15,6 @@ import { type ExecutableLGraphNode, ExecutableNodeDTO } from "./ExecutableNodeDT
  * An instance of a {@link Subgraph}, displayed as a node on the containing (parent) graph.
  */
 export class SubgraphNode extends LGraphNode implements BaseLGraph {
-  declare inputs: (INodeInputSlot & { _subgraphSlot: SubgraphInput })[]
-  declare outputs: (INodeOutputSlot & { _subgraphSlot: SubgraphOutput })[]
-
   override readonly type: UUID
   override readonly isVirtualNode = true as const
 
@@ -57,14 +52,6 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
    * @remarks Assertion is required to instantiate empty generic POJO.
    */
   override addInput<TInput extends Partial<ISubgraphInput>>(name: string, type: ISlotType, inputProperties: TInput = {} as TInput): INodeInputSlot & TInput {
-    if (!inputProperties._subgraphSlot) {
-      console.warn("addInput for SubgraphNode must be called with a subgraph input.")
-      const lastInput = this.subgraph.inputs.at(-1)
-      if (!lastInput) throw new Error("No subgraph inputs found")
-
-      inputProperties._subgraphSlot = lastInput
-    }
-
     // Bypasses type narrowing on this.inputs
     return super.addInput(name, type, inputProperties)
   }
