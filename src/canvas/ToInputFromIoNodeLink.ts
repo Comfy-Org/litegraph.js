@@ -26,12 +26,14 @@ export class ToInputFromIoNodeLink implements RenderLink {
     public dragDirection: LinkDirection = LinkDirection.CENTER,
   ) {
     const outputIndex = node.slots.indexOf(fromSlot)
-    if (outputIndex === -1) throw new Error(`Creating render link for node [${this.node.id}] failed: Slot index not found.`)
+    if (outputIndex === -1 && fromSlot !== node.emptySlot) {
+      throw new Error(`Creating render link for node [${this.node.id}] failed: Slot index not found.`)
+    }
 
     this.fromSlotIndex = outputIndex
     this.fromPos = fromReroute
       ? fromReroute.pos
-      : this.node.slots[outputIndex].pos
+      : fromSlot.pos
   }
 
   canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): boolean {

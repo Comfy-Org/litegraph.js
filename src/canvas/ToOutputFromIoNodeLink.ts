@@ -25,12 +25,14 @@ export class ToOutputFromIoNodeLink implements RenderLink {
     public dragDirection: LinkDirection = LinkDirection.CENTER,
   ) {
     const inputIndex = node.slots.indexOf(fromSlot)
-    if (inputIndex === -1) throw new Error(`Creating render link for node [${this.node.id}] failed: Slot index not found.`)
+    if (inputIndex === -1 && fromSlot !== node.emptySlot) {
+      throw new Error(`Creating render link for node [${this.node.id}] failed: Slot index not found.`)
+    }
 
     this.fromSlotIndex = inputIndex
     this.fromPos = fromReroute
       ? fromReroute.pos
-      : this.node.slots[inputIndex].pos
+      : fromSlot.pos
   }
 
   canConnectToInput(): false {
