@@ -13,7 +13,7 @@ import { CanvasItem } from "@/types/globalEnums"
 
 export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
   static margin = 10
-  static defaultWidth = 100
+  static minWidth = 100
   static roundedRadius = 10
 
   readonly #boundingRect: Rectangle = new Rectangle()
@@ -114,12 +114,12 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
 
   /** Arrange the slots in this node. */
   arrange(): void {
-    const { defaultWidth, roundedRadius } = SubgraphIONodeBase
+    const { minWidth, roundedRadius } = SubgraphIONodeBase
     const [, y] = this.boundingRect
     const x = this.slotAnchorX
     const { size } = this
 
-    let maxWidth = 0
+    let maxWidth = minWidth
     let currentY = y + roundedRadius
 
     for (const slot of this.slots) {
@@ -130,7 +130,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
       if (slotWidth > maxWidth) maxWidth = slotWidth
     }
 
-    size[0] = (maxWidth || defaultWidth) + 2 * roundedRadius
+    size[0] = maxWidth + 2 * roundedRadius
     size[1] = currentY - y + roundedRadius
   }
 
