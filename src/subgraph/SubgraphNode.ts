@@ -8,6 +8,8 @@ import type { UUID } from "@/utils/uuid"
 import { RecursionError } from "@/infrastructure/RecursionError"
 import { LGraphNode } from "@/LGraphNode"
 import { LLink } from "@/LLink"
+import { NodeInputSlot } from "@/node/NodeInputSlot"
+import { NodeOutputSlot } from "@/node/NodeOutputSlot"
 
 import { type ExecutableLGraphNode, ExecutableNodeDTO } from "./ExecutableNodeDTO"
 
@@ -41,6 +43,24 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
     this.type = subgraph.id
     this.configure(instanceData)
+  }
+
+  override configure(info: ExportedSubgraphInstance): void {
+    this.inputs.length = 0
+    this.inputs.push(
+      ...this.subgraph.inputNode.slots.map(
+        slot => new NodeInputSlot({ name: slot.name, type: slot.type, link: null }, this),
+      ),
+    )
+
+    this.outputs.length = 0
+    this.outputs.push(
+      ...this.subgraph.outputNode.slots.map(
+        slot => new NodeOutputSlot({ name: slot.name, type: slot.type, links: null }, this),
+      ),
+    )
+
+    super.configure(info)
   }
 
   /**

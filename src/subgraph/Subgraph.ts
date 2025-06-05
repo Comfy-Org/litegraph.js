@@ -3,7 +3,7 @@ import type { LGraphCanvas } from "@/LGraphCanvas"
 import type { ExportedSubgraph, ExposedWidget, ISerialisedGraph, Serialisable, SerialisableGraph } from "@/types/serialisation"
 
 import { type BaseLGraph, LGraph } from "@/LGraph"
-import { createUuidv4 } from "@/litegraph"
+import { createUuidv4, type LGraphNode } from "@/litegraph"
 import { removeFromArray } from "@/utils/collections"
 
 import { SubgraphInput } from "./SubgraphInput"
@@ -107,6 +107,14 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     }, this.inputNode)
 
     this.inputs.push(input)
+
+    const subgraphId = this.id
+    this.#forAllNodes((node) => {
+      if (node.type === subgraphId) {
+        node.addInput(name, type)
+      }
+    })
+
     return input
   }
 
@@ -118,7 +126,28 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     }, this.outputNode)
 
     this.outputs.push(output)
+
+    const subgraphId = this.id
+    this.#forAllNodes((node) => {
+      if (node.type === subgraphId) {
+        node.addOutput(name, type)
+      }
+    })
+
     return output
+  }
+
+  #forAllNodes(callback: (node: LGraphNode) => void): void {
+    forNodes(this.rootGraph.nodes)
+    for (const subgraph of this.rootGraph.subgraphs.values()) {
+      forNodes(subgraph.nodes)
+    }
+
+    function forNodes(nodes: LGraphNode[]) {
+      for (const node of nodes) {
+        callback(node)
+      }
+    }
   }
 
   removeInput(input: SubgraphInput): void {
