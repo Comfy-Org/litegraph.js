@@ -1396,7 +1396,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   }
 
   convertToSubgraph(items: Set<Positionable>): { subgraph: Subgraph, node: SubgraphNode } {
-    if (items.size === 0) throw new Error("Cannot convert to subgraph: items is an empty set")
+    if (items.size === 0) throw new Error("Cannot convert to subgraph: nothing to convert")
     const { state, revision, config } = this
 
     const { boundaryLinks, boundaryFloatingLinks, internalLinks, boundaryInputLinks, boundaryOutputLinks } = getBoundaryLinks(this, items)
