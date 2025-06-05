@@ -60,6 +60,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   }
 
   abstract readonly slots: SubgraphInput[] | SubgraphOutput[]
+  abstract get allSlots(): SubgraphInput[] | SubgraphOutput[]
 
   constructor(
     /** The subgraph that this node belongs to. */
@@ -93,7 +94,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     if (containsPoint) {
       if (!this.isPointerOver) this.onPointerEnter()
 
-      for (const slot of this.slots) {
+      for (const slot of this.allSlots) {
         slot.onPointerMove(e)
         if (slot.isPointerOver) underPointer |= CanvasItem.SubgraphIoSlot
       }
@@ -127,8 +128,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     let maxWidth = minWidth
     let currentY = y + roundedRadius
 
-    const allSlots = [...this.slots, this.emptySlot]
-    for (const slot of allSlots) {
+    for (const slot of this.allSlots) {
       const [slotWidth, slotHeight] = slot.measure()
       slot.arrange([x, currentY, slotWidth, slotHeight])
 
@@ -155,8 +155,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     ctx.font = "12px Arial"
     ctx.textBaseline = "middle"
 
-    const allSlots = [...this.slots, this.emptySlot]
-    for (const slot of allSlots) {
+    for (const slot of this.allSlots) {
       slot.draw({ ctx, colorContext })
       slot.drawLabel(ctx)
     }
