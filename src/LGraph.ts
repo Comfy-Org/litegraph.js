@@ -1418,7 +1418,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     // Prepare subgraph data
     const data = {
       id: createUuidv4(),
-      name: "Subgraph - Click me",
+      name: "New Subgraph",
       inputNode: {
         id: SUBGRAPH_INPUT_ID,
         bounding: [0, 0, 75, 100],
