@@ -4,6 +4,7 @@ import type { LGraphNode } from "@/LGraphNode"
 import type { RerouteId } from "@/Reroute"
 
 import { LLink } from "@/LLink"
+import { nextUniqueName } from "@/strings"
 import { zeroUuid } from "@/utils/uuid"
 
 import { SubgraphInput } from "./SubgraphInput"
@@ -23,7 +24,11 @@ export class EmptySubgraphInput extends SubgraphInput {
   }
 
   override connect(slot: INodeInputSlot, node: LGraphNode, afterRerouteId?: RerouteId): LLink | undefined {
-    const input = this.parent.subgraph.addInput(slot.name, String(slot.type))
+    const { subgraph } = this.parent
+    const existingNames = subgraph.inputs.map(x => x.name)
+
+    const name = nextUniqueName(slot.name, existingNames)
+    const input = subgraph.addInput(name, String(slot.type))
     return input.connect(slot, node, afterRerouteId)
   }
 
