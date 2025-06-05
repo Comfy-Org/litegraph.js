@@ -3,6 +3,8 @@ import type { LGraphCanvas } from "@/LGraphCanvas"
 import type { ExportedSubgraph, ExposedWidget, ISerialisedGraph, Serialisable, SerialisableGraph } from "@/types/serialisation"
 
 import { type BaseLGraph, LGraph } from "@/LGraph"
+import { createUuidv4 } from "@/litegraph"
+import { removeFromArray } from "@/utils/collections"
 
 import { SubgraphInput } from "./SubgraphInput"
 import { SubgraphInputNode } from "./SubgraphInputNode"
@@ -95,6 +97,38 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
   override attachCanvas(canvas: LGraphCanvas): void {
     super.attachCanvas(canvas)
     canvas.subgraph = this
+  }
+
+  addInput(name: string, type: string): SubgraphInput {
+    const input = new SubgraphInput({
+      id: createUuidv4(),
+      name,
+      type,
+    }, this.inputNode)
+
+    this.inputs.push(input)
+    return input
+  }
+
+  addOutput(name: string, type: string): SubgraphOutput {
+    const output = new SubgraphOutput({
+      id: createUuidv4(),
+      name,
+      type,
+    }, this.outputNode)
+
+    this.outputs.push(output)
+    return output
+  }
+
+  removeInput(input: SubgraphInput): void {
+    input.disconnect()
+    removeFromArray(this.inputs, input)
+  }
+
+  removeOutput(output: SubgraphOutput): void {
+    output.disconnect()
+    removeFromArray(this.outputs, output)
   }
 
   draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {

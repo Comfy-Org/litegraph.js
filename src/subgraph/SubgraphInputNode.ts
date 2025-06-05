@@ -10,10 +10,13 @@ import { SUBGRAPH_INPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
 import { LLink } from "@/LLink"
 
+import { EmptySubgraphInput } from "./EmptySubgraphInput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
 
 export class SubgraphInputNode extends SubgraphIONodeBase implements Positionable {
   readonly id: NodeId = SUBGRAPH_INPUT_ID
+
+  readonly emptySlot: EmptySubgraphInput = new EmptySubgraphInput(this)
 
   get slots() {
     return this.subgraph.inputs
