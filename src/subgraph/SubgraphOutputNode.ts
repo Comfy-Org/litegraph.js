@@ -11,10 +11,13 @@ import type { CanvasPointerEvent } from "@/types/events"
 import { SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
 
+import { EmptySubgraphOutput } from "./EmptySubgraphOutput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
 
 export class SubgraphOutputNode extends SubgraphIONodeBase implements Positionable {
   readonly id: NodeId = SUBGRAPH_OUTPUT_ID
+
+  readonly emptySlot: EmptySubgraphOutput = new EmptySubgraphOutput(this)
 
   get slots() {
     return this.subgraph.outputs
