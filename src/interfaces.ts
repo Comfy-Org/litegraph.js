@@ -2,7 +2,12 @@ import type { ContextMenu } from "./ContextMenu"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
+import type { SubgraphInput } from "./subgraph/SubgraphInput"
+import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
+import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
+import type { Rectangle } from "@/infrastructure/Rectangle"
+import type { CanvasPointerEvent } from "@/types/events"
 
 export type Dictionary<T> = { [key: string]: T }
 
@@ -74,6 +79,12 @@ export interface Positionable extends Parent<Positionable>, HasBoundingRect {
   readonly pinned?: boolean
 
   /**
+   * When explicitly set to `false`, no options to delete this item will be provided.
+   * @default undefined (true)
+   */
+  readonly removable?: boolean
+
+  /**
    * Adds a delta to the current position.
    * @param deltaX X value to add to current position
    * @param deltaY Y value to add to current position
@@ -134,6 +145,9 @@ export interface ReadonlyLinkNetwork {
   getLink(id: LinkId | null | undefined): LLink | undefined
   getReroute(parentId: null | undefined): undefined
   getReroute(parentId: RerouteId | null | undefined): Reroute | undefined
+
+  readonly inputNode?: SubgraphInputNode
+  readonly outputNode?: SubgraphOutputNode
 }
 
 /**
@@ -420,6 +434,11 @@ export interface DefaultConnectionColors {
   getConnectedColor(type: ISlotType): CanvasColour
   getDisconnectedColor(type: ISlotType): CanvasColour
 }
+
+export interface ISubgraphInput extends INodeInputSlot {
+  _subgraphSlot: SubgraphInput
+}
+
 /**
  * Shorthand for {@link Parameters} of optional callbacks.
  * @example
@@ -440,3 +459,17 @@ export type CallbackParams<T extends ((...args: any) => any) | undefined> =
  * @see {@link CallbackParams}
  */
 export type CallbackReturn<T extends ((...args: any) => any) | undefined> = ReturnType<Exclude<T, undefined>>
+
+/**
+ * An object that can be hovered over.
+ */
+export interface Hoverable extends HasBoundingRect {
+  readonly boundingRect: Rectangle
+  isPointerOver: boolean
+
+  containsPoint(point: Point): boolean
+
+  onPointerMove(e: CanvasPointerEvent): void
+  onPointerEnter?(e?: CanvasPointerEvent): void
+  onPointerLeave?(e?: CanvasPointerEvent): void
+}

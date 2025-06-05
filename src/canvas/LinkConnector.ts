@@ -4,6 +4,10 @@ import type { ConnectingLink, ItemLocator, LinkNetwork, LinkSegment } from "@/in
 import type { INodeInputSlot, INodeOutputSlot } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
+import type { SubgraphInput } from "@/subgraph/SubgraphInput"
+import type { SubgraphInputNode } from "@/subgraph/SubgraphInputNode"
+import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
+import type { SubgraphOutputNode } from "@/subgraph/SubgraphOutputNode"
 import type { CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget } from "@/types/widgets"
 
@@ -15,7 +19,9 @@ import { FloatingRenderLink } from "./FloatingRenderLink"
 import { MovingInputLink } from "./MovingInputLink"
 import { MovingLinkBase } from "./MovingLinkBase"
 import { MovingOutputLink } from "./MovingOutputLink"
+import { ToInputFromIoNodeLink } from "./ToInputFromIoNodeLink"
 import { ToInputRenderLink } from "./ToInputRenderLink"
+import { ToOutputFromIoNodeLink } from "./ToOutputFromIoNodeLink"
 import { ToOutputFromRerouteLink } from "./ToOutputFromRerouteLink"
 import { ToOutputRenderLink } from "./ToOutputRenderLink"
 
@@ -39,7 +45,14 @@ export interface LinkConnectorState {
 }
 
 /** Discriminated union to simplify type narrowing. */
-type RenderLinkUnion = MovingInputLink | MovingOutputLink | FloatingRenderLink | ToInputRenderLink | ToOutputRenderLink
+type RenderLinkUnion =
+  | MovingInputLink
+  | MovingOutputLink
+  | FloatingRenderLink
+  | ToInputRenderLink
+  | ToOutputRenderLink
+  | ToInputFromIoNodeLink
+  | ToOutputFromIoNodeLink
 
 export interface LinkConnectorExport {
   renderLinks: RenderLink[]
@@ -259,6 +272,24 @@ export class LinkConnector {
     state.connectingTo = "output"
 
     this.#setLegacyLinks(true)
+  }
+
+  dragNewFromSubgraphInput(network: LinkNetwork, inputNode: SubgraphInputNode, input: SubgraphInput, fromReroute?: Reroute): void {
+    if (this.isConnecting) throw new Error("Already dragging links.")
+
+    const renderLink = new ToInputFromIoNodeLink(network, inputNode, input, fromReroute)
+    this.renderLinks.push(renderLink)
+
+    this.state.connectingTo = "input"
+  }
+
+  dragNewFromSubgraphOutput(network: LinkNetwork, outputNode: SubgraphOutputNode, output: SubgraphOutput, fromReroute?: Reroute): void {
+    if (this.isConnecting) throw new Error("Already dragging links.")
+
+    const renderLink = new ToOutputFromIoNodeLink(network, outputNode, output, fromReroute)
+    this.renderLinks.push(renderLink)
+
+    this.state.connectingTo = "output"
   }
 
   /**
@@ -523,7 +554,8 @@ export class LinkConnector {
     if (connectingTo === "output") {
       // Dropping new output link
       const output = node.findOutputByType(firstLink.fromSlot.type)?.slot
-      if (!output) {
+      console.debug("out", node, output, firstLink.fromSlot)
+      if (output === undefined) {
         console.warn(`Could not find slot for link type: [${firstLink.fromSlot.type}].`)
         return
       }
@@ -532,7 +564,8 @@ export class LinkConnector {
     } else if (connectingTo === "input") {
       // Dropping new input link
       const input = node.findInputByType(firstLink.fromSlot.type)?.slot
-      if (!input) {
+      console.debug("in", node, input, firstLink.fromSlot)
+      if (input === undefined) {
         console.warn(`Could not find slot for link type: [${firstLink.fromSlot.type}].`)
         return
       }
@@ -616,7 +649,7 @@ export class LinkConnector {
       const afterRerouteId = link instanceof MovingLinkBase ? link.link?.parentId : link.fromReroute?.id
 
       return {
-        node: link.node,
+        node: link.node as LGraphNode,
         slot: link.fromSlotIndex,
         input,
         output,
@@ -690,7 +723,7 @@ export class LinkConnector {
 
 /** Validates that a single {@link RenderLink} can be dropped on the specified reroute. */
 function canConnectInputLinkToReroute(
-  link: ToInputRenderLink | MovingInputLink | FloatingRenderLink,
+  link: ToInputRenderLink | MovingInputLink | FloatingRenderLink | ToInputFromIoNodeLink,
   inputNode: LGraphNode,
   input: INodeInputSlot,
   reroute: Reroute,
