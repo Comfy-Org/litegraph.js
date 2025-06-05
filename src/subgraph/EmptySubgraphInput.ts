@@ -23,7 +23,7 @@ export class EmptySubgraphInput extends SubgraphInput {
   }
 
   override connect(slot: INodeInputSlot, node: LGraphNode, afterRerouteId?: RerouteId): LLink | undefined {
-    const input = this.parent.subgraph.addInput(this.name, String(slot.type))
+    const input = this.parent.subgraph.addInput(slot.name, String(slot.type))
     return input.connect(slot, node, afterRerouteId)
   }
 
