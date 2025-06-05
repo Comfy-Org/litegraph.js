@@ -108,6 +108,19 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
     afterRerouteId?: RerouteId,
   ): LLink | undefined
 
+  /**
+   * Disconnects all links connected to this slot.
+   */
+  disconnect(): void {
+    const { subgraph } = this.parent
+
+    for (const linkId of this.linkIds) {
+      subgraph.removeLink(linkId)
+    }
+
+    this.linkIds.length = 0
+  }
+
   /** @remarks Leaves the context dirty. */
   drawLabel(ctx: CanvasRenderingContext2D): void {
     if (!this.displayName) return

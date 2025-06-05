@@ -1,5 +1,6 @@
+import type { EmptySubgraphInput } from "./EmptySubgraphInput"
+import type { EmptySubgraphOutput } from "./EmptySubgraphOutput"
 import type { Subgraph } from "./Subgraph"
-import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
 import type { LinkConnector } from "@/canvas/LinkConnector"
 import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
@@ -10,6 +11,8 @@ import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation
 import { Rectangle } from "@/infrastructure/Rectangle"
 import { snapPoint } from "@/measure"
 import { CanvasItem } from "@/types/globalEnums"
+
+import { SubgraphInput } from "./SubgraphInput"
 
 export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
   static margin = 10
@@ -29,6 +32,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   readonly removable = false
 
   isPointerOver: boolean = false
+
+  abstract readonly emptySlot: EmptySubgraphInput | EmptySubgraphOutput
 
   get pos() {
     return this.boundingRect.pos
@@ -122,7 +127,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     let maxWidth = minWidth
     let currentY = y + roundedRadius
 
-    for (const slot of this.slots) {
+    const allSlots = [...this.slots, this.emptySlot]
+    for (const slot of allSlots) {
       const [slotWidth, slotHeight] = slot.measure()
       slot.arrange([x, currentY, slotWidth, slotHeight])
 
@@ -149,7 +155,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     ctx.font = "12px Arial"
     ctx.textBaseline = "middle"
 
-    for (const slot of this.slots) {
+    const allSlots = [...this.slots, this.emptySlot]
+    for (const slot of allSlots) {
       slot.draw({ ctx, colorContext })
       slot.drawLabel(ctx)
     }
