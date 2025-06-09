@@ -3434,7 +3434,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     
       widget.last_y = y;
     
-      // 判断是否锁定：被禁用或有输入连接
+      // Check if locked: either disabled or has an input connection
       const connectedSlot = this.getSlotFromWidget(widget);
       widget.computedDisabled = widget.disabled || connectedSlot?.link != null;
       (widget as any).hideValue = connectedSlot?.link != null;
