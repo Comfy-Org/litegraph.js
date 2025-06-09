@@ -2,6 +2,7 @@ import type { IBaseWidget } from "@/types/widgets"
 
 import { drawTextInArea } from "@/draw"
 import { Rectangle } from "@/infrastructure/Rectangle"
+
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
 /**
@@ -66,8 +67,7 @@ export abstract class BaseSteppedWidget<TWidget extends IBaseWidget = IBaseWidge
       if (!this.computedDisabled) this.drawArrowButtons(ctx, options.width)
 
       this.drawTruncatingText({ ctx, width: options.width })
-    }
-    else {
+    } else {
       // Just draw the name, truncated
       const { margin } = BaseWidget
       const x = margin * 2

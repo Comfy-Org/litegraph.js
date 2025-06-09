@@ -3,6 +3,7 @@ import type { IStringWidget } from "@/types/widgets"
 
 import { drawTextInArea } from "@/draw"
 import { Rectangle } from "@/infrastructure/Rectangle"
+
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
 export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidget {
@@ -28,8 +29,7 @@ export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidg
 
     if (showText) {
       this.drawTruncatingText({ ctx, width, leftPadding: 0, rightPadding: 0 })
-    }
-    else {
+    } else {
       // Just draw the name, truncated
       const { margin } = BaseWidget
       const x = margin * 2
