@@ -1,5 +1,7 @@
 import type { IBaseWidget } from "@/types/widgets"
 
+import { drawTextInArea } from "@/draw"
+import { Rectangle } from "@/infrastructure/Rectangle"
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
 /**
@@ -64,6 +66,19 @@ export abstract class BaseSteppedWidget<TWidget extends IBaseWidget = IBaseWidge
       if (!this.computedDisabled) this.drawArrowButtons(ctx, options.width)
 
       this.drawTruncatingText({ ctx, width: options.width })
+    }
+    else {
+      // Just draw the name, truncated
+      const { margin } = BaseWidget
+      const x = margin * 2
+      const area = new Rectangle(x, this.y, options.width - x - margin, this.height * 0.7)
+      ctx.fillStyle = this.secondary_text_color
+      drawTextInArea({
+        ctx,
+        text: this.displayName,
+        area,
+        align: "left",
+      })
     }
 
     // Restore original context attributes
