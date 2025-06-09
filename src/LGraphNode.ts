@@ -3417,7 +3417,6 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     editorAlpha = 1,
   }: DrawWidgetsOptions): void {
     if (!this.widgets) return
-
     const nodeWidth = this.size[0]
     const { widgets } = this
     const H = LiteGraph.NODE_WIDGET_HEIGHT
