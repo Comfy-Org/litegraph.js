@@ -3410,29 +3410,26 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
     )
     return !isHidden
   }
+
   // sync number of widgets with the number of widgets in the node
   drawWidgets(ctx: CanvasRenderingContext2D, {
     lowQuality = false,
     editorAlpha = 1,
   }: DrawWidgetsOptions): void {
     if (!this.widgets) return
-  
     const nodeWidth = this.size[0]
     const { widgets } = this
     const H = LiteGraph.NODE_WIDGET_HEIGHT
     const showText = !lowQuality
     ctx.save()
     ctx.globalAlpha = editorAlpha
-  
     for (const widget of widgets) {
       if (!this.isWidgetVisible(widget)) continue;
-    
       const { y } = widget;
       const outlineColour = widget.advanced
         ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR
-        : LiteGraph.WIDGET_OUTLINE_COLOR;
-    
-      widget.last_y = y;
+        : LiteGraph.WIDGET_OUTLINE_COLOR
+      widget.last_y = y
     
       // Check if locked: either disabled or has an input connection
       const connectedSlot = this.getSlotFromWidget(widget);
@@ -3456,11 +3453,8 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
           showText: !forceHideValue,
         });
       }
-    
       ctx.globalAlpha = editorAlpha;
     }
-    
-  
     ctx.restore()
   }
   
