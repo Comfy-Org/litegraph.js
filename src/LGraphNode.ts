@@ -3431,8 +3431,12 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const outlineColour = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
 
       widget.last_y = y
+
+      // Check if widget has an input connection
+      const connectedSlot = this.getSlotFromWidget(widget)
+      const stripValue = connectedSlot?.link != null
       // Disable widget if it is disabled or if the value is passed from socket connection.
-      widget.computedDisabled = widget.disabled || this.getSlotFromWidget(widget)?.link != null
+      widget.computedDisabled = widget.disabled || stripValue
 
       ctx.strokeStyle = outlineColour
       ctx.fillStyle = "#222"
@@ -3443,7 +3447,11 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       if (typeof widget.draw === "function") {
         widget.draw(ctx, this, width, y, H, lowQuality)
       } else {
-        toConcreteWidget(widget, this, false)?.drawWidget(ctx, { width, showText })
+        toConcreteWidget(widget, this, false)?.drawWidget(ctx, {
+          width,
+          showText,
+          stripValue,
+        })
       }
       ctx.globalAlpha = editorAlpha
     }

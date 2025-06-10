@@ -18,6 +18,7 @@ export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidg
   override drawWidget(ctx: CanvasRenderingContext2D, {
     width,
     showText = true,
+    stripValue,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const { fillStyle, strokeStyle, textAlign } = ctx
@@ -25,7 +26,7 @@ export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidg
     this.drawWidgetShape(ctx, { width, showText })
 
     if (showText) {
-      this.drawTruncatingText({ ctx, width, leftPadding: 0, rightPadding: 0 })
+      this.drawTruncatingText({ ctx, width, leftPadding: 0, rightPadding: 0, stripValue })
     }
 
     // Restore original context attributes

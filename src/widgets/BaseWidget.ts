@@ -12,6 +12,8 @@ export interface DrawWidgetOptions {
   width: number
   /** Synonym for "low quality". */
   showText?: boolean
+  /** Hides the value of the widget, showing only the label. */
+  stripValue?: boolean
 }
 
 export interface DrawTruncatingTextOptions extends DrawWidgetOptions {
@@ -192,24 +194,31 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     width,
     leftPadding = 5,
     rightPadding = 20,
+    stripValue,
   }: DrawTruncatingTextOptions): void {
     const { height, y } = this
     const { margin } = BaseWidget
 
+    const { displayName } = this
+    const x = margin * 2 + leftPadding
+    const totalWidth = width - x - 2 * margin - rightPadding
+    const area = new Rectangle(x, y, totalWidth, height * 0.7)
+
+    ctx.fillStyle = this.secondary_text_color
+
+    if (stripValue) {
+      // When the value is hidden, only show the name of the widget
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+      return
+    }
+
     // Measure label and value
-    const { displayName, _displayValue } = this
+    const { _displayValue } = this
     const labelWidth = ctx.measureText(displayName).width
     const valueWidth = ctx.measureText(_displayValue).width
 
     const gap = BaseWidget.labelValueGap
-    const x = margin * 2 + leftPadding
-
-    const totalWidth = width - x - 2 * margin - rightPadding
     const requiredWidth = labelWidth + gap + valueWidth
-
-    const area = new Rectangle(x, y, totalWidth, height * 0.7)
-
-    ctx.fillStyle = this.secondary_text_color
 
     if (requiredWidth <= totalWidth) {
       // Draw label & value normally

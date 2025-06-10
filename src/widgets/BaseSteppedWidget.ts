@@ -63,7 +63,7 @@ export abstract class BaseSteppedWidget<TWidget extends IBaseWidget = IBaseWidge
     if (options.showText) {
       if (!this.computedDisabled) this.drawArrowButtons(ctx, options.width)
 
-      this.drawTruncatingText({ ctx, width: options.width })
+      this.drawTruncatingText({ ctx, width: options.width, stripValue: options.stripValue })
     }
 
     // Restore original context attributes
