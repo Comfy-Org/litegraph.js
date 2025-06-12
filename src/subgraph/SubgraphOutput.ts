@@ -48,7 +48,7 @@ export class SubgraphOutput extends SubgraphSlot {
       slot.type,
       node.id,
       outputIndex,
-      this.id,
+      this.parent.id,
       this.parent.slots.indexOf(this),
       afterRerouteId,
     )
