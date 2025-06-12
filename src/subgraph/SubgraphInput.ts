@@ -51,7 +51,7 @@ export class SubgraphInput extends SubgraphSlot {
     const link = new LLink(
       ++subgraph.state.lastLinkId,
       slot.type,
-      this.id,
+      this.parent.id,
       this.parent.slots.indexOf(this),
       node.id,
       inputIndex,
