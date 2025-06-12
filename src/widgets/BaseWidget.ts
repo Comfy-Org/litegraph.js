@@ -199,9 +199,17 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     const { height, y } = this
     const { margin } = BaseWidget
 
-    const { displayName } = this
+    // Measure label and value
+    const { displayName, _displayValue } = this
+    const labelWidth = ctx.measureText(displayName).width
+    const valueWidth = ctx.measureText(_displayValue).width
+
+    const gap = BaseWidget.labelValueGap
     const x = margin * 2 + leftPadding
+
     const totalWidth = width - x - 2 * margin - rightPadding
+    const requiredWidth = labelWidth + gap + valueWidth
+
     const area = new Rectangle(x, y, totalWidth, height * 0.7)
 
     ctx.fillStyle = this.secondary_text_color
@@ -209,16 +217,9 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     if (stripValue) {
       // When the value is hidden, only show the name of the widget
       drawTextInArea({ ctx, text: displayName, area, align: "left" })
+      ctx.fillStyle = this.text_color
       return
     }
-
-    // Measure label and value
-    const { _displayValue } = this
-    const labelWidth = ctx.measureText(displayName).width
-    const valueWidth = ctx.measureText(_displayValue).width
-
-    const gap = BaseWidget.labelValueGap
-    const requiredWidth = labelWidth + gap + valueWidth
 
     if (requiredWidth <= totalWidth) {
       // Draw label & value normally
