@@ -1522,34 +1522,39 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       )
     }
 
+    // Group matching links
+    const outputsGroupedByOutput = groupResolvedByOutput(resolvedOutputLinks)
+
     // Reconnect output links in parent graph
     i = 0
-    for (const res of resolvedOutputLinks) {
-      const { input, inputNode, link } = res
-
+    for (const [, connections] of outputsGroupedByOutput.entries()) {
       // Special handling: Subgraph output node
       i++
-      if (link.target_id === SUBGRAPH_OUTPUT_ID) {
-        link.origin_id = subgraphNode.id
-        link.origin_slot = i - 1
-        this.links.set(link.id, link)
-        console.debug({ ...link }, this.links.get(link.id) === link)
-        continue
-      }
+      for (const connection of connections) {
+        const { input, inputNode, link } = connection
+        if (link.target_id === SUBGRAPH_OUTPUT_ID) {
+          link.origin_id = subgraphNode.id
+          link.origin_slot = i - 1
+          this.links.set(link.id, link)
+          console.debug({ ...link }, this.links.get(link.id) === link)
+          continue
+        }
 
-      if (!input || !inputNode) {
-        console.warn("Convert to Subgraph reconnect: Failed to resolve output link", res)
-        continue
-      }
+        if (!input || !inputNode) {
+          console.warn("Convert to Subgraph reconnect: Failed to resolve output link", connection)
+          continue
+        }
 
-      const output = subgraphNode.findOutputSlotByType(link.type, true, true, true)
-      subgraphNode.connectSlots(
-        output,
-        inputNode,
-        input,
-        link.parentId,
-      )
+        const output = subgraphNode.outputs[i - 1]
+        subgraphNode.connectSlots(
+          output,
+          inputNode,
+          input,
+          link.parentId,
+        )
+      }
     }
+
     return { subgraph, node: subgraphNode as SubgraphNode }
   }
 

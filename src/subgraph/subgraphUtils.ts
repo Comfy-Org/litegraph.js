@@ -288,24 +288,37 @@ export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection
  * @returns The subgraph output slots.
  */
 export function mapSubgraphOutputsAndLinks(resolvedOutputLinks: ResolvedConnection[], links: SerialisableLLink[]): SubgraphIO[] {
+  // Group matching links
+  const groupedByOutput = groupResolvedByOutput(resolvedOutputLinks)
+
   const outputs: SubgraphIO[] = []
 
-  for (const resolved of resolvedOutputLinks) {
-    const { link, output } = resolved
-    if (!output) continue
+  for (const [, connections] of groupedByOutput) {
+    const outputLinks: SerialisableLLink[] = []
 
-    // Link
-    const linkData = link.asSerialisable()
-    linkData.target_id = SUBGRAPH_OUTPUT_ID
-    linkData.target_slot = outputs.length
-    links.push(linkData)
+    // Create serialised links for all links (will be recreated in subgraph)
+    for (const resolved of connections) {
+      const { link, output } = resolved
+      if (!output) continue
+
+      // Link
+      const linkData = link.asSerialisable()
+      linkData.target_id = SUBGRAPH_OUTPUT_ID
+      linkData.target_slot = outputs.length
+      links.push(linkData)
+      outputLinks.push(linkData)
+    }
+
+    // Use first output link
+    const { output } = connections[0]
+    if (!output) continue
 
     // Subgraph output slot
     const { color_off, color_on, dir, hasErrors, label, localized_name, name, shape, type } = output
     const outputData = {
       id: createUuidv4(),
       type: String(type),
-      linkIds: [linkData.id],
+      linkIds: outputLinks.map(link => link.id),
       name,
       color_off,
       color_on,
