@@ -9,6 +9,7 @@ import type { CanvasPointerEvent } from "@/types/events"
 import { SUBGRAPH_INPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
 import { LLink } from "@/LLink"
+import { NodeSlotType } from "@/types/globalEnums"
 
 import { EmptySubgraphInput } from "./EmptySubgraphInput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
@@ -91,6 +92,48 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
   }
 
   // #endregion Legacy LGraphNode compatibility
+
+  _disconnectNodeInput(node: LGraphNode, input: INodeInputSlot, link: LLink | undefined): void {
+    const { subgraph } = this
+
+    // Break floating links
+    if (input._floatingLinks?.size) {
+      for (const link of input._floatingLinks) {
+        subgraph.removeFloatingLink(link)
+      }
+    }
+
+    input.link = null
+    subgraph.setDirtyCanvas(false, true)
+
+    if (!link) return
+
+    const subgraphInputIndex = link.origin_slot
+    link.disconnect(subgraph, "output")
+    subgraph._version++
+
+    const subgraphInput = this.slots.at(subgraphInputIndex)
+    if (!subgraphInput) {
+      console.debug("disconnectNodeInput: subgraphInput not found", this, subgraphInputIndex)
+      return
+    }
+
+    // search in the inputs list for this link
+    const index = subgraphInput.linkIds.indexOf(link.id)
+    if (index !== -1) {
+      subgraphInput.linkIds.splice(index, 1)
+    } else {
+      console.debug("disconnectNodeInput: link ID not found in subgraphInput linkIds", link.id)
+    }
+
+    node.onConnectionsChange?.(
+      NodeSlotType.OUTPUT,
+      index,
+      false,
+      link,
+      subgraphInput,
+    )
+  }
 
   override drawProtected(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
     const { roundedRadius } = SubgraphIONodeBase

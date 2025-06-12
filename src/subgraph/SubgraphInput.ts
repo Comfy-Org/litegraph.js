@@ -43,9 +43,10 @@ export class SubgraphInput extends SubgraphSlot {
     // }
 
     // Disconnect target input, if it is already connected.
-    if (node.inputs[inputIndex]?.link != null) {
+    if (slot.link != null) {
       subgraph.beforeChange()
-      node.disconnectInput(inputIndex, true)
+      const link = subgraph.getLink(slot.link)
+      this.parent._disconnectNodeInput(node, slot, link)
     }
 
     const link = new LLink(
@@ -63,7 +64,7 @@ export class SubgraphInput extends SubgraphSlot {
 
     // Set link ID in each slot
     this.linkIds.push(link.id)
-    node.inputs[inputIndex].link = link.id
+    slot.link = link.id
 
     // Reroutes
     const reroutes = LLink.getReroutes(subgraph, link)
