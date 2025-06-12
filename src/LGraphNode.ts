@@ -37,7 +37,7 @@ import { NullGraphError } from "./infrastructure/NullGraphError"
 import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
-import { type LGraphNodeConstructor, LiteGraph, type SubgraphNode } from "./litegraph"
+import { type LGraphNodeConstructor, LiteGraph, type Subgraph, type SubgraphNode } from "./litegraph"
 import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { NodeInputSlot } from "./node/NodeInputSlot"
@@ -220,7 +220,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     return this.type
   }
 
-  graph: LGraph | null = null
+  graph: LGraph | Subgraph | null = null
   id: NodeId
   type: string = ""
   inputs: INodeInputSlot[] = []
@@ -500,7 +500,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     index: number,
     isConnected: boolean,
     link_info: LLink | null | undefined,
-    inputOrOutput: INodeInputSlot | INodeOutputSlot,
+    inputOrOutput: INodeInputSlot | INodeOutputSlot | SubgraphIO,
   ): void
   onInputAdded?(this: LGraphNode, input: INodeInputSlot): void
   onOutputAdded?(this: LGraphNode, output: INodeOutputSlot): void
@@ -2833,6 +2833,12 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       // remove other side
       const link_info = graph._links.get(link_id)
       if (link_info) {
+        // Let SubgraphInput do the disconnect.
+        if (link_info.origin_id === -10 && "inputNode" in graph) {
+          graph.inputNode._disconnectNodeInput(this, input, link_info)
+          return true
+        }
+
         const target_node = graph.getNodeById(link_info.origin_id)
         if (!target_node) {
           console.debug("disconnectInput: target node not found", link_info.origin_id)
