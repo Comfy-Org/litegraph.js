@@ -12,8 +12,6 @@ export interface DrawWidgetOptions {
   width: number
   /** Synonym for "low quality". */
   showText?: boolean
-  /** Hides the value of the widget, showing only the label. */
-  stripValue?: boolean
 }
 
 export interface DrawTruncatingTextOptions extends DrawWidgetOptions {
@@ -68,6 +66,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
   width?: number
   disabled?: boolean
   computedDisabled?: boolean
+  computedStripValue?: boolean
   hidden?: boolean
   advanced?: boolean
   tooltip?: string
@@ -194,7 +193,6 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     width,
     leftPadding = 5,
     rightPadding = 20,
-    stripValue,
   }: DrawTruncatingTextOptions): void {
     const { height, y } = this
     const { margin } = BaseWidget
@@ -214,7 +212,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
 
     ctx.fillStyle = this.secondary_text_color
 
-    if (stripValue) {
+    if (this.computedStripValue) {
       // When the value is hidden, only show the name of the widget
       drawTextInArea({ ctx, text: displayName, area, align: "left" })
       ctx.fillStyle = this.text_color

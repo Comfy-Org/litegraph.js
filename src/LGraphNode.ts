@@ -3437,6 +3437,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       const stripValue = connectedSlot?.link != null
       // Disable widget if it is disabled or if the value is passed from socket connection.
       widget.computedDisabled = widget.disabled || stripValue
+      widget.computedStripValue = stripValue
 
       ctx.strokeStyle = outlineColour
       ctx.fillStyle = "#222"
@@ -3449,8 +3450,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       } else {
         toConcreteWidget(widget, this, false)?.drawWidget(ctx, {
           width,
-          showText,
-          stripValue,
+          showText
         })
       }
       ctx.globalAlpha = editorAlpha
