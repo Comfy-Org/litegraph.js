@@ -17,7 +17,7 @@ export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidg
    */
   override drawWidget(ctx: CanvasRenderingContext2D, {
     width,
-    showText = true
+    showText = true,
   }: DrawWidgetOptions) {
     // Store original context attributes
     const { fillStyle, strokeStyle, textAlign } = ctx

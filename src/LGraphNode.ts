@@ -3450,7 +3450,7 @@ export class LGraphNode implements Positionable, IPinnable, IColorable {
       } else {
         toConcreteWidget(widget, this, false)?.drawWidget(ctx, {
           width,
-          showText
+          showText,
         })
       }
       ctx.globalAlpha = editorAlpha
