@@ -8,6 +8,7 @@ import { LGraphNode } from "@/LGraphNode"
 import { createUuidv4, LiteGraph } from "@/litegraph"
 import { LLink, type ResolvedConnection } from "@/LLink"
 import { Reroute } from "@/Reroute"
+import { nextUniqueName } from "@/strings"
 
 import { SubgraphInputNode } from "./SubgraphInputNode"
 import { SubgraphOutputNode } from "./SubgraphOutputNode"
@@ -261,16 +262,19 @@ export function mapSubgraphInputsAndLinks(resolvedInputLinks: ResolvedConnection
 
     // Subgraph input slot
     const { color_off, color_on, dir, hasErrors, label, localized_name, name, shape, type } = input
+    const uniqueName = nextUniqueName(name, inputs.map(input => input.name))
+    const uniqueLocalizedName = localized_name ? nextUniqueName(localized_name, inputs.map(input => input.localized_name ?? "")) : undefined
+
     const inputData: SubgraphIO = {
       id: createUuidv4(),
       type: String(type),
       linkIds: inputLinks.map(link => link.id),
-      name,
+      name: uniqueName,
       color_off,
       color_on,
       dir,
       label,
-      localized_name,
+      localized_name: uniqueLocalizedName,
       hasErrors,
       shape,
     }
@@ -315,16 +319,19 @@ export function mapSubgraphOutputsAndLinks(resolvedOutputLinks: ResolvedConnecti
 
     // Subgraph output slot
     const { color_off, color_on, dir, hasErrors, label, localized_name, name, shape, type } = output
+    const uniqueName = nextUniqueName(name, outputs.map(output => output.name))
+    const uniqueLocalizedName = localized_name ? nextUniqueName(localized_name, outputs.map(output => output.localized_name ?? "")) : undefined
+
     const outputData = {
       id: createUuidv4(),
       type: String(type),
       linkIds: outputLinks.map(link => link.id),
-      name,
+      name: uniqueName,
       color_off,
       color_on,
       dir,
       label,
-      localized_name,
+      localized_name: uniqueLocalizedName,
       hasErrors,
       shape,
     } satisfies SubgraphIO
