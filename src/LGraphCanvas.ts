@@ -1989,9 +1989,18 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       !this.read_only
     ) {
       // Right / aux button
+      const { linkConnector, subgraph } = this
 
       // Sticky select - won't remove single nodes
-      if (node) {
+      if (subgraph?.inputNode.containsPoint(this.graph_mouse)) {
+        // Subgraph input node
+        this.processSelect(subgraph.inputNode, e, true)
+        subgraph.inputNode.onPointerDown(e, pointer, linkConnector)
+      } else if (subgraph?.outputNode.containsPoint(this.graph_mouse)) {
+        // Subgraph output node
+        this.processSelect(subgraph.outputNode, e, true)
+        subgraph.outputNode.onPointerDown(e, pointer, linkConnector)
+      } else if (node) {
         this.processSelect(node, e, true)
       } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
         // Reroutes
