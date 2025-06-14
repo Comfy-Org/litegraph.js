@@ -49,14 +49,14 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     this.inputs.length = 0
     this.inputs.push(
       ...this.subgraph.inputNode.slots.map(
-        slot => new NodeInputSlot({ name: slot.name, type: slot.type, link: null }, this),
+        slot => new NodeInputSlot({ name: slot.name, localized_name: slot.localized_name, label: slot.label, type: slot.type, link: null }, this),
       ),
     )
 
     this.outputs.length = 0
     this.outputs.push(
       ...this.subgraph.outputNode.slots.map(
-        slot => new NodeOutputSlot({ name: slot.name, type: slot.type, links: null }, this),
+        slot => new NodeOutputSlot({ name: slot.name, localized_name: slot.localized_name, label: slot.label, type: slot.type, links: null }, this),
       ),
     )
 

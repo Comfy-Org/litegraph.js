@@ -33,21 +33,38 @@ export class SubgraphOutputNode extends SubgraphIONodeBase implements Positionab
   }
 
   override onPointerDown(e: CanvasPointerEvent, pointer: CanvasPointer, linkConnector: LinkConnector): void {
-    for (const slot of this.allSlots) {
-      const slotBounds = Rectangle.fromCentre(slot.pos, slot.boundingRect.height)
+    // Left-click handling for dragging connections
+    if (e.button === 0) {
+      for (const slot of this.allSlots) {
+        const slotBounds = Rectangle.fromCentre(slot.pos, slot.boundingRect.height)
 
-      if (slotBounds.containsXy(e.canvasX, e.canvasY)) {
-        pointer.onDragStart = () => {
-          linkConnector.dragNewFromSubgraphOutput(this.subgraph, this, slot)
-        }
-        pointer.onDragEnd = (eUp) => {
-          linkConnector.dropLinks(this.subgraph, eUp)
-        }
-        pointer.finally = () => {
-          linkConnector.reset(true)
+        if (slotBounds.containsXy(e.canvasX, e.canvasY)) {
+          pointer.onDragStart = () => {
+            linkConnector.dragNewFromSubgraphOutput(this.subgraph, this, slot)
+          }
+          pointer.onDragEnd = (eUp) => {
+            linkConnector.dropLinks(this.subgraph, eUp)
+          }
+          pointer.finally = () => {
+            linkConnector.reset(true)
+          }
         }
       }
+    // Check for right-click
+    } else if (e.button === 2) {
+      const slot = this.getSlotInPosition(e.canvasX, e.canvasY, this.slots)
+      if (slot) this.showSlotContextMenu(slot, e)
     }
+  }
+
+  /** @inheritdoc */
+  override renameSlot(slot: SubgraphOutput, name: string): void {
+    this.subgraph.renameOutput(slot, name)
+  }
+
+  /** @inheritdoc */
+  override removeSlot(slot: SubgraphOutput): void {
+    this.subgraph.removeOutput(slot)
   }
 
   canConnectTo(outputNode: LGraphNode, fromSlot: SubgraphOutput, output: INodeOutputSlot): boolean {

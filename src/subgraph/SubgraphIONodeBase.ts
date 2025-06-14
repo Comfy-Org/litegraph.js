@@ -5,10 +5,10 @@ import type { SubgraphOutput } from "./SubgraphOutput"
 import type { LinkConnector } from "@/canvas/LinkConnector"
 import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
 import type { NodeId } from "@/LGraphNode"
-import type { CanvasColour, CanvasPointer, CanvasPointerEvent } from "@/litegraph"
 import type { ExportedSubgraphIONode, Serialisable } from "@/types/serialisation"
 
 import { Rectangle } from "@/infrastructure/Rectangle"
+import { type CanvasColour, type CanvasPointer, type CanvasPointerEvent, type IContextMenuValue, LiteGraph } from "@/litegraph"
 import { snapPoint } from "@/measure"
 import { CanvasItem } from "@/types/globalEnums"
 
@@ -117,6 +117,121 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
   }
 
   // #endregion Hoverable
+
+  /**
+   * Renames an IO slot in the subgraph.
+   * @param slot The slot to rename.
+   * @param name The new name for the slot.
+   */
+  abstract renameSlot(slot: typeof this.slots[number], name: string): void
+
+  /**
+   * Removes an IO slot from the subgraph.
+   * @param slot The slot to remove.
+   */
+  abstract removeSlot(slot: typeof this.slots[number]): void
+
+  /**
+   * Gets the slot at a given position in canvas space.
+   * @param x The x coordinate of the position.
+   * @param y The y coordinate of the position.
+   * @param slots The slots to check.
+   * @returns The slot at the given position, otherwise `undefined`.
+   */
+  protected getSlotInPosition<T extends typeof this.slots[number]>(
+    x: number,
+    y: number,
+    slots: T[],
+  ): T | undefined {
+    for (const slot of slots) {
+      if (slot.boundingRect.containsXy(x, y)) {
+        return slot
+      }
+    }
+  }
+
+  /**
+   * Shows the context menu for an IO slot.
+   * @param slot The slot to show the context menu for.
+   * @param event The event that triggered the context menu.
+   */
+  protected showSlotContextMenu(slot: typeof this.slots[number], event: CanvasPointerEvent): void {
+    const options: IContextMenuValue[] = this.#getSlotMenuOptions(slot)
+    if (!(options.length > 0)) return
+
+    new LiteGraph.ContextMenu(
+      options,
+      {
+        event: event as any,
+        title: slot.name || "Subgraph Output",
+        callback: (item: IContextMenuValue) => {
+          this.#onSlotMenuAction(item, slot, event)
+        },
+      },
+    )
+  }
+
+  /**
+   * Gets the context menu options for an IO slot.
+   * @param slot The slot to get the context menu options for.
+   * @returns The context menu options.
+   */
+  #getSlotMenuOptions(slot: SubgraphInput | SubgraphOutput): IContextMenuValue[] {
+    const options: IContextMenuValue[] = []
+
+    // Disconnect option if slot has connections
+    if (slot !== this.emptySlot && slot.linkIds.length > 0) {
+      options.push({ content: "Disconnect Links", value: "disconnect" })
+    }
+
+    // Remove / rename slot option (except for the empty slot)
+    if (slot !== this.emptySlot) {
+      options.push(
+        { content: "Remove Slot", value: "remove" },
+        { content: "Rename Slot", value: "rename" },
+      )
+    }
+
+    return options
+  }
+
+  /**
+   * Handles the action for an IO slot context menu.
+   * @param selectedItem The item that was selected from the context menu.
+   * @param slot The slot
+   * @param event The event that triggered the context menu.
+   */
+  #onSlotMenuAction(selectedItem: IContextMenuValue, slot: typeof this.slots[number], event: CanvasPointerEvent): void {
+    switch (selectedItem.value) {
+    // Disconnect all links from this output
+    case "disconnect":
+      slot.disconnect()
+      break
+
+    // Remove the slot
+    case "remove":
+      if (slot !== this.emptySlot) {
+        this.removeSlot(slot)
+      }
+      break
+
+    // Rename the slot
+    case "rename":
+      if (slot !== this.emptySlot) {
+        this.subgraph.canvasAction(c => c.prompt(
+          "Slot name",
+          slot.name,
+          (newName: string) => {
+            if (newName) this.renameSlot(slot, newName)
+          },
+          event,
+        ))
+      }
+      break
+    }
+
+    this.subgraph.setDirtyCanvas(true)
+  }
 
   /** Arrange the slots in this node. */
   arrange(): void {
