@@ -2000,31 +2000,33 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         // Subgraph output node
         this.processSelect(subgraph.outputNode, e, true)
         subgraph.outputNode.onPointerDown(e, pointer, linkConnector)
-      } else if (node) {
-        this.processSelect(node, e, true)
-      } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
+      } else {
+        if (node) {
+          this.processSelect(node, e, true)
+        } else if (this.links_render_mode !== LinkRenderType.HIDDEN_LINK) {
         // Reroutes
-        const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
-        if (reroute) {
-          if (e.altKey) {
-            pointer.onClick = (upEvent) => {
-              if (upEvent.altKey) {
+          const reroute = graph.getRerouteOnPos(e.canvasX, e.canvasY, this.#visibleReroutes)
+          if (reroute) {
+            if (e.altKey) {
+              pointer.onClick = (upEvent) => {
+                if (upEvent.altKey) {
                 // Ensure deselected
-                if (reroute.selected) {
-                  this.deselect(reroute)
-                  this.onSelectionChange?.(this.selected_nodes)
+                  if (reroute.selected) {
+                    this.deselect(reroute)
+                    this.onSelectionChange?.(this.selected_nodes)
+                  }
+                  reroute.remove()
                 }
-                reroute.remove()
               }
+            } else {
+              this.processSelect(reroute, e, true)
             }
-          } else {
-            this.processSelect(reroute, e, true)
           }
         }
-      }
 
-      // Show context menu for the node or group under the pointer
-      pointer.onClick ??= () => this.processContextMenu(node, e)
+        // Show context menu for the node or group under the pointer
+        pointer.onClick ??= () => this.processContextMenu(node, e)
+      }
     }
 
     this.last_mouse = [x, y]
