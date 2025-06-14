@@ -4,7 +4,6 @@ import type { ExportedSubgraph, ExposedWidget, ISerialisedGraph, Serialisable, S
 
 import { type BaseLGraph, LGraph } from "@/LGraph"
 import { createUuidv4, type LGraphNode } from "@/litegraph"
-import { removeFromArray } from "@/utils/collections"
 
 import { SubgraphInput } from "./SubgraphInput"
 import { SubgraphInputNode } from "./SubgraphInputNode"
@@ -150,14 +149,76 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     }
   }
 
-  removeInput(input: SubgraphInput): void {
-    input.disconnect()
-    removeFromArray(this.inputs, input)
+  /**
+   * Renames an input slot in the subgraph.
+   * @param input The input slot to rename.
+   * @param name The new name for the input slot.
+   */
+  renameInput(input: SubgraphInput, name: string): void {
+    input.label = name
+    const index = this.inputs.indexOf(input)
+    if (index === -1) throw new Error("Input not found")
+
+    this.#forAllNodes((node) => {
+      if (node.type === this.id) {
+        node.inputs[index].label = name
+      }
+    })
   }
 
+  /**
+   * Renames an output slot in the subgraph.
+   * @param output The output slot to rename.
+   * @param name The new name for the output slot.
+   */
+  renameOutput(output: SubgraphOutput, name: string): void {
+    output.label = name
+    const index = this.outputs.indexOf(output)
+    if (index === -1) throw new Error("Output not found")
+
+    this.#forAllNodes((node) => {
+      if (node.type === this.id) {
+        node.outputs[index].label = name
+      }
+    })
+  }
+
+  /**
+   * Removes an input slot from the subgraph.
+   * @param input The input slot to remove.
+   */
+  removeInput(input: SubgraphInput): void {
+    input.disconnect()
+
+    const index = this.inputs.indexOf(input)
+    if (index === -1) throw new Error("Input not found")
+
+    this.inputs.splice(index, 1)
+
+    this.#forAllNodes((node) => {
+      if (node.type === this.id) {
+        node.inputs.splice(index, 1)
+      }
+    })
+  }
+
+  /**
+   * Removes an output slot from the subgraph.
+   * @param output The output slot to remove.
+   */
   removeOutput(output: SubgraphOutput): void {
     output.disconnect()
-    removeFromArray(this.outputs, output)
+
+    const index = this.outputs.indexOf(output)
+    if (index === -1) throw new Error("Output not found")
+
+    this.outputs.splice(index, 1)
+
+    this.#forAllNodes((node) => {
+      if (node.type === this.id) {
+        node.outputs.splice(index, 1)
+      }
+    })
   }
 
   draw(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
