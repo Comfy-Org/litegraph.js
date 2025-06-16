@@ -110,23 +110,4 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     }
     return nodes
   }
-
-  export(): ExportedSubgraphInstance {
-    return {
-      id: this.id,
-      type: this.subgraph.id,
-      pos: this.pos,
-      size: this.size,
-      flags: this.flags,
-      order: this.order,
-      mode: this.mode,
-      bgcolor: this.bgcolor,
-      boxcolor: this.boxcolor,
-      color: this.color,
-      shape: this.shape,
-      title: this.title,
-      inputs: this.inputs,
-      outputs: this.outputs,
-    }
-  }
 }
