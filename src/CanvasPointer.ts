@@ -3,6 +3,11 @@ import type { CanvasPointerEvent } from "./types/events"
 
 import { dist2 } from "./measure"
 
+
+function isWindowBlurred() {
+  return !document.hasFocus() || document.visibilityState !== "visible"
+}
+
 /**
  * Allows click and drag actions to be declared ahead of time during a pointerdown event.
  *
@@ -155,6 +160,12 @@ export class CanvasPointer {
   move(e: CanvasPointerEvent): void {
     const { eDown } = this
     if (!eDown) return
+
+    // Window does not have focus, so reset the pointer state.
+    if (isWindowBlurred()) {
+      this.reset()
+      return
+    }
 
     // Primary button released - treat as pointerup.
     if (!(e.buttons & eDown.buttons)) {
