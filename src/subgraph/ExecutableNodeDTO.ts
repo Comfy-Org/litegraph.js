@@ -78,7 +78,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
 
     // Input side: the link from inside the subgraph
     const link = subgraph.getLink(this.inputs[slot].link)
-    if (!link) {
+    if (link == null) {
       console.debug(`[ExecutableNodeDTO.getInputNode] No link found for slot [${slot}] ${this.inputs[slot].name}`, this)
       return null
     }
@@ -107,7 +107,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
 
     // Input side: the link from inside the subgraph
     const link = subgraph.getLink(this.inputs[slot].link)
-    if (!link) {
+    if (link == null) {
       console.debug(`[ExecutableNodeDTO.getInputLink] No link found for slot [${slot}] ${this.inputs[slot].name}`, this)
       return null
     }
