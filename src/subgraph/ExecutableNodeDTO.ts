@@ -79,14 +79,14 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     // Input side: the link from inside the subgraph
     const link = subgraph.getLink(this.inputs[slot].link)
     if (!link) {
-      console.debug(`[ExecutableNodeDTO.getInputNode] No link found for slot ${slot}`, this)
+      console.debug(`[ExecutableNodeDTO.getInputNode] No link found for slot [${slot}] ${this.inputs[slot].name}`, this)
       return null
     }
 
     if (link.origin_id === SUBGRAPH_INPUT_ID) {
       const outerLink = graph.getLink(this.subgraphNode.inputs[link.origin_slot].link)
       if (!outerLink) {
-        console.error(`[ExecutableNodeDTO.getInputNode] No link found in parent graph for slot ${slot}`, this)
+        console.error(`[ExecutableNodeDTO.getInputNode] No link found in parent graph for slot [${slot}] ${this.inputs[slot].name}`, this)
         return null
       }
 
@@ -108,7 +108,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     // Input side: the link from inside the subgraph
     const link = subgraph.getLink(this.inputs[slot].link)
     if (!link) {
-      console.debug(`[ExecutableNodeDTO.getInputLink] No link found for slot ${slot}`, this)
+      console.debug(`[ExecutableNodeDTO.getInputLink] No link found for slot [${slot}] ${this.inputs[slot].name}`, this)
       return null
     }
     const newLink = LLink.create(link)
@@ -118,7 +118,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     if (link.origin_id === SUBGRAPH_INPUT_ID) {
       const outerLink = graph.getLink(this.subgraphNode.inputs[link.origin_slot].link)
       if (!outerLink) {
-        console.error(`[ExecutableNodeDTO.getInputLink] No outer link found for slot ${slot}`, this)
+        console.error(`[ExecutableNodeDTO.getInputLink] No outer link found for slot [${slot}] ${this.inputs[slot].name}`, this)
         return null
       }
 
