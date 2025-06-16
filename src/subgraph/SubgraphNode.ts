@@ -91,6 +91,21 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     return newLink
   }
 
+  /**
+   * From the given output slot number, traces the connection inside the subgraph to the real output node, and returns it.
+   * @param slot The slot index.
+   * @returns The output node, or null if no output node is found.
+   */
+  getOutputNodeFromSubgraph(slot: number): LGraphNode | undefined {
+    const outputSlot = this.subgraph.outputNode.slots[slot]
+    const innerLink = outputSlot.getLinks().at(0)
+    if (innerLink != null) {
+      return this.subgraph.getNodeById(innerLink.origin_id) ?? undefined
+    }
+
+    console.debug(`[SubgraphNode.getOutputNodeFromSubgraph] No inner link found for slot [${slot}] ${outputSlot.name}`, this)
+  }
+
   /** @internal Used to flatten the subgraph before execution. */
   getInnerNodes(
     nodes: ExecutableLGraphNode[] = [],
