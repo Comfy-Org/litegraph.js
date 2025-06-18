@@ -7,7 +7,7 @@ import type { UUID } from "@/utils/uuid"
 
 import { RecursionError } from "@/infrastructure/RecursionError"
 import { LGraphNode } from "@/LGraphNode"
-import { LLink } from "@/LLink"
+import { LLink, type ResolvedConnection } from "@/LLink"
 import { NodeInputSlot } from "@/node/NodeInputSlot"
 import { NodeOutputSlot } from "@/node/NodeOutputSlot"
 
@@ -92,18 +92,32 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   /**
-   * From the given output slot number, traces the connection inside the subgraph to the real output node, and returns it.
-   * @param slot The slot index.
-   * @returns The output node, or null if no output node is found.
+   * Finds the internal links connected to the given input slot inside the subgraph, and resolves the nodes / slots.
+   * @param slot The slot index
+   * @returns The resolved connections, or undefined if no input node is found.
+   * @remarks This is used to resolve the input links when dragging a link from a subgraph input slot.
    */
-  getOutputNodeFromSubgraph(slot: number): LGraphNode | undefined {
+  resolveSubgraphInputLinks(slot: number): ResolvedConnection[] {
+    const inputSlot = this.subgraph.inputNode.slots[slot]
+    const innerLinks = inputSlot.getLinks()
+    if (innerLinks.length === 0) {
+      console.debug(`[SubgraphNode.resolveSubgraphInputLinks] No inner links found for input slot [${slot}] ${inputSlot.name}`, this)
+      return []
+    }
+    return innerLinks.map(link => link.resolve(this.subgraph))
+  }
+
+  /**
+   * Finds the internal link connected to the given output slot inside the subgraph, and resolves the nodes / slots.
+   * @param slot The slot index
+   * @returns The output node if found, otherwise undefined.
+   */
+  resolveSubgraphOutputLink(slot: number): ResolvedConnection | undefined {
     const outputSlot = this.subgraph.outputNode.slots[slot]
     const innerLink = outputSlot.getLinks().at(0)
-    if (innerLink != null) {
-      return this.subgraph.getNodeById(innerLink.origin_id) ?? undefined
-    }
+    if (innerLink) return innerLink.resolve(this.subgraph)
 
-    console.debug(`[SubgraphNode.getOutputNodeFromSubgraph] No inner link found for slot [${slot}] ${outputSlot.name}`, this)
+    console.debug(`[SubgraphNode.resolveSubgraphOutputLink] No inner link found for output slot [${slot}] ${outputSlot.name}`, this)
   }
 
   /** @internal Used to flatten the subgraph before execution. */
