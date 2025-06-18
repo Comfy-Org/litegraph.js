@@ -11,8 +11,10 @@ import type { SubgraphOutputNode } from "@/subgraph/SubgraphOutputNode"
 import type { CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget } from "@/types/widgets"
 
+import { SUBGRAPH_INPUT_ID, SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { CustomEventTarget } from "@/infrastructure/CustomEventTarget"
 import { LLink } from "@/LLink"
+import { Subgraph } from "@/subgraph/Subgraph"
 import { LinkDirection } from "@/types/globalEnums"
 
 import { FloatingRenderLink } from "./FloatingRenderLink"
@@ -306,6 +308,25 @@ export class LinkConnector {
       return
     }
 
+    if (link.origin_id === SUBGRAPH_INPUT_ID) {
+      if (!(network instanceof Subgraph)) {
+        console.warn("Subgraph input link found in non-subgraph network.")
+        return
+      }
+
+      const input = network.inputs.at(link.origin_slot)
+      if (!input) throw new Error("No subgraph input found for link.")
+
+      const renderLink = new ToInputFromIoNodeLink(network, network.inputNode, input, reroute)
+      renderLink.fromDirection = LinkDirection.NONE
+      this.renderLinks.push(renderLink)
+
+      this.state.connectingTo = "input"
+
+      this.#setLegacyLinks(false)
+      return
+    }
+
     const outputNode = network.getNodeById(link.origin_id)
     if (!outputNode) {
       console.warn("No output node found for link.", link)
@@ -338,6 +359,25 @@ export class LinkConnector {
     const link = reroute.firstLink ?? reroute.firstFloatingLink
     if (!link) {
       console.warn("No link found for reroute.")
+      return
+    }
+
+    if (link.target_id === SUBGRAPH_OUTPUT_ID) {
+      if (!(network instanceof Subgraph)) {
+        console.warn("Subgraph output link found in non-subgraph network.")
+        return
+      }
+
+      const output = network.outputs.at(link.target_slot)
+      if (!output) throw new Error("No subgraph output found for link.")
+
+      const renderLink = new ToOutputFromIoNodeLink(network, network.outputNode, output, reroute)
+      renderLink.fromDirection = LinkDirection.NONE
+      this.renderLinks.push(renderLink)
+
+      this.state.connectingTo = "output"
+
+      this.#setLegacyLinks(false)
       return
     }
 
