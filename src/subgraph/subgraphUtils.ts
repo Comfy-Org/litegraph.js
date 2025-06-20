@@ -112,8 +112,6 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
           } else if (link.origin_id === SUBGRAPH_INPUT_ID) {
             // Subgraph input node - always boundary
             boundaryInputLinks.push(link)
-          } else {
-            console.debug("Failed to resolve output node of link", link)
           }
         }
       }
@@ -134,8 +132,6 @@ export function getBoundaryLinks(graph: LGraph, items: Set<Positionable>): Bound
               (inputNode && !items.has(inputNode))
             ) {
               boundaryOutputLinks.push(link)
-            } else {
-              console.debug("Failed to resolve input node of link", link)
             }
             // Internal links are discovered on input side.
           }
