@@ -92,6 +92,17 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
     return links
   }
 
+  decrementSlots(inputsOrOutputs: "inputs" | "outputs"): void {
+    const { links } = this.parent.subgraph
+    const linkProperty = inputsOrOutputs === "inputs" ? "origin_slot" : "target_slot"
+
+    for (const linkId of this.linkIds) {
+      const link = links.get(linkId)
+      if (link) link[linkProperty]--
+      else console.warn("decrementSlots: link ID not found", linkId)
+    }
+  }
+
   measure(): ReadOnlySize {
     const width = LGraphCanvas._measureText?.(this.displayName) ?? 0
 
