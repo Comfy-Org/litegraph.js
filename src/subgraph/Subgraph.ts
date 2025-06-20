@@ -195,6 +195,11 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
 
     this.inputs.splice(index, 1)
 
+    const { length } = this.inputs
+    for (let i = index; i < length; i++) {
+      this.inputs[i].decrementSlots("inputs")
+    }
+
     this.#forAllNodes((node) => {
       if (node.type === this.id) {
         node.inputs.splice(index, 1)
@@ -213,6 +218,11 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     if (index === -1) throw new Error("Output not found")
 
     this.outputs.splice(index, 1)
+
+    const { length } = this.outputs
+    for (let i = index; i < length; i++) {
+      this.outputs[i].decrementSlots("outputs")
+    }
 
     this.#forAllNodes((node) => {
       if (node.type === this.id) {
