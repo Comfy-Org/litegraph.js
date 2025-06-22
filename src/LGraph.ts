@@ -34,6 +34,7 @@ import { alignOutsideContainer, alignToContainer, createBounds } from "./measure
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { Subgraph } from "./subgraph/Subgraph"
+import { SubgraphInput } from "./subgraph/SubgraphInput"
 import { getBoundaryLinks, groupResolvedByOutput, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
 import { Alignment, LGraphEventMode } from "./types/globalEnums"
 import { getAllNestedItems } from "./utils/collections"
@@ -1493,14 +1494,19 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     let i = 0
     for (const [, connections] of groupedByOutput.entries()) {
       const [firstResolved, ...others] = connections
-      const { output, outputNode, link } = firstResolved
+      const { output, outputNode, link, subgraphInput } = firstResolved
 
       // Special handling: Subgraph input node
       i++
       if (link.origin_id === SUBGRAPH_INPUT_ID) {
         link.target_id = subgraphNode.id
         link.target_slot = i - 1
-        console.debug({ ...link }, this.links.get(link.id) === link)
+        if (subgraphInput instanceof SubgraphInput) {
+          subgraphInput.connect(subgraphNode.findInputSlotByType(link.type, true, true), subgraphNode, link.parentId)
+        } else {
+          throw new TypeError("Subgraph input node is not a SubgraphInput")
+        }
+        console.debug("Reconnect input links in parent graph", { ...link }, this.links.get(link.id), this.links.get(link.id) === link)
 
         for (const resolved of others) {
           resolved.link.disconnect(this)
