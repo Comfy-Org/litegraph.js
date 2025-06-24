@@ -34,11 +34,17 @@ export type ResolvedConnection = BaseResolvedConnection &
 
 interface BaseResolvedConnection {
   link: LLink
+  /** The node on the input side of the link (owns {@link input}) */
   inputNode?: LGraphNode
+  /** The input the link is connected to (mutually exclusive with {@link subgraphOutput}) */
   input?: INodeInputSlot
+  /** The node on the output side of the link (owns {@link output}) */
   outputNode?: LGraphNode
+  /** The output the link is connected to (mutually exclusive with {@link subgraphInput}) */
   output?: INodeOutputSlot
+  /** The subgraph output the link is connected to (mutually exclusive with {@link input}) */
   subgraphOutput?: SubgraphIO
+  /** The subgraph input the link is connected to (mutually exclusive with {@link output}) */
   subgraphInput?: SubgraphIO
 }
 
@@ -56,6 +62,7 @@ interface ResolvedNormalOutput {
 
 interface ResolvedSubgraphInput {
   inputNode?: undefined
+  /** The actual input slot the link is connected to (mutually exclusive with {@link subgraphOutput}) */
   input?: undefined
   subgraphOutput: SubgraphIO
 }
