@@ -35,6 +35,7 @@ import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
 import { Subgraph } from "./subgraph/Subgraph"
 import { SubgraphInput } from "./subgraph/SubgraphInput"
+import { SubgraphOutput } from "./subgraph/SubgraphOutput"
 import { getBoundaryLinks, groupResolvedByOutput, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
 import { Alignment, LGraphEventMode } from "./types/globalEnums"
 import { getAllNestedItems } from "./utils/collections"
@@ -1537,12 +1538,16 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       // Special handling: Subgraph output node
       i++
       for (const connection of connections) {
-        const { input, inputNode, link } = connection
+        const { input, inputNode, link, subgraphOutput } = connection
         if (link.target_id === SUBGRAPH_OUTPUT_ID) {
           link.origin_id = subgraphNode.id
           link.origin_slot = i - 1
           this.links.set(link.id, link)
-          console.debug({ ...link }, this.links.get(link.id) === link)
+          if (subgraphOutput instanceof SubgraphOutput) {
+            subgraphOutput.connect(subgraphNode.findOutputSlotByType(link.type, true, true), subgraphNode, link.parentId)
+          } else {
+            throw new TypeError("Subgraph input node is not a SubgraphInput")
+          }
           continue
         }
 
