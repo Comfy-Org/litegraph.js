@@ -27,13 +27,13 @@ import { CustomEventTarget } from "./infrastructure/CustomEventTarget"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId } from "./LGraphNode"
-import { LiteGraph, type SubgraphNode } from "./litegraph"
+import { LiteGraph, SubgraphNode } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import { MapProxyHandler } from "./MapProxyHandler"
 import { alignOutsideContainer, alignToContainer, createBounds } from "./measure"
 import { Reroute, type RerouteId } from "./Reroute"
 import { stringOrEmpty } from "./strings"
-import { Subgraph } from "./subgraph/Subgraph"
+import { type GraphOrSubgraph, Subgraph } from "./subgraph/Subgraph"
 import { SubgraphInput } from "./subgraph/SubgraphInput"
 import { SubgraphOutput } from "./subgraph/SubgraphOutput"
 import { getBoundaryLinks, groupResolvedByOutput, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
@@ -1567,6 +1567,28 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     }
 
     return { subgraph, node: subgraphNode as SubgraphNode }
+  }
+
+  /**
+   * Resolve a path of subgraph node IDs into a list of subgraph nodes.
+   * Not intended to be run from subgraphs.
+   * @param nodeIds An ordered list of node IDs, from the root graph to the most nested subgraph node
+   * @returns An ordered list of nested subgraph nodes.
+   */
+  resolveSubgraphIdPath(nodeIds: readonly NodeId[]): SubgraphNode[] {
+    const result: SubgraphNode[] = []
+    let currentGraph: GraphOrSubgraph = this.rootGraph
+
+    for (const nodeId of nodeIds) {
+      const node: LGraphNode | null = currentGraph.getNodeById(nodeId)
+      if (!node) throw new Error(`Node [${nodeId}] not found.  ID Path: ${nodeIds.join(":")}`)
+      if (!node.isSubgraphNode()) throw new Error(`Node [${nodeId}] is not a SubgraphNode.  ID Path: ${nodeIds.join(":")}`)
+
+      result.push(node)
+      currentGraph = node.subgraph
+    }
+
+    return result
   }
 
   /**

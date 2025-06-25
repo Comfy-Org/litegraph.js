@@ -1,6 +1,6 @@
 import type { ISubgraphInput } from "@/interfaces"
 import type { BaseLGraph, LGraph } from "@/LGraph"
-import type { INodeInputSlot, ISlotType } from "@/litegraph"
+import type { INodeInputSlot, ISlotType, NodeId } from "@/litegraph"
 import type { GraphOrSubgraph, Subgraph } from "@/subgraph/Subgraph"
 import type { ExportedSubgraphInstance } from "@/types/serialisation"
 import type { UUID } from "@/utils/uuid"
@@ -120,20 +120,26 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     console.debug(`[SubgraphNode.resolveSubgraphOutputLink] No inner link found for output slot [${slot}] ${outputSlot.name}`, this)
   }
 
-  /** @internal Used to flatten the subgraph before execution. */
+  /** @internal Used to flatten the subgraph before execution. Recursive; call with no args. */
   getInnerNodes(
+    /** The list of nodes to add to. */
     nodes: ExecutableLGraphNode[] = [],
+    /** The set of visited nodes. */
     visited = new WeakSet<SubgraphNode>(),
+    /** The path of subgraph node IDs. */
+    subgraphNodePath: readonly NodeId[] = [],
   ): ExecutableLGraphNode[] {
     if (visited.has(this)) throw new RecursionError("while flattening subgraph")
     visited.add(this)
 
+    const subgraphInstanceIdPath = [...subgraphNodePath, this.id]
+
     for (const node of this.subgraph.nodes) {
       if ("getInnerNodes" in node) {
-        node.getInnerNodes(nodes, visited)
+        node.getInnerNodes(nodes, visited, subgraphInstanceIdPath)
       } else {
         // Create minimal DTOs rather than cloning the node
-        const aVeryRealNode = new ExecutableNodeDTO(this.graph, this, node)
+        const aVeryRealNode = new ExecutableNodeDTO(node, subgraphInstanceIdPath, this)
         nodes.push(aVeryRealNode)
       }
     }
