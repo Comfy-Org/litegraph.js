@@ -2332,7 +2332,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
    * @returns The index and slot if found, otherwise `undefined`.
    */
   findOutputByType(type: ISlotType): { index: number, slot: INodeOutputSlot } | undefined {
-    return findFreeSlotOfType(this.outputs, type)
+    return findFreeSlotOfType(this.outputs, type, output => !output.links?.length)
   }
 
   /**
@@ -2346,7 +2346,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
    * @returns The index and slot if found, otherwise `undefined`.
    */
   findInputByType(type: ISlotType): { index: number, slot: INodeInputSlot } | undefined {
-    return findFreeSlotOfType(this.inputs, type)
+    return findFreeSlotOfType(this.inputs, type, input => input.link == null)
   }
 
   /**

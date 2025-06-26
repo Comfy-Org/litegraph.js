@@ -11,6 +11,7 @@ import { SUBGRAPH_INPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
 import { LLink } from "@/LLink"
 import { NodeSlotType } from "@/types/globalEnums"
+import { findFreeSlotOfType } from "@/utils/collections"
 
 import { EmptySubgraphInput } from "./EmptySubgraphInput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
@@ -107,6 +108,10 @@ export class SubgraphInputNode extends SubgraphIONodeBase<SubgraphInput> impleme
 
   findOutputSlot(name: string): SubgraphInput | undefined {
     return this.slots.find(output => output.name === name)
+  }
+
+  findOutputByType(type: ISlotType): SubgraphInput | undefined {
+    return findFreeSlotOfType(this.slots, type, slot => slot.linkIds.length > 0)?.slot
   }
 
   // #endregion Legacy LGraphNode compatibility
