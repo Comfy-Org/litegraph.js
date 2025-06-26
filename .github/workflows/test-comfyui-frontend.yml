@@ -50,7 +50,7 @@ jobs:
         with:
           repository: "Comfy-Org/ComfyUI_frontend"
           path: "ComfyUI_frontend"
-          ref: ${{ inputs.frontend-branch }}
+          ref: ${{ inputs.frontend-branch || 'c/subgraph' }}
 
       - name: Checkout ComfyUI_devtools
         uses: actions/checkout@v4
