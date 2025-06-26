@@ -5,6 +5,7 @@ import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/inte
 import type { LGraphNode } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
+import type { NodeLike } from "@/types/NodeLike"
 
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -32,7 +33,7 @@ export class ToInputRenderLink implements RenderLink {
       : this.node.getOutputPos(outputIndex)
   }
 
-  canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): boolean {
+  canConnectToInput(inputNode: NodeLike, input: INodeInputSlot): boolean {
     return this.node.canConnectTo(inputNode, input, this.fromSlot)
   }
 
