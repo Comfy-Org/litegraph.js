@@ -168,17 +168,6 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     if (visited.has(uniqueId)) throw new RecursionError(`While resolving subgraph output [${uniqueId}]`)
     visited.add(uniqueId)
 
-    const { node } = this
-    if (node.isSubgraphNode()) return this.#resolveSubgraphOutput(slot, type, visited)
-
-    // Upstreamed: Other virtual nodes are bypassed using the same input/output index (slots must match)
-    if (node.isVirtualNode) {
-      if (this.inputs.at(slot)) return this.resolveInput(slot, visited)
-
-      // Virtual nodes without a matching input should be discarded.
-      return
-    }
-
     // Upstreamed: Bypass nodes are bypassed using the first input with matching type
     if (this.mode === LGraphEventMode.BYPASS) {
       const { inputs } = this
@@ -196,6 +185,17 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
       }
 
       return this.resolveInput(matchingIndex, visited)
+    }
+
+    const { node } = this
+    if (node.isSubgraphNode()) return this.#resolveSubgraphOutput(slot, type, visited)
+
+    // Upstreamed: Other virtual nodes are bypassed using the same input/output index (slots must match)
+    if (node.isVirtualNode) {
+      if (this.inputs.at(slot)) return this.resolveInput(slot, visited)
+
+      // Virtual nodes without a matching input should be discarded.
+      return
     }
 
     return {
