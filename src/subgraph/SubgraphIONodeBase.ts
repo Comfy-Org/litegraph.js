@@ -1,6 +1,7 @@
 import type { EmptySubgraphInput } from "./EmptySubgraphInput"
 import type { EmptySubgraphOutput } from "./EmptySubgraphOutput"
 import type { Subgraph } from "./Subgraph"
+import type { SubgraphInput } from "./SubgraphInput"
 import type { SubgraphOutput } from "./SubgraphOutput"
 import type { LinkConnector } from "@/canvas/LinkConnector"
 import type { DefaultConnectionColors, Hoverable, Point, Positionable } from "@/interfaces"
@@ -12,9 +13,7 @@ import { type CanvasColour, type CanvasPointer, type CanvasPointerEvent, type IC
 import { snapPoint } from "@/measure"
 import { CanvasItem } from "@/types/globalEnums"
 
-import { SubgraphInput } from "./SubgraphInput"
-
-export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
+export abstract class SubgraphIONodeBase<TSlot extends SubgraphInput | SubgraphOutput> implements Positionable, Hoverable, Serialisable<ExportedSubgraphIONode> {
   static margin = 10
   static minWidth = 100
   static roundedRadius = 10
@@ -59,8 +58,8 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
     return this.isPointerOver ? "white" : "#efefef"
   }
 
-  abstract readonly slots: SubgraphInput[] | SubgraphOutput[]
-  abstract get allSlots(): SubgraphInput[] | SubgraphOutput[]
+  abstract readonly slots: TSlot[]
+  abstract get allSlots(): TSlot[]
 
   constructor(
     /** The subgraph that this node belongs to. */
@@ -123,27 +122,22 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
    * @param slot The slot to rename.
    * @param name The new name for the slot.
    */
-  abstract renameSlot(slot: typeof this.slots[number], name: string): void
+  abstract renameSlot(slot: TSlot, name: string): void
 
   /**
    * Removes an IO slot from the subgraph.
    * @param slot The slot to remove.
    */
-  abstract removeSlot(slot: typeof this.slots[number]): void
+  abstract removeSlot(slot: TSlot): void
 
   /**
    * Gets the slot at a given position in canvas space.
    * @param x The x coordinate of the position.
    * @param y The y coordinate of the position.
-   * @param slots The slots to check.
    * @returns The slot at the given position, otherwise `undefined`.
    */
-  protected getSlotInPosition<T extends typeof this.slots[number]>(
-    x: number,
-    y: number,
-    slots: T[],
-  ): T | undefined {
-    for (const slot of slots) {
+  protected getSlotInPosition(x: number, y: number): TSlot | undefined {
+    for (const slot of this.slots) {
       if (slot.boundingRect.containsXy(x, y)) {
         return slot
       }
@@ -155,7 +149,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
    * @param slot The slot to show the context menu for.
    * @param event The event that triggered the context menu.
    */
-  protected showSlotContextMenu(slot: typeof this.slots[number], event: CanvasPointerEvent): void {
+  protected showSlotContextMenu(slot: TSlot, event: CanvasPointerEvent): void {
     const options: IContextMenuValue[] = this.#getSlotMenuOptions(slot)
     if (!(options.length > 0)) return
 
@@ -176,7 +170,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
    * @param slot The slot to get the context menu options for.
    * @returns The context menu options.
    */
-  #getSlotMenuOptions(slot: SubgraphInput | SubgraphOutput): IContextMenuValue[] {
+  #getSlotMenuOptions(slot: TSlot): IContextMenuValue[] {
     const options: IContextMenuValue[] = []
 
     // Disconnect option if slot has connections
@@ -201,7 +195,7 @@ export abstract class SubgraphIONodeBase implements Positionable, Hoverable, Ser
    * @param slot The slot
    * @param event The event that triggered the context menu.
    */
-  #onSlotMenuAction(selectedItem: IContextMenuValue, slot: typeof this.slots[number], event: CanvasPointerEvent): void {
+  #onSlotMenuAction(selectedItem: IContextMenuValue, slot: TSlot, event: CanvasPointerEvent): void {
     switch (selectedItem.value) {
     // Disconnect all links from this output
     case "disconnect":

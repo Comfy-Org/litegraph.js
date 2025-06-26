@@ -14,7 +14,7 @@ import { NodeSlotType } from "@/types/globalEnums"
 import { EmptySubgraphInput } from "./EmptySubgraphInput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
 
-export class SubgraphInputNode extends SubgraphIONodeBase implements Positionable {
+export class SubgraphInputNode extends SubgraphIONodeBase<SubgraphInput> implements Positionable {
   readonly id: NodeId = SUBGRAPH_INPUT_ID
 
   readonly emptySlot: EmptySubgraphInput = new EmptySubgraphInput(this)
@@ -52,7 +52,7 @@ export class SubgraphInputNode extends SubgraphIONodeBase implements Positionabl
       }
     // Check for right-click
     } else if (e.button === 2) {
-      const slot = this.getSlotInPosition(e.canvasX, e.canvasY, this.slots)
+      const slot = this.getSlotInPosition(e.canvasX, e.canvasY)
       if (slot) this.showSlotContextMenu(slot, e)
     }
   }

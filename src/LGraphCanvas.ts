@@ -2144,7 +2144,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         if (processSubgraphIONode(this, inputNode)) return
         if (processSubgraphIONode(this, outputNode)) return
 
-        function processSubgraphIONode(canvas: LGraphCanvas, ioNode: SubgraphIONodeBase) {
+        function processSubgraphIONode(canvas: LGraphCanvas, ioNode: SubgraphInputNode | SubgraphOutputNode) {
           if (!ioNode.containsPoint([x, y])) return false
 
           ioNode.onPointerDown(e, pointer, linkConnector)

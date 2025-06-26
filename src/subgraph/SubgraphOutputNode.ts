@@ -14,7 +14,7 @@ import { Rectangle } from "@/infrastructure/Rectangle"
 import { EmptySubgraphOutput } from "./EmptySubgraphOutput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
 
-export class SubgraphOutputNode extends SubgraphIONodeBase implements Positionable {
+export class SubgraphOutputNode extends SubgraphIONodeBase<SubgraphOutput> implements Positionable {
   readonly id: NodeId = SUBGRAPH_OUTPUT_ID
 
   readonly emptySlot: EmptySubgraphOutput = new EmptySubgraphOutput(this)
@@ -52,7 +52,7 @@ export class SubgraphOutputNode extends SubgraphIONodeBase implements Positionab
       }
     // Check for right-click
     } else if (e.button === 2) {
-      const slot = this.getSlotInPosition(e.canvasX, e.canvasY, this.slots)
+      const slot = this.getSlotInPosition(e.canvasX, e.canvasY)
       if (slot) this.showSlotContextMenu(slot, e)
     }
   }
