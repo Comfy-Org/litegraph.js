@@ -2849,6 +2849,8 @@ export class LGraphCanvas {
             group.isInResize(e.canvasX, e.canvasY)
           ) {
             pointer.resizeDirection = "SE"
+          } else {
+            pointer.resizeDirection &&= undefined
           }
         }
       }
