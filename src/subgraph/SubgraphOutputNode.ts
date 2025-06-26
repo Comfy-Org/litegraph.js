@@ -12,6 +12,7 @@ import type { SubgraphIO } from "@/types/serialisation"
 
 import { SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
+import { findFreeSlotOfType } from "@/utils/collections"
 
 import { EmptySubgraphOutput } from "./EmptySubgraphOutput"
 import { SubgraphIONodeBase } from "./SubgraphIONodeBase"
@@ -83,6 +84,10 @@ export class SubgraphOutputNode extends SubgraphIONodeBase<SubgraphOutput> imple
     if (!outputSlot) return
 
     return this.slots[slot].connect(outputSlot.slot, target_node, optsIn?.afterRerouteId)
+  }
+
+  findInputByType(type: ISlotType): SubgraphOutput | undefined {
+    return findFreeSlotOfType(this.slots, type, slot => slot.linkIds.length > 0)?.slot
   }
 
   override drawProtected(ctx: CanvasRenderingContext2D, colorContext: DefaultConnectionColors): void {
