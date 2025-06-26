@@ -7,6 +7,8 @@ import type { LGraphNode, NodeId } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { RerouteId } from "@/Reroute"
 import type { CanvasPointerEvent } from "@/types/events"
+import type { NodeLike } from "@/types/NodeLike"
+import type { SubgraphIO } from "@/types/serialisation"
 
 import { SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -67,7 +69,7 @@ export class SubgraphOutputNode extends SubgraphIONodeBase<SubgraphOutput> imple
     this.subgraph.removeOutput(slot)
   }
 
-  canConnectTo(outputNode: LGraphNode, fromSlot: SubgraphOutput, output: INodeOutputSlot): boolean {
+  canConnectTo(outputNode: NodeLike, fromSlot: SubgraphOutput, output: INodeOutputSlot | SubgraphIO): boolean {
     return outputNode.canConnectTo(this, fromSlot, output)
   }
 

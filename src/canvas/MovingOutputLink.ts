@@ -4,6 +4,8 @@ import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/inte
 import type { LGraphNode } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
+import type { NodeLike } from "@/types/NodeLike"
+import type { SubgraphIO } from "@/types/serialisation"
 
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -32,7 +34,7 @@ export class MovingOutputLink extends MovingLinkBase {
     return false
   }
 
-  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): boolean {
+  canConnectToOutput(outputNode: NodeLike, output: INodeOutputSlot | SubgraphIO): boolean {
     return outputNode.canConnectTo(this.node, this.inputSlot, output)
   }
 

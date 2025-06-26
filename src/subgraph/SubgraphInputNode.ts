@@ -5,6 +5,7 @@ import type { DefaultConnectionColors, INodeInputSlot, ISlotType, Positionable }
 import type { LGraphNode, NodeId } from "@/LGraphNode"
 import type { RerouteId } from "@/Reroute"
 import type { CanvasPointerEvent } from "@/types/events"
+import type { NodeLike } from "@/types/NodeLike"
 
 import { SUBGRAPH_INPUT_ID } from "@/constants"
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -67,7 +68,7 @@ export class SubgraphInputNode extends SubgraphIONodeBase<SubgraphInput> impleme
     this.subgraph.removeInput(slot)
   }
 
-  canConnectTo(inputNode: LGraphNode, input: INodeInputSlot, fromSlot: SubgraphInput): boolean {
+  canConnectTo(inputNode: NodeLike, input: INodeInputSlot, fromSlot: SubgraphInput): boolean {
     return inputNode.canConnectTo(this, input, fromSlot)
   }
 

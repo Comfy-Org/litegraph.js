@@ -4,6 +4,8 @@ import type { LinkConnectorEventMap } from "@/infrastructure/LinkConnectorEventM
 import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
+import type { NodeLike } from "@/types/NodeLike"
+import type { SubgraphIO } from "@/types/serialisation"
 
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -35,7 +37,7 @@ export class ToOutputRenderLink implements RenderLink {
     return false
   }
 
-  canConnectToOutput(outputNode: LGraphNode, output: INodeOutputSlot): boolean {
+  canConnectToOutput(outputNode: NodeLike, output: INodeOutputSlot | SubgraphIO): boolean {
     return this.node.canConnectTo(outputNode, this.fromSlot, output)
   }
 
