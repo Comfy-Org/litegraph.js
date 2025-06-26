@@ -9,7 +9,7 @@ on:
       frontend-branch:
         description: "Frontend branch"
         required: true
-        default: "main"
+        default: "c/subgraph"
 
   push:
     branches: [main, master]
