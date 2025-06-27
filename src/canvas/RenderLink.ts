@@ -21,7 +21,7 @@ export interface RenderLink {
   /** The network that the link belongs to. */
   readonly network: LinkNetwork
   /** The node that the link is being connected from. */
-  readonly node: LGraphNode | SubgraphIONodeBase
+  readonly node: LGraphNode | SubgraphIONodeBase<SubgraphInput | SubgraphOutput>
   /** The slot that the link is being connected from. */
   readonly fromSlot: INodeOutputSlot | INodeInputSlot | SubgraphInput | SubgraphOutput
   /** The index of the slot that the link is being connected from. */
