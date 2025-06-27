@@ -36,7 +36,7 @@ export class ToInputFromIoNodeLink implements RenderLink {
       : fromSlot.pos
   }
 
-  canConnectToInput(inputNode: LGraphNode, input: INodeInputSlot): boolean {
+  canConnectToInput(inputNode: NodeLike, input: INodeInputSlot): boolean {
     return this.node.canConnectTo(inputNode, input, this.fromSlot)
   }
 
