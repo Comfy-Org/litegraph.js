@@ -48,6 +48,7 @@ export class NumberWidget extends BaseSteppedWidget<INumericWidget> implements I
   override onClick({ e, node, canvas }: WidgetEventOptions) {
     const x = e.canvasX - node.pos[0]
     const width = this.width || node.size[0]
+    const step = getWidgetStep(this.options)
 
     // Determine if clicked on left/right arrows
     const delta = x < 40
@@ -75,7 +76,7 @@ export class NumberWidget extends BaseSteppedWidget<INumericWidget> implements I
       if (!isNaN(newValue)) {
         this.setValue(newValue, { e, node, canvas })
       }
-    }, e)
+    }, e, { stepValue: step })
   }
 
   /**
