@@ -438,22 +438,25 @@ export class LinkConnector {
     const mayContinue = this.events.dispatch("before-drop-links", { renderLinks, event })
     if (mayContinue === false) return
 
-    const { canvasX, canvasY } = event
-    const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
-    if (node) {
-      this.dropOnNode(node, event)
-    } else {
-      // Get reroute if no node is found
-      const reroute = locator.getRerouteOnPos(canvasX, canvasY)
-      // Drop output->input link on reroute is not impl.
-      if (reroute && this.isRerouteValidDrop(reroute)) {
-        this.dropOnReroute(reroute, event)
-      } else {
-        this.dropOnNothing(event)
-      }
-    }
+    try {
+      const { canvasX, canvasY } = event
 
-    this.events.dispatch("after-drop-links", { renderLinks, event })
+      const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
+      if (node) {
+        this.dropOnNode(node, event)
+      } else {
+        // Get reroute if no node is found
+        const reroute = locator.getRerouteOnPos(canvasX, canvasY)
+        // Drop output->input link on reroute is not impl.
+        if (reroute && this.isRerouteValidDrop(reroute)) {
+          this.dropOnReroute(reroute, event)
+        } else {
+          this.dropOnNothing(event)
+        }
+      }
+    } finally {
+      this.events.dispatch("after-drop-links", { renderLinks, event })
+    }
   }
 
   dropOnNode(node: LGraphNode, event: CanvasPointerEvent) {
