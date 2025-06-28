@@ -9,7 +9,7 @@ on:
       frontend-branch:
         description: "Frontend branch"
         required: true
-        default: "c/subgraph"
+        default: "main"
 
   push:
     branches: [main, master]
@@ -50,7 +50,7 @@ jobs:
         with:
           repository: "Comfy-Org/ComfyUI_frontend"
           path: "ComfyUI_frontend"
-          ref: ${{ inputs.frontend-branch || 'c/subgraph' }}
+          ref: ${{ inputs.frontend-branch }}
 
       - name: Checkout ComfyUI_devtools
         uses: actions/checkout@v4
