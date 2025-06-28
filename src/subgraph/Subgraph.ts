@@ -202,7 +202,7 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
 
     this.#forAllNodes((node) => {
       if (node.type === this.id) {
-        node.inputs.splice(index, 1)
+        node.removeInput(index)
       }
     })
   }
@@ -226,7 +226,7 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
 
     this.#forAllNodes((node) => {
       if (node.type === this.id) {
-        node.outputs.splice(index, 1)
+        node.removeOutput(index)
       }
     })
   }
