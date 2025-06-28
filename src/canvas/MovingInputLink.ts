@@ -6,6 +6,7 @@ import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
 import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
 import type { NodeLike } from "@/types/NodeLike"
+import type { SubgraphIO } from "@/types/serialisation"
 
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -30,7 +31,7 @@ export class MovingInputLink extends MovingLinkBase {
     this.fromSlotIndex = this.outputIndex
   }
 
-  canConnectToInput(inputNode: NodeLike, input: INodeInputSlot): boolean {
+  canConnectToInput(inputNode: NodeLike, input: INodeInputSlot | SubgraphIO): boolean {
     return this.node.canConnectTo(inputNode, input, this.outputSlot)
   }
 
