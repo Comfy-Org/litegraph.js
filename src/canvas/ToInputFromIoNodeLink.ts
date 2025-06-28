@@ -7,6 +7,8 @@ import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
 import type { SubgraphInput } from "@/subgraph/SubgraphInput"
 import type { SubgraphInputNode } from "@/subgraph/SubgraphInputNode"
+import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
+import type { NodeLike } from "@/types/NodeLike"
 
 import { LinkDirection } from "@/types/globalEnums"
 
@@ -49,6 +51,10 @@ export class ToInputFromIoNodeLink implements RenderLink {
 
     const newLink = fromSlot.connect(input, node, fromReroute?.id)
     events.dispatch("link-created", newLink)
+  }
+
+  connectToSubgraphOutput(output: SubgraphOutput, events?: CustomEventTarget<LinkConnectorEventMap>): void {
+    throw new Error("Not implemented")
   }
 
   connectToRerouteInput(
@@ -96,6 +102,10 @@ export class ToInputFromIoNodeLink implements RenderLink {
 
   connectToOutput() {
     throw new Error("ToInputRenderLink cannot connect to an output.")
+  }
+
+  connectToSubgraphInput(): void {
+    throw new Error("ToInputRenderLink cannot connect to a subgraph input.")
   }
 
   connectToRerouteOutput() {

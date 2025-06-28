@@ -2,19 +2,19 @@ import type { RenderLink } from "./RenderLink"
 import type { LinkConnectorEventMap } from "@/infrastructure/LinkConnectorEventMap"
 import type { ConnectingLink, ItemLocator, LinkNetwork, LinkSegment } from "@/interfaces"
 import type { INodeInputSlot, INodeOutputSlot } from "@/interfaces"
-import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
 import type { SubgraphInput } from "@/subgraph/SubgraphInput"
-import type { SubgraphInputNode } from "@/subgraph/SubgraphInputNode"
-import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
-import type { SubgraphOutputNode } from "@/subgraph/SubgraphOutputNode"
 import type { CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget } from "@/types/widgets"
 
 import { SUBGRAPH_INPUT_ID, SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { CustomEventTarget } from "@/infrastructure/CustomEventTarget"
+import { LGraphNode } from "@/LGraphNode"
 import { LLink } from "@/LLink"
 import { Subgraph } from "@/subgraph/Subgraph"
+import { SubgraphInputNode } from "@/subgraph/SubgraphInputNode"
+import { SubgraphOutput } from "@/subgraph/SubgraphOutput"
+import { SubgraphOutputNode } from "@/subgraph/SubgraphOutputNode"
 import { LinkDirection } from "@/types/globalEnums"
 
 import { FloatingRenderLink } from "./FloatingRenderLink"
@@ -441,6 +441,12 @@ export class LinkConnector {
     try {
       const { canvasX, canvasY } = event
 
+      const ioNode = locator.getIoNodeOnPos?.(canvasX, canvasY)
+      if (ioNode) {
+        this.dropOnIoNode(ioNode, event)
+        return
+      }
+
       const node = locator.getNodeOnPos(canvasX, canvasY) ?? undefined
       if (node) {
         this.dropOnNode(node, event)
@@ -456,6 +462,30 @@ export class LinkConnector {
       }
     } finally {
       this.events.dispatch("after-drop-links", { renderLinks, event })
+    }
+  }
+
+  dropOnIoNode(ioNode: SubgraphInputNode | SubgraphOutputNode, event: CanvasPointerEvent) {
+    const { renderLinks, state } = this
+    const { connectingTo } = state
+    const { canvasX, canvasY } = event
+
+    if (connectingTo === "input" && ioNode instanceof SubgraphOutputNode) {
+      const output = ioNode.getSlotInPosition(canvasX, canvasY)
+      if (!output) throw new Error("No output slot found for link.")
+
+      for (const link of renderLinks) {
+        link.connectToSubgraphOutput(output, this.events)
+      }
+    } else if (connectingTo === "output" && ioNode instanceof SubgraphInputNode) {
+      const input = ioNode.getSlotInPosition(canvasX, canvasY)
+      if (!input) throw new Error("No input slot found for link.")
+
+      for (const link of renderLinks) {
+        link.connectToSubgraphInput(input, this.events)
+      }
+    } else {
+      console.error("Invalid connectingTo state &/ ioNode", connectingTo, ioNode)
     }
   }
 

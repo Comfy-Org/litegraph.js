@@ -5,6 +5,7 @@ import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/inte
 import type { LGraphNode } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
+import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
 import type { NodeLike } from "@/types/NodeLike"
 
 import { LinkDirection } from "@/types/globalEnums"
@@ -46,6 +47,11 @@ export class ToInputRenderLink implements RenderLink {
     if (node === outputNode) return
 
     const newLink = outputNode.connectSlots(fromSlot, node, input, fromReroute?.id)
+    events.dispatch("link-created", newLink)
+  }
+
+  connectToSubgraphOutput(output: SubgraphOutput, events: CustomEventTarget<LinkConnectorEventMap>) {
+    const newLink = output.connect(this.fromSlot, this.node, this.fromReroute?.id)
     events.dispatch("link-created", newLink)
   }
 
@@ -94,6 +100,10 @@ export class ToInputRenderLink implements RenderLink {
 
   connectToOutput() {
     throw new Error("ToInputRenderLink cannot connect to an output.")
+  }
+
+  connectToSubgraphInput(): void {
+    throw new Error("ToInputRenderLink cannot connect to a subgraph input.")
   }
 
   connectToRerouteOutput() {

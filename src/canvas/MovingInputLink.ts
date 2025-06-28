@@ -4,6 +4,7 @@ import type { INodeInputSlot, INodeOutputSlot, LinkNetwork, Point } from "@/inte
 import type { LGraphNode } from "@/LGraphNode"
 import type { LLink } from "@/LLink"
 import type { Reroute } from "@/Reroute"
+import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
 import type { NodeLike } from "@/types/NodeLike"
 
 import { LinkDirection } from "@/types/globalEnums"
@@ -52,6 +53,15 @@ export class MovingInputLink extends MovingLinkBase {
 
   connectToOutput(): never {
     throw new Error("MovingInputLink cannot connect to an output.")
+  }
+
+  connectToSubgraphInput(): void {
+    throw new Error("MovingInputLink cannot connect to a subgraph input.")
+  }
+
+  connectToSubgraphOutput(output: SubgraphOutput, events?: CustomEventTarget<LinkConnectorEventMap>): void {
+    const newLink = output.connect(this.fromSlot, this.node, this.fromReroute?.id)
+    events?.dispatch("link-created", newLink)
   }
 
   connectToRerouteInput(

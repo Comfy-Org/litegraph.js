@@ -4,6 +4,7 @@ import type { LinkConnectorEventMap } from "@/infrastructure/LinkConnectorEventM
 import type { INodeOutputSlot, LinkNetwork, Point } from "@/interfaces"
 import type { LGraphNode } from "@/LGraphNode"
 import type { Reroute } from "@/Reroute"
+import type { SubgraphInput } from "@/subgraph/SubgraphInput"
 import type { SubgraphOutput } from "@/subgraph/SubgraphOutput"
 import type { SubgraphOutputNode } from "@/subgraph/SubgraphOutputNode"
 import type { NodeLike } from "@/types/NodeLike"
@@ -57,6 +58,10 @@ export class ToOutputFromIoNodeLink implements RenderLink {
     events.dispatch("link-created", newLink)
   }
 
+  connectToSubgraphInput(input: SubgraphInput, events?: CustomEventTarget<LinkConnectorEventMap>): void {
+    throw new Error("Not implemented")
+  }
+
   connectToRerouteOutput(
     reroute: Reroute,
     outputNode: LGraphNode,
@@ -71,6 +76,10 @@ export class ToOutputFromIoNodeLink implements RenderLink {
 
   connectToInput() {
     throw new Error("ToOutputRenderLink cannot connect to an input.")
+  }
+
+  connectToSubgraphOutput(): void {
+    throw new Error("ToOutputRenderLink cannot connect to a subgraph output.")
   }
 
   connectToRerouteInput() {
