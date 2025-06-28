@@ -136,8 +136,8 @@ export abstract class SubgraphIONodeBase<TSlot extends SubgraphInput | SubgraphO
    * @param y The y coordinate of the position.
    * @returns The slot at the given position, otherwise `undefined`.
    */
-  protected getSlotInPosition(x: number, y: number): TSlot | undefined {
-    for (const slot of this.slots) {
+  getSlotInPosition(x: number, y: number): TSlot | undefined {
+    for (const slot of this.allSlots) {
       if (slot.boundingRect.containsXy(x, y)) {
         return slot
       }

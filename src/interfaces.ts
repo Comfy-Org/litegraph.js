@@ -167,6 +167,7 @@ export interface LinkNetwork extends ReadonlyLinkNetwork {
 export interface ItemLocator {
   getNodeOnPos(x: number, y: number, nodeList?: LGraphNode[]): LGraphNode | null
   getRerouteOnPos(x: number, y: number): Reroute | undefined
+  getIoNodeOnPos?(x: number, y: number): SubgraphInputNode | SubgraphOutputNode | undefined
 }
 
 /** Contains a cached 2D canvas path and a centre point, with an optional forward angle. */
