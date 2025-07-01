@@ -172,7 +172,8 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     const index = this.inputs.indexOf(input)
     if (index === -1) throw new Error("Input not found")
 
-    this.events.dispatch("removing-input", { input, index })
+    const mayContinue = this.events.dispatch("removing-input", { input, index })
+    if (!mayContinue) return
 
     this.inputs.splice(index, 1)
 
@@ -192,7 +193,8 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     const index = this.outputs.indexOf(output)
     if (index === -1) throw new Error("Output not found")
 
-    this.events.dispatch("removing-output", { output, index })
+    const mayContinue = this.events.dispatch("removing-output", { output, index })
+    if (!mayContinue) return
 
     this.outputs.splice(index, 1)
 
