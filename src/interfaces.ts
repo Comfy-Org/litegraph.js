@@ -342,7 +342,6 @@ export interface INodeFlags {
  */
 export interface IWidgetLocator {
   name: string
-  [key: string | symbol]: unknown
 }
 
 export interface INodeInputSlot extends INodeSlot {
