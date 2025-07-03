@@ -297,4 +297,14 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     cloned.value = this.value
     return cloned
   }
+
+  getReactiveData() {
+    return {
+      name: this.name,
+      type: this.type,
+      value: this.#value,
+      options: this.options ? { ...this.options } : undefined,
+      callback: this.callback
+    }
+  }
 }
