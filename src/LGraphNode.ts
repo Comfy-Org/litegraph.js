@@ -689,6 +689,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     }
   }
 
+  /** Internal callback for subgraph nodes. Do not implement externally. */
+  _internalConfigureAfterSlots?(): void
+
   /**
    * configure a node from an object containing the serialized info
    */
@@ -753,6 +756,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       }
       this.onOutputAdded?.(output)
     }
+
+    // SubgraphNode callback.
+    this._internalConfigureAfterSlots?.()
 
     if (this.widgets) {
       for (const w of this.widgets) {
@@ -1786,6 +1792,11 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     const widget = toConcreteWidget(custom_widget, this, false) ?? custom_widget
     this.widgets.push(widget)
     return widget
+  }
+
+  removeWidgetByName(name: string): void {
+    const widget = this.widgets?.find(x => x.name === name)
+    if (widget) this.removeWidget(widget)
   }
 
   removeWidget(widget: IBaseWidget): void {

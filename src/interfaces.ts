@@ -2,10 +2,10 @@ import type { ContextMenu } from "./ContextMenu"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
-import type { SubgraphInput } from "./subgraph/SubgraphInput"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
 import type { LinkDirection, RenderShape } from "./types/globalEnums"
+import type { IBaseWidget } from "./types/widgets"
 import type { Rectangle } from "@/infrastructure/Rectangle"
 import type { CanvasPointerEvent } from "@/types/events"
 
@@ -347,6 +347,11 @@ export interface IWidgetLocator {
 export interface INodeInputSlot extends INodeSlot {
   link: LinkId | null
   widget?: IWidgetLocator
+
+  /**
+   * Internal use only; API is not finalised and may change at any time.
+   */
+  _widget?: IBaseWidget
 }
 
 export interface IWidgetInputSlot extends INodeInputSlot {
@@ -436,7 +441,7 @@ export interface DefaultConnectionColors {
 }
 
 export interface ISubgraphInput extends INodeInputSlot {
-  _subgraphSlot: SubgraphInput
+  _listenerController?: AbortController
 }
 
 /**
