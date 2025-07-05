@@ -1727,7 +1727,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   bindEvents(): void {
     if (this._events_binded) {
-      console.warn("LGraphCanvas: events already binded")
+      console.warn("LGraphCanvas: events already bound")
       return
     }
 
@@ -1771,7 +1771,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   unbindEvents(): void {
     if (!this._events_binded) {
-      console.warn("LGraphCanvas: no events binded")
+      console.warn("LGraphCanvas: no events bound")
       return
     }
 
