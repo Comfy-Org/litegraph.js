@@ -14,7 +14,7 @@ import { Subgraph } from "./Subgraph"
 /**
  * Interface describing the data transfer objects used when compiling a graph for execution.
  */
-export type ExecutableLGraphNode = Omit<ExecutableNodeDTO, "graph" | "node" | "subgraphNodePath" | "subgraphNode">
+export type ExecutableLGraphNode = Omit<ExecutableNodeDTO, "graph" | "node" | "subgraphNode">
 
 type NodeAndInput = {
   node: ExecutableLGraphNode
