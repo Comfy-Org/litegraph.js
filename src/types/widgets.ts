@@ -196,6 +196,12 @@ export interface IBaseWidget<
    */
   computedDisabled?: boolean
 
+  /**
+   * Whether the widget value should be hidden.
+   * @readonly [Computed] This property is computed by the node.
+   */
+  computedStripValue?: boolean
+
   hidden?: boolean
   advanced?: boolean
 

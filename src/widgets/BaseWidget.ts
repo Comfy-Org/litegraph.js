@@ -66,6 +66,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
   width?: number
   disabled?: boolean
   computedDisabled?: boolean
+  computedStripValue?: boolean
   hidden?: boolean
   advanced?: boolean
   tooltip?: string
@@ -210,6 +211,13 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     const area = new Rectangle(x, y, totalWidth, height * 0.7)
 
     ctx.fillStyle = this.secondary_text_color
+
+    if (this.computedStripValue) {
+      // When the value is hidden, only show the name of the widget
+      drawTextInArea({ ctx, text: displayName, area, align: "left" })
+      ctx.fillStyle = this.text_color
+      return
+    }
 
     if (requiredWidth <= totalWidth) {
       // Draw label & value normally
