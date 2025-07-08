@@ -16,7 +16,7 @@ import { Subgraph } from "./Subgraph"
  */
 export type ExecutableLGraphNode = Omit<ExecutableNodeDTO, "graph" | "node" | "subgraphNode">
 
-type NodeAndInput = {
+type ResolvedInput = {
   node: ExecutableLGraphNode
   origin_id: NodeId
   origin_slot: number
@@ -112,7 +112,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * If overriding, ensure that the set is passed on all recursive calls.
    * @returns The node and the origin ID / slot index of the output.
    */
-  resolveInput(slot: number, visited = new Set<string>()): NodeAndInput | undefined {
+  resolveInput(slot: number, visited = new Set<string>()): ResolvedInput | undefined {
     const uniqueId = `${this.subgraphNode?.subgraph.id}:${this.node.id}[I]${slot}`
     if (visited.has(uniqueId)) throw new RecursionError(`While resolving subgraph input [${uniqueId}]`)
     visited.add(uniqueId)
@@ -163,7 +163,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * @param visited A set of unique IDs to guard against infinite recursion. See {@link resolveInput}.
    * @returns The node and the origin ID / slot index of the output.
    */
-  resolveOutput(slot: number, type: ISlotType, visited: Set<string>): NodeAndInput | undefined {
+  resolveOutput(slot: number, type: ISlotType, visited: Set<string>): ResolvedInput | undefined {
     const uniqueId = `${this.subgraphNode?.subgraph.id}:${this.node.id}[O]${slot}`
     if (visited.has(uniqueId)) throw new RecursionError(`While resolving subgraph output [${uniqueId}]`)
     visited.add(uniqueId)
@@ -222,7 +222,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * @param visited A set of unique IDs to guard against infinite recursion. See {@link resolveInput}.
    * @returns A DTO for the node, and the origin ID / slot index of the output.
    */
-  #resolveSubgraphOutput(slot: number, type: ISlotType, visited: Set<string>): NodeAndInput | undefined {
+  #resolveSubgraphOutput(slot: number, type: ISlotType, visited: Set<string>): ResolvedInput | undefined {
     const { node } = this
     const output = node.outputs.at(slot)
 
