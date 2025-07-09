@@ -31,7 +31,7 @@ describe("Subgraph Construction", () => {
       name: "Test Subgraph",
     })
 
-    expect(subgraph.id).toBeTruthy()
+    expect(subgraph.id).toMatch(/^[0-9a-f-]{36}$/i)
     expect(subgraph.inputNode).toBeDefined()
     expect(subgraph.outputNode).toBeDefined()
     expect(subgraph.inputNode.id).toBe(-10)
