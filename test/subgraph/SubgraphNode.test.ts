@@ -64,9 +64,7 @@ describe("SubgraphNode Construction", () => {
     expect(subgraphNode.inputs).toHaveLength(subgraph.inputs.length)
     expect(subgraphNode.outputs).toHaveLength(subgraph.outputs.length)
   })
-})
 
-describe("SubgraphNode Synchronization", () => {
   subgraphTest("should update slots when subgraph definition changes", ({ subgraphWithNode }) => {
     const { subgraph, subgraphNode } = subgraphWithNode
 
@@ -80,7 +78,9 @@ describe("SubgraphNode Synchronization", () => {
     expect(subgraphNode.inputs.at(-1)?.name).toBe("new_input")
     expect(subgraphNode.inputs.at(-1)?.type).toBe("string")
   })
+})
 
+describe("SubgraphNode Synchronization", () => {
   it("should sync input addition", () => {
     const subgraph = createTestSubgraph()
     const subgraphNode = createTestSubgraphNode(subgraph)
@@ -268,6 +268,32 @@ describe("SubgraphNode Basic Functionality", () => {
     expect(subgraphNode.outputs[0].type).toBe("number")
     expect(subgraphNode.outputs[1].type).toBe("string")
     expect(subgraphNode.outputs[2].type).toBe("*")
+=======
+  })
+})
+
+describe("SubgraphNode Event Handling", () => {
+  it.todo("should handle input-added events", () => {
+    // TODO: Implement in Developer 3's event testing spec
+  })
+
+  it.todo("should handle output-added events", () => {
+    // TODO: Implement in Developer 3's event testing spec
+  })
+
+  it.todo("should handle renaming events", () => {
+    // TODO: Implement in Developer 3's event testing spec
+  })
+})
+
+describe("SubgraphNode Memory Management", () => {
+  it.todo("should clean up event listeners on removal", () => {
+    // TODO: Critical - needs implementation
+    // This addresses the known memory leak issue
+  })
+
+  it.todo("should handle widget promotion cleanup", () => {
+    // TODO: Implement widget cleanup tests
   })
 })
 
@@ -359,6 +385,34 @@ describe("SubgraphNode Execution", () => {
     // Fix: Change `new Set(visited)` to just `visited`
   })
 })
+=======
+  it.todo("should flatten to ExecutableNodeDTOs", () => {
+    // TODO: Implement in Developer 2's core functionality spec
+  })
+
+  it.todo("should handle nested subgraph execution", () => {
+    // TODO: Implement in Developer 2's core functionality spec
+  })
+
+  it.todo("should resolve cross-boundary links", () => {
+    // TODO: Implement in Developer 2's core functionality spec
+  })
+})
+
+describe("SubgraphNode Edge Cases", () => {
+  it.todo("should detect circular references", () => {
+    // TODO: Implement in Developer 4's edge cases spec
+  })
+
+  it.todo("should handle deep nesting", () => {
+    // TODO: Implement in Developer 4's edge cases spec
+  })
+
+  it.todo("should validate against MAX_NESTED_SUBGRAPHS", () => {
+    // TODO: Implement when the limit is actually enforced
+  })
+})
+
 describe("SubgraphNode Integration", () => {
   it("should be addable to a parent graph", () => {
     const subgraph = createTestSubgraph()

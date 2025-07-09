@@ -1,9 +1,9 @@
 /**
  * Test Helper Functions for Subgraph Testing
  *
- * Core utilities for creating and testing subgraphs.
- * Provides consistent APIs for test subgraph creation, node management,
- * and behavior verification.
+ * This file contains the core utilities that all subgraph developers will use.
+ * These functions provide consistent ways to create test subgraphs, nodes, and
+ * verify their behavior.
  */
 
 import type { ISlotType, NodeId } from "@/litegraph"
@@ -56,7 +56,7 @@ export interface CapturedEvent<T = unknown> {
 
 /**
  * Creates a test subgraph with the specified configuration.
- * This is the primary function for creating test subgraphs.
+ * This is the primary function that other developers will use.
  * @param options Configuration options for the subgraph
  * @returns A configured Subgraph instance
  * @example
@@ -78,7 +78,6 @@ export function createTestSubgraph(options: TestSubgraphOptions = {}): Subgraph 
   if (options.outputs && options.outputCount) {
     throw new Error(`Cannot specify both 'outputs' array and 'outputCount'. Choose one approach. Received options: ${JSON.stringify(options)}`)
   }
-
   const rootGraph = new LGraph()
 
   // Create the base subgraph data

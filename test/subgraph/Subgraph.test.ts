@@ -1,8 +1,9 @@
 /**
  * Core Subgraph Tests
  *
- * Fundamental tests for the Subgraph class covering construction,
- * basic I/O management, and edge cases.
+ * This file implements fundamental tests for the Subgraph class that establish
+ * patterns for the rest of the testing team. These tests cover construction,
+ * basic I/O management, and known issues.
  */
 
 import { describe, expect, it } from "vitest"
@@ -270,6 +271,26 @@ describe("Subgraph Serialization", () => {
 })
 
 describe("Subgraph Known Issues", () => {
+  it.todo("should document createNode() bug returns null", () => {
+    // This test documents the known issue where LiteGraph.createNode(subgraph.id)
+    // returns null because UUID is not registered as a node type.
+    //
+    // Expected behavior: Should create a SubgraphNode instance
+    // Actual behavior: Returns null, causing convertToSubgraph() to fail
+    //
+    // This needs to be fixed in the LiteGraphGlobal registration system.
+  })
+
+  it.todo("should enforce MAX_NESTED_SUBGRAPHS limit", () => {
+    // This test documents that MAX_NESTED_SUBGRAPHS = 1000 is defined
+    // but not actually enforced anywhere in the code.
+    //
+    // Expected behavior: Should throw error when nesting exceeds limit
+    // Actual behavior: No validation is performed
+    //
+    // This safety limit should be implemented to prevent runaway recursion.
+  })
+
   it("should provide MAX_NESTED_SUBGRAPHS constant", () => {
     expect(Subgraph.MAX_NESTED_SUBGRAPHS).toBe(1000)
   })
