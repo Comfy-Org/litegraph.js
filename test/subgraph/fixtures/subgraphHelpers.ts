@@ -10,10 +10,11 @@ import type { ISlotType, NodeId } from "@/litegraph"
 import type { ExportedSubgraph, ExportedSubgraphInstance } from "@/types/serialisation"
 import type { UUID } from "@/utils/uuid"
 
+import { expect } from "vitest"
+
 import { LGraph, LGraphNode, Subgraph } from "@/litegraph"
 import { SubgraphNode } from "@/subgraph/SubgraphNode"
 import { createUuidv4 } from "@/utils/uuid"
-import { expect } from "vitest"
 
 export interface TestSubgraphOptions {
   id?: UUID
