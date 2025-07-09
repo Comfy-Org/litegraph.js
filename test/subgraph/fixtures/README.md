@@ -1,51 +1,79 @@
 # Subgraph Testing Fixtures and Utilities
 
-This directory contains the foundational testing infrastructure for subgraph functionality. All developers working on subgraph tests should use these utilities to ensure consistency and avoid code duplication.
+This directory contains the testing infrastructure for LiteGraph's subgraph functionality. These utilities provide a consistent, easy-to-use API for writing subgraph tests.
+
+## What is a Subgraph?
+
+A subgraph in LiteGraph is a graph-within-a-graph that can be reused as a single node. It has:
+- Input slots that map to an internal input node
+- Output slots that map to an internal output node
+- Internal nodes and connections
+- The ability to be instantiated multiple times as SubgraphNode instances
 
 ## Quick Start
 
 ```typescript
-// Import the helpers you need
+// Import what you need
 import { createTestSubgraph, assertSubgraphStructure } from "./fixtures/subgraphHelpers"
 import { subgraphTest } from "./fixtures/subgraphFixtures"
 
-// Use fixtures in your tests
-subgraphTest("my test", ({ simpleSubgraph, eventCapture }) => {
-  // Your test logic here
+// Option 1: Create a subgraph manually
+it("should do something", () => {
+  const subgraph = createTestSubgraph({
+    name: "My Test Subgraph",
+    inputCount: 2,
+    outputCount: 1
+  })
+  
+  // Test your functionality
+  expect(subgraph.inputs).toHaveLength(2)
+})
+
+// Option 2: Use pre-configured fixtures
+subgraphTest("should handle events", ({ simpleSubgraph }) => {
+  // simpleSubgraph comes pre-configured with 1 input, 1 output, and 2 nodes
+  expect(simpleSubgraph.inputs).toHaveLength(1)
 })
 ```
 
 ## Files Overview
 
-### `subgraphHelpers.ts` - Core Utilities
-The main helper functions that all developers should use:
+### `subgraphHelpers.ts` - Core Helper Functions
 
-**Factory Functions:**
-- `createTestSubgraph(options?)` - Creates configured test subgraphs
-- `createTestSubgraphNode(subgraph, options?)` - Creates SubgraphNode instances
-- `createNestedSubgraphs(options?)` - Creates nested hierarchies
+**Main Factory Functions:**
+- `createTestSubgraph(options?)` - Creates a fully configured Subgraph instance with root graph
+- `createTestSubgraphNode(subgraph, options?)` - Creates a SubgraphNode (instance of a subgraph)
+- `createNestedSubgraphs(options?)` - Creates nested subgraph hierarchies for testing deep structures
 
-**Assertion Helpers:**
-- `assertSubgraphStructure(subgraph, expected)` - Validates subgraph structure
-- `verifyEventSequence(events, expectedSequence)` - Validates event ordering
+**Assertion & Validation:**
+- `assertSubgraphStructure(subgraph, expected)` - Validates subgraph has expected inputs/outputs/nodes
+- `verifyEventSequence(events, expectedSequence)` - Ensures events fired in correct order
+- `logSubgraphStructure(subgraph, label?)` - Debug helper to print subgraph structure
 
-**Test Data Generators:**
-- `createTestSubgraphData(overrides?)` - Raw subgraph data
-- `createComplexSubgraphData(nodeCount?)` - Complex scenarios
+**Test Data & Events:**
+- `createTestSubgraphData(overrides?)` - Creates raw ExportedSubgraph data for serialization tests
+- `createComplexSubgraphData(nodeCount?)` - Generates complex subgraph with internal connections
+- `createEventCapture(eventTarget, eventTypes)` - Sets up event monitoring with automatic cleanup
 
 ### `subgraphFixtures.ts` - Vitest Fixtures
-Pre-configured test fixtures using Vitest's extend functionality:
 
-**Available Fixtures:**
-- `emptySubgraph` - Minimal subgraph with no I/O
-- `simpleSubgraph` - Basic subgraph with 1 input, 1 output
-- `complexSubgraph` - Multiple inputs, outputs, and nodes
-- `nestedSubgraph` - 3-level nested structure
-- `subgraphWithNode` - Subgraph + SubgraphNode + parent graph
-- `eventCapture` - Event monitoring system
+Pre-configured test scenarios that automatically set up and tear down:
 
-### `testSubgraphs.json` - Sample Data
-JSON fixtures for serialization/deserialization testing and edge cases.
+**Basic Fixtures (`subgraphTest`):**
+- `emptySubgraph` - Minimal subgraph with no inputs/outputs/nodes
+- `simpleSubgraph` - 1 input ("input": number), 1 output ("output": number), 2 internal nodes
+- `complexSubgraph` - 3 inputs (data, control, text), 2 outputs (result, status), 5 nodes
+- `nestedSubgraph` - 3-level deep hierarchy with 2 nodes per level
+- `subgraphWithNode` - Complete setup: subgraph definition + SubgraphNode instance + parent graph
+- `eventCapture` - Subgraph with event monitoring for all I/O events
+
+**Edge Case Fixtures (`edgeCaseTest`):**
+- `circularSubgraph` - Two subgraphs set up for circular reference testing
+- `deeplyNestedSubgraph` - 50 levels deep for performance/limit testing
+- `maxIOSubgraph` - 20 inputs and 20 outputs for stress testing
+
+### `testSubgraphs.json` - Sample Test Data
+Pre-defined subgraph configurations for consistent testing across different scenarios.
 
 ## Usage Examples
 
@@ -125,43 +153,40 @@ it("should handle deep nesting", () => {
 
 ## Common Patterns
 
-### 1. Always Use Helper Functions
+### Testing SubgraphNode Instances
+
 ```typescript
-// ✅ Good - uses helper
-const subgraph = createTestSubgraph({ inputCount: 1 })
-
-// ❌ Bad - manual creation
-const rootGraph = new LGraph()
-const data = { /* lots of boilerplate */ }
-const subgraph = new Subgraph(rootGraph, data)
-```
-
-### 2. Use Fixtures for Setup
-```typescript
-// ✅ Good - uses fixture
-subgraphTest("my test", ({ simpleSubgraph }) => {
-  // Test with pre-configured subgraph
-})
-
-// ❌ Bad - manual setup in every test
-it("my test", () => {
-  const subgraph = createTestSubgraph()
-  subgraph.addInput("input", "number")
-  subgraph.addOutput("output", "number")
-  // ... lots of setup
+it("should create and configure a SubgraphNode", () => {
+  // First create the subgraph definition
+  const subgraph = createTestSubgraph({
+    inputs: [{ name: "value", type: "number" }],
+    outputs: [{ name: "result", type: "number" }]
+  })
+  
+  // Then create an instance of it
+  const subgraphNode = createTestSubgraphNode(subgraph, {
+    pos: [100, 200],
+    size: [180, 100]
+  })
+  
+  // The SubgraphNode will have matching slots
+  expect(subgraphNode.inputs).toHaveLength(1)
+  expect(subgraphNode.outputs).toHaveLength(1)
+  expect(subgraphNode.subgraph).toBe(subgraph)
 })
 ```
 
-### 3. Use Assertion Helpers
-```typescript
-// ✅ Good - uses helper
-assertSubgraphStructure(subgraph, { inputCount: 2, outputCount: 1 })
+### Complete Test with Parent Graph
 
-// ❌ Bad - manual assertions
-expect(subgraph.inputs.length).toBe(2)
-expect(subgraph.outputs.length).toBe(1)
-expect(subgraph.inputNode).toBeDefined()
-// ... repetitive assertions
+```typescript
+subgraphTest("should work in a parent graph", ({ subgraphWithNode }) => {
+  const { subgraph, subgraphNode, parentGraph } = subgraphWithNode
+  
+  // Everything is pre-configured and connected
+  expect(parentGraph.nodes).toContain(subgraphNode)
+  expect(subgraphNode.graph).toBe(parentGraph)
+  expect(subgraphNode.subgraph).toBe(subgraph)
+})
 ```
 
 ## Configuration Options
@@ -195,83 +220,80 @@ interface NestedSubgraphOptions {
 }
 ```
 
-## Testing Guidelines
+## Important Architecture Notes
 
-### 1. Test Isolation
-- Each test should be independent
-- Use fixtures to avoid shared state
-- Clean up event listeners with `capture.cleanup()`
+### Subgraph vs SubgraphNode
+- **Subgraph**: The definition/template (like a class definition)
+- **SubgraphNode**: An instance of a subgraph placed in a graph (like a class instance)
+- One Subgraph can have many SubgraphNode instances
 
-### 2. Event Testing
-- Always verify event sequences with `verifyEventSequence()`
-- Test both successful and cancelled events
-- Check event detail payloads
+### Special Node IDs
+- Input node always has ID `-10` (SUBGRAPH_INPUT_ID)
+- Output node always has ID `-20` (SUBGRAPH_OUTPUT_ID)
+- These are virtual nodes that exist in every subgraph
 
-### 3. Memory Management
-- Test cleanup scenarios (removal, destruction)
-- Verify no memory leaks in event listeners
-- Use WeakRef patterns where appropriate
+### Common Pitfalls
 
-### 4. Error Conditions
-- Test invalid inputs and edge cases
-- Verify proper error messages
-- Use `.todo()` for known issues that need fixing
+1. **Array vs Index**: The `inputs` and `outputs` arrays don't have an `index` property on items. Use `indexOf()`:
+   ```typescript
+   // ❌ Wrong
+   expect(input.index).toBe(0)
+   
+   // ✅ Correct
+   expect(subgraph.inputs.indexOf(input)).toBe(0)
+   ```
 
-## Known Issues to Document
+2. **Graph vs Subgraph Property**: SubgraphInputNode/OutputNode have `subgraph`, not `graph`:
+   ```typescript
+   // ❌ Wrong
+   expect(inputNode.graph).toBe(subgraph)
+   
+   // ✅ Correct
+   expect(inputNode.subgraph).toBe(subgraph)
+   ```
 
-When you encounter these issues in your tests, use `.todo()` and reference them:
+3. **Event Detail Structure**: Events have specific detail structures:
+   ```typescript
+   // Input events
+   "adding-input": { name: string, type: string }
+   "input-added": { input: SubgraphInput, index: number }
+   
+   // Output events  
+   "adding-output": { name: string, type: string }
+   "output-added": { output: SubgraphOutput, index: number }
+   ```
 
-1. **UUID Registration Bug**: `LiteGraph.createNode(subgraph.id)` returns null
-2. **MAX_NESTED_SUBGRAPHS**: Constant defined but not enforced
-3. **Memory Leaks**: Event listeners not cleaned up in SubgraphNode
-4. **Performance Issues**: O(D²) link resolution complexity
+4. **Links are stored in a Map**: Use `.size` not `.length`:
+   ```typescript
+   // ❌ Wrong
+   expect(subgraph.links.length).toBe(1)
+   
+   // ✅ Correct
+   expect(subgraph.links.size).toBe(1)
+   ```
 
-Example:
-```typescript
-it.todo("should fix UUID registration bug", () => {
-  // Documents the known issue where createNode() returns null
-  // See: https://github.com/Comfy-Org/litegraph.js/issues/XXX
-})
-```
+## Testing Best Practices
 
-## Developer Responsibilities
+- Always use helper functions instead of manual setup
+- Use fixtures for common scenarios to avoid repetitive code
+- Clean up event listeners with `capture.cleanup()` after event tests
+- Use `verifyEventSequence()` to test event ordering
+- Remember fixtures are created fresh for each test (no shared state)
+- Use `assertSubgraphStructure()` for comprehensive validation
 
-### Developer 1 (Foundation Lead) - ✅ COMPLETE
-- [x] Core helper functions
-- [x] Test fixtures
-- [x] Basic Subgraph tests
-- [x] Documentation and patterns
+## Debugging Tips
 
-### Developer 2 (Core Functionality)
-- [ ] SubgraphNode execution and flattening
-- [ ] Link resolution across boundaries
-- [ ] ExecutableNodeDTO tests
-- [ ] Performance optimization tests
+- Use `logSubgraphStructure(subgraph)` to print subgraph details
+- Check `subgraph.rootGraph` to verify graph hierarchy
+- Event capture includes timestamps for debugging timing issues
+- All factory functions accept optional parameters for customization
 
-### Developer 3 (Events & I/O)
-- [ ] Comprehensive event system tests
-- [ ] I/O management edge cases
-- [ ] Widget promotion tests
-- [ ] Memory leak detection tests
+## Adding New Test Utilities
 
-### Developer 4 (Edge Cases & Integration)
-- [ ] Circular reference detection
-- [ ] Deep nesting edge cases
-- [ ] Serialization/deserialization
-- [ ] Integration with LiteGraph core
+When extending the test infrastructure:
 
-## Getting Help
-
-If you need additional helper functions or fixtures:
-
-1. Check if existing utilities can be extended
-2. Add new helpers to `subgraphHelpers.ts`
+1. Add new helper functions to `subgraphHelpers.ts`
+2. Add new fixtures to `subgraphFixtures.ts`
 3. Update this README with usage examples
-4. Coordinate with other developers to avoid duplication
-
-## Performance Notes
-
-- Helper functions are optimized for test clarity, not performance
-- Use `structuredClone()` for deep copying test data
-- Event capture systems automatically clean up listeners
-- Fixtures are created fresh for each test to avoid state contamination
+4. Follow existing patterns for consistency
+5. Add TypeScript types for all parameters
