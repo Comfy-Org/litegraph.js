@@ -69,6 +69,16 @@ export interface CapturedEvent<T = unknown> {
  * ```
  */
 export function createTestSubgraph(options: TestSubgraphOptions = {}): Subgraph {
+  // Validate options - cannot specify both inputs array and inputCount
+  if (options.inputs && options.inputCount) {
+    throw new Error(`Cannot specify both 'inputs' array and 'inputCount'. Choose one approach. Received options: ${JSON.stringify(options)}`)
+  }
+
+  // Validate options - cannot specify both outputs array and outputCount
+  if (options.outputs && options.outputCount) {
+    throw new Error(`Cannot specify both 'outputs' array and 'outputCount'. Choose one approach. Received options: ${JSON.stringify(options)}`)
+  }
+
   const rootGraph = new LGraph()
 
   // Create the base subgraph data
@@ -440,7 +450,10 @@ export function createEventCapture<T = unknown>(
   return {
     events: capturedEvents,
     clear: () => { capturedEvents.length = 0 },
-    cleanup: () => { for (const cleanup of listeners) cleanup() },
+    cleanup: () => {
+      // Remove all event listeners to prevent memory leaks
+      for (const cleanup of listeners) cleanup()
+    },
     getEventsByType: (type: string) => capturedEvents.filter(e => e.type === type),
   }
 }
