@@ -1,9 +1,8 @@
 /**
  * Core Subgraph Tests
  *
- * This file implements fundamental tests for the Subgraph class that establish
- * patterns for the rest of the testing team. These tests cover construction,
- * basic I/O management, and known issues.
+ * Fundamental tests for the Subgraph class covering construction,
+ * basic I/O management, and edge cases.
  */
 
 import { describe, expect, it } from "vitest"

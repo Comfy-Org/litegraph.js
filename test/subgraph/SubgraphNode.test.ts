@@ -1,8 +1,8 @@
 /**
- * Basic SubgraphNode Test Structure
+ * SubgraphNode Tests
  *
- * This file provides the basic structure for SubgraphNode tests.
- * The Foundation Lead creates this structure for other developers to expand upon.
+ * Tests for SubgraphNode instances including construction,
+ * IO synchronization, and edge cases.
  */
 
 import { describe, expect, it } from "vitest"
@@ -54,15 +54,15 @@ describe("SubgraphNode Construction", () => {
 
 describe("SubgraphNode Event Handling", () => {
   it.todo("should handle input-added events", () => {
-    // TODO: Implement in Developer 3's event testing spec
+    // TODO: Implement
   })
 
   it.todo("should handle output-added events", () => {
-    // TODO: Implement in Developer 3's event testing spec
+    // TODO: Implement
   })
 
   it.todo("should handle renaming events", () => {
-    // TODO: Implement in Developer 3's event testing spec
+    // TODO: Implement
   })
 })
 
@@ -79,25 +79,25 @@ describe("SubgraphNode Memory Management", () => {
 
 describe("SubgraphNode Execution", () => {
   it.todo("should flatten to ExecutableNodeDTOs", () => {
-    // TODO: Implement in Developer 2's core functionality spec
+    // TODO: Implement
   })
 
   it.todo("should handle nested subgraph execution", () => {
-    // TODO: Implement in Developer 2's core functionality spec
+    // TODO: Implement
   })
 
   it.todo("should resolve cross-boundary links", () => {
-    // TODO: Implement in Developer 2's core functionality spec
+    // TODO: Implement
   })
 })
 
 describe("SubgraphNode Edge Cases", () => {
   it.todo("should detect circular references", () => {
-    // TODO: Implement in Developer 4's edge cases spec
+    // TODO: Implement
   })
 
   it.todo("should handle deep nesting", () => {
-    // TODO: Implement in Developer 4's edge cases spec
+    // TODO: Implement
   })
 
   it.todo("should validate against MAX_NESTED_SUBGRAPHS", () => {
