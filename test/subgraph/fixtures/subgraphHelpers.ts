@@ -1,9 +1,9 @@
 /**
  * Test Helper Functions for Subgraph Testing
  *
- * This file contains the core utilities that all subgraph developers will use.
- * These functions provide consistent ways to create test subgraphs, nodes, and
- * verify their behavior.
+ * Core utilities for creating and testing subgraphs.
+ * Provides consistent APIs for test subgraph creation, node management,
+ * and behavior verification.
  */
 
 import type { ISlotType, NodeId } from "@/litegraph"
@@ -56,7 +56,7 @@ export interface CapturedEvent<T = unknown> {
 
 /**
  * Creates a test subgraph with the specified configuration.
- * This is the primary function that other developers will use.
+ * This is the primary function for creating test subgraphs.
  * @param options Configuration options for the subgraph
  * @returns A configured Subgraph instance
  * @example
