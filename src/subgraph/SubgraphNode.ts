@@ -273,15 +273,15 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     console.debug(`[SubgraphNode.resolveSubgraphOutputLink] No inner link found for output slot [${slot}] ${outputSlot.name}`, this)
   }
 
-  /** @internal Used to flatten the subgraph before execution. Recursive; call with no args. */
+  /** @internal Used to flatten the subgraph before execution. */
   getInnerNodes(
     /** The set of computed node DTOs for this execution. */
     executableNodes: Map<ExecutionId, ExecutableLGraphNode>,
     /** The path of subgraph node IDs. */
     subgraphNodePath: readonly NodeId[] = [],
-    /** The list of nodes to add to. */
+    /** Internal recursion param. The list of nodes to add to. */
     nodes: ExecutableLGraphNode[] = [],
-    /** The set of visited nodes. */
+    /** Internal recursion param. The set of visited nodes. */
     visited = new Set<SubgraphNode>(),
   ): ExecutableLGraphNode[] {
     if (visited.has(this)) throw new RecursionError("while flattening subgraph")
