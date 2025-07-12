@@ -2288,16 +2288,14 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       }
     }
 
-    // allow dragging canvas if canvas is not in standard, or read-only (pan mode in standard)
-    const allowDraggingCanvasOnStandardMode = LiteGraph.canvasNavigationMode !== "standard" || this.read_only
-
     if (
       !pointer.onDragStart &&
       !pointer.onClick &&
       !pointer.onDrag &&
       this.allow_dragcanvas
     ) {
-      if (allowDraggingCanvasOnStandardMode) {
+      // allow dragging canvas if canvas is not in standard, or read-only (pan mode in standard)
+      if (LiteGraph.canvasNavigationMode !== "standard" || this.read_only) {
         pointer.onClick = () => this.processSelect(null, e)
         pointer.finally = () => this.dragging_canvas = false
         this.dragging_canvas = true
