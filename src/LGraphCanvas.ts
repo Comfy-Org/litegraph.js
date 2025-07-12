@@ -2302,12 +2302,12 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         pointer.finally = () => this.dragging_canvas = false
         this.dragging_canvas = true
       } else {
-        this.#setupNodeSelectionDrag(e, pointer, undefined)
+        this.#setupNodeSelectionDrag(e, pointer)
       }
     }
   }
 
-  #setupNodeSelectionDrag(e: CanvasPointerEvent, pointer: CanvasPointer, node: LGraphNode | undefined): void {
+  #setupNodeSelectionDrag(e: CanvasPointerEvent, pointer: CanvasPointer, node?: LGraphNode | undefined): void {
     const dragRect = new Float32Array(4)
 
     dragRect[0] = e.canvasX
