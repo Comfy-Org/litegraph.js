@@ -52,58 +52,13 @@ describe("SubgraphNode Construction", () => {
   })
 })
 
-describe("SubgraphNode Event Handling", () => {
-  it.todo("should handle input-added events", () => {
-    // TODO: Implement
-  })
+// SubgraphNode Event Handling tests - See issue #1118
 
-  it.todo("should handle output-added events", () => {
-    // TODO: Implement
-  })
+// SubgraphNode Memory Management tests - See issue #1119
 
-  it.todo("should handle renaming events", () => {
-    // TODO: Implement
-  })
-})
+// SubgraphNode Execution tests - See issue #1120
 
-describe("SubgraphNode Memory Management", () => {
-  it.todo("should clean up event listeners on removal", () => {
-    // TODO: Critical - needs implementation
-    // This addresses the known memory leak issue
-  })
-
-  it.todo("should handle widget promotion cleanup", () => {
-    // TODO: Implement widget cleanup tests
-  })
-})
-
-describe("SubgraphNode Execution", () => {
-  it.todo("should flatten to ExecutableNodeDTOs", () => {
-    // TODO: Implement
-  })
-
-  it.todo("should handle nested subgraph execution", () => {
-    // TODO: Implement
-  })
-
-  it.todo("should resolve cross-boundary links", () => {
-    // TODO: Implement
-  })
-})
-
-describe("SubgraphNode Edge Cases", () => {
-  it.todo("should detect circular references", () => {
-    // TODO: Implement
-  })
-
-  it.todo("should handle deep nesting", () => {
-    // TODO: Implement
-  })
-
-  it.todo("should validate against MAX_NESTED_SUBGRAPHS", () => {
-    // TODO: Implement when the limit is actually enforced
-  })
-})
+// SubgraphNode Edge Cases tests - See issue #1121
 
 describe("SubgraphNode Integration", () => {
   it("should be addable to a parent graph", () => {
