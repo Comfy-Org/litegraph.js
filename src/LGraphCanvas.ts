@@ -3188,7 +3188,14 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     let { scale } = this.ds
 
-    if (
+    if (LiteGraph.canvasNavigationMode === "legacy" || (LiteGraph.canvasNavigationMode === "standard" && e.ctrlKey)) {
+      if (delta > 0) {
+        scale *= this.zoom_speed
+      } else if (delta < 0) {
+        scale *= 1 / (this.zoom_speed)
+      }
+      this.ds.changeScale(scale, [e.clientX, e.clientY])
+    } else if (
       LiteGraph.macTrackpadGestures &&
       (!LiteGraph.macGesturesRequireMac || navigator.userAgent.includes("Mac"))
     ) {
@@ -3206,13 +3213,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         this.ds.offset[0] -= e.deltaX * 1.18 * (1 / scale)
         this.ds.offset[1] -= e.deltaY * 1.18 * (1 / scale)
       }
-    } else {
-      if (delta > 0) {
-        scale *= this.zoom_speed
-      } else if (delta < 0) {
-        scale *= 1 / (this.zoom_speed)
-      }
-      this.ds.changeScale(scale, [e.clientX, e.clientY])
     }
 
     this.graph.change()
