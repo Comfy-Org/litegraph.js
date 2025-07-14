@@ -269,8 +269,6 @@ describe("Subgraph Serialization", () => {
   })
 })
 
-// Subgraph limitations and behaviors tests - See issue #1122
-
 describe("Subgraph Known Issues", () => {
   it("should provide MAX_NESTED_SUBGRAPHS constant", () => {
     expect(Subgraph.MAX_NESTED_SUBGRAPHS).toBe(1000)

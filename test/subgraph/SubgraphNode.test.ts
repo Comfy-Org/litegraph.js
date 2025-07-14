@@ -52,14 +52,6 @@ describe("SubgraphNode Construction", () => {
   })
 })
 
-// SubgraphNode Event Handling tests - See issue #1118
-
-// SubgraphNode Memory Management tests - See issue #1119
-
-// SubgraphNode Execution tests - See issue #1120
-
-// SubgraphNode Edge Cases tests - See issue #1121
-
 describe("SubgraphNode Integration", () => {
   it("should be addable to a parent graph", () => {
     const subgraph = createTestSubgraph()
