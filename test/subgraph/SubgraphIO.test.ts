@@ -22,7 +22,7 @@ describe("SubgraphIO - Input Slot Dual-Nature Behavior", () => {
       externalNode.connect(0, subgraphNode, 0)
     }).not.toThrow()
 
-    expect(externalNode.outputs[0].links).toContain(subgraphNode.inputs[0].link)
+    expect(externalNode.outputs[0].links?.includes(subgraphNode.inputs[0].link)).toBe(true)
     expect(subgraphNode.inputs[0].link).not.toBe(null)
   })
 
@@ -101,7 +101,7 @@ describe("SubgraphIO - Output Slot Dual-Nature Behavior", () => {
       subgraphNode.connect(0, externalNode, 0)
     }).not.toThrow()
 
-    expect(subgraphNode.outputs[0].links).toContain(externalNode.inputs[0].link)
+    expect(subgraphNode.outputs[0].links?.includes(externalNode.inputs[0].link)).toBe(true)
     expect(externalNode.inputs[0].link).not.toBe(null)
   })
 

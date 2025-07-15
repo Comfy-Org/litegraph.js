@@ -186,13 +186,34 @@ describe("SubgraphEvents - Event Handler Isolation", () => {
     emptySubgraph.events.addEventListener("input-added", handler2)
     emptySubgraph.events.addEventListener("input-added", handler3)
 
+    // The operation itself should not throw (error is isolated)
     expect(() => {
       emptySubgraph.addInput("test", "number")
     }).not.toThrow()
 
+    // Verify all handlers were called despite the first one throwing
     expect(handler1).toHaveBeenCalled()
     expect(handler2).toHaveBeenCalled()
     expect(handler3).toHaveBeenCalled()
+
+    // Verify the throwing handler actually received the event
+    expect(handler1).toHaveBeenCalledWith(expect.objectContaining({
+      type: "input-added",
+    }))
+
+    // Verify other handlers received correct event data
+    expect(handler2).toHaveBeenCalledWith(expect.objectContaining({
+      type: "input-added",
+      detail: expect.objectContaining({
+        input: expect.objectContaining({
+          name: "test",
+          type: "number",
+        }),
+      }),
+    }))
+    expect(handler3).toHaveBeenCalledWith(expect.objectContaining({
+      type: "input-added",
+    }))
   })
 
   subgraphTest("maintains handler execution order", ({ emptySubgraph }) => {

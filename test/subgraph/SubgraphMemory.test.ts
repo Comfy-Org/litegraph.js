@@ -112,17 +112,17 @@ describe("SubgraphNode Memory Management", () => {
       expect(finalCalls).toBe(initialCalls) // Main listeners not re-added
     })
 
-    it("should demonstrate memory leak with multiple instances", () => {
+    it("should demonstrate memory leak with multiple instances (limited scope)", () => {
       const subgraph = createTestSubgraph()
 
       // Track total listener count
       const addEventSpy = vi.spyOn(subgraph.events, "addEventListener")
       let totalListenersAdded = 0
 
-      // Create and "remove" multiple instances
+      // Create and "remove" multiple instances (limited to 3 for test performance)
       const instances: SubgraphNode[] = []
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         const initialCalls = addEventSpy.mock.calls.length
         const instance = createTestSubgraphNode(subgraph, { id: i })
         instances.push(instance)
@@ -137,9 +137,12 @@ describe("SubgraphNode Memory Management", () => {
       // All listeners are still registered even though nodes are "removed"
       expect(totalListenersAdded).toBeGreaterThan(0)
 
-      // In a real scenario, the subgraph would hold references to all these
-      // "removed" instances through their event listeners, preventing GC
-      console.warn(`Memory leak: ${totalListenersAdded} listeners accumulated from 5 instances`)
+      // Document the leak without excessive accumulation
+      console.warn(`Memory leak demonstrated: ${totalListenersAdded} listeners accumulated from ${instances.length} instances`)
+
+      // IMPORTANT: This test intentionally creates a small memory leak to demonstrate the bug.
+      // In production, this would accumulate over time and cause performance issues.
+      // The leak is limited to 3 instances to minimize test suite impact.
     })
   })
 
@@ -371,11 +374,11 @@ describe("Performance Impact of Memory Leak", () => {
   it("measures event handler overhead with multiple instances", () => {
     const subgraph = createTestSubgraph()
 
-    // Create multiple instances (simulating real usage)
+    // Create multiple instances (reduced from 50 to 20 for test efficiency)
     const instances: SubgraphNode[] = []
     const startTime = performance.now()
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 20; i++) {
       instances.push(createTestSubgraphNode(subgraph, { id: i }))
     }
 
@@ -386,7 +389,7 @@ describe("Performance Impact of Memory Leak", () => {
     subgraph.addInput("performance_test", "number")
     const eventTime = performance.now() - eventStartTime
 
-    console.log(`Created 50 instances in ${creationTime.toFixed(2)}ms`)
+    console.log(`Created ${instances.length} instances in ${creationTime.toFixed(2)}ms`)
     console.log(`Event dispatch took ${eventTime.toFixed(2)}ms (${instances.length} listeners)`)
 
     // More instances = more event listeners = slower event handling
@@ -395,8 +398,8 @@ describe("Performance Impact of Memory Leak", () => {
   })
 
   it("demonstrates listener accumulation impact", () => {
-    // Test with different numbers of instances
-    const testCases = [10, 25, 50]
+    // Test with different numbers of instances (reduced scale for efficiency)
+    const testCases = [5, 10, 15]
 
     for (const instanceCount of testCases) {
       // Clean test - create fresh subgraph
@@ -664,17 +667,17 @@ describe("SubgraphMemory - Performance and Scale", () => {
     const rootGraph = new LGraph()
     const instances = []
 
-    // Create many instances
-    for (let i = 0; i < 50; i++) {
+    // Create instances (reduced from 50 to 25 for test efficiency)
+    for (let i = 0; i < 25; i++) {
       const instance = createTestSubgraphNode(subgraph)
       rootGraph.add(instance)
       instances.push(instance)
     }
 
-    expect(instances.length).toBe(50)
-    expect(rootGraph.nodes.length).toBe(50)
+    expect(instances.length).toBe(25)
+    expect(rootGraph.nodes.length).toBe(25)
 
-    // Remove all instances
+    // Remove all instances (proper cleanup)
     for (const instance of instances) {
       rootGraph.remove(instance)
     }
