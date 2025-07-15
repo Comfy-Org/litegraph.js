@@ -55,20 +55,20 @@ export function createExtendedEventCapture<T = unknown>(
 
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
+          eventTarget.removeEventListener(type, eventListener)
           reject(new Error(`Event ${type} not received within ${timeoutMs}ms`))
         }, timeoutMs)
 
-        const checkForEvent = () => {
-          const event = capturedEvents.find(e => e.type === type)
-          if (event) {
+        const eventListener = (_event: Event) => {
+          const capturedEvent = capturedEvents.find(e => e.type === type)
+          if (capturedEvent) {
             clearTimeout(timeout)
-            resolve(event)
-          } else {
-            setTimeout(checkForEvent, 10)
+            eventTarget.removeEventListener(type, eventListener)
+            resolve(capturedEvent)
           }
         }
 
-        checkForEvent()
+        eventTarget.addEventListener(type, eventListener)
       })
     },
 
@@ -76,8 +76,17 @@ export function createExtendedEventCapture<T = unknown>(
      * Wait for a sequence of events to occur in order
      */
     async waitForSequence(expectedSequence: string[], timeoutMs: number = 1000): Promise<ExtendedCapturedEvent<T>[]> {
+      // Check if sequence is already complete
+      if (capturedEvents.length >= expectedSequence.length) {
+        const actualSequence = capturedEvents.slice(0, expectedSequence.length).map(e => e.type)
+        if (JSON.stringify(actualSequence) === JSON.stringify(expectedSequence)) {
+          return capturedEvents.slice(0, expectedSequence.length)
+        }
+      }
+
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
+          cleanup()
           const actual = capturedEvents.map(e => e.type).join(", ")
           const expected = expectedSequence.join(", ")
           reject(new Error(`Event sequence not completed within ${timeoutMs}ms. Expected: ${expected}, Got: ${actual}`))
@@ -87,14 +96,27 @@ export function createExtendedEventCapture<T = unknown>(
           if (capturedEvents.length >= expectedSequence.length) {
             const actualSequence = capturedEvents.slice(0, expectedSequence.length).map(e => e.type)
             if (JSON.stringify(actualSequence) === JSON.stringify(expectedSequence)) {
-              clearTimeout(timeout)
+              cleanup()
               resolve(capturedEvents.slice(0, expectedSequence.length))
-              return
             }
           }
-          setTimeout(checkSequence, 10)
         }
 
+        const eventListener = () => checkSequence()
+
+        const cleanup = () => {
+          clearTimeout(timeout)
+          for (const type of expectedSequence) {
+            eventTarget.removeEventListener(type, eventListener)
+          }
+        }
+
+        // Listen for all expected event types
+        for (const type of expectedSequence) {
+          eventTarget.addEventListener(type, eventListener)
+        }
+
+        // Initial check in case events already exist
         checkSequence()
       })
     },
