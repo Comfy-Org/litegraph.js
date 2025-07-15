@@ -26,7 +26,6 @@ describe("SubgraphIO - Input Slot Dual-Nature Behavior", () => {
     expect(subgraphNode.inputs[0].link).not.toBe(null)
   })
 
-
   subgraphTest("empty input slot creation enables dynamic IO", ({ simpleSubgraph }) => {
     const initialInputCount = simpleSubgraph.inputs.length
 
@@ -84,7 +83,6 @@ describe("SubgraphIO - Input Slot Dual-Nature Behavior", () => {
     expect(subgraph.inputs[0].label).toBe("new_name")
     expect(subgraph.inputs[0].displayName).toBe("new_name")
   })
-
 })
 
 describe("SubgraphIO - Output Slot Dual-Nature Behavior", () => {
@@ -106,7 +104,6 @@ describe("SubgraphIO - Output Slot Dual-Nature Behavior", () => {
     expect(subgraphNode.outputs[0].links).toContain(externalNode.inputs[0].link)
     expect(externalNode.inputs[0].link).not.toBe(null)
   })
-
 
   subgraphTest("empty output slot creation enables dynamic IO", ({ simpleSubgraph }) => {
     const initialOutputCount = simpleSubgraph.outputs.length
@@ -165,7 +162,6 @@ describe("SubgraphIO - Output Slot Dual-Nature Behavior", () => {
     expect(subgraph.outputs[0].label).toBe("new_name")
     expect(subgraph.outputs[0].displayName).toBe("new_name")
   })
-
 })
 
 describe("SubgraphIO - Boundary Connection Management", () => {
@@ -208,7 +204,7 @@ describe("SubgraphIO - Boundary Connection Management", () => {
   })
 
   subgraphTest("tests link integrity across subgraph boundaries", ({ subgraphWithNode }) => {
-    const { subgraph, subgraphNode, parentGraph } = subgraphWithNode
+    const { subgraphNode, parentGraph } = subgraphWithNode
 
     const externalSource = new LGraphNode("External Source")
     externalSource.addOutput("out", "*")
