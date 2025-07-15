@@ -146,8 +146,8 @@ describe("ExecutableNodeDTO Path-Based IDs", () => {
     node2.id = 20
     graph.add(node2)
 
-    const dto1 = new ExecutableNodeDTO(node1, ["5"], undefined)
-    const dto2 = new ExecutableNodeDTO(node2, ["5"], undefined)
+    const dto1 = new ExecutableNodeDTO(node1, ["5"], new Map(), undefined)
+    const dto2 = new ExecutableNodeDTO(node2, ["5"], new Map(), undefined)
 
     expect(dto1.id).toBe("5:10")
     expect(dto2.id).toBe("5:20")
@@ -255,7 +255,7 @@ describe("ExecutableNodeDTO Properties", () => {
     node.addOutput("output", "string")
     graph.add(node)
 
-    const dto = new ExecutableNodeDTO(node, ["1", "2"], undefined)
+    const dto = new ExecutableNodeDTO(node, ["1", "2"], new Map(), undefined)
 
     expect(dto.id).toBe("1:2:42")
     expect(dto.type).toBe(node.type)
@@ -291,7 +291,7 @@ describe("ExecutableNodeDTO Memory Efficiency", () => {
     node.addOutput("out2", "string")
     graph.add(node)
 
-    const dto = new ExecutableNodeDTO(node, ["1"], undefined)
+    const dto = new ExecutableNodeDTO(node, ["1"], new Map(), undefined)
 
     // DTO should be lightweight - only essential properties
     expect(dto.node).toBe(node) // Reference, not copy
