@@ -296,7 +296,7 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
     for (const node of this.subgraph.nodes) {
       if ("getInnerNodes" in node) {
-        node.getInnerNodes(executableNodes, subgraphInstanceIdPath, nodes, new Set(visited))
+        node.getInnerNodes(executableNodes, subgraphInstanceIdPath, nodes, visited)
       } else {
         // Create minimal DTOs rather than cloning the node
         const aVeryRealNode = new ExecutableNodeDTO(node, subgraphInstanceIdPath, executableNodes, this)
