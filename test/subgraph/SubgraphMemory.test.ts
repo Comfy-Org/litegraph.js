@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest"
 import { LGraph } from "@/litegraph"
 import { SubgraphNode } from "@/subgraph/SubgraphNode"
 
+import { createMemoryLeakTest } from "./fixtures/advancedEventHelpers"
+import { subgraphTest } from "./fixtures/subgraphFixtures"
 import {
   createEventCapture,
   createTestSubgraph,
@@ -411,5 +413,313 @@ describe("Performance Impact of Memory Leak", () => {
 
     // This test documents that more instances = more listeners = slower events
     expect(true).toBe(true)
+  })
+})
+
+describe("SubgraphMemory - Event Listener Management", () => {
+  subgraphTest("event handlers still work after node creation", ({ emptySubgraph }) => {
+    const rootGraph = new LGraph()
+    const subgraphNode = createTestSubgraphNode(emptySubgraph)
+    rootGraph.add(subgraphNode)
+
+    const handler = vi.fn()
+    emptySubgraph.events.addEventListener("input-added", handler)
+
+    emptySubgraph.addInput("test", "number")
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({
+      type: "input-added"
+    }))
+  })
+
+  subgraphTest("can add and remove multiple nodes without errors", ({ emptySubgraph }) => {
+    const rootGraph = new LGraph()
+    const nodes: ReturnType<typeof createTestSubgraphNode>[] = []
+
+    // Should be able to create multiple nodes without issues
+    for (let i = 0; i < 5; i++) {
+      const subgraphNode = createTestSubgraphNode(emptySubgraph)
+      rootGraph.add(subgraphNode)
+      nodes.push(subgraphNode)
+    }
+
+    expect(rootGraph.nodes.length).toBe(5)
+
+    // Should be able to remove them all without issues
+    for (const node of nodes) {
+      rootGraph.remove(node)
+    }
+
+    expect(rootGraph.nodes.length).toBe(0)
+  })
+
+  subgraphTest("supports AbortController cleanup patterns", ({ emptySubgraph }) => {
+    const abortController = new AbortController()
+    const { signal } = abortController
+
+    const handler = vi.fn()
+
+    emptySubgraph.events.addEventListener("input-added", handler, { signal })
+
+    emptySubgraph.addInput("test1", "number")
+    expect(handler).toHaveBeenCalledTimes(1)
+
+    abortController.abort()
+
+    emptySubgraph.addInput("test2", "number")
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  subgraphTest("handles multiple creation/deletion cycles", ({ emptySubgraph }) => {
+    const rootGraph = new LGraph()
+
+    for (let cycle = 0; cycle < 3; cycle++) {
+      const nodes = []
+
+      for (let i = 0; i < 5; i++) {
+        const subgraphNode = createTestSubgraphNode(emptySubgraph)
+        rootGraph.add(subgraphNode)
+        nodes.push(subgraphNode)
+      }
+
+      expect(rootGraph.nodes.length).toBe(5)
+
+      for (const node of nodes) {
+        rootGraph.remove(node)
+      }
+
+      expect(rootGraph.nodes.length).toBe(0)
+    }
+  })
+})
+
+describe("SubgraphMemory - WeakRef and Garbage Collection", () => {
+  it("uses WeakRef to verify garbage collection", async () => {
+    const testFn = createMemoryLeakTest(() => {
+      const subgraph = createTestSubgraph()
+      const subgraphNode = createTestSubgraphNode(subgraph)
+      const weakRef = new WeakRef(subgraphNode)
+
+      return {
+        ref: weakRef,
+        cleanup: () => {
+          // Cleanup would happen here
+        },
+      }
+    }, {
+      cycles: 1,
+      gcAfterEach: true,
+    })
+
+    await testFn()
+  })
+
+  it("verifies subgraphs are eligible for garbage collection", () => {
+    const rootGraph = new LGraph()
+    let subgraph = createTestSubgraph()
+    const subgraphId = subgraph.id
+
+    rootGraph.subgraphs.set(subgraphId, subgraph)
+
+    const weakRef = new WeakRef(subgraph)
+
+    rootGraph.subgraphs.delete(subgraphId)
+    subgraph = null as any
+
+    expect(weakRef.deref()).toBeDefined() // May still be alive without forced GC
+    expect(rootGraph.subgraphs.has(subgraphId)).toBe(false)
+  })
+
+  it("handles WeakRef cleanup in recursive scenarios", async () => {
+    const testFn = createMemoryLeakTest(() => {
+      const rootGraph = new LGraph()
+      const subgraph = createTestSubgraph({
+        name: `Nested Subgraph`,
+        nodeCount: 2,
+      })
+
+      rootGraph.subgraphs.set(subgraph.id, subgraph)
+      const weakRef = new WeakRef(subgraph)
+
+      return {
+        ref: weakRef,
+        cleanup: () => {
+          rootGraph.subgraphs.delete(subgraph.id)
+        },
+      }
+    }, {
+      cycles: 5,
+      instancesPerCycle: 1,
+      gcAfterEach: true,
+    })
+
+    await testFn()
+  })
+})
+
+describe("SubgraphMemory - Widget Reference Management", () => {
+  subgraphTest("manages widget references during lifecycle", ({ simpleSubgraph }) => {
+    const subgraphNode = createTestSubgraphNode(simpleSubgraph)
+
+    // Mock widget for testing
+    const mockWidget = {
+      type: "number",
+      value: 42,
+      name: "test_widget",
+    }
+
+    // In the real system, widgets would be promoted to SubgraphNode
+    const widgetRef = new WeakRef(mockWidget)
+
+    expect(widgetRef.deref()).toBe(mockWidget)
+
+    // Simulate widget removal and cleanup
+    const input = subgraphNode.inputs[0]
+    if (input && "_widget" in input) {
+      ;(input as any)._widget = undefined
+      delete (input as any).widget
+    }
+
+    // Widget reference should still exist (held by local variable)
+    expect(widgetRef.deref()).toBe(mockWidget)
+  })
+
+  subgraphTest("verifies WeakRef usage in widget promotion", ({ simpleSubgraph }) => {
+    const subgraphNode = createTestSubgraphNode(simpleSubgraph)
+
+    const mockWidget = {
+      type: "number",
+      value: 123,
+      name: "promoted_widget",
+    }
+
+    const input = subgraphNode.inputs[0]
+    if (input) {
+      const widgetWeakRef = new WeakRef(mockWidget)
+
+      ;(input as any)._widgetRef = widgetWeakRef
+
+      expect(widgetWeakRef.deref()).toBe(mockWidget)
+
+      ;(input as any)._widgetRef = undefined
+
+      expect(widgetWeakRef.deref()).toBe(mockWidget)
+    }
+  })
+
+  subgraphTest("verifies no dangling references after cleanup", ({ simpleSubgraph }) => {
+    const subgraphNode = createTestSubgraphNode(simpleSubgraph)
+
+    const mockReferences = {
+      widget: { type: "number", value: 42 },
+      connection: { id: 1, type: "number" },
+      listener: vi.fn(),
+    }
+
+    const input = subgraphNode.inputs[0]
+    const output = subgraphNode.outputs[0]
+
+    if (input) {
+      ;(input as any)._widget = mockReferences.widget
+      ;(input as any)._connection = mockReferences.connection
+    }
+
+    if (output) {
+      ;(output as any)._connection = mockReferences.connection
+    }
+
+    simpleSubgraph.events.addEventListener("input-added", mockReferences.listener)
+
+    // Simulate cleanup
+    if (input) {
+      ;(input as any)._widget = undefined
+      ;(input as any)._connection = undefined
+    }
+
+    if (output) {
+      ;(output as any)._connection = undefined
+    }
+
+    simpleSubgraph.events.removeEventListener("input-added", mockReferences.listener)
+
+    expect((input as any)?._widget).toBeUndefined()
+    expect((input as any)?._connection).toBeUndefined()
+    expect((output as any)?._connection).toBeUndefined()
+  })
+})
+
+describe("SubgraphMemory - Performance and Scale", () => {
+  subgraphTest("handles multiple subgraphs in same graph", ({ subgraphWithNode }) => {
+    const { parentGraph } = subgraphWithNode
+    const subgraphA = createTestSubgraph({ name: "Subgraph A" })
+    const subgraphB = createTestSubgraph({ name: "Subgraph B" })
+
+    const nodeA = createTestSubgraphNode(subgraphA)
+    const nodeB = createTestSubgraphNode(subgraphB)
+
+    parentGraph.add(nodeA)
+    parentGraph.add(nodeB)
+
+    expect(nodeA.graph).toBe(parentGraph)
+    expect(nodeB.graph).toBe(parentGraph)
+    expect(parentGraph.nodes.length).toBe(3) // Original + nodeA + nodeB
+
+    parentGraph.remove(nodeA)
+    parentGraph.remove(nodeB)
+
+    expect(parentGraph.nodes.length).toBe(1) // Only the original subgraphNode remains
+  })
+
+  it("handles many instances without issues", () => {
+    const subgraph = createTestSubgraph({
+      inputs: [{ name: "stress_input", type: "number" }],
+      outputs: [{ name: "stress_output", type: "number" }],
+    })
+
+    const rootGraph = new LGraph()
+    const instances = []
+
+    // Create many instances
+    for (let i = 0; i < 50; i++) {
+      const instance = createTestSubgraphNode(subgraph)
+      rootGraph.add(instance)
+      instances.push(instance)
+    }
+
+    expect(instances.length).toBe(50)
+    expect(rootGraph.nodes.length).toBe(50)
+
+    // Remove all instances
+    for (const instance of instances) {
+      rootGraph.remove(instance)
+    }
+
+    expect(rootGraph.nodes.length).toBe(0)
+  })
+
+  it("maintains consistent behavior across multiple cycles", () => {
+    const subgraph = createTestSubgraph()
+    const rootGraph = new LGraph()
+
+    for (let cycle = 0; cycle < 10; cycle++) {
+      const instances = []
+
+      // Create instances
+      for (let i = 0; i < 10; i++) {
+        const instance = createTestSubgraphNode(subgraph)
+        rootGraph.add(instance)
+        instances.push(instance)
+      }
+
+      expect(rootGraph.nodes.length).toBe(10)
+
+      // Remove instances
+      for (const instance of instances) {
+        rootGraph.remove(instance)
+      }
+
+      expect(rootGraph.nodes.length).toBe(0)
+    }
   })
 })

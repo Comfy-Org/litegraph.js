@@ -268,32 +268,6 @@ describe("SubgraphNode Basic Functionality", () => {
     expect(subgraphNode.outputs[0].type).toBe("number")
     expect(subgraphNode.outputs[1].type).toBe("string")
     expect(subgraphNode.outputs[2].type).toBe("*")
-=======
-  })
-})
-
-describe("SubgraphNode Event Handling", () => {
-  it.todo("should handle input-added events", () => {
-    // TODO: Implement in Developer 3's event testing spec
-  })
-
-  it.todo("should handle output-added events", () => {
-    // TODO: Implement in Developer 3's event testing spec
-  })
-
-  it.todo("should handle renaming events", () => {
-    // TODO: Implement in Developer 3's event testing spec
-  })
-})
-
-describe("SubgraphNode Memory Management", () => {
-  it.todo("should clean up event listeners on removal", () => {
-    // TODO: Critical - needs implementation
-    // This addresses the known memory leak issue
-  })
-
-  it.todo("should handle widget promotion cleanup", () => {
-    // TODO: Implement widget cleanup tests
   })
 })
 
@@ -384,33 +358,18 @@ describe("SubgraphNode Execution", () => {
     // This causes infinite recursion instead of throwing the error
     // Fix: Change `new Set(visited)` to just `visited`
   })
-})
-=======
-  it.todo("should flatten to ExecutableNodeDTOs", () => {
-    // TODO: Implement in Developer 2's core functionality spec
-  })
 
-  it.todo("should handle nested subgraph execution", () => {
-    // TODO: Implement in Developer 2's core functionality spec
-  })
+  it.todo("should handle nested subgraph execution")
 
-  it.todo("should resolve cross-boundary links", () => {
-    // TODO: Implement in Developer 2's core functionality spec
-  })
+  it.todo("should resolve cross-boundary links")
 })
 
 describe("SubgraphNode Edge Cases", () => {
-  it.todo("should detect circular references", () => {
-    // TODO: Implement in Developer 4's edge cases spec
-  })
+  it.todo("should detect circular references")
 
-  it.todo("should handle deep nesting", () => {
-    // TODO: Implement in Developer 4's edge cases spec
-  })
+  it.todo("should handle deep nesting")
 
-  it.todo("should validate against MAX_NESTED_SUBGRAPHS", () => {
-    // TODO: Implement when the limit is actually enforced
-  })
+  it.todo("should validate against MAX_NESTED_SUBGRAPHS")
 })
 
 describe("SubgraphNode Integration", () => {
