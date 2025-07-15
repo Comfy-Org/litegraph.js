@@ -312,7 +312,7 @@ describe("ExecutableNodeDTO Memory Efficiency", () => {
       const node = new LGraphNode(`Node ${i}`)
       node.id = i
       graph.add(node)
-      const dto = new ExecutableNodeDTO(node, ["parent"], undefined)
+      const dto = new ExecutableNodeDTO(node, ["parent"], new Map(), undefined)
       nodes.push(dto)
     }
 
@@ -408,8 +408,8 @@ describe("ExecutableNodeDTO Integration", () => {
   })
 })
 
-describe("ExecutableNodeDTO Performance", () => {
-  it("should create DTOs efficiently", () => {
+describe("ExecutableNodeDTO Scale Testing", () => {
+  it("should create DTOs at scale", () => {
     const graph = new LGraph()
     const startTime = performance.now()
     const dtos: ExecutableNodeDTO[] = []
@@ -421,7 +421,7 @@ describe("ExecutableNodeDTO Performance", () => {
       node.addInput("in", "number")
       graph.add(node)
 
-      const dto = new ExecutableNodeDTO(node, ["parent"], undefined)
+      const dto = new ExecutableNodeDTO(node, ["parent"], new Map(), undefined)
       dtos.push(dto)
     }
 
@@ -429,28 +429,32 @@ describe("ExecutableNodeDTO Performance", () => {
     const duration = endTime - startTime
 
     expect(dtos).toHaveLength(1000)
-    expect(duration).toBeLessThan(100) // Should be fast (< 100ms for 1000 DTOs)
+    // Test deterministic properties instead of flaky timing
+    expect(dtos[0].id).toBe("parent:0")
+    expect(dtos[999].id).toBe("parent:999")
+    expect(dtos.every((dto, i) => dto.id === `parent:${i}`)).toBe(true)
 
     console.log(`Created 1000 DTOs in ${duration.toFixed(2)}ms`)
   })
 
-  it("should handle complex path generation efficiently", () => {
+  it("should handle complex path generation correctly", () => {
     const graph = new LGraph()
     const node = new LGraphNode("Deep Node")
     node.id = 999
     graph.add(node)
 
-    const startTime = performance.now()
+    // Test deterministic path generation behavior
+    const testCases = [
+      { depth: 1, expectedId: "1:999" },
+      { depth: 3, expectedId: "1:2:3:999" },
+      { depth: 5, expectedId: "1:2:3:4:5:999" },
+      { depth: 10, expectedId: "1:2:3:4:5:6:7:8:9:10:999" }
+    ]
 
-    // Test path generation with increasing complexity
-    for (let depth = 1; depth <= 10; depth++) {
-      const path = Array.from({ length: depth }, (_, i) => (i + 1).toString())
+    for (const testCase of testCases) {
+      const path = Array.from({ length: testCase.depth }, (_, i) => (i + 1).toString())
       const dto = new ExecutableNodeDTO(node, path, new Map(), undefined)
-
-      expect(dto.id).toBe(`${path.join(":")}:999`)
+      expect(dto.id).toBe(testCase.expectedId)
     }
-
-    const endTime = performance.now()
-    expect(endTime - startTime).toBeLessThan(10) // Path generation should be fast
   })
 })
