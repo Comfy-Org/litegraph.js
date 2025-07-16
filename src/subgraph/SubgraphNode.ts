@@ -38,7 +38,7 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   override widgets: IBaseWidget[] = []
-  
+
   /** Callback when a promoted widget is added */
   onPromotedWidgetAdded?: (widget: IBaseWidget) => void
 
