@@ -191,8 +191,19 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   #setWidget(subgraphInput: Readonly<SubgraphInput>, input: INodeInputSlot, widget: Readonly<IBaseWidget>) {
-    // Use the first matching widget
-    const promotedWidget = toConcreteWidget(widget, this).createCopyForNode(this)
+    // Check if this is a DOM widget using the type guard
+    const concreteWidget = toConcreteWidget(widget, this)
+
+    let promotedWidget: IBaseWidget
+    if (concreteWidget.isDOMWidget()) {
+      // For DOM widgets, use reference and set containerNode for positioning
+      promotedWidget = concreteWidget
+      promotedWidget.containerNode = this // Point to the subgraph container node
+    } else {
+      // For non-DOM widgets, create a copy as before
+      promotedWidget = concreteWidget.createCopyForNode(this)
+    }
+
     Object.assign(promotedWidget, {
       get name() {
         return subgraphInput.name
@@ -312,6 +323,13 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   override onRemoved(): void {
+    // Clean up containerNode references
+    for (const widget of this.widgets) {
+      if (widget.containerNode === this) {
+        widget.containerNode = undefined
+      }
+    }
+
     for (const input of this.inputs) {
       if (input._listenerController && typeof input._listenerController.abort === "function") {
         input._listenerController.abort()

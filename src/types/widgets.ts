@@ -201,6 +201,12 @@ export interface IBaseWidget<
 
   tooltip?: string
 
+  /**
+   * Reference to the subgraph container node when this widget is inside a subgraph.
+   * Used for positioning DOM widgets that are promoted to parent graphs.
+   */
+  containerNode?: LGraphNode
+
   // TODO: Confirm this format
   callback?(
     value: any,
