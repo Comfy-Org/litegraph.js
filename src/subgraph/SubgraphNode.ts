@@ -38,6 +38,9 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   override widgets: IBaseWidget[] = []
+  
+  /** Callback when a promoted widget is added */
+  onPromotedWidgetAdded?: (widget: IBaseWidget) => void
 
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
@@ -194,14 +197,11 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     // Check if this is a DOM widget using the type guard
     const concreteWidget = toConcreteWidget(widget, this)
 
-    let promotedWidget: IBaseWidget
+    const promotedWidget = concreteWidget.createCopyForNode(this)
+
+    // For DOM widgets, set containerNode for positioning
     if (concreteWidget.isDOMWidget()) {
-      // For DOM widgets, use reference and set containerNode for positioning
-      promotedWidget = concreteWidget
       promotedWidget.containerNode = this // Point to the subgraph container node
-    } else {
-      // For non-DOM widgets, create a copy as before
-      promotedWidget = concreteWidget.createCopyForNode(this)
     }
 
     Object.assign(promotedWidget, {
@@ -226,6 +226,9 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     })
 
     this.widgets.push(promotedWidget)
+
+    // Call onPromotedWidgetAdded callback if it exists
+    this.onPromotedWidgetAdded?.(promotedWidget)
 
     input.widget = { name: subgraphInput.name }
     input._widget = promotedWidget
