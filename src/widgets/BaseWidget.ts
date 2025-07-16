@@ -56,6 +56,12 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     return this.#node
   }
 
+  /**
+   * Reference to the subgraph container node when this widget is inside a subgraph.
+   * Used for positioning DOM widgets that are promoted to parent graphs.
+   */
+  containerNode?: LGraphNode
+
   linkedWidgets?: IBaseWidget[]
   name: string
   options: TWidget["options"]
@@ -296,5 +302,13 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     const cloned: this = new (this.constructor as typeof this)(this, node)
     cloned.value = this.value
     return cloned
+  }
+
+  /**
+   * Type guard to check if this widget has a DOM element.
+   * @returns True if the widget has a DOM element attached
+   */
+  isDOMWidget(): this is this & { element: HTMLElement } {
+    return this.element instanceof HTMLElement
   }
 }
