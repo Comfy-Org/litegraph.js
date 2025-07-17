@@ -42,6 +42,9 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   /** Callback when a promoted widget is added */
   onPromotedWidgetAdded?: (widget: IBaseWidget) => void
 
+  /** Callback when a promoted widget is removed */
+  onPromotedWidgetRemoved?: (widget: IBaseWidget) => void
+
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
     override readonly graph: GraphOrSubgraph,
@@ -325,12 +328,28 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     return nodes
   }
 
+  override removeWidgetByName(name: string): void {
+    const widget = this.widgets.find(w => w.name === name)
+    if (widget) {
+      this.onPromotedWidgetRemoved?.(widget)
+    }
+    super.removeWidgetByName(name)
+  }
+
+  override ensureWidgetRemoved(widget: IBaseWidget): void {
+    if (this.widgets.includes(widget)) {
+      this.onPromotedWidgetRemoved?.(widget)
+    }
+    super.ensureWidgetRemoved(widget)
+  }
+
   override onRemoved(): void {
-    // Clean up containerNode references
+    // Clean up containerNode references and notify removal
     for (const widget of this.widgets) {
       if (widget.containerNode === this) {
         widget.containerNode = undefined
       }
+      this.onPromotedWidgetRemoved?.(widget)
     }
 
     for (const input of this.inputs) {
