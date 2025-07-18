@@ -39,6 +39,12 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
   override widgets: IBaseWidget[] = []
 
+  /** Callback when a widget is promoted from the subgraph */
+  onWidgetPromoted?: (widget: IBaseWidget) => void
+
+  /** Callback when a promoted widget is unpromoted/removed */
+  onWidgetUnpromoted?: (widget: IBaseWidget) => void
+
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
     override readonly graph: GraphOrSubgraph,
@@ -187,8 +193,13 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   #setWidget(subgraphInput: Readonly<SubgraphInput>, input: INodeInputSlot, widget: Readonly<IBaseWidget>) {
-    // Use the first matching widget
-    const promotedWidget = toConcreteWidget(widget, this).createCopyForNode(this)
+    const concreteWidget = toConcreteWidget(widget, this)
+
+    const promotedWidget = concreteWidget.createCopyForNode(this)
+
+    // Set parentSubgraphNode for all promoted widgets to track their origin
+    promotedWidget.parentSubgraphNode = this
+
     Object.assign(promotedWidget, {
       get name() {
         return subgraphInput.name
@@ -211,6 +222,9 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     })
 
     this.widgets.push(promotedWidget)
+
+    // Call onWidgetPromoted callback if it exists
+    this.onWidgetPromoted?.(promotedWidget)
 
     input.widget = { name: subgraphInput.name }
     input._widget = promotedWidget
@@ -307,7 +321,28 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     return nodes
   }
 
+  override removeWidgetByName(name: string): void {
+    const widget = this.widgets.find(w => w.name === name)
+    if (widget) {
+      this.onWidgetUnpromoted?.(widget)
+    }
+    super.removeWidgetByName(name)
+  }
+
+  override ensureWidgetRemoved(widget: IBaseWidget): void {
+    if (this.widgets.includes(widget)) {
+      this.onWidgetUnpromoted?.(widget)
+    }
+    super.ensureWidgetRemoved(widget)
+  }
+
   override onRemoved(): void {
+    // Clean up all promoted widgets
+    for (const widget of this.widgets) {
+      widget.parentSubgraphNode = undefined
+      this.onWidgetUnpromoted?.(widget)
+    }
+
     for (const input of this.inputs) {
       input._listenerController?.abort()
     }
