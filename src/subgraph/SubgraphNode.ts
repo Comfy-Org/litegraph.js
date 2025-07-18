@@ -39,11 +39,11 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
   override widgets: IBaseWidget[] = []
 
-  /** Callback when a promoted widget is added */
-  onPromotedWidgetAdded?: (widget: IBaseWidget) => void
+  /** Callback when a widget is promoted from the subgraph */
+  onWidgetPromoted?: (widget: IBaseWidget) => void
 
-  /** Callback when a promoted widget is removed */
-  onPromotedWidgetRemoved?: (widget: IBaseWidget) => void
+  /** Callback when a promoted widget is unpromoted/removed */
+  onWidgetUnpromoted?: (widget: IBaseWidget) => void
 
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
@@ -197,15 +197,12 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   #setWidget(subgraphInput: Readonly<SubgraphInput>, input: INodeInputSlot, widget: Readonly<IBaseWidget>) {
-    // Check if this is a DOM widget using the type guard
     const concreteWidget = toConcreteWidget(widget, this)
 
     const promotedWidget = concreteWidget.createCopyForNode(this)
 
-    // For DOM widgets, set containerNode for positioning
-    if (concreteWidget.isDOMWidget()) {
-      promotedWidget.containerNode = this // Point to the subgraph container node
-    }
+    // Set parentSubgraphNode for all promoted widgets to track their origin
+    promotedWidget.parentSubgraphNode = this
 
     Object.assign(promotedWidget, {
       get name() {
@@ -230,8 +227,8 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
     this.widgets.push(promotedWidget)
 
-    // Call onPromotedWidgetAdded callback if it exists
-    this.onPromotedWidgetAdded?.(promotedWidget)
+    // Call onWidgetPromoted callback if it exists
+    this.onWidgetPromoted?.(promotedWidget)
 
     input.widget = { name: subgraphInput.name }
     input._widget = promotedWidget
@@ -331,25 +328,23 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   override removeWidgetByName(name: string): void {
     const widget = this.widgets.find(w => w.name === name)
     if (widget) {
-      this.onPromotedWidgetRemoved?.(widget)
+      this.onWidgetUnpromoted?.(widget)
     }
     super.removeWidgetByName(name)
   }
 
   override ensureWidgetRemoved(widget: IBaseWidget): void {
     if (this.widgets.includes(widget)) {
-      this.onPromotedWidgetRemoved?.(widget)
+      this.onWidgetUnpromoted?.(widget)
     }
     super.ensureWidgetRemoved(widget)
   }
 
   override onRemoved(): void {
-    // Clean up containerNode references and notify removal
+    // Clean up all promoted widgets
     for (const widget of this.widgets) {
-      if (widget.containerNode === this) {
-        widget.containerNode = undefined
-      }
-      this.onPromotedWidgetRemoved?.(widget)
+      widget.parentSubgraphNode = undefined
+      this.onWidgetUnpromoted?.(widget)
     }
 
     for (const input of this.inputs) {
