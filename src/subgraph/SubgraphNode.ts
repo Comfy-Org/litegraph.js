@@ -39,12 +39,6 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
   override widgets: IBaseWidget[] = []
 
-  /** Callback when a widget is promoted from the subgraph */
-  onWidgetPromoted?: (widget: IBaseWidget) => void
-
-  /** Callback when a promoted widget is unpromoted/removed */
-  onWidgetUnpromoted?: (widget: IBaseWidget) => void
-
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
     override readonly graph: GraphOrSubgraph,
@@ -227,8 +221,8 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
     this.widgets.push(promotedWidget)
 
-    // Call onWidgetPromoted callback if it exists
-    this.onWidgetPromoted?.(promotedWidget)
+    // Dispatch widget-promoted event
+    this.subgraph.events.dispatch("widget-promoted", { widget: promotedWidget, subgraphNode: this })
 
     input.widget = { name: subgraphInput.name }
     input._widget = promotedWidget
@@ -328,14 +322,14 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   override removeWidgetByName(name: string): void {
     const widget = this.widgets.find(w => w.name === name)
     if (widget) {
-      this.onWidgetUnpromoted?.(widget)
+      this.subgraph.events.dispatch("widget-unpromoted", { widget, subgraphNode: this })
     }
     super.removeWidgetByName(name)
   }
 
   override ensureWidgetRemoved(widget: IBaseWidget): void {
     if (this.widgets.includes(widget)) {
-      this.onWidgetUnpromoted?.(widget)
+      this.subgraph.events.dispatch("widget-unpromoted", { widget, subgraphNode: this })
     }
     super.ensureWidgetRemoved(widget)
   }
@@ -344,7 +338,7 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     // Clean up all promoted widgets
     for (const widget of this.widgets) {
       widget.parentSubgraphNode = undefined
-      this.onWidgetUnpromoted?.(widget)
+      this.subgraph.events.dispatch("widget-unpromoted", { widget, subgraphNode: this })
     }
 
     for (const input of this.inputs) {
