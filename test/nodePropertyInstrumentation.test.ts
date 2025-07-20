@@ -146,4 +146,137 @@ describe("Node Property Instrumentation", () => {
     expect(Object.keys(node!)).toContain("title")
     expect(Object.keys(node!.flags)).toContain("collapsed")
   })
+
+  describe("Generic property tracking", () => {
+    it("should allow tracking custom properties", async () => {
+      // Dynamically import to get fresh module state
+      const { instrumentNodeProperties, addTrackedProperty } = await import(
+        "@/nodePropertyInstrumentation",
+      )
+
+      // Add custom tracked properties that don't exist on the node
+      addTrackedProperty({ path: "customData", type: "object" })
+      addTrackedProperty({ path: "priority", defaultValue: 0, type: "number" })
+      addTrackedProperty({ path: "flags.readonly", defaultValue: false, type: "boolean" })
+
+      const graph = new LGraph()
+      const mockTrigger = vi.fn()
+      graph.onTrigger = mockTrigger
+
+      const node = LiteGraph.createNode("test/node") as any
+      graph.add(node!)
+
+      // Re-instrument the node with the new properties
+      instrumentNodeProperties(node!)
+
+      // Test custom properties
+      node!.customData = { value: 42 }
+      expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
+        nodeId: node!.id,
+        property: "customData",
+        oldValue: undefined,
+        newValue: { value: 42 },
+      })
+
+      node!.priority = 5
+      expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
+        nodeId: node!.id,
+        property: "priority",
+        oldValue: 0,
+        newValue: 5,
+      })
+
+      node!.flags.readonly = true
+      expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
+        nodeId: node!.id,
+        property: "flags.readonly",
+        oldValue: false,
+        newValue: true,
+      })
+    })
+
+    it("should support deeply nested properties", async () => {
+      const { instrumentNodeProperties } = await import("@/nodePropertyInstrumentation")
+
+      const graph = new LGraph()
+      const mockTrigger = vi.fn()
+      graph.onTrigger = mockTrigger
+
+      const node = LiteGraph.createNode("test/node") as any
+      graph.add(node!)
+
+      // Track a deeply nested property
+      const customProperties: Array<{
+        path: string
+        defaultValue?: any
+        type?: "string" | "boolean" | "number" | "object"
+      }> = [{ path: "config.ui.theme.color", defaultValue: "light", type: "string" }]
+
+      instrumentNodeProperties(node!, customProperties)
+
+      // Test deeply nested property
+      node!.config.ui.theme.color = "dark"
+      expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
+        nodeId: node!.id,
+        property: "config.ui.theme.color",
+        oldValue: "light",
+        newValue: "dark",
+      })
+
+      // Verify nested structure was created
+      expect(node!.config).toBeDefined()
+      expect(node!.config.ui).toBeDefined()
+      expect(node!.config.ui.theme).toBeDefined()
+      expect(node!.config.ui.theme.color).toBe("dark")
+    })
+
+    it("should handle property array configuration", async () => {
+      const { instrumentNodeProperties } = await import("@/nodePropertyInstrumentation")
+
+      const graph = new LGraph()
+      const mockTrigger = vi.fn()
+      graph.onTrigger = mockTrigger
+
+      const node = LiteGraph.createNode("test/node") as any
+      graph.add(node!)
+
+      // Define multiple properties at once
+      const trackedProperties: Array<{
+        path: string
+        defaultValue?: any
+        type?: "string" | "boolean" | "number" | "object"
+      }> = [
+        { path: "category", defaultValue: "default", type: "string" },
+        { path: "metadata", defaultValue: {}, type: "object" },
+        { path: "flags.pinned", defaultValue: false, type: "boolean" },
+      ]
+
+      instrumentNodeProperties(node!, trackedProperties)
+
+      // Test all tracked properties
+      node!.category = "advanced"
+      node!.metadata = { version: 1, author: "test" }
+      node!.flags.pinned = true
+
+      expect(mockTrigger).toHaveBeenCalledTimes(3)
+      expect(mockTrigger).toHaveBeenNthCalledWith(1, "node:property:changed", {
+        nodeId: node!.id,
+        property: "category",
+        oldValue: "default",
+        newValue: "advanced",
+      })
+      expect(mockTrigger).toHaveBeenNthCalledWith(2, "node:property:changed", {
+        nodeId: node!.id,
+        property: "metadata",
+        oldValue: {},
+        newValue: { version: 1, author: "test" },
+      })
+      expect(mockTrigger).toHaveBeenNthCalledWith(3, "node:property:changed", {
+        nodeId: node!.id,
+        property: "flags.pinned",
+        oldValue: false,
+        newValue: true,
+      })
+    })
+  })
 })
