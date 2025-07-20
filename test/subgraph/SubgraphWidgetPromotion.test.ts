@@ -1,40 +1,17 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { LGraph } from "@/LGraph"
-import { Subgraph } from "@/subgraph/Subgraph"
-import { SubgraphNode } from "@/subgraph/SubgraphNode"
+import { LGraph, Subgraph, SubgraphNode } from "@/litegraph"
 import { BaseWidget } from "@/widgets/BaseWidget"
 import type { IBaseWidget } from "@/types/widgets"
 
+import { createTestSubgraph, createTestSubgraphNode } from "./fixtures/subgraphHelpers"
+
 describe("SubgraphWidgetPromotion", () => {
   function createTestSetup() {
-    const rootGraph = new LGraph()
-    const subgraph = new Subgraph(rootGraph, {
-      id: "test-subgraph",
-      name: "Test Subgraph",
-      nodes: [],
-      links: [],
-      version: 1,
-      state: 0,
-      revision: 0,
-      inputNode: { pos: [0, 0] },
-      outputNode: { pos: [200, 0] },
-      inputs: [],
-      outputs: [],
-      widgets: [],
-      groups: [],
-      config: {},
-      extra: {},
-    })
+    const subgraph = createTestSubgraph()
+    const subgraphNode = createTestSubgraphNode(subgraph)
 
-    const subgraphNode = new SubgraphNode(rootGraph, subgraph, {
-      id: 1,
-      type: subgraph.id,
-      pos: [100, 100],
-      size: [200, 100],
-    })
-
-    return { rootGraph, subgraph, subgraphNode }
+    return { subgraph, subgraphNode }
   }
 
   describe("parentSubgraphNode property", () => {
