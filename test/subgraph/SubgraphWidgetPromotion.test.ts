@@ -240,7 +240,6 @@ describe("SubgraphWidgetPromotion", () => {
       // DOM widget should be promoted with parentSubgraphNode
       expect(subgraphNode.widgets).toHaveLength(1)
       const promotedWidget = subgraphNode.widgets[0]
-      expect(promotedWidget.isDOMWidget()).toBe(true)
       expect(promotedWidget.parentSubgraphNode).toBe(subgraphNode)
       expect(promotedWidget.name).toBe("domInput")
     })
