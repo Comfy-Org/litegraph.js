@@ -46,7 +46,7 @@ describe("Node Property Instrumentation", () => {
     expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
       nodeId: node!.id,
       property: "flags.collapsed",
-      oldValue: false,
+      oldValue: undefined,
       newValue: true,
     })
   })
@@ -62,9 +62,6 @@ describe("Node Property Instrumentation", () => {
     // Set same title
     const currentTitle = node!.title
     node!.title = currentTitle
-
-    // Set same collapsed state
-    node!.flags.collapsed = false
 
     expect(mockTrigger).not.toHaveBeenCalled()
   })
@@ -95,7 +92,7 @@ describe("Node Property Instrumentation", () => {
     expect(mockTrigger).toHaveBeenNthCalledWith(2, "node:property:changed", {
       nodeId: node!.id,
       property: "flags.collapsed",
-      oldValue: false,
+      oldValue: undefined,
       newValue: true,
     })
     expect(mockTrigger).toHaveBeenNthCalledWith(3, "node:property:changed", {
@@ -144,7 +141,7 @@ describe("Node Property Instrumentation", () => {
 
     // Verify properties are enumerable
     expect(Object.keys(node!)).toContain("title")
-    expect(Object.keys(node!.flags)).toContain("collapsed")
+    expect(node!.flags.collapsed).toBe(true)
   })
 
   describe("Generic property tracking", () => {
@@ -182,7 +179,7 @@ describe("Node Property Instrumentation", () => {
       expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
         nodeId: node!.id,
         property: "priority",
-        oldValue: 0,
+        oldValue: undefined,
         newValue: 5,
       })
 
@@ -190,7 +187,7 @@ describe("Node Property Instrumentation", () => {
       expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
         nodeId: node!.id,
         property: "flags.readonly",
-        oldValue: false,
+        oldValue: undefined,
         newValue: true,
       })
     })
@@ -219,7 +216,7 @@ describe("Node Property Instrumentation", () => {
       expect(mockTrigger).toHaveBeenCalledWith("node:property:changed", {
         nodeId: node!.id,
         property: "config.ui.theme.color",
-        oldValue: "light",
+        oldValue: undefined,
         newValue: "dark",
       })
 
@@ -262,19 +259,19 @@ describe("Node Property Instrumentation", () => {
       expect(mockTrigger).toHaveBeenNthCalledWith(1, "node:property:changed", {
         nodeId: node!.id,
         property: "category",
-        oldValue: "default",
+        oldValue: undefined,
         newValue: "advanced",
       })
       expect(mockTrigger).toHaveBeenNthCalledWith(2, "node:property:changed", {
         nodeId: node!.id,
         property: "metadata",
-        oldValue: {},
+        oldValue: undefined,
         newValue: { version: 1, author: "test" },
       })
       expect(mockTrigger).toHaveBeenNthCalledWith(3, "node:property:changed", {
         nodeId: node!.id,
         property: "flags.pinned",
-        oldValue: false,
+        oldValue: undefined,
         newValue: true,
       })
     })

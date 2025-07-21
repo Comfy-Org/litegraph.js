@@ -17,7 +17,7 @@ interface PropertyConfig {
  */
 const DEFAULT_TRACKED_PROPERTIES: PropertyConfig[] = [
   { path: "title", type: "string" },
-  { path: "flags.collapsed", defaultValue: false, type: "boolean" },
+  { path: "flags.collapsed", type: "boolean" },
 ]
 
 /**
@@ -99,18 +99,37 @@ export function instrumentNodeProperties(
       propertyName = parts.at(-1)!
     }
 
-    // Get initial value
+    const hasProperty = Object.prototype.hasOwnProperty.call(targetObject, propertyName)
     const currentValue = targetObject[propertyName]
-    const initialValue = currentValue !== undefined
-      ? currentValue
-      : config.defaultValue
 
-    // Create and apply the property descriptor
-    Object.defineProperty(
-      targetObject,
-      propertyName,
-      createInstrumentedProperty(node, config.path, initialValue),
-    )
+    if (!hasProperty) {
+      let value: any = undefined
+      Object.defineProperty(targetObject, propertyName, {
+        get() {
+          return value
+        },
+        set(newValue: any) {
+          const oldValue = value
+          value = newValue
+          if (oldValue !== newValue && node.graph) {
+            node.graph.trigger("node:property:changed", {
+              nodeId: node.id,
+              property: config.path,
+              oldValue,
+              newValue,
+            })
+          }
+        },
+        enumerable: false,
+        configurable: true,
+      })
+    } else {
+      Object.defineProperty(
+        targetObject,
+        propertyName,
+        createInstrumentedProperty(node, config.path, currentValue),
+      )
+    }
   }
 }
 
