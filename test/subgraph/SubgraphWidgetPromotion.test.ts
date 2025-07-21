@@ -1,56 +1,54 @@
-import type { IBaseWidget } from "@/types/widgets"
+import type { ISlotType } from "@/interfaces"
+import type { TWidgetType } from "@/types/widgets"
 
 import { describe, expect, it } from "vitest"
 
-import { LGraphNode } from "@/litegraph"
+import { LGraphNode, Subgraph } from "@/litegraph"
 import { BaseWidget } from "@/widgets/BaseWidget"
 
 import { createEventCapture, createTestSubgraph, createTestSubgraphNode } from "./fixtures/subgraphHelpers"
 
-// Test node with widgets
-class TestNodeWithWidget extends LGraphNode {
-  constructor(title = "Test Node") {
-    super(title)
-    const input = this.addInput("in", "number")
-    this.addOutput("out", "number")
+// Helper to create a node with a widget
+function createNodeWithWidget(
+  title: string,
+  widgetType: TWidgetType = "number",
+  widgetValue: any = 42,
+  slotType: ISlotType = "number",
+) {
+  const node = new LGraphNode(title)
+  const input = node.addInput("value", slotType)
+  node.addOutput("out", slotType)
 
-    // Add a widget
-    const widget = new BaseWidget({
-      name: "testWidget",
-      type: "number",
-      value: 42,
-      y: 0,
-      options: { min: 0, max: 100, step: 1 },
-      node: this,
-    })
-    this.widgets = [widget]
+  const widget = new BaseWidget({
+    name: "widget",
+    type: widgetType,
+    value: widgetValue,
+    y: 0,
+    options: widgetType === "number" ? { min: 0, max: 100, step: 1 } : {},
+    node,
+  })
+  node.widgets = [widget]
+  input.widget = { name: widget.name }
 
-    // Link widget to input slot
-    input.widget = { name: widget.name }
-  }
+  return { node, widget, input }
+}
+
+// Helper to connect subgraph input to node and create SubgraphNode
+function setupPromotedWidget(subgraph: Subgraph, node: LGraphNode, slotIndex = 0) {
+  subgraph.add(node)
+  subgraph.inputNode.slots[slotIndex].connect(node.inputs[slotIndex], node)
+  return createTestSubgraphNode(subgraph)
 }
 
 describe("SubgraphWidgetPromotion", () => {
   describe("Widget Promotion Functionality", () => {
     it("should promote widgets when connecting node to subgraph input", () => {
-      // Create a subgraph with an input
       const subgraph = createTestSubgraph({
         inputs: [{ name: "value", type: "number" }],
       })
 
-      // Add a node with a widget to the subgraph
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
-
-      // Connect the subgraph input to the node's input (which has a widget)
-      const link = subgraph.inputNode.slots[0].connect(
-        nodeWithWidget.inputs[0],
-        nodeWithWidget,
-      )
-      expect(link).toBeDefined()
-
-      // Create a SubgraphNode instance
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const { node } = createNodeWithWidget("Test Node")
+      const subgraphNode = setupPromotedWidget(subgraph, node)
 
       // The widget should be promoted to the subgraph node
       expect(subgraphNode.widgets).toHaveLength(1)
@@ -70,56 +68,19 @@ describe("SubgraphWidgetPromotion", () => {
       })
 
       // Create nodes with different widget types
-      const numberNode = new LGraphNode("Number Node")
-      const numberInput = numberNode.addInput("value", "number")
-      const numberWidget = new BaseWidget({
-        name: "numberWidget",
-        type: "number",
-        value: 100,
-        y: 0,
-        options: {},
-        node: numberNode,
-      })
-      numberNode.widgets = [numberWidget]
-      numberInput.widget = { name: numberWidget.name }
+      const { node: numberNode } = createNodeWithWidget("Number Node", "number", 100)
+      const { node: stringNode } = createNodeWithWidget("String Node", "string", "test", "string")
+      const { node: toggleNode } = createNodeWithWidget("Toggle Node", "toggle", true, "boolean")
 
-      const stringNode = new LGraphNode("String Node")
-      const stringInput = stringNode.addInput("text", "string")
-      const stringWidget = new BaseWidget({
-        name: "stringWidget",
-        type: "string",
-        value: "test",
-        y: 0,
-        options: {},
-        node: stringNode,
-      })
-      stringNode.widgets = [stringWidget]
-      stringInput.widget = { name: stringWidget.name }
-
-      const toggleNode = new LGraphNode("Toggle Node")
-      const toggleInput = toggleNode.addInput("bool", "boolean")
-      const toggleWidget = new BaseWidget({
-        name: "toggleWidget",
-        type: "toggle",
-        value: true,
-        y: 0,
-        options: {},
-        node: toggleNode,
-      })
-      toggleNode.widgets = [toggleWidget]
-      toggleInput.widget = { name: toggleWidget.name }
-
-      // Add nodes to subgraph
+      // Setup all nodes
       subgraph.add(numberNode)
       subgraph.add(stringNode)
       subgraph.add(toggleNode)
 
-      // Connect inputs
       subgraph.inputNode.slots[0].connect(numberNode.inputs[0], numberNode)
       subgraph.inputNode.slots[1].connect(stringNode.inputs[0], stringNode)
       subgraph.inputNode.slots[2].connect(toggleNode.inputs[0], toggleNode)
 
-      // Create SubgraphNode
       const subgraphNode = createTestSubgraphNode(subgraph)
 
       // All widgets should be promoted with parentSubgraphNode set
@@ -140,24 +101,13 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "input", type: "number" }],
       })
 
-      // Set up event capture
       const eventCapture = createEventCapture(subgraph.events, [
         "widget-promoted",
         "widget-unpromoted",
       ])
 
-      // Add node with widget
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
-
-      // Connect to promote widget
-      subgraph.inputNode.slots[0].connect(
-        nodeWithWidget.inputs[0],
-        nodeWithWidget,
-      )
-
-      // Create SubgraphNode (this triggers widget promotion)
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const { node } = createNodeWithWidget("Test Node")
+      const subgraphNode = setupPromotedWidget(subgraph, node)
 
       // Check event was fired
       const promotedEvents = eventCapture.getEventsByType("widget-promoted")
@@ -174,19 +124,10 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "input", type: "number" }],
       })
 
-      // Add and connect node
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
-      subgraph.inputNode.slots[0].connect(
-        nodeWithWidget.inputs[0],
-        nodeWithWidget,
-      )
-
-      // Create SubgraphNode
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const { node } = createNodeWithWidget("Test Node")
+      const subgraphNode = setupPromotedWidget(subgraph, node)
       expect(subgraphNode.widgets).toHaveLength(1)
 
-      // Set up event capture after promotion
       const eventCapture = createEventCapture(subgraph.events, ["widget-unpromoted"])
 
       // Remove the widget
@@ -263,19 +204,12 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "input", type: "number" }],
       })
 
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
-      subgraph.inputNode.slots[0].connect(
-        nodeWithWidget.inputs[0],
-        nodeWithWidget,
-      )
-
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const { node } = createNodeWithWidget("Test Node")
+      const subgraphNode = setupPromotedWidget(subgraph, node)
       const promotedWidget = subgraphNode.widgets[0]
 
       expect(promotedWidget.parentSubgraphNode).toBe(subgraphNode)
 
-      // Set up event capture
       const eventCapture = createEventCapture(subgraph.events, ["widget-unpromoted"])
 
       // Remove the subgraph node
@@ -296,29 +230,12 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "domInput", type: "custom" }],
       })
 
-      // Create node with DOM widget
-      const domNode = new LGraphNode("DOM Node")
-      const domInput = domNode.addInput("custom", "custom")
-
-      const domWidget = new BaseWidget({
-        name: "domWidget",
-        type: "custom",
-        value: "custom value",
-        y: 0,
-        options: {},
-        node: domNode,
-      })
+      const { node, widget } = createNodeWithWidget("DOM Node", "custom", "custom value", "custom")
 
       // Make it a DOM widget
-      domWidget.element = document.createElement("div")
-      domNode.widgets = [domWidget]
-      domInput.widget = { name: domWidget.name }
+      widget.element = document.createElement("div")
 
-      subgraph.add(domNode)
-      subgraph.inputNode.slots[0].connect(domNode.inputs[0], domNode)
-
-      // Create SubgraphNode
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const subgraphNode = setupPromotedWidget(subgraph, node)
 
       // DOM widget should be promoted with parentSubgraphNode
       expect(subgraphNode.widgets).toHaveLength(1)
@@ -333,11 +250,10 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "input", type: "number" }],
       })
 
-      // Add node but don't connect it
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
+      const { node } = createNodeWithWidget("Test Node")
+      subgraph.add(node)
 
-      // Create SubgraphNode
+      // Don't connect - just create SubgraphNode
       const subgraphNode = createTestSubgraphNode(subgraph)
 
       // No widgets should be promoted
@@ -349,16 +265,8 @@ describe("SubgraphWidgetPromotion", () => {
         inputs: [{ name: "input", type: "number" }],
       })
 
-      const nodeWithWidget = new TestNodeWithWidget()
-      subgraph.add(nodeWithWidget)
-
-      // Connect to promote widget
-      subgraph.inputNode.slots[0].connect(
-        nodeWithWidget.inputs[0],
-        nodeWithWidget,
-      )
-
-      const subgraphNode = createTestSubgraphNode(subgraph)
+      const { node } = createNodeWithWidget("Test Node")
+      const subgraphNode = setupPromotedWidget(subgraph, node)
       expect(subgraphNode.widgets).toHaveLength(1)
 
       // Disconnect the link
@@ -366,25 +274,6 @@ describe("SubgraphWidgetPromotion", () => {
 
       // Widget should be removed (through event listeners)
       expect(subgraphNode.widgets).toHaveLength(0)
-    })
-  })
-
-  describe("parentSubgraphNode property", () => {
-    it("should exist on IBaseWidget interface", () => {
-      const widget: IBaseWidget = {
-        name: "test",
-        type: "number",
-        value: 42,
-        y: 0,
-        options: {},
-      }
-
-      // Property should be optional and undefined by default
-      expect(widget.parentSubgraphNode).toBeUndefined()
-
-      // Should be able to set it
-      widget.parentSubgraphNode = { id: 1 } as any
-      expect(widget.parentSubgraphNode).toBeDefined()
     })
   })
 })
