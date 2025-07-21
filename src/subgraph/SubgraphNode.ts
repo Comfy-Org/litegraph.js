@@ -187,9 +187,8 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
   }
 
   #setWidget(subgraphInput: Readonly<SubgraphInput>, input: INodeInputSlot, widget: Readonly<IBaseWidget>) {
-    const concreteWidget = toConcreteWidget(widget, this)
-
-    const promotedWidget = concreteWidget.createCopyForNode(this)
+    // Use the first matching widget
+    const promotedWidget = toConcreteWidget(widget, this).createCopyForNode(this)
 
     // Set parentSubgraphNode for all promoted widgets to track their origin
     promotedWidget.parentSubgraphNode = this
