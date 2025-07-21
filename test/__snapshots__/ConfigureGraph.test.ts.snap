@@ -68,9 +68,7 @@ LGraph {
       "console": undefined,
       "exec_version": undefined,
       "execute_triggered": undefined,
-      "flags": {
-        "collapsed": false,
-      },
+      "flags": {},
       "freeWidgetSpace": undefined,
       "gotFocusAt": undefined,
       "graph": [Circular],
@@ -138,9 +136,7 @@ LGraph {
       "console": undefined,
       "exec_version": undefined,
       "execute_triggered": undefined,
-      "flags": {
-        "collapsed": false,
-      },
+      "flags": {},
       "freeWidgetSpace": undefined,
       "gotFocusAt": undefined,
       "graph": [Circular],
@@ -209,9 +205,7 @@ LGraph {
       "console": undefined,
       "exec_version": undefined,
       "execute_triggered": undefined,
-      "flags": {
-        "collapsed": false,
-      },
+      "flags": {},
       "freeWidgetSpace": undefined,
       "gotFocusAt": undefined,
       "graph": [Circular],
