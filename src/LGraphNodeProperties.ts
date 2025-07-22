@@ -1,21 +1,11 @@
 import type { LGraphNode } from "./LGraphNode"
 
 /**
- * Configuration for tracking property changes
- */
-export interface PropertyConfig {
-  /** The property path (e.g., "title" or "flags.collapsed") */
-  path: string
-  /** Initial value or getter function */
-  defaultValue?: any
-}
-
-/**
  * Default properties to track
  */
-const DEFAULT_TRACKED_PROPERTIES: PropertyConfig[] = [
-  { path: "title" },
-  { path: "flags.collapsed" },
+const DEFAULT_TRACKED_PROPERTIES: string[] = [
+  "title",
+  "flags.collapsed",
 ]
 
 /**
@@ -38,19 +28,19 @@ export class LGraphNodeProperties {
    * Sets up property instrumentation for all tracked properties
    */
   #setupInstrumentation(): void {
-    for (const config of DEFAULT_TRACKED_PROPERTIES) {
-      this.#instrumentProperty(config)
+    for (const path of DEFAULT_TRACKED_PROPERTIES) {
+      this.#instrumentProperty(path)
     }
   }
 
   /**
    * Instruments a single property to track changes
    */
-  #instrumentProperty(config: PropertyConfig): void {
-    const parts = config.path.split(".")
+  #instrumentProperty(path: string): void {
+    const parts = path.split(".")
 
     if (parts.length > 1) {
-      this.#ensureNestedPath(config.path)
+      this.#ensureNestedPath(path)
     }
 
     let targetObject: any = this.node
@@ -67,18 +57,17 @@ export class LGraphNodeProperties {
     const currentValue = targetObject[propertyName]
 
     if (!hasProperty) {
-      let value = config.defaultValue ?? undefined
-      const defaultValue = value
+      let value: any = undefined
 
       Object.defineProperty(targetObject, propertyName, {
         get: () => value,
         set: (newValue: any) => {
           const oldValue = value
           value = newValue
-          this.#emitPropertyChange(config.path, oldValue, newValue)
+          this.#emitPropertyChange(path, oldValue, newValue)
 
-          // Update enumerable: true for non-default values, false for defaults
-          const shouldBeEnumerable = newValue !== defaultValue && newValue !== undefined
+          // Update enumerable: true for non-undefined values, false for undefined
+          const shouldBeEnumerable = newValue !== undefined
           const currentDescriptor = Object.getOwnPropertyDescriptor(targetObject, propertyName)
           if (currentDescriptor && currentDescriptor.enumerable !== shouldBeEnumerable) {
             Object.defineProperty(targetObject, propertyName, {
@@ -94,11 +83,11 @@ export class LGraphNodeProperties {
       Object.defineProperty(
         targetObject,
         propertyName,
-        this.#createInstrumentedDescriptor(config.path, currentValue),
+        this.#createInstrumentedDescriptor(path, currentValue),
       )
     }
 
-    this.#instrumentedPaths.add(config.path)
+    this.#instrumentedPaths.add(path)
   }
 
   /**
@@ -160,7 +149,7 @@ export class LGraphNodeProperties {
   /**
    * Gets the list of tracked properties
    */
-  getTrackedProperties(): PropertyConfig[] {
+  getTrackedProperties(): string[] {
     return [...DEFAULT_TRACKED_PROPERTIES]
   }
 
