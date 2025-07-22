@@ -12,7 +12,6 @@ import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode } from "./LGraphNode"
 import { LLink } from "./LLink"
 import { distance, isInsideRectangle, overlapBounding } from "./measure"
-import { instrumentNodeProperties } from "./nodePropertyInstrumentation"
 import { Reroute } from "./Reroute"
 import { SubgraphIONodeBase } from "./subgraph/SubgraphIONodeBase"
 import { SubgraphSlot } from "./subgraph/SubgraphSlotBase"
@@ -522,9 +521,6 @@ export class LiteGraphGlobal {
 
     // callback
     node.onNodeCreated?.()
-
-    // Instrument node properties for change detection
-    instrumentNodeProperties(node)
 
     return node
   }

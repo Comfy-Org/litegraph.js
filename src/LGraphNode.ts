@@ -43,6 +43,7 @@ import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from 
 import { NodeInputSlot } from "./node/NodeInputSlot"
 import { NodeOutputSlot } from "./node/NodeOutputSlot"
 import { inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, outputAsSerialisable } from "./node/slotUtils"
+import { instrumentNodeProperties } from "./nodePropertyInstrumentation"
 import {
   LGraphEventMode,
   NodeSlotType,
@@ -687,6 +688,8 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       error: this.#getErrorStrokeStyle,
       selected: this.#getSelectedStrokeStyle,
     }
+
+    instrumentNodeProperties(this)
   }
 
   /** Internal callback for subgraph nodes. Do not implement externally. */
