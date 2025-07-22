@@ -24,7 +24,6 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
-import type { PropertyConfig } from "./LGraphNodeProperties"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
@@ -694,17 +693,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     }
 
     // Initialize property manager with tracked properties
-    this.propertyManager = new LGraphNodeProperties(this, {
-      trackedProperties: this.getDefaultTrackedProperties(),
-    })
-  }
-
-  /**
-   * Gets the default tracked properties for this node type.
-   * Can be overridden in subclasses to customize which properties are tracked.
-   */
-  protected getDefaultTrackedProperties(): PropertyConfig[] {
-    return LGraphNodeProperties.getDefaultTrackedProperties()
+    this.propertyManager = new LGraphNodeProperties(this)
   }
 
   /**

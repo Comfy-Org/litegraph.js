@@ -8,16 +8,14 @@ export interface PropertyConfig {
   path: string
   /** Initial value or getter function */
   defaultValue?: any
-  /** Type of the property for validation (optional) */
-  type?: "string" | "boolean" | "number" | "object"
 }
 
 /**
- * Default properties to track - can be extended or overridden
+ * Default properties to track
  */
 const DEFAULT_TRACKED_PROPERTIES: PropertyConfig[] = [
-  { path: "title", type: "string" },
-  { path: "flags.collapsed", type: "boolean" },
+  { path: "title" },
+  { path: "flags.collapsed" },
 ]
 
 /**
@@ -27,17 +25,12 @@ export class LGraphNodeProperties {
   /** The node this property manager belongs to */
   node: LGraphNode
 
-  /** Properties being tracked for changes */
-  trackedProperties: PropertyConfig[]
-
   /** Set of property paths that have been instrumented */
   #instrumentedPaths = new Set<string>()
 
-  constructor(node: LGraphNode, config: { trackedProperties?: PropertyConfig[] } = {}) {
+  constructor(node: LGraphNode) {
     this.node = node
-    this.trackedProperties = config.trackedProperties || [...DEFAULT_TRACKED_PROPERTIES]
 
-    // Initialize instrumentation
     this.#setupInstrumentation()
   }
 
@@ -45,7 +38,7 @@ export class LGraphNodeProperties {
    * Sets up property instrumentation for all tracked properties
    */
   #setupInstrumentation(): void {
-    for (const config of this.trackedProperties) {
+    for (const config of DEFAULT_TRACKED_PROPERTIES) {
       this.#instrumentProperty(config)
     }
   }
@@ -56,17 +49,14 @@ export class LGraphNodeProperties {
   #instrumentProperty(config: PropertyConfig): void {
     const parts = config.path.split(".")
 
-    // Ensure nested path exists
     if (parts.length > 1) {
       this.#ensureNestedPath(config.path)
     }
 
-    // Get the parent object and property name
     let targetObject: any = this.node
     let propertyName = parts[0]
 
     if (parts.length > 1) {
-      // Navigate to parent object for nested properties
       for (let i = 0; i < parts.length - 1; i++) {
         targetObject = targetObject[parts[i]]
       }
@@ -77,20 +67,30 @@ export class LGraphNodeProperties {
     const currentValue = targetObject[propertyName]
 
     if (!hasProperty) {
-      // Property doesn't exist yet - create it with instrumentation
       let value = config.defaultValue ?? undefined
+      const defaultValue = value
+
       Object.defineProperty(targetObject, propertyName, {
         get: () => value,
         set: (newValue: any) => {
           const oldValue = value
           value = newValue
           this.#emitPropertyChange(config.path, oldValue, newValue)
+
+          // Update enumerable: true for non-default values, false for defaults
+          const shouldBeEnumerable = newValue !== defaultValue && newValue !== undefined
+          const currentDescriptor = Object.getOwnPropertyDescriptor(targetObject, propertyName)
+          if (currentDescriptor && currentDescriptor.enumerable !== shouldBeEnumerable) {
+            Object.defineProperty(targetObject, propertyName, {
+              ...currentDescriptor,
+              enumerable: shouldBeEnumerable,
+            })
+          }
         },
         enumerable: false,
         configurable: true,
       })
     } else {
-      // Property exists - replace with instrumented version
       Object.defineProperty(
         targetObject,
         propertyName,
@@ -151,82 +151,6 @@ export class LGraphNodeProperties {
   }
 
   /**
-   * Adds a new property to track
-   * @param config The property configuration
-   */
-  addTrackedProperty(config: PropertyConfig): void {
-    // Check if property is already tracked
-    if (this.#instrumentedPaths.has(config.path)) {
-      return
-    }
-
-    this.trackedProperties.push(config)
-    this.#instrumentProperty(config)
-  }
-
-  /**
-   * Removes tracking for a property
-   * @param path The property path to stop tracking
-   */
-  removeTrackedProperty(path: string): void {
-    this.trackedProperties = this.trackedProperties.filter(p => p.path !== path)
-    this.#instrumentedPaths.delete(path)
-    // Note: We can't easily remove the instrumentation without affecting the property
-  }
-
-  /**
-   * Gets the value of a property by path
-   * @param path The property path (e.g., "flags.collapsed")
-   */
-  getProperty(path: string): any {
-    const parts = path.split(".")
-    let current: any = this.node
-
-    for (const part of parts) {
-      if (current == null) return undefined
-      current = current[part]
-    }
-
-    return current
-  }
-
-  /**
-   * Sets the value of a property by path
-   * @param path The property path
-   * @param value The value to set
-   */
-  setProperty(path: string, value: any): void {
-    const parts = path.split(".")
-    let current: any = this.node
-
-    // Navigate to parent object
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i]
-      if (!current[part]) {
-        current[part] = {}
-      }
-      current = current[part]
-    }
-
-    // Set the property
-    const propertyName = parts.at(-1)!
-    current[propertyName] = value
-  }
-
-  /**
-   * Gets all tracked properties and their current values
-   */
-  getAllTrackedValues(): Record<string, any> {
-    const result: Record<string, any> = {}
-
-    for (const config of this.trackedProperties) {
-      result[config.path] = this.getProperty(config.path)
-    }
-
-    return result
-  }
-
-  /**
    * Checks if a property is being tracked
    */
   isTracked(path: string): boolean {
@@ -234,26 +158,17 @@ export class LGraphNodeProperties {
   }
 
   /**
-   * Gets the list of currently tracked properties
+   * Gets the list of tracked properties
    */
   getTrackedProperties(): PropertyConfig[] {
-    return [...this.trackedProperties]
-  }
-
-  /**
-   * Static method to get default tracked properties
-   */
-  static getDefaultTrackedProperties(): PropertyConfig[] {
     return [...DEFAULT_TRACKED_PROPERTIES]
   }
 
   /**
-   * Static method to extend default tracked properties globally
+   * Custom toJSON method for JSON.stringify
+   * Returns undefined to exclude from serialization since we only use defaults
    */
-  static addDefaultTrackedProperty(config: PropertyConfig): void {
-    const exists = DEFAULT_TRACKED_PROPERTIES.some(p => p.path === config.path)
-    if (!exists) {
-      DEFAULT_TRACKED_PROPERTIES.push(config)
-    }
+  toJSON(): any {
+    return undefined
   }
 }
