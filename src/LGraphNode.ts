@@ -24,6 +24,7 @@ import type {
   Size,
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
+import type { PropertyConfig } from "./LGraphNodeProperties"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
@@ -37,13 +38,13 @@ import { NullGraphError } from "./infrastructure/NullGraphError"
 import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
+import { LGraphNodeProperties } from "./LGraphNodeProperties"
 import { type LGraphNodeConstructor, LiteGraph, type Subgraph, type SubgraphNode } from "./litegraph"
 import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
 import { NodeInputSlot } from "./node/NodeInputSlot"
 import { NodeOutputSlot } from "./node/NodeOutputSlot"
 import { inputAsSerialisable, isINodeInputSlot, isWidgetInputSlot, outputAsSerialisable } from "./node/slotUtils"
-import { instrumentNodeProperties } from "./nodePropertyInstrumentation"
 import {
   LGraphEventMode,
   NodeSlotType,
@@ -234,6 +235,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
   widgets?: IBaseWidget[]
+
+  /** Property manager for this node */
+  propertyManager: LGraphNodeProperties
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
@@ -689,7 +693,18 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       selected: this.#getSelectedStrokeStyle,
     }
 
-    instrumentNodeProperties(this)
+    // Initialize property manager with tracked properties
+    this.propertyManager = new LGraphNodeProperties(this, {
+      trackedProperties: this.getDefaultTrackedProperties(),
+    })
+  }
+
+  /**
+   * Gets the default tracked properties for this node type.
+   * Can be overridden in subclasses to customize which properties are tracked.
+   */
+  protected getDefaultTrackedProperties(): PropertyConfig[] {
+    return LGraphNodeProperties.getDefaultTrackedProperties()
   }
 
   /** Internal callback for subgraph nodes. Do not implement externally. */
