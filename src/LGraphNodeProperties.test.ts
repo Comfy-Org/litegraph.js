@@ -25,8 +25,8 @@ describe("LGraphNodeProperties", () => {
       const tracked = propManager.getTrackedProperties()
 
       expect(tracked).toHaveLength(2)
-      expect(tracked).toContainEqual({ path: "title" })
-      expect(tracked).toContainEqual({ path: "flags.collapsed" })
+      expect(tracked).toContain("title")
+      expect(tracked).toContain("flags.collapsed")
     })
   })
 
@@ -104,7 +104,7 @@ describe("LGraphNodeProperties", () => {
       expect(descriptor?.enumerable).toBe(true)
     })
 
-    it("should make properties non-enumerable when set back to default", () => {
+    it("should make properties non-enumerable when set back to undefined", () => {
       new LGraphNodeProperties(mockNode)
 
       mockNode.flags.collapsed = true
@@ -125,7 +125,7 @@ describe("LGraphNodeProperties", () => {
       expect(afterDescriptor?.enumerable).toBe(true)
     })
 
-    it("should only include non-default values in JSON.stringify", () => {
+    it("should only include non-undefined values in JSON.stringify", () => {
       new LGraphNodeProperties(mockNode)
 
       // Initially, flags.collapsed shouldn't appear
@@ -136,6 +136,11 @@ describe("LGraphNodeProperties", () => {
       mockNode.flags.collapsed = true
       json = JSON.parse(JSON.stringify(mockNode))
       expect(json.flags.collapsed).toBe(true)
+
+      // After setting to false, it should still appear (false is not undefined)
+      mockNode.flags.collapsed = false
+      json = JSON.parse(JSON.stringify(mockNode))
+      expect(json.flags.collapsed).toBe(false)
 
       // After setting back to undefined, it should disappear
       mockNode.flags.collapsed = undefined
