@@ -3181,10 +3181,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   processMouseWheel(e: WheelEvent): void {
     if (!this.graph || !this.allow_dragcanvas) return
 
-    // TODO: Mouse wheel zoom rewrite
-    // @ts-expect-error
-    const delta = e.wheelDeltaY ?? e.detail * -60
-
     this.adjustMouseEvent(e)
 
     const pos: Point = [e.clientX, e.clientY]
@@ -3192,24 +3188,15 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     let { scale } = this.ds
 
-    if (
-      LiteGraph.macTrackpadGestures &&
-      (!LiteGraph.macGesturesRequireMac || navigator.userAgent.includes("Mac"))
-    ) {
-      if (e.ctrlKey) {
-        scale *= 1 + e.deltaY * (1 - this.zoom_speed) * 0.18
-        this.ds.changeScale(scale, [e.clientX, e.clientY], false)
-      } else {
-        this.ds.offset[0] -= e.deltaX * 1.18 * (1 / scale)
-        this.ds.offset[1] -= e.deltaY * 1.18 * (1 / scale)
-      }
+    // 1 / 120 for wheel, 1 / (50 / 9) for trackpad
+    const factor = this.pointer.isTrackpadGesture(e) ? 0.18 : 0.008_333
+
+    if (e.ctrlKey) {
+      scale *= 1 + e.deltaY * (1 - this.zoom_speed) * factor
+      this.ds.changeScale(scale, [e.clientX, e.clientY], false)
     } else {
-      if (delta > 0) {
-        scale *= this.zoom_speed
-      } else if (delta < 0) {
-        scale *= 1 / (this.zoom_speed)
-      }
-      this.ds.changeScale(scale, [e.clientX, e.clientY])
+      this.ds.offset[0] -= e.deltaX * (1 + factor) * (1 / scale)
+      this.ds.offset[1] -= e.deltaY * (1 + factor) * (1 / scale)
     }
 
     this.graph.change()
