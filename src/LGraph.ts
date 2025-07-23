@@ -147,7 +147,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   last_update_time: number = 0
   starttime: number = 0
   catch_errors: boolean = true
-  execution_timer_id?: ReturnType<typeof setInterval> | number | null
+  execution_timer_id?: number | null
   errors_in_execution?: boolean
   /** @deprecated Unused */
   execution_time!: number
