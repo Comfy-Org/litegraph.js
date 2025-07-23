@@ -236,7 +236,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   widgets?: IBaseWidget[]
 
   /** Property manager for this node */
-  propertyManager: LGraphNodeProperties
+  changeTracker: LGraphNodeProperties
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
@@ -693,7 +693,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     }
 
     // Initialize property manager with tracked properties
-    this.propertyManager = new LGraphNodeProperties(this)
+    this.changeTracker = new LGraphNodeProperties(this)
   }
 
   /** Internal callback for subgraph nodes. Do not implement externally. */
