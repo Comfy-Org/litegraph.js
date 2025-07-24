@@ -24,7 +24,6 @@ import { SUBGRAPH_INPUT_ID, SUBGRAPH_OUTPUT_ID } from "@/constants"
 import { createUuidv4, zeroUuid } from "@/utils/uuid"
 
 import { CustomEventTarget } from "./infrastructure/CustomEventTarget"
-import { GroupManager } from "./GroupManager"
 import { LGraphCanvas } from "./LGraphCanvas"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId } from "./LGraphNode"
@@ -138,7 +137,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   _nodes_in_order: LGraphNode[] = []
   _nodes_executable: LGraphNode[] | null = null
   _groups: LGraphGroup[] = []
-  _groupManager: GroupManager = new GroupManager()
   iteration: number = 0
   globaltime: number = 0
   /** @deprecated Unused */
@@ -341,8 +339,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
   }
 
   get groups() {
-    // For backward compatibility, return groups in z-order
-    return this._groupManager.getGroupsInZOrder()
+    return this._groups
   }
 
   /**
@@ -809,14 +806,14 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       if (node.id == null || node.id === -1) node.id = ++state.lastGroupId
       if (node.id > state.lastGroupId) state.lastGroupId = node.id
 
-      // Keep backward compatibility with _groups array
       this._groups.push(node)
-      // Add to spatial index
-      this._groupManager.addGroup(node)
+      node.graph = this
+      
+      // Fix nested group interaction by recomputing group stacking order
+      node.recomputeInsideNodes()
       
       this.setDirtyCanvas(true)
       this.change()
-      node.graph = this
       this._version++
       return
     }
@@ -881,10 +878,6 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       if (index != -1) {
         this._groups.splice(index, 1)
       }
-      
-      // Remove from spatial index
-      this._groupManager.removeGroup(node)
-      
       node.graph = undefined
       this._version++
       this.setDirtyCanvas(true, true)
@@ -1065,16 +1058,7 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
    * @returns The group or null
    */
   getGroupOnPos(x: number, y: number): LGraphGroup | undefined {
-    // Use spatial index for efficient lookup
-    return this._groupManager.getGroupAt(x, y) || undefined
-  }
-
-  /**
-   * Notify the group manager that a group has moved or resized
-   * Should be called after modifying group position or size
-   */
-  updateGroupSpatialIndex(group: LGraphGroup): void {
-    this._groupManager.updateGroup(group)
+    return this._groups.toReversed().find(g => g.isPointInside(x, y))
   }
 
   /**
