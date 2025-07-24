@@ -349,6 +349,15 @@ export class LiteGraphGlobal {
    */
   saveViewportWithGraph: boolean = true
 
+  /**
+   * Whether Vue node rendering is enabled globally.
+   * When true, nodes with the `useVueSlotPositions` flag will calculate slot positions
+   * using Vue component dimensions instead of traditional LiteGraph calculations.
+   * This should be set by the frontend when the Vue nodes feature is enabled.
+   * @default false
+   */
+  useVueNodePositions: boolean = false
+
   // TODO: Remove legacy accessors
   LGraph = LGraph
   LLink = LLink
