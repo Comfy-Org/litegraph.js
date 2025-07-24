@@ -614,7 +614,24 @@ export class LiteGraphGlobal {
   cloneObject<T extends object | undefined | null>(obj: T, target?: T): WhenNullish<T, null> {
     if (obj == null) return null as WhenNullish<T, null>
 
-    const r = JSON.parse(JSON.stringify(obj))
+    let r: any
+
+    // Use modern structuredClone when available (faster, handles circular refs, preserves types)
+    if (typeof structuredClone !== "undefined") {
+      try {
+        r = structuredClone(obj)
+      } catch (error) {
+        // Fallback for non-cloneable types (functions, DOM nodes, etc.)
+        if (this.debug) {
+          console.warn("structuredClone failed, falling back to JSON method:", error)
+        }
+        r = JSON.parse(JSON.stringify(obj))
+      }
+    } else {
+      // Fallback for older environments
+      r = JSON.parse(JSON.stringify(obj))
+    }
+
     if (!target) return r
 
     for (const i in r) {
