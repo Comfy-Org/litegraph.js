@@ -26,65 +26,29 @@ import {
 import { createUuidv4 } from "./utils/uuid"
 
 /**
- * Widget dimensions configuration for the contract between LiteGraph and Vue widgets.
- * These values ensure both systems can independently calculate widget and slot positions
+ * Vue node dimensions configuration for the contract between LiteGraph and Vue components.
+ * These values ensure both systems can independently calculate node, slot, and widget positions
  * to place them in identical locations.
  *
- * IMPORTANT: These values must match the actual rendered dimensions of Vue widgets
+ * IMPORTANT: These values must match the actual rendered dimensions of Vue components
  * for the positioning contract to work correctly.
  */
-export const COMFY_WIDGET_DIMENSIONS = {
-  heights: {
-    // Text/String widgets
-    STRING: 32,
-    TEXT: 32,
-    TEXT_MULTILINE: 80,
-
-    // Numeric widgets
-    NUMBER: 28,
-    INT: 28,
-    FLOAT: 28,
-    SLIDER: 36,
-
-    // Selection widgets
-    COMBO: 32,
-    CHECKBOX: 24,
-    TOGGLE: 24,
-    BOOLEAN: 24,
-
-    // Color/Image widgets
-    COLOR: 48,
-    IMAGE: 120,
-    IMAGE_UPLOAD: 120,
-
-    // Button widgets
-    BUTTON: 32,
-
-    // Special widgets
-    SEED: 28,
-    MODEL: 32,
-    CONDITIONING: 32,
-    LATENT: 32,
-    CLIP: 32,
-    VAE: 32,
-
-    // Custom/Dynamic widgets (placeholder values)
-    CUSTOM: 40,
-    DYNAMIC: 40,
-
-    // Default fallback
-    DEFAULT: 28,
-  },
+export const COMFY_VUE_NODE_DIMENSIONS = {
   spacing: {
-    BETWEEN_WIDGETS: 4,
-    WIDGET_AREA_PADDING: 8,
+    BETWEEN_SLOTS_AND_BODY: 8,
+    BETWEEN_WIDGETS: 8,
+  },
+  components: {
+    HEADER_HEIGHT: 34, // 18 header + 16 padding
+    SLOT_HEIGHT: 24,
+    STANDARD_WIDGET_HEIGHT: 30,
   },
 } as const
 
 /**
- * Type for widget height keys
+ * Type for component height keys
  */
-export type WidgetHeightKey = keyof typeof COMFY_WIDGET_DIMENSIONS.heights
+export type ComponentHeightKey = keyof typeof COMFY_VUE_NODE_DIMENSIONS.components
 
 /**
  * The Global Scope. It contains all the registered node classes.
@@ -138,11 +102,11 @@ export class LiteGraphGlobal {
   WIDGET_DISABLED_TEXT_COLOR = "#666"
 
   /**
-   * Widget dimensions configuration for the contract between LiteGraph and Vue widgets.
-   * These values ensure both systems can independently calculate widget and slot positions
+   * Vue node dimensions configuration for the contract between LiteGraph and Vue components.
+   * These values ensure both systems can independently calculate node, slot, and widget positions
    * to place them in identical locations.
    */
-  COMFY_WIDGET_DIMENSIONS = COMFY_WIDGET_DIMENSIONS
+  COMFY_VUE_NODE_DIMENSIONS = COMFY_VUE_NODE_DIMENSIONS
 
   LINK_COLOR = "#9A9"
   EVENT_LINK_COLOR = "#A86"

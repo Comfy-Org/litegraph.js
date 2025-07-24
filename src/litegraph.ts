@@ -133,7 +133,7 @@ export { BadgePosition, LGraphBadge, type LGraphBadgeOptions } from "./LGraphBad
 export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
 export { LGraphGroup } from "./LGraphGroup"
 export { LGraphNode, type NodeId } from "./LGraphNode"
-export { COMFY_WIDGET_DIMENSIONS, type WidgetHeightKey } from "./LiteGraphGlobal"
+export { COMFY_VUE_NODE_DIMENSIONS, type ComponentHeightKey } from "./LiteGraphGlobal"
 export { type LinkId, LLink } from "./LLink"
 export { clamp, createBounds } from "./measure"
 export { Reroute, type RerouteId } from "./Reroute"
