@@ -133,6 +133,7 @@ export { BadgePosition, LGraphBadge, type LGraphBadgeOptions } from "./LGraphBad
 export { LGraphCanvas, type LGraphCanvasState } from "./LGraphCanvas"
 export { LGraphGroup } from "./LGraphGroup"
 export { LGraphNode, type NodeId } from "./LGraphNode"
+export { GroupManager } from "./GroupManager"
 export { type LinkId, LLink } from "./LLink"
 export { clamp, createBounds } from "./measure"
 export { Reroute, type RerouteId } from "./Reroute"

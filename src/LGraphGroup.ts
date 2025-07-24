@@ -217,6 +217,10 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
 
     this._size[0] = Math.max(LGraphGroup.minWidth, width)
     this._size[1] = Math.max(LGraphGroup.minHeight, height)
+    
+    // Notify graph's spatial index about the size change
+    this.graph?.updateGroupSpatialIndex(this)
+    
     return true
   }
 
@@ -225,6 +229,10 @@ export class LGraphGroup implements Positionable, IPinnable, IColorable {
 
     this._pos[0] += deltaX
     this._pos[1] += deltaY
+    
+    // Notify graph's spatial index about the position change
+    this.graph?.updateGroupSpatialIndex(this)
+    
     if (skipChildren === true) return
 
     for (const item of this._children) {
