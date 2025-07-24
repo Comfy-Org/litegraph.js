@@ -4,7 +4,7 @@ import type { LGraphNode } from "@/LGraphNode"
 import { LabelPosition, SlotShape, SlotType } from "@/draw"
 import { LiteGraph, Rectangle } from "@/litegraph"
 import { getCentre } from "@/measure"
-import { LinkDirection, RenderShape } from "@/types/globalEnums"
+import { LinkDirection } from "@/types/globalEnums"
 
 import { NodeInputSlot } from "./NodeInputSlot"
 import { SlotBase } from "./SlotBase"
@@ -98,9 +98,8 @@ export abstract class NodeSlot extends SlotBase implements INodeSlot {
 
     const pos = this.#centreOffset
     const slot_type = this.type
-    const slot_shape = (
-      slot_type === SlotType.Array ? SlotShape.Grid : this.shape
-    ) as SlotShape
+    const slot_shape =
+      slot_type === SlotType.Array ? SlotShape.Grid : (this.shape ?? SlotShape.Circle)
 
     ctx.beginPath()
     let doFill = true
@@ -201,9 +200,10 @@ export abstract class NodeSlot extends SlotBase implements INodeSlot {
     ctx.fillStyle = "#686"
     ctx.beginPath()
 
-    if (this.type === SlotType.Event || this.shape === RenderShape.BOX) {
+    const collapsedShape = this.shape ?? SlotShape.Circle
+    if (this.type === SlotType.Event || collapsedShape === SlotShape.Box) {
       ctx.rect(x - 7 + 0.5, y - 4, 14, 8)
-    } else if (this.shape === RenderShape.ARROW) {
+    } else if (collapsedShape === SlotShape.Arrow) {
       // Adjust arrow direction based on whether this is an input or output slot
       const isInput = this instanceof NodeInputSlot
       if (isInput) {
