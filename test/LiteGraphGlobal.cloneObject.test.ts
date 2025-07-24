@@ -21,92 +21,43 @@ describe("LiteGraph.cloneObject", () => {
     expect(cloned).not.toBe(obj)
   })
 
-  it("should preserve Date objects when structuredClone is available", () => {
+  it("should preserve Date objects", () => {
     const date = new Date("2024-01-01")
     const obj = { timestamp: date }
-
-    if (typeof structuredClone !== "undefined") {
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.timestamp).toBeInstanceOf(Date)
-      expect(cloned.timestamp.getTime()).toBe(date.getTime())
-    } else {
-      // In environments without structuredClone, should fallback to JSON
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(typeof cloned.timestamp).toBe("string")
-    }
+    
+    const cloned = LiteGraph.cloneObject(obj)
+    expect(cloned.timestamp).toBeInstanceOf(Date)
+    expect(cloned.timestamp.getTime()).toBe(date.getTime())
   })
 
-  it("should preserve RegExp objects when structuredClone is available", () => {
+  it("should preserve RegExp objects", () => {
     const regex = /test/gi
     const obj = { pattern: regex }
-
-    if (typeof structuredClone !== "undefined") {
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.pattern).toBeInstanceOf(RegExp)
-      expect(cloned.pattern.source).toBe("test")
-      expect(cloned.pattern.flags).toBe("gi")
-    } else {
-      // In environments without structuredClone, should fallback to JSON
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.pattern).toEqual({})
-    }
+    
+    const cloned = LiteGraph.cloneObject(obj)
+    expect(cloned.pattern).toBeInstanceOf(RegExp)
+    expect(cloned.pattern.source).toBe("test")
+    expect(cloned.pattern.flags).toBe("gi")
   })
 
-  it("should preserve undefined values when structuredClone is available", () => {
+  it("should preserve undefined values", () => {
     const obj = { defined: "value", undefined: undefined }
-
-    if (typeof structuredClone !== "undefined") {
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.undefined).toBe(undefined)
-      expect("undefined" in cloned).toBe(true)
-    } else {
-      // JSON method converts undefined to null
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.undefined).toBe(null)
-    }
+    
+    const cloned = LiteGraph.cloneObject(obj)
+    expect(cloned.undefined).toBe(undefined)
+    expect("undefined" in cloned).toBe(true)
   })
 
-  it("should handle circular references when structuredClone is available", () => {
+  it("should handle circular references", () => {
     const obj: any = { name: "test" }
     obj.self = obj
-
-    if (typeof structuredClone !== "undefined") {
-      const cloned = LiteGraph.cloneObject(obj)
-      expect(cloned.name).toBe("test")
-      expect(cloned.self).toBe(cloned) // Circular reference preserved
-      expect(cloned).not.toBe(obj) // But it's still a clone
-    } else {
-      // Without structuredClone, should throw
-      expect(() => LiteGraph.cloneObject(obj)).toThrow()
-    }
+    
+    const cloned = LiteGraph.cloneObject(obj)
+    expect(cloned.name).toBe("test")
+    expect(cloned.self).toBe(cloned) // Circular reference preserved
+    expect(cloned).not.toBe(obj) // But it's still a clone
   })
 
-  it("should fallback to JSON method when structuredClone fails", () => {
-    // Mock structuredClone to throw an error
-    const originalStructuredClone = globalThis.structuredClone
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
-
-    try {
-      // @ts-expect-error - mocking global
-      globalThis.structuredClone = () => {
-        throw new Error("Mock structuredClone failure")
-      }
-
-      LiteGraph.debug = true
-      const obj = { a: 1, b: "test" }
-      const cloned = LiteGraph.cloneObject(obj)
-
-      expect(cloned).toEqual(obj)
-      expect(cloned).not.toBe(obj)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "structuredClone failed, falling back to JSON method:",
-        expect.any(Error),
-      )
-    } finally {
-      globalThis.structuredClone = originalStructuredClone
-      consoleSpy.mockRestore()
-    }
-  })
 
   it("should handle the target parameter correctly", () => {
     const source = { a: 1, b: 2 }
