@@ -3038,7 +3038,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     if (pos) return [nodeX + pos[0], nodeY + pos[1]]
 
     // Check if we should use Vue positioning
-    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.useVueNodePositions) {
+    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.vueNodesMode) {
       if (isWidgetInputSlot(input)) {
         // Widget slot - pass the slot object
         return this.#calculateVueSlotPosition(true, input, -1)
@@ -3080,7 +3080,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     if (outputPos) return [nodeX + outputPos[0], nodeY + outputPos[1]]
 
     // Check if we should use Vue positioning
-    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.useVueNodePositions) {
+    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.vueNodesMode) {
       const outputSlot = this.outputs[slot]
       const slotIndex = this.#defaultVerticalOutputs.indexOf(outputSlot)
       if (slotIndex !== -1) {
@@ -3587,7 +3587,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   #measureSlot(slot: NodeInputSlot | NodeOutputSlot, slotIndex: number, isInput: boolean): void {
     const pos = isInput ? this.getInputPos(slotIndex) : this.getOutputPos(slotIndex)
 
-    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.useVueNodePositions) {
+    if (LGraphNode.FORCE_VUE_POSITIONING || LiteGraph.vueNodesMode) {
       // Vue-based slot dimensions
       const dimensions = LiteGraph.COMFY_VUE_NODE_DIMENSIONS.components
 
@@ -3804,7 +3804,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
 
     // Only set custom pos if not using Vue positioning
     // Vue positioning calculates widget slot positions dynamically
-    if (!LGraphNode.FORCE_VUE_POSITIONING && !LiteGraph.useVueNodePositions) {
+    if (!LGraphNode.FORCE_VUE_POSITIONING && !LiteGraph.vueNodesMode) {
       for (const widget of this.widgets) {
         const slot = slotByWidgetName.get(widget.name)
         if (!slot) continue

@@ -4559,6 +4559,11 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   drawNode(node: LGraphNode, ctx: CanvasRenderingContext2D): void {
     this.current_node = node
 
+    // Skip all node rendering when Vue nodes mode is enabled
+    if (LiteGraph.vueNodesMode) {
+      return
+    }
+
     const color = node.renderingColor
     const bgcolor = node.renderingBgColor
 
