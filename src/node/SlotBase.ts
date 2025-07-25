@@ -1,6 +1,6 @@
+import type { SlotShape } from "@/draw"
 import type { CanvasColour, DefaultConnectionColors, INodeSlot, ISlotType, IWidgetLocator, Point } from "@/interfaces"
 import type { LLink } from "@/LLink"
-import type { RenderShape } from "@/types/globalEnums"
 import type { LinkDirection } from "@/types/globalEnums"
 
 import { Rectangle } from "@/infrastructure/Rectangle"
@@ -14,7 +14,7 @@ export abstract class SlotBase implements INodeSlot {
   type: ISlotType
   dir?: LinkDirection
   removable?: boolean
-  shape?: RenderShape
+  shape?: SlotShape
   color_off?: CanvasColour
   color_on?: CanvasColour
   locked?: boolean

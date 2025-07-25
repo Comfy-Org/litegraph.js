@@ -33,6 +33,7 @@ import type { ISerialisedNode, SubgraphIO } from "./types/serialisation"
 import type { IBaseWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
 
 import { getNodeInputOnPos, getNodeOutputOnPos } from "./canvas/measureSlots"
+import { validateSlotShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
@@ -735,6 +736,12 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
 
     this.inputs ??= []
     this.inputs = this.inputs.map(input => toClass(NodeInputSlot, input, this))
+    // Validate and migrate slot shapes for backward compatibility
+    for (const input of this.inputs) {
+      if (input.shape != null) {
+        input.shape = validateSlotShape(input.shape)
+      }
+    }
     for (const [i, input] of this.inputs.entries()) {
       const link = this.graph && input.link != null
         ? this.graph._links.get(input.link)
@@ -745,6 +752,12 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
 
     this.outputs ??= []
     this.outputs = this.outputs.map(output => toClass(NodeOutputSlot, output, this))
+    // Validate and migrate slot shapes for backward compatibility
+    for (const output of this.outputs) {
+      if (output.shape != null) {
+        output.shape = validateSlotShape(output.shape)
+      }
+    }
     for (const [i, output] of this.outputs.entries()) {
       if (!output.links) continue
 
@@ -1464,6 +1477,11 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     type: ISlotType,
     extra_info?: TProperties,
   ): INodeOutputSlot & TProperties {
+    // Validate and convert shape if provided
+    if (extra_info?.shape != null) {
+      extra_info = { ...extra_info, shape: validateSlotShape(extra_info.shape) }
+    }
+
     const output = Object.assign(
       new NodeOutputSlot({ name, type, links: null }, this),
       extra_info,
@@ -1512,6 +1530,11 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
    */
   addInput<TProperties extends Partial<INodeInputSlot>>(name: string, type: ISlotType, extra_info?: TProperties): INodeInputSlot & TProperties {
     type ||= 0
+
+    // Validate and convert shape if provided
+    if (extra_info?.shape != null) {
+      extra_info = { ...extra_info, shape: validateSlotShape(extra_info.shape) }
+    }
 
     const input = Object.assign(
       new NodeInputSlot({ name, type, link: null }, this),

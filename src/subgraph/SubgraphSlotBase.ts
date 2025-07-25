@@ -144,8 +144,7 @@ export abstract class SubgraphSlot extends SlotBase implements SubgraphIO, Hover
 
   /** @remarks Leaves the context dirty. */
   draw({ ctx, colorContext, lowQuality }: SubgraphSlotDrawOptions): void {
-    // Assertion: SlotShape is a subset of RenderShape
-    const shape = this.shape as unknown as SlotShape
+    const shape = this.shape ?? SlotShape.Circle
     const { isPointerOver, pos: [x, y] } = this
 
     ctx.beginPath()

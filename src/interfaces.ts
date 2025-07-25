@@ -1,10 +1,11 @@
 import type { ContextMenu } from "./ContextMenu"
+import type { SlotShape } from "./draw"
 import type { LGraphNode, NodeId } from "./LGraphNode"
 import type { LinkId, LLink } from "./LLink"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
-import type { LinkDirection, RenderShape } from "./types/globalEnums"
+import type { LinkDirection } from "./types/globalEnums"
 import type { IBaseWidget } from "./types/widgets"
 import type { Rectangle } from "@/infrastructure/Rectangle"
 import type { CanvasPointerEvent } from "@/types/events"
@@ -306,7 +307,7 @@ export interface INodeSlot extends HasBoundingRect {
   type: ISlotType
   dir?: LinkDirection
   removable?: boolean
-  shape?: RenderShape
+  shape?: SlotShape
   color_off?: CanvasColour
   color_on?: CanvasColour
   locked?: boolean
