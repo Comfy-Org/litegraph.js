@@ -1,27 +1,22 @@
-import type { SubgraphInput } from "./SubgraphInput"
 import type { ISubgraphInput } from "@/interfaces"
 import type { BaseLGraph, LGraph } from "@/LGraph"
+import type { INodeInputSlot, ISlotType, NodeId } from "@/litegraph"
 import type { GraphOrSubgraph, Subgraph } from "@/subgraph/Subgraph"
 import type { ExportedSubgraphInstance } from "@/types/serialisation"
-import type { IBaseWidget } from "@/types/widgets"
 import type { UUID } from "@/utils/uuid"
 
 import { RecursionError } from "@/infrastructure/RecursionError"
 import { LGraphNode } from "@/LGraphNode"
-import { type INodeInputSlot, type ISlotType, type NodeId } from "@/litegraph"
 import { LLink, type ResolvedConnection } from "@/LLink"
 import { NodeInputSlot } from "@/node/NodeInputSlot"
 import { NodeOutputSlot } from "@/node/NodeOutputSlot"
-import { toConcreteWidget } from "@/widgets/widgetMap"
 
-import { type ExecutableLGraphNode, ExecutableNodeDTO, type ExecutionId } from "./ExecutableNodeDTO"
+import { type ExecutableLGraphNode, ExecutableNodeDTO } from "./ExecutableNodeDTO"
 
 /**
  * An instance of a {@link Subgraph}, displayed as a node on the containing (parent) graph.
  */
 export class SubgraphNode extends LGraphNode implements BaseLGraph {
-  declare inputs: (INodeInputSlot & Partial<ISubgraphInput>)[]
-
   override readonly type: UUID
   override readonly isVirtualNode = true as const
 
@@ -37,11 +32,6 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     return true
   }
 
-  override widgets: IBaseWidget[] = []
-
-  /** Manages lifecycle of all subgraph event listeners */
-  #eventAbortController = new AbortController()
-
   constructor(
     /** The (sub)graph that contains this subgraph instance. */
     override readonly graph: GraphOrSubgraph,
@@ -53,31 +43,21 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
 
     // Update this node when the subgraph input / output slots are changed
     const subgraphEvents = this.subgraph.events
-    const { signal } = this.#eventAbortController
-
     subgraphEvents.addEventListener("input-added", (e) => {
-      const subgraphInput = e.detail.input
-      const { name, type } = subgraphInput
-      const input = this.addInput(name, type)
-
-      this.#addSubgraphInputListeners(subgraphInput, input)
-    }, { signal })
-
+      const { name, type } = e.detail.input
+      this.addInput(name, type)
+    })
     subgraphEvents.addEventListener("removing-input", (e) => {
-      const widget = e.detail.input._widget
-      if (widget) this.ensureWidgetRemoved(widget)
-
       this.removeInput(e.detail.index)
-    }, { signal })
+    })
 
     subgraphEvents.addEventListener("output-added", (e) => {
       const { name, type } = e.detail.output
       this.addOutput(name, type)
-    }, { signal })
-
+    })
     subgraphEvents.addEventListener("removing-output", (e) => {
       this.removeOutput(e.detail.index)
-    }, { signal })
+    })
 
     subgraphEvents.addEventListener("renaming-input", (e) => {
       const { index, newName } = e.detail
@@ -85,7 +65,7 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
       if (!input) throw new Error("Subgraph input not found")
 
       input.label = newName
-    }, { signal })
+    })
 
     subgraphEvents.addEventListener("renaming-output", (e) => {
       const { index, newName } = e.detail
@@ -93,52 +73,13 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
       if (!output) throw new Error("Subgraph output not found")
 
       output.label = newName
-    }, { signal })
+    })
 
     this.type = subgraph.id
     this.configure(instanceData)
   }
 
-  #addSubgraphInputListeners(subgraphInput: SubgraphInput, input: INodeInputSlot & Partial<ISubgraphInput>) {
-    input._listenerController?.abort()
-    input._listenerController = new AbortController()
-    const { signal } = input._listenerController
-
-    subgraphInput.events.addEventListener(
-      "input-connected",
-      () => {
-        if (input._widget) return
-
-        const widget = subgraphInput._widget
-        if (!widget) return
-
-        this.#setWidget(subgraphInput, input, widget)
-      },
-      { signal },
-    )
-
-    subgraphInput.events.addEventListener(
-      "input-disconnected",
-      () => {
-        // If the input is connected to more than one widget, don't remove the widget
-        const connectedWidgets = subgraphInput.getConnectedWidgets()
-        if (connectedWidgets.length > 0) return
-
-        this.removeWidgetByName(input.name)
-
-        delete input.pos
-        delete input.widget
-        input._widget = undefined
-      },
-      { signal },
-    )
-  }
-
   override configure(info: ExportedSubgraphInstance): void {
-    for (const input of this.inputs) {
-      input._listenerController?.abort()
-    }
-
     this.inputs.length = 0
     this.inputs.push(
       ...this.subgraph.inputNode.slots.map(
@@ -154,75 +95,6 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     )
 
     super.configure(info)
-  }
-
-  override _internalConfigureAfterSlots() {
-    // Reset widgets
-    this.widgets.length = 0
-
-    // Check all inputs for connected widgets
-    for (const input of this.inputs) {
-      const subgraphInput = this.subgraph.inputNode.slots.find(slot => slot.name === input.name)
-      if (!subgraphInput) throw new Error(`[SubgraphNode.configure] No subgraph input found for input ${input.name}`)
-
-      this.#addSubgraphInputListeners(subgraphInput, input)
-
-      // Find the first widget that this slot is connected to
-      for (const linkId of subgraphInput.linkIds) {
-        const link = this.subgraph.getLink(linkId)
-        if (!link) {
-          console.warn(`[SubgraphNode.configure] No link found for link ID ${linkId}`, this)
-          continue
-        }
-
-        const resolved = link.resolve(this.subgraph)
-        if (!resolved.input || !resolved.inputNode) {
-          console.warn("Invalid resolved link", resolved, this)
-          continue
-        }
-
-        // No widget - ignore this link
-        const widget = resolved.inputNode.getWidgetFromSlot(resolved.input)
-        if (!widget) continue
-
-        this.#setWidget(subgraphInput, input, widget)
-        break
-      }
-    }
-  }
-
-  #setWidget(subgraphInput: Readonly<SubgraphInput>, input: INodeInputSlot, widget: Readonly<IBaseWidget>) {
-    // Use the first matching widget
-    const promotedWidget = toConcreteWidget(widget, this).createCopyForNode(this)
-
-    Object.assign(promotedWidget, {
-      get name() {
-        return subgraphInput.name
-      },
-      set name(value) {
-        console.warn("Promoted widget: setting name is not allowed", this, value)
-      },
-      get localized_name() {
-        return subgraphInput.localized_name
-      },
-      set localized_name(value) {
-        console.warn("Promoted widget: setting localized_name is not allowed", this, value)
-      },
-      get label() {
-        return subgraphInput.label
-      },
-      set label(value) {
-        console.warn("Promoted widget: setting label is not allowed", this, value)
-      },
-    })
-
-    this.widgets.push(promotedWidget)
-
-    // Dispatch widget-promoted event
-    this.subgraph.events.dispatch("widget-promoted", { widget: promotedWidget, subgraphNode: this })
-
-    input.widget = { name: subgraphInput.name }
-    input._widget = promotedWidget
   }
 
   /**
@@ -282,66 +154,29 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     console.debug(`[SubgraphNode.resolveSubgraphOutputLink] No inner link found for output slot [${slot}] ${outputSlot.name}`, this)
   }
 
-  /** @internal Used to flatten the subgraph before execution. */
+  /** @internal Used to flatten the subgraph before execution. Recursive; call with no args. */
   getInnerNodes(
-    /** The set of computed node DTOs for this execution. */
-    executableNodes: Map<ExecutionId, ExecutableLGraphNode>,
+    /** The list of nodes to add to. */
+    nodes: ExecutableLGraphNode[] = [],
+    /** The set of visited nodes. */
+    visited = new WeakSet<SubgraphNode>(),
     /** The path of subgraph node IDs. */
     subgraphNodePath: readonly NodeId[] = [],
-    /** Internal recursion param. The list of nodes to add to. */
-    nodes: ExecutableLGraphNode[] = [],
-    /** Internal recursion param. The set of visited nodes. */
-    visited = new Set<SubgraphNode>(),
   ): ExecutableLGraphNode[] {
     if (visited.has(this)) throw new RecursionError("while flattening subgraph")
     visited.add(this)
 
     const subgraphInstanceIdPath = [...subgraphNodePath, this.id]
 
-    // Store the subgraph node DTO
-    const parentSubgraphNode = this.graph.rootGraph.resolveSubgraphIdPath(subgraphNodePath).at(-1)
-    const subgraphNodeDto = new ExecutableNodeDTO(this, subgraphNodePath, executableNodes, parentSubgraphNode)
-    executableNodes.set(subgraphNodeDto.id, subgraphNodeDto)
-
     for (const node of this.subgraph.nodes) {
       if ("getInnerNodes" in node) {
-        node.getInnerNodes(executableNodes, subgraphInstanceIdPath, nodes, new Set(visited))
+        node.getInnerNodes(nodes, visited, subgraphInstanceIdPath)
       } else {
         // Create minimal DTOs rather than cloning the node
-        const aVeryRealNode = new ExecutableNodeDTO(node, subgraphInstanceIdPath, executableNodes, this)
-        executableNodes.set(aVeryRealNode.id, aVeryRealNode)
+        const aVeryRealNode = new ExecutableNodeDTO(node, subgraphInstanceIdPath, this)
         nodes.push(aVeryRealNode)
       }
     }
     return nodes
-  }
-
-  override removeWidgetByName(name: string): void {
-    const widget = this.widgets.find(w => w.name === name)
-    if (widget) {
-      this.subgraph.events.dispatch("widget-demoted", { widget, subgraphNode: this })
-    }
-    super.removeWidgetByName(name)
-  }
-
-  override ensureWidgetRemoved(widget: IBaseWidget): void {
-    if (this.widgets.includes(widget)) {
-      this.subgraph.events.dispatch("widget-demoted", { widget, subgraphNode: this })
-    }
-    super.ensureWidgetRemoved(widget)
-  }
-
-  override onRemoved(): void {
-    // Clean up all subgraph event listeners
-    this.#eventAbortController.abort()
-
-    // Clean up all promoted widgets
-    for (const widget of this.widgets) {
-      this.subgraph.events.dispatch("widget-demoted", { widget, subgraphNode: this })
-    }
-
-    for (const input of this.inputs) {
-      input._listenerController?.abort()
-    }
   }
 }

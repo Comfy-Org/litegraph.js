@@ -29,6 +29,7 @@ import type {
 } from "./interfaces"
 import type { LGraph } from "./LGraph"
 import type {
+  CanvasMouseEvent,
   CanvasPointerEvent,
   CanvasPointerExtensions,
 } from "./types/events"
@@ -36,7 +37,6 @@ import type { ClipboardItems, SubgraphIO } from "./types/serialisation"
 import type { NeverNever } from "./types/utility"
 import type { PickNevers } from "./types/utility"
 import type { IBaseWidget } from "./types/widgets"
-import type { UUID } from "./utils/uuid"
 
 import { LinkConnector } from "@/canvas/LinkConnector"
 
@@ -47,7 +47,7 @@ import { strokeShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId, type NodeProperty } from "./LGraphNode"
-import { createUuidv4, LiteGraph, Rectangle, SubgraphNode } from "./litegraph"
+import { LiteGraph, Rectangle, SubgraphNode } from "./litegraph"
 import { type LinkId, LLink } from "./LLink"
 import {
   containsRect,
@@ -114,7 +114,7 @@ interface ICreateNodeOptions {
   // FIXME: Should not be optional
   /** choose a nodetype to add, AUTO to set at first good */
   nodeType?: string
-  e?: CanvasPointerEvent
+  e?: CanvasMouseEvent
   allow_searchbox?: boolean
 }
 
@@ -189,8 +189,6 @@ interface ClipboardPasteResult {
   links: Map<LinkId, LLink>
   /** Map: original reroute IDs to newly created reroutes */
   reroutes: Map<RerouteId, Reroute>
-  /** Map: original subgraph IDs to newly created subgraphs */
-  subgraphs: Map<UUID, Subgraph>
 }
 
 /** Options for {@link LGraphCanvas.pasteFromClipboard}. */
@@ -504,7 +502,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   /** to personalize the search box */
   onSearchBox?: (helper: Element, str: string, canvas: LGraphCanvas) => any
   onSearchBoxSelection?: (name: any, event: any, canvas: LGraphCanvas) => void
-  onMouse?: (e: CanvasPointerEvent) => boolean
+  onMouse?: (e: CanvasMouseEvent) => boolean
   /** to render background objects (behind nodes and connections) in the canvas affected by transform */
   onDrawBackground?: (ctx: CanvasRenderingContext2D, visible_area: any) => void
   /** to render foreground objects (above nodes and connections) in the canvas affected by transform */
@@ -592,7 +590,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   selected_group_resizing?: boolean
   /** @deprecated See {@link pointer}.{@link CanvasPointer.dragStarted dragStarted} */
   last_mouse_dragging?: boolean
-  onMouseDown?: (arg0: CanvasPointerEvent) => void
+  onMouseDown?: (arg0: CanvasMouseEvent) => void
   _highlight_pos?: Point
   _highlight_input?: INodeInputSlot
   // TODO: Check if panels are used
@@ -1729,7 +1727,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   bindEvents(): void {
     if (this._events_binded) {
-      console.warn("LGraphCanvas: events already bound")
+      console.warn("LGraphCanvas: events already binded")
       return
     }
 
@@ -1773,7 +1771,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   unbindEvents(): void {
     if (!this._events_binded) {
-      console.warn("LGraphCanvas: no events bound")
+      console.warn("LGraphCanvas: no events binded")
       return
     }
 
@@ -1913,7 +1911,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    * @param node The node that the mouse is now over
    * @param e MouseEvent that is triggering this
    */
-  updateMouseOverNodes(node: LGraphNode | null, e: CanvasPointerEvent): void {
+  updateMouseOverNodes(node: LGraphNode | null, e: CanvasMouseEvent): void {
     if (!this.graph) throw new NullGraphError()
 
     const { pointer } = this
@@ -2109,21 +2107,9 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     // clone node ALT dragging
     if (LiteGraph.alt_drag_do_clone_nodes && e.altKey && !e.ctrlKey && node && this.allow_interaction) {
-      let newType = node.type
-
-      if (node instanceof SubgraphNode) {
-        const cloned = node.subgraph
-          .clone()
-          .asSerialisable()
-
-        const subgraph = graph.createSubgraph(cloned)
-        subgraph.configure(cloned)
-        newType = subgraph.id
-      }
-
       const node_data = node.clone()?.serialize()
       if (node_data?.type != null) {
-        const cloned = LiteGraph.createNode(newType)
+        const cloned = LiteGraph.createNode(node_data.type)
         if (cloned) {
           cloned.configure(node_data)
           cloned.pos[0] += 5
@@ -3164,7 +3150,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    * Called when the mouse moves off the canvas.  Clears all node hover states.
    * @param e
    */
-  processMouseOut(e: PointerEvent): void {
+  processMouseOut(e: MouseEvent): void {
     // TODO: Check if document.contains(e.relatedTarget) - handle mouseover node textarea etc.
     this.adjustMouseEvent(e)
     this.updateMouseOverNodes(null, e)
@@ -3320,10 +3306,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       groups: [],
       reroutes: [],
       links: [],
-      subgraphs: [],
     }
-
-    const subgraphs = new Set<Subgraph>()
 
     // Create serialisable objects
     for (const item of items ?? this.selectedItems) {
@@ -3346,11 +3329,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
             if (link) serialisable.links.push(link)
           }
         }
-
-        // Find all unique referenced subgraphs
-        if (item instanceof SubgraphNode) {
-          subgraphs.add(item.subgraph)
-        }
       } else if (item instanceof LGraphGroup) {
         // Groups
         serialisable.groups.push(item.serialize())
@@ -3358,15 +3336,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         // Reroutes
         serialisable.reroutes.push(item.asSerialisable())
       }
-    }
-
-    // Add unique subgraph entries
-    // TODO: Must find all nested subgraphs
-    for (const subgraph of subgraphs) {
-      const cloned = subgraph
-        .clone(true)
-        .asSerialisable()
-      serialisable.subgraphs.push(cloned)
     }
 
     localStorage.setItem(
@@ -3423,7 +3392,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     parsed.groups ??= []
     parsed.reroutes ??= []
     parsed.links ??= []
-    parsed.subgraphs ??= []
 
     // Find top-left-most boundary
     let offsetX = Infinity
@@ -3448,22 +3416,10 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
       nodes: new Map<NodeId, LGraphNode>(),
       links: new Map<LinkId, LLink>(),
       reroutes: new Map<RerouteId, Reroute>(),
-      subgraphs: new Map<UUID, Subgraph>(),
     }
     const { created, nodes, links, reroutes } = results
 
     // const failedNodes: ISerialisedNode[] = []
-
-    // Subgraphs
-    for (const info of parsed.subgraphs) {
-      // SubgraphV2: Remove always-clone behaviour
-      const originalId = info.id
-      info.id = createUuidv4()
-
-      const subgraph = graph.createSubgraph(info)
-      subgraph.configure(info)
-      results.subgraphs.set(originalId, subgraph)
-    }
 
     // Groups
     for (const info of parsed.groups) {
@@ -3477,10 +3433,6 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
 
     // Nodes
     for (const info of parsed.nodes) {
-      // If the subgraph was cloned, update references to use the new subgraph ID.
-      const subgraph = results.subgraphs.get(info.type)
-      if (subgraph) info.type = subgraph.id
-
       const node = info.type == null ? null : LiteGraph.createNode(info.type)
       if (!node) {
         // failedNodes.push(info)
@@ -3662,7 +3614,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   processSelect<TPositionable extends Positionable = LGraphNode>(
     item: TPositionable | null | undefined,
-    e: CanvasPointerEvent | undefined,
+    e: CanvasMouseEvent | undefined,
     sticky: boolean = false,
   ): void {
     const addModifier = e?.shiftKey
@@ -3765,7 +3717,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   }
 
   /** @deprecated See {@link LGraphCanvas.processSelect} */
-  processNodeSelected(item: LGraphNode, e: CanvasPointerEvent): void {
+  processNodeSelected(item: LGraphNode, e: CanvasMouseEvent): void {
     this.processSelect(
       item,
       e,
@@ -3942,7 +3894,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
    */
   adjustMouseEvent<T extends MouseEvent>(
     e: T & Partial<CanvasPointerExtensions>,
-  ): asserts e is T & CanvasPointerEvent {
+  ): asserts e is T & CanvasMouseEvent {
     let clientX_rel = e.clientX
     let clientY_rel = e.clientY
 
@@ -4299,7 +4251,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
   }
 
   /** @returns If the pointer is over a link centre marker, the link segment it belongs to.  Otherwise, `undefined`.  */
-  #getLinkCentreOnPos(e: CanvasPointerEvent): LinkSegment | undefined {
+  #getLinkCentreOnPos(e: CanvasMouseEvent): LinkSegment | undefined {
     for (const linkSegment of this.renderedPaths) {
       const centre = linkSegment._pos
       if (!centre) continue
@@ -5729,7 +5681,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     return LGraphCanvas.getBoundaryNodes(this.selected_nodes)
   }
 
-  showLinkMenu(segment: LinkSegment, e: CanvasPointerEvent): boolean {
+  showLinkMenu(segment: LinkSegment, e: CanvasMouseEvent): boolean {
     const { graph } = this
     if (!graph) throw new NullGraphError()
 
@@ -6145,7 +6097,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     title: string,
     value: any,
     callback: (arg0: any) => void,
-    event: CanvasPointerEvent,
+    event: CanvasMouseEvent,
     multiline?: boolean,
   ): HTMLDivElement {
     const that = this
@@ -7558,7 +7510,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     return group.getMenuOptions()
   }
 
-  processContextMenu(node: LGraphNode | undefined, event: CanvasPointerEvent): void {
+  processContextMenu(node: LGraphNode | undefined, event: CanvasMouseEvent): void {
     const canvas = LGraphCanvas.active_canvas
     const ref_window = canvas.getCanvasWindow()
 

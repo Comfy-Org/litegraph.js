@@ -565,7 +565,6 @@ export class LiteGraphGlobal {
 
     // callback
     node.onNodeCreated?.()
-
     return node
   }
 
