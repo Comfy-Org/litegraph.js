@@ -11,15 +11,26 @@ import { LGraphEventMode } from "@/litegraph"
 
 import { Subgraph } from "./Subgraph"
 
+export type ExecutionId = string
+
 /**
  * Interface describing the data transfer objects used when compiling a graph for execution.
  */
-export type ExecutableLGraphNode = Omit<ExecutableNodeDTO, "graph" | "node" | "subgraphNodePath" | "subgraphNode">
+export type ExecutableLGraphNode = Omit<ExecutableNodeDTO, "graph" | "node" | "subgraphNode">
 
-type NodeAndInput = {
+/**
+ * The end result of resolving a DTO input.
+ * When a widget value is returned, {@link widgetInfo} is present and {@link origin_slot} is `-1`.
+ */
+type ResolvedInput = {
+  /** DTO for the node that the link originates from. */
   node: ExecutableLGraphNode
-  origin_id: NodeId
+  /** Full unique execution ID of the node that the link originates from. In the case of a widget value, this is the ID of the subgraph node. */
+  origin_id: ExecutionId
+  /** The slot index of the output on the node that the link originates from. `-1` when widget value is set. */
   origin_slot: number
+  /** Boxed widget value (e.g. for widgets). If this box is `undefined`, then an input link is connected, and widget values from the subgraph node are ignored. */
+  widgetInfo?: { value: unknown }
 }
 
 /**
@@ -35,7 +46,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
   inputs: { linkId: number | null, name: string, type: ISlotType }[]
 
   /** Backing field for {@link id}. */
-  #id: NodeId
+  #id: ExecutionId
 
   /**
    * The path to the acutal node through subgraph instances, represented as a list of all subgraph node IDs (instances),
@@ -74,11 +85,17 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     return this.node.widgets
   }
 
+  get subgraphId() {
+    return this.subgraphNode?.subgraph.id
+  }
+
   constructor(
     /** The actual node that this DTO wraps. */
     readonly node: LGraphNode | SubgraphNode,
     /** A list of subgraph instance node IDs from the root graph to the containing instance. @see {@link id} */
     readonly subgraphNodePath: readonly NodeId[],
+    /** A flattened map of all DTOs in this node network. Subgraph instances have been expanded into their inner nodes. */
+    readonly nodesByExecutionId: Map<ExecutionId, ExecutableLGraphNode>,
     /** The actual subgraph instance that contains this node, otherise undefined. */
     readonly subgraphNode?: SubgraphNode,
   ) {
@@ -101,7 +118,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
 
   /** Returns either the DTO itself, or the DTOs of the inner nodes of the subgraph. */
   getInnerNodes(): ExecutableLGraphNode[] {
-    return this.subgraphNode ? this.subgraphNode.getInnerNodes() : [this]
+    return this.subgraphNode ? this.subgraphNode.getInnerNodes(this.nodesByExecutionId, this.subgraphNodePath) : [this]
   }
 
   /**
@@ -112,7 +129,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * If overriding, ensure that the set is passed on all recursive calls.
    * @returns The node and the origin ID / slot index of the output.
    */
-  resolveInput(slot: number, visited = new Set<string>()): NodeAndInput | undefined {
+  resolveInput(slot: number, visited = new Set<string>()): ResolvedInput | undefined {
     const uniqueId = `${this.subgraphNode?.subgraph.id}:${this.node.id}[I]${slot}`
     if (visited.has(uniqueId)) throw new RecursionError(`While resolving subgraph input [${uniqueId}]`)
     visited.add(uniqueId)
@@ -135,15 +152,26 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
 
       // Nothing connected
       const linkId = subgraphNodeInput.link
-      if (linkId == null) return
+      if (linkId == null) {
+        const widget = subgraphNode.getWidgetFromSlot(subgraphNodeInput)
+        if (!widget) return
+
+        // Special case: SubgraphNode widget.
+        return {
+          node: this,
+          origin_id: this.id,
+          origin_slot: -1,
+          widgetInfo: { value: widget.value },
+        }
+      }
 
       const outerLink = subgraphNode.graph.getLink(linkId)
       if (!outerLink) throw new InvalidLinkError(`No outer link found for slot [${link.origin_slot}] ${input.name}`)
 
-      // Translate subgraph node IDs to instances (not worth optimising yet)
-      const subgraphNodes = this.graph.rootGraph.resolveSubgraphIdPath(this.subgraphNodePath)
+      const subgraphNodeExecutionId = this.subgraphNodePath.join(":")
+      const subgraphNodeDto = this.nodesByExecutionId.get(subgraphNodeExecutionId)
+      if (!subgraphNodeDto) throw new Error(`No subgraph node DTO found for id [${subgraphNodeExecutionId}]`)
 
-      const subgraphNodeDto = new ExecutableNodeDTO(subgraphNode, this.subgraphNodePath.slice(0, -1), subgraphNodes.at(-2))
       return subgraphNodeDto.resolveInput(outerLink.target_slot, visited)
     }
 
@@ -151,7 +179,9 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     const outputNode = this.graph.getNodeById(link.origin_id)
     if (!outputNode) throw new InvalidLinkError(`No input node found for id [${this.id}] slot [${slot}] ${input.name}`)
 
-    const outputNodeDto = new ExecutableNodeDTO(outputNode, this.subgraphNodePath, subgraphNode)
+    const outputNodeExecutionId = [...this.subgraphNodePath, outputNode.id].join(":")
+    const outputNodeDto = this.nodesByExecutionId.get(outputNodeExecutionId)
+    if (!outputNodeDto) throw new Error(`No output node DTO found for id [${outputNodeExecutionId}]`)
 
     return outputNodeDto.resolveOutput(link.origin_slot, input.type, visited)
   }
@@ -163,7 +193,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * @param visited A set of unique IDs to guard against infinite recursion. See {@link resolveInput}.
    * @returns The node and the origin ID / slot index of the output.
    */
-  resolveOutput(slot: number, type: ISlotType, visited: Set<string>): NodeAndInput | undefined {
+  resolveOutput(slot: number, type: ISlotType, visited: Set<string>): ResolvedInput | undefined {
     const uniqueId = `${this.subgraphNode?.subgraph.id}:${this.node.id}[O]${slot}`
     if (visited.has(uniqueId)) throw new RecursionError(`While resolving subgraph output [${uniqueId}]`)
     visited.add(uniqueId)
@@ -194,6 +224,19 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     if (node.isVirtualNode) {
       if (this.inputs.at(slot)) return this.resolveInput(slot, visited)
 
+      // Fallback check for nodes performing link redirection
+      const virtualLink = this.node.getInputLink(slot)
+      if (virtualLink) {
+        const outputNode = this.graph.getNodeById(virtualLink.origin_id)
+        if (!outputNode) throw new InvalidLinkError(`Virtual node failed to resolve parent [${this.id}] slot [${slot}]`)
+
+        const outputNodeExecutionId = [...this.subgraphNodePath, outputNode.id].join(":")
+        const outputNodeDto = this.nodesByExecutionId.get(outputNodeExecutionId)
+        if (!outputNodeDto) throw new Error(`No output node DTO found for id [${outputNode.id}]`)
+
+        return outputNodeDto.resolveOutput(virtualLink.origin_slot, type, visited)
+      }
+
       // Virtual nodes without a matching input should be discarded.
       return
     }
@@ -211,7 +254,7 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
    * @param visited A set of unique IDs to guard against infinite recursion. See {@link resolveInput}.
    * @returns A DTO for the node, and the origin ID / slot index of the output.
    */
-  #resolveSubgraphOutput(slot: number, type: ISlotType, visited: Set<string>): NodeAndInput | undefined {
+  #resolveSubgraphOutput(slot: number, type: ISlotType, visited: Set<string>): ResolvedInput | undefined {
     const { node } = this
     const output = node.outputs.at(slot)
 
@@ -226,7 +269,10 @@ export class ExecutableNodeDTO implements ExecutableLGraphNode {
     if (!innerNode) throw new Error(`No output node found for id [${this.id}] slot [${slot}] ${output.name}`)
 
     // Recurse into the subgraph
-    const innerNodeDto = new ExecutableNodeDTO(innerNode, [...this.subgraphNodePath, node.id], node)
+    const innerNodeExecutionId = [...this.subgraphNodePath, node.id, innerNode.id].join(":")
+    const innerNodeDto = this.nodesByExecutionId.get(innerNodeExecutionId)
+    if (!innerNodeDto) throw new Error(`No inner node DTO found for id [${innerNodeExecutionId}]`)
+
     return innerNodeDto.resolveOutput(innerResolved.link.origin_slot, type, visited)
   }
 }

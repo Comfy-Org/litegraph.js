@@ -1,6 +1,6 @@
 import type { Point } from "@/interfaces"
 import type { CanvasPointer, LGraphCanvas, LGraphNode, Size } from "@/litegraph"
-import type { CanvasMouseEvent, CanvasPointerEvent } from "@/types/events"
+import type { CanvasPointerEvent } from "@/types/events"
 import type { IBaseWidget } from "@/types/widgets"
 
 import { drawTextInArea } from "@/draw"
@@ -24,7 +24,7 @@ export interface DrawTruncatingTextOptions extends DrawWidgetOptions {
 }
 
 export interface WidgetEventOptions {
-  e: CanvasMouseEvent
+  e: CanvasPointerEvent
   node: LGraphNode
   canvas: LGraphCanvas
 }
@@ -75,7 +75,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
     canvas?: LGraphCanvas,
     node?: LGraphNode,
     pos?: Point,
-    e?: CanvasMouseEvent,
+    e?: CanvasPointerEvent,
   ): void
   mouse?(event: CanvasPointerEvent, pointerOffset: Point, node: LGraphNode): boolean
   computeSize?(width?: number): Size
@@ -142,7 +142,7 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
 
   // TODO: Resolve this workaround. Ref: https://github.com/Comfy-Org/litegraph.js/issues/1022
   get _displayValue(): string {
-    return String(this.value)
+    return this.computedDisabled ? "" : String(this.value)
   }
 
   get labelBaseline() {
@@ -281,5 +281,20 @@ export abstract class BaseWidget<TWidget extends IBaseWidget = IBaseWidget> impl
 
     node.onWidgetChanged?.(this.name ?? "", v, oldValue, this)
     if (node.graph) node.graph._version++
+  }
+
+  /**
+   * Clones the widget.
+   * @param node The node that will own the cloned widget.
+   * @returns A new widget with the same properties as the original
+   * @remarks Subclasses with custom constructors must override this method.
+   *
+   * Correctly and safely typing this is currently not possible (practical?) in TypeScript 5.8.
+   */
+  createCopyForNode(node: LGraphNode): this {
+    // @ts-expect-error
+    const cloned: this = new (this.constructor as typeof this)(this, node)
+    cloned.value = this.value
+    return cloned
   }
 }

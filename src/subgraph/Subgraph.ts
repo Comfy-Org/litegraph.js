@@ -5,7 +5,7 @@ import type { ExportedSubgraph, ExposedWidget, ISerialisedGraph, Serialisable, S
 
 import { CustomEventTarget } from "@/infrastructure/CustomEventTarget"
 import { type BaseLGraph, LGraph } from "@/LGraph"
-import { createUuidv4 } from "@/litegraph"
+import { createUuidv4 } from "@/utils/uuid"
 
 import { SubgraphInput } from "./SubgraphInput"
 import { SubgraphInputNode } from "./SubgraphInputNode"
@@ -68,7 +68,9 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     if (inputs) {
       this.inputs.length = 0
       for (const input of inputs) {
-        this.inputs.push(new SubgraphInput(input, this.inputNode))
+        const subgraphInput = new SubgraphInput(input, this.inputNode)
+        this.inputs.push(subgraphInput)
+        this.events.dispatch("input-added", { input: subgraphInput })
       }
     }
 
@@ -209,8 +211,17 @@ export class Subgraph extends LGraph implements BaseLGraph, Serialisable<Exporte
     this.outputNode.draw(ctx, colorContext)
   }
 
-  clone(): Subgraph {
-    return new Subgraph(this.rootGraph, this.asSerialisable())
+  /**
+   * Clones the subgraph, creating an identical copy with a new ID.
+   * @returns A new subgraph with the same configuration, but a new ID.
+   */
+  clone(keepId: boolean = false): Subgraph {
+    const exported = this.asSerialisable()
+    if (!keepId) exported.id = createUuidv4()
+
+    const subgraph = new Subgraph(this.rootGraph, exported)
+    subgraph.configure(exported)
+    return subgraph
   }
 
   override asSerialisable(): ExportedSubgraph & Required<Pick<SerialisableGraph, "nodes" | "groups" | "extra">> {

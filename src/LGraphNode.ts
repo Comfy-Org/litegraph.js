@@ -27,7 +27,7 @@ import type { LGraph } from "./LGraph"
 import type { Reroute, RerouteId } from "./Reroute"
 import type { SubgraphInputNode } from "./subgraph/SubgraphInputNode"
 import type { SubgraphOutputNode } from "./subgraph/SubgraphOutputNode"
-import type { CanvasMouseEvent } from "./types/events"
+import type { CanvasPointerEvent } from "./types/events"
 import type { NodeLike } from "./types/NodeLike"
 import type { ISerialisedNode, SubgraphIO } from "./types/serialisation"
 import type { IBaseWidget, IWidgetOptions, TWidgetType, TWidgetValue } from "./types/widgets"
@@ -37,6 +37,7 @@ import { NullGraphError } from "./infrastructure/NullGraphError"
 import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
+import { LGraphNodeProperties } from "./LGraphNodeProperties"
 import { type LGraphNodeConstructor, LiteGraph, type Subgraph, type SubgraphNode } from "./litegraph"
 import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
@@ -233,6 +234,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
   widgets?: IBaseWidget[]
+
+  /** Property manager for this node */
+  changeTracker: LGraphNodeProperties
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
@@ -566,7 +570,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     canvas: LGraphCanvas,
     canvasElement: HTMLCanvasElement,
   ): void
-  onMouseLeave?(this: LGraphNode, e: CanvasMouseEvent): void
+  onMouseLeave?(this: LGraphNode, e: CanvasPointerEvent): void
   /**
    * Override the default slot menu options.
    */
@@ -585,10 +589,10 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     file: any,
   ): void
   onDropFile?(this: LGraphNode, file: any): void
-  onInputClick?(this: LGraphNode, index: number, e: CanvasMouseEvent): void
-  onInputDblClick?(this: LGraphNode, index: number, e: CanvasMouseEvent): void
-  onOutputClick?(this: LGraphNode, index: number, e: CanvasMouseEvent): void
-  onOutputDblClick?(this: LGraphNode, index: number, e: CanvasMouseEvent): void
+  onInputClick?(this: LGraphNode, index: number, e: CanvasPointerEvent): void
+  onInputDblClick?(this: LGraphNode, index: number, e: CanvasPointerEvent): void
+  onOutputClick?(this: LGraphNode, index: number, e: CanvasPointerEvent): void
+  onOutputDblClick?(this: LGraphNode, index: number, e: CanvasPointerEvent): void
   // TODO: Return type
   onGetPropertyInfo?(this: LGraphNode, property: string): any
   onNodeOutputAdd?(this: LGraphNode, value: unknown): void
@@ -601,26 +605,26 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     this: LGraphNode,
     entries: (IContextMenuValue<INodeSlotContextItem> | null)[],
   ): (IContextMenuValue<INodeSlotContextItem> | null)[]
-  onMouseUp?(this: LGraphNode, e: CanvasMouseEvent, pos: Point): void
-  onMouseEnter?(this: LGraphNode, e: CanvasMouseEvent): void
+  onMouseUp?(this: LGraphNode, e: CanvasPointerEvent, pos: Point): void
+  onMouseEnter?(this: LGraphNode, e: CanvasPointerEvent): void
   /** Blocks drag if return value is truthy. @param pos Offset from {@link LGraphNode.pos}. */
   onMouseDown?(
     this: LGraphNode,
-    e: CanvasMouseEvent,
+    e: CanvasPointerEvent,
     pos: Point,
     canvas: LGraphCanvas,
   ): boolean
   /** @param pos Offset from {@link LGraphNode.pos}. */
   onDblClick?(
     this: LGraphNode,
-    e: CanvasMouseEvent,
+    e: CanvasPointerEvent,
     pos: Point,
     canvas: LGraphCanvas,
   ): void
   /** @param pos Offset from {@link LGraphNode.pos}. */
   onNodeTitleDblClick?(
     this: LGraphNode,
-    e: CanvasMouseEvent,
+    e: CanvasPointerEvent,
     pos: Point,
     canvas: LGraphCanvas,
   ): void
@@ -652,7 +656,7 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   onRemoved?(this: LGraphNode): void
   onMouseMove?(
     this: LGraphNode,
-    e: MouseEvent,
+    e: CanvasPointerEvent,
     pos: Point,
     arg2: LGraphCanvas,
   ): void
@@ -687,7 +691,13 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       error: this.#getErrorStrokeStyle,
       selected: this.#getSelectedStrokeStyle,
     }
+
+    // Initialize property manager with tracked properties
+    this.changeTracker = new LGraphNodeProperties(this)
   }
+
+  /** Internal callback for subgraph nodes. Do not implement externally. */
+  _internalConfigureAfterSlots?(): void
 
   /**
    * configure a node from an object containing the serialized info
@@ -753,6 +763,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       }
       this.onOutputAdded?.(output)
     }
+
+    // SubgraphNode callback.
+    this._internalConfigureAfterSlots?.()
 
     if (this.widgets) {
       for (const w of this.widgets) {
@@ -1786,6 +1799,38 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     const widget = toConcreteWidget(custom_widget, this, false) ?? custom_widget
     this.widgets.push(widget)
     return widget
+  }
+
+  removeWidgetByName(name: string): void {
+    const widget = this.widgets?.find(x => x.name === name)
+    if (widget) this.removeWidget(widget)
+  }
+
+  removeWidget(widget: IBaseWidget): void {
+    if (!this.widgets) throw new Error("removeWidget called on node without widgets")
+
+    const widgetIndex = this.widgets.indexOf(widget)
+    if (widgetIndex === -1) throw new Error("Widget not found on this node")
+
+    // Clean up slot references to prevent memory leaks
+    if (this.inputs) {
+      for (const input of this.inputs) {
+        if (input._widget === widget) {
+          input._widget = undefined
+          delete input.widget
+        }
+      }
+    }
+
+    this.widgets.splice(widgetIndex, 1)
+  }
+
+  ensureWidgetRemoved(widget: IBaseWidget): void {
+    try {
+      this.removeWidget(widget)
+    } catch (error) {
+      console.debug("Failed to remove widget", error)
+    }
   }
 
   move(deltaX: number, deltaY: number): void {
