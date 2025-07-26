@@ -3210,6 +3210,8 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
         scale *= 1 / (this.zoom_speed)
       }
       this.ds.changeScale(scale, [e.clientX, e.clientY])
+    } else if (LiteGraph.canvasNavigationMode === "standard" && e.shiftKey) {
+      this.ds.offset[0] -= e.deltaY * 1.18 * (1 / scale)
     } else if (
       LiteGraph.macTrackpadGestures &&
       (!LiteGraph.macGesturesRequireMac || navigator.userAgent.includes("Mac"))
