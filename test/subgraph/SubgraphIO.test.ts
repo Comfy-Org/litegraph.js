@@ -158,7 +158,7 @@ describe("SubgraphIO - Output Slot Dual-Nature Behavior", () => {
     subgraph.renameOutput(outputToRename, "new_name")
 
     // Connection should persist and subgraph definition should be updated
-    expect(externalNode.inputs[0].link).not.toBe(null)
+    expect(subgraphNode.inputs[0].link).not.toBe(null)
     expect(subgraph.outputs[0].label).toBe("new_name")
     expect(subgraph.outputs[0].displayName).toBe("new_name")
   })
@@ -349,3 +349,38 @@ describe("SubgraphIO - Advanced Scenarios", () => {
     expect(instance3.outputs.length).toBe(2)
   })
 })
+
+describe("SubgraphIO - Empty Slot Connection", () => {
+  subgraphTest("creates new input and connects when dragging from empty slot", ({ subgraphWithNode }) => {
+    const { subgraph, subgraphNode, parentGraph } = subgraphWithNode;
+
+    // Mock the context menu selection
+    const targetNode = new LGraphNode("Target Node");
+    targetNode.addInput("in", "string");
+    parentGraph.add(targetNode);
+
+    // Simulate the connection process that the context menu would trigger
+    // The -1 indicates a connection from the "empty" slot
+    subgraphNode.connectByType(-1, targetNode, "string");
+
+    // 1. A new input should have been created on the subgraph
+    expect(subgraph.inputs.length).toBe(2); // Fixture adds one input already
+    const newInput = subgraph.inputs[1];
+    expect(newInput.name).toBe("in");
+    expect(newInput.type).toBe("string");
+
+    // 2. The subgraph node should now have a corresponding real input slot
+    expect(subgraphNode.inputs.length).toBe(2);
+    const subgraphInputSlot = subgraphNode.inputs[1];
+    expect(subgraphInputSlot.name).toBe("in");
+
+    // 3. A link should be established to this new slot
+    expect(subgraphInputSlot.link).not.toBe(null);
+    const link = parentGraph.links[subgraphInputSlot.link!];
+    expect(link).toBeDefined();
+    expect(link.target_id).toBe(targetNode.id);
+    expect(link.target_slot).toBe(0);
+    expect(link.origin_id).toBe(subgraphNode.id);
+    expect(link.origin_slot).toBe(1); // Should be the second slot
+  });
+});
