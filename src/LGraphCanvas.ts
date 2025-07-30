@@ -43,7 +43,7 @@ import { LinkConnector } from "@/canvas/LinkConnector"
 import { isOverNodeInput, isOverNodeOutput } from "./canvas/measureSlots"
 import { CanvasPointer } from "./CanvasPointer"
 import { type AnimationOptions, DragAndScale } from "./DragAndScale"
-import { strokeShape } from "./draw"
+import { SlotShape, strokeShape } from "./draw"
 import { NullGraphError } from "./infrastructure/NullGraphError"
 import { LGraphGroup } from "./LGraphGroup"
 import { LGraphNode, type NodeId, type NodeProperty } from "./LGraphNode"
@@ -4253,7 +4253,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
           )
 
           ctx.beginPath()
-          if (connType === LiteGraph.EVENT || connShape === RenderShape.BOX) {
+          if (connType === LiteGraph.EVENT || connShape === SlotShape.Box) {
             ctx.rect(pos[0] - 6 + 0.5, pos[1] - 5 + 0.5, 14, 10)
             ctx.rect(
               highlightPos[0] - 6 + 0.5,
@@ -4261,7 +4261,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
               14,
               10,
             )
-          } else if (connShape === RenderShape.ARROW) {
+          } else if (connShape === SlotShape.Arrow) {
             ctx.moveTo(pos[0] + 8, pos[1] + 0.5)
             ctx.lineTo(pos[0] - 4, pos[1] + 6 + 0.5)
             ctx.lineTo(pos[0] - 4, pos[1] - 6 + 0.5)
@@ -4353,7 +4353,7 @@ export class LGraphCanvas implements CustomEventDispatcher<LGraphCanvasEventMap>
     ctx.beginPath()
     const shape = this._highlight_input?.shape
 
-    if (shape === RenderShape.ARROW) {
+    if (shape === SlotShape.Arrow) {
       ctx.moveTo(highlightPos[0] + 8, highlightPos[1] + 0.5)
       ctx.lineTo(highlightPos[0] - 4, highlightPos[1] + 6 + 0.5)
       ctx.lineTo(highlightPos[0] - 4, highlightPos[1] - 6 + 0.5)

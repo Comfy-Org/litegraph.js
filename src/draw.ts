@@ -22,6 +22,43 @@ export enum SlotShape {
   HollowCircle = RenderShape.HollowCircle,
 }
 
+/**
+ * Validates and converts a shape value to a valid SlotShape.
+ * Provides backward compatibility for RenderShape values that aren't valid for slots.
+ * @param shape The shape value to validate (can be RenderShape, SlotShape, or any number)
+ * @returns A valid SlotShape value, or undefined if input was undefined/null
+ */
+export function validateSlotShape(shape: RenderShape | SlotShape | number | undefined | null): SlotShape | undefined {
+  if (shape == null) return undefined
+
+  // Check if it's already a valid SlotShape value
+  if (Object.values(SlotShape).includes(shape as SlotShape)) {
+    return shape as SlotShape
+  }
+
+  // Handle RenderShape values that aren't valid for slots
+  switch (shape) {
+  case RenderShape.BOX:
+    return SlotShape.Box
+  case RenderShape.ROUND:
+    return SlotShape.Circle // Convert rounded rectangle to circle for slots
+  case RenderShape.CIRCLE:
+    return SlotShape.Circle
+  case RenderShape.CARD:
+    return SlotShape.Box // Convert card shape to box for slots
+  case RenderShape.ARROW:
+    return SlotShape.Arrow
+  case RenderShape.GRID:
+    return SlotShape.Grid
+  case RenderShape.HollowCircle:
+    return SlotShape.HollowCircle
+  default:
+    // For any invalid/unknown values, default to circle
+    console.warn(`Invalid slot shape value: ${shape}. Defaulting to Circle.`)
+    return SlotShape.Circle
+  }
+}
+
 /** @see LinkDirection */
 export enum SlotDirection {
   Up = LinkDirection.UP,
