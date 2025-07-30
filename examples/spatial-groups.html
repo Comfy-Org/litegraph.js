@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Spatial Group Management Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        #canvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            margin-bottom: 10px;
+        }
+        
+        .info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .performance {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spatial Group Management Demo</h1>
+    <p>This demo shows the new R-Tree based group management system. Click to query groups at cursor position.</p>
+    
+    <div class="controls">
+        <button onclick="addRandomGroups(10)">Add 10 Random Groups</button>
+        <button onclick="addNestedGroups()">Add Nested Groups</button>
+        <button onclick="clearGroups()">Clear All Groups</button>
+        <button onclick="runPerformanceTest()">Performance Test</button>
+    </div>
+    
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <div class="info">
+        <div>Groups: <span id="groupCount">0</span></div>
+        <div>Hover to see group at cursor</div>
+        <div>Current Group: <span id="currentGroup">None</span></div>
+        <div class="performance">Last Query Time: <span id="queryTime">-</span>ms</div>
+    </div>
+
+    <script type="module">
+        import { LGraph, LGraphGroup, GroupManager } from '../dist/litegraph.js'
+        
+        // Setup
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+        const graph = new LGraph()
+        
+        let groups = []
+        let colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff']
+        
+        // UI Elements
+        const groupCountEl = document.getElementById('groupCount')
+        const currentGroupEl = document.getElementById('currentGroup')
+        const queryTimeEl = document.getElementById('queryTime')
+        
+        // Add some initial groups
+        addNestedGroups()
+        
+        // Event handlers
+        canvas.addEventListener('mousemove', handleMouseMove)
+        canvas.addEventListener('click', handleClick)
+        
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect()
+            const x = e.clientX - rect.left
+            const y = e.clientY - rect.top
+            
+            const start = performance.now()
+            const group = graph.getGroupOnPos(x, y)
+            const end = performance.now()
+            
+            queryTimeEl.textContent = (end - start).toFixed(3)
+            currentGroupEl.textContent = group ? group.title : 'None'
+            
+            render()
+            
+            // Highlight hovered group
+            if (group) {
+                ctx.strokeStyle = '#ff0000'
+                ctx.lineWidth = 3
+                ctx.strokeRect(group.pos[0], group.pos[1], group.size[0], group.size[1])
+            }
+        }
+        
+        function handleClick(e) {
+            const rect = canvas.getBoundingClientRect()
+            const x = e.clientX - rect.left
+            const y = e.clientY - rect.top
+            
+            console.log(`Clicked at (${x}, ${y})`)
+            
+            // Show all groups in a small region around click
+            const region = graph._groupManager.getGroupsInRegion(x - 5, y - 5, x + 5, y + 5)
+            console.log('Groups in region:', region.map(g => g.title))
+            
+            // Show z-order
+            const zorder = graph.groups
+            console.log('Z-order:', zorder.map(g => g.title))
+        }
+        
+        function addRandomGroups(count) {
+            for (let i = 0; i < count; i++) {
+                const group = new LGraphGroup(`Random ${groups.length + 1}`)
+                group.pos = [
+                    Math.random() * (canvas.width - 100),
+                    Math.random() * (canvas.height - 100)
+                ]
+                group.size = [
+                    50 + Math.random() * 100,
+                    50 + Math.random() * 100
+                ]
+                
+                graph.add(group)
+                groups.push(group)
+            }
+            
+            updateUI()
+            render()
+        }
+        
+        function addNestedGroups() {
+            // Create nested hierarchy: Outer -> Middle -> Inner
+            const outer = new LGraphGroup('Outer Group')
+            outer.pos = [50, 50]
+            outer.size = [200, 150]
+            
+            const middle = new LGraphGroup('Middle Group')
+            middle.pos = [75, 75]
+            middle.size = [150, 100]
+            
+            const inner = new LGraphGroup('Inner Group')
+            inner.pos = [100, 100]
+            inner.size = [100, 50]
+            
+            graph.add(outer)
+            graph.add(middle)
+            graph.add(inner)
+            
+            groups.push(outer, middle, inner)
+            
+            updateUI()
+            render()
+        }
+        
+        function clearGroups() {
+            for (const group of groups) {
+                graph.remove(group)
+            }
+            groups = []
+            
+            updateUI()
+            render()
+        }
+        
+        function runPerformanceTest() {
+            console.log('Running performance test...')
+            
+            // Add many groups
+            const testGroups = []
+            for (let i = 0; i < 1000; i++) {
+                const group = new LGraphGroup(`Test ${i}`)
+                group.pos = [Math.random() * 2000, Math.random() * 2000]
+                group.size = [20, 20]
+                graph.add(group)
+                testGroups.push(group)
+            }
+            
+            // Test point queries
+            const start = performance.now()
+            for (let i = 0; i < 10000; i++) {
+                const x = Math.random() * canvas.width
+                const y = Math.random() * canvas.height
+                graph.getGroupOnPos(x, y)
+            }
+            const end = performance.now()
+            
+            console.log(`10,000 point queries with 1,000 groups: ${(end - start).toFixed(2)}ms`)
+            console.log(`Average per query: ${((end - start) / 10000).toFixed(4)}ms`)
+            
+            // Cleanup test groups
+            for (const group of testGroups) {
+                graph.remove(group)
+            }
+            
+            render()
+        }
+        
+        function updateUI() {
+            groupCountEl.textContent = groups.length
+        }
+        
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            
+            // Draw all groups
+            for (let i = 0; i < groups.length; i++) {
+                const group = groups[i]
+                const color = colors[i % colors.length]
+                
+                // Fill
+                ctx.fillStyle = color + '40' // Semi-transparent
+                ctx.fillRect(group.pos[0], group.pos[1], group.size[0], group.size[1])
+                
+                // Border
+                ctx.strokeStyle = color
+                ctx.lineWidth = 2
+                ctx.strokeRect(group.pos[0], group.pos[1], group.size[0], group.size[1])
+                
+                // Title
+                ctx.fillStyle = '#333'
+                ctx.font = '12px Arial'
+                ctx.fillText(group.title, group.pos[0] + 5, group.pos[1] + 15)
+            }
+        }
+        
+        // Make functions global for button onclick
+        window.addRandomGroups = addRandomGroups
+        window.addNestedGroups = addNestedGroups
+        window.clearGroups = clearGroups
+        window.runPerformanceTest = runPerformanceTest
+        
+        // Initial render
+        render()
+    </script>
+</body>
+</html>

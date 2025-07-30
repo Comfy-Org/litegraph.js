@@ -807,9 +807,13 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
       if (node.id > state.lastGroupId) state.lastGroupId = node.id
 
       this._groups.push(node)
+      node.graph = this
+      
+      // Fix nested group interaction by recomputing group stacking order
+      node.recomputeInsideNodes()
+      
       this.setDirtyCanvas(true)
       this.change()
-      node.graph = this
       this._version++
       return
     }
