@@ -37,6 +37,7 @@ import { type GraphOrSubgraph, Subgraph } from "./subgraph/Subgraph"
 import { SubgraphInput } from "./subgraph/SubgraphInput"
 import { SubgraphOutput } from "./subgraph/SubgraphOutput"
 import { getBoundaryLinks, groupResolvedByOutput, mapSubgraphInputsAndLinks, mapSubgraphOutputsAndLinks, multiClone, splitPositionables } from "./subgraph/subgraphUtils"
+import { validateNoSubgraphCycles } from "./subgraph/utils/cycleDetection"
 import { Alignment, LGraphEventMode } from "./types/globalEnums"
 import { getAllNestedItems } from "./utils/collections"
 
@@ -1411,6 +1412,9 @@ export class LGraph implements LinkNetwork, BaseLGraph, Serialisable<Serialisabl
     const resolvedOutputLinks = boundaryOutputLinks.map(x => x.resolve(this))
 
     const clonedNodes = multiClone(nodes)
+
+    // Validate that we won't create circular references
+    validateNoSubgraphCycles(Array.from(nodes), this)
 
     // Inputs, outputs, and links
     const links = internalLinks.map(x => x.asSerialisable())
