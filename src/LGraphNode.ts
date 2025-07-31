@@ -37,6 +37,7 @@ import { NullGraphError } from "./infrastructure/NullGraphError"
 import { Rectangle } from "./infrastructure/Rectangle"
 import { BadgePosition, LGraphBadge } from "./LGraphBadge"
 import { LGraphCanvas } from "./LGraphCanvas"
+import { LGraphNodeProperties } from "./LGraphNodeProperties"
 import { type LGraphNodeConstructor, LiteGraph, type Subgraph, type SubgraphNode } from "./litegraph"
 import { LLink } from "./LLink"
 import { createBounds, isInRect, isInRectangle, isPointInRect, snapPoint } from "./measure"
@@ -233,6 +234,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
   properties_info: INodePropertyInfo[] = []
   flags: INodeFlags = {}
   widgets?: IBaseWidget[]
+
+  /** Property manager for this node */
+  changeTracker: LGraphNodeProperties
   /**
    * The amount of space available for widgets to grow into.
    * @see {@link layoutWidgets}
@@ -687,6 +691,9 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       error: this.#getErrorStrokeStyle,
       selected: this.#getSelectedStrokeStyle,
     }
+
+    // Initialize property manager with tracked properties
+    this.changeTracker = new LGraphNodeProperties(this)
   }
 
   /** Internal callback for subgraph nodes. Do not implement externally. */
