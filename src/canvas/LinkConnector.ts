@@ -162,14 +162,16 @@ export class LinkConnector {
 
         try {
           const reroute = network.getReroute(link.parentId)
-          const renderLink = new ToInputFromIoNodeLink(network, network.inputNode, subgraphInput, reroute)
+          const renderLink = new ToInputFromIoNodeLink(network, network.inputNode, subgraphInput, reroute, LinkDirection.CENTER, link)
 
           // Note: We don't dispatch the before-move-input event for subgraph input links
           // as the event type doesn't support ToInputFromIoNodeLink
 
           renderLinks.push(renderLink)
 
-          link.disconnect(network, "input")
+          this.listenUntilReset("input-moved", () => {
+            link.disconnect(network, "input")
+          })
         } catch (error) {
           console.warn(`Could not create render link for subgraph input link id: [${link.id}].`, link, error)
           return
@@ -189,7 +191,9 @@ export class LinkConnector {
           renderLinks.push(renderLink)
 
           this.listenUntilReset("input-moved", (e) => {
-            e.detail.link.disconnect(network, "output")
+            if ("link" in e.detail && e.detail.link) {
+              e.detail.link.disconnect(network, "output")
+            }
           })
         } catch (error) {
           console.warn(`Could not create render link for link id: [${link.id}].`, link, error)
