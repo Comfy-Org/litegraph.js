@@ -60,6 +60,8 @@ export class SubgraphNode extends LGraphNode implements BaseLGraph {
     subgraphEvents.addEventListener("input-added", (e) => {
       const subgraphInput = e.detail.input
       const { name, type } = subgraphInput
+      if (this.inputs.some(i => i.name == name))
+        return
       const input = this.addInput(name, type)
 
       this.#addSubgraphInputListeners(subgraphInput, input)
