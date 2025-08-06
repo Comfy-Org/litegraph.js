@@ -1,3 +1,36 @@
+# ⛔ ARCHIVED - Comfy-Org/litegraph.js has been merged into ComfyUI Frontend
+
+> **This repository is archived and no longer maintained. The code has been integrated directly into the ComfyUI Frontend repository.**
+
+## 🚀 New Location
+
+As of August 5, 2025, Comfy-Org/litegraph.js is now part of the ComfyUI Frontend monorepo:
+
+- **Source Code**: https://github.com/Comfy-Org/ComfyUI_frontend/tree/main/src/lib/litegraph
+- **Repository**: https://github.com/Comfy-Org/ComfyUI_frontend
+- **Pull Request**: https://github.com/Comfy-Org/ComfyUI_frontend/pull/4667
+- **Architecture Decision**: https://github.com/Comfy-Org/ComfyUI_frontend/blob/main/docs/adr/0001-merge-litegraph-into-frontend.md
+
+## 📝 For Developers
+
+- **Report Issues**: Please report any issues at https://github.com/Comfy-Org/ComfyUI_frontend/issues
+- **Contribute**: All contributions should be made to the ComfyUI Frontend repository
+- **Import Path**: Changed from `@comfyorg/litegraph` to `@/lib/litegraph` within ComfyUI
+
+## 🔄 Migration Details
+
+The complete git history has been preserved using git subtree merge. All commits, authors, and timestamps remain intact in the new location.
+
+## ❓ Why Was This Archived?
+
+Comfy-Org/litegraph.js was only used by ComfyUI, and maintaining it as a separate package created unnecessary complexity. The integration enables:
+- Faster development cycles
+- Better architectural refactoring
+- Simplified maintenance
+- No more version mismatch issues
+
+For more details, see the [Architecture Decision Record](https://github.com/Comfy-Org/ComfyUI_frontend/blob/main/docs/adr/0001-merge-litegraph-into-frontend.md).
+
 # @ComfyOrg/litegraph
 
 This is the litegraph version used in [ComfyUI_frontend](https://github.com/Comfy-Org/ComfyUI_frontend).
