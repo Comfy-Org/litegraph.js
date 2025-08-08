@@ -3542,16 +3542,15 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
     return !isHidden
   }
 
+  // sync number of widgets with the number of widgets in the node
   drawWidgets(ctx: CanvasRenderingContext2D, {
     lowQuality = false,
     editorAlpha = 1,
   }: DrawWidgetsOptions): void {
     if (!this.widgets) return
-
     const nodeWidth = this.size[0]
     const { widgets } = this
     const H = LiteGraph.NODE_WIDGET_HEIGHT
-    const showText = !lowQuality
     ctx.save()
     ctx.globalAlpha = editorAlpha
 
@@ -3559,25 +3558,38 @@ export class LGraphNode implements NodeLike, Positionable, IPinnable, IColorable
       if (!this.isWidgetVisible(widget)) continue
 
       const { y } = widget
-      const outlineColour = widget.advanced ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR : LiteGraph.WIDGET_OUTLINE_COLOR
+      const outlineColour = widget.advanced
+        ? LiteGraph.WIDGET_ADVANCED_OUTLINE_COLOR
+        : LiteGraph.WIDGET_OUTLINE_COLOR
 
       widget.last_y = y
-      // Disable widget if it is disabled or if the value is passed from socket connection.
-      widget.computedDisabled = widget.disabled || this.getSlotFromWidget(widget)?.link != null
+
+      // Check if locked: either disabled or has an input connection
+      const connectedSlot = this.getSlotFromWidget(widget)
+      widget.computedDisabled = widget.disabled || connectedSlot?.link != null
+      ;(widget as any).hideValue = connectedSlot?.link != null
 
       ctx.strokeStyle = outlineColour
       ctx.fillStyle = "#222"
       ctx.textAlign = "left"
+
       if (widget.computedDisabled) ctx.globalAlpha *= 0.5
       const width = widget.width || nodeWidth
+
+      const forceHideValue = (widget as any).hideValue
 
       if (typeof widget.draw === "function") {
         widget.draw(ctx, this, width, y, H, lowQuality)
       } else {
-        toConcreteWidget(widget, this, false)?.drawWidget(ctx, { width, showText })
+        toConcreteWidget(widget, this, false)?.drawWidget(ctx, {
+          width,
+          showText: !forceHideValue,
+        })
       }
+
       ctx.globalAlpha = editorAlpha
     }
+
     ctx.restore()
   }
 

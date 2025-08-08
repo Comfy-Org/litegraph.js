@@ -1,6 +1,9 @@
 import type { LGraphNode } from "@/LGraphNode"
 import type { IStringWidget } from "@/types/widgets"
 
+import { drawTextInArea } from "@/draw"
+import { Rectangle } from "@/infrastructure/Rectangle"
+
 import { BaseWidget, type DrawWidgetOptions, type WidgetEventOptions } from "./BaseWidget"
 
 export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidget {
@@ -26,6 +29,18 @@ export class TextWidget extends BaseWidget<IStringWidget> implements IStringWidg
 
     if (showText) {
       this.drawTruncatingText({ ctx, width, leftPadding: 0, rightPadding: 0 })
+    } else {
+      // Just draw the name, truncated
+      const { margin } = BaseWidget
+      const x = margin * 2
+      const area = new Rectangle(x, this.y, width - x - margin, this.height * 0.7)
+      ctx.fillStyle = this.secondary_text_color
+      drawTextInArea({
+        ctx,
+        text: this.displayName,
+        area,
+        align: "left",
+      })
     }
 
     // Restore original context attributes
