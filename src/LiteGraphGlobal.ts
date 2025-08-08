@@ -621,7 +621,7 @@ export class LiteGraphGlobal {
   cloneObject<T extends object | undefined | null>(obj: T, target?: T): WhenNullish<T, null> {
     if (obj == null) return null as WhenNullish<T, null>
 
-    const r = JSON.parse(JSON.stringify(obj))
+    const r = structuredClone(obj)
     if (!target) return r
 
     for (const i in r) {
